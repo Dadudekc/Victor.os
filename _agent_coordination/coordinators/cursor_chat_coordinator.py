@@ -33,7 +33,7 @@ except ImportError:
 # Assuming state machine, bridge adapter, controller are siblings or in known subdirs
 from ..state_machines.task_execution_state_machine import TaskExecutionStateMachine, TaskState # Adjusted path
 from ..bridge_adapters.cursor_bridge_adapter import CursorBridgeAdapter, CursorGoal # Adjusted path
-from ..controllers.cursor_instance_controller import CursorInstanceController, CursorInstance # Adjusted path
+from social.core.coordination.cursor.cursor_instance_controller import CursorInstanceController, CursorInstance # Corrected import as requested
 from ..agent_bus import agent_bus, EventType, Event # Adjusted path
 
 # Use the central logger setup

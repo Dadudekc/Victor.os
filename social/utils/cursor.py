@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Union
 
-from .common import log_event
+from .logging_utils import log_event
 
 logger = logging.getLogger('dreamos.cursor')
 
