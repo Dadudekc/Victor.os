@@ -14,7 +14,7 @@ from reflection_agent import (
     submit_proposal,
     AlertHandler
 )
-from apply_proposals import PROPOSALS_FILE_PATH # Reuse path config
+from _agent_coordination.supervisor_tools.apply_proposals import PROPOSALS_FILE_PATH # Reuse path config
 
 # --- Fixtures --- #
 

@@ -8,14 +8,14 @@ import subprocess # For running script as command line tool
 import re
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
-from apply_proposals import apply_proposal_to_rulebook, update_proposal_status
+from _agent_coordination.supervisor_tools.apply_proposals import apply_proposal_to_rulebook, update_proposal_status
 
 # Add project root to allow importing apply_proposals
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Assuming apply_proposals exists at the root of _agent_coordination
 # If moved later, update this import
-import apply_proposals
+import _agent_coordination.supervisor_tools.apply_proposals as apply_proposals
 
 # --- Fixtures ---
 

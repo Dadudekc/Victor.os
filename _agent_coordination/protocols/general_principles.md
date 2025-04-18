@@ -123,4 +123,23 @@ rules:
       - rulebook.md
       - protocols
     applies_to: all_agents
+```
+
+### Rule GEN-007: Project Root Path Interpretation
+- **ID:** GEN-007
+- **Description:** "All relative file paths specified in tasks, parameters, configuration, or documentation (e.g., paths starting with `./`, `_agent_coordination/`, `core/`, `mailboxes/`) MUST be interpreted as relative to the **Dream.OS project root directory** (e.g., `D:\Dream.os`). Agents MUST resolve paths accordingly, regardless of their own current working directory during execution. Absolute paths should only be used when necessary for external system interaction."
+- **Keywords:** `path resolution`, `project root`, `relative path`, `consistency`, `working directory`
+- **Applies To:** `all_agents`
+
+```yaml
+rules:
+  - id: GEN-007
+    description: "All relative file paths specified in tasks, parameters, configuration, or documentation MUST be interpreted as relative to the Dream.OS project root directory. Agents MUST resolve paths accordingly, regardless of their own current working directory. Absolute paths are discouraged unless essential."
+    keywords:
+      - path resolution
+      - project root
+      - relative path
+      - consistency
+      - working directory
+    applies_to: all_agents
 ``` 

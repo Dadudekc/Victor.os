@@ -13,7 +13,7 @@ Detailed rules and procedures are modularized for clarity and maintainability. R
     - *See: [`../protocols/agent_onboarding_rules.md`](../protocols/agent_onboarding_rules.md)*
 
 2.  **General Operating Principles (`GEN-` Rules):**
-    - Outlines overarching principles for all agents, including continuous operation, problem-solving, communication, and autonomous behavior.
+    - Outlines overarching principles for all agents, including continuous operation, path interpretation (GEN-007), problem-solving, communication, and autonomous behavior.
     - *See: [`../protocols/general_principles.md`](../protocols/general_principles.md)*
 
 3.  **System Maintenance Protocol (`#CLEANUPTIME` / `CLN-` Rules):**

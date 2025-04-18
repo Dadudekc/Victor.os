@@ -1,98 +1,11 @@
 [
-    {
-      "task_id": "CLN_TEST_001",
-      "description": "Add tests for list_items output formatting (requires capturing stdout)",
-      "priority": "medium",
-      "status": "pending",
-      "target_file": "tests/scripts/test_run_qa.py",
-      "keywords": ["testing", "stdout", "formatting"]
-    },
-    {
-      "task_id": "CLN_TEST_002",
-      "description": "Add tests for update_item_status logic (checking data modification)",
-      "priority": "medium",
-      "status": "pending",
-      "target_file": "tests/scripts/test_run_qa.py",
-      "keywords": ["testing", "state", "logic"]
-    },
-    {
-      "task_id": "CLN_TEST_003",
-      "description": "Add test for thread safety of _log_event",
-      "priority": "high",
-      "status": "pending",
-      "target_file": "social/tests/core/test_agent_monitor_agent.py",
-      "keywords": ["testing", "concurrency", "logging", "safety"]
-    },
-    {
-      "task_id": "CLN_AGENT_REFACTOR_001",
-      "description": "Refactor StallAgent to inherit from BaseAgent (Phase 3)",
-      "priority": "high",
-      "status": "pending",
-      "target_file": "agents/recovery/stall_agent.py",
-      "keywords": ["refactor", "inheritance", "BaseAgent", "architecture"]
-    },
-     {
-      "task_id": "CLN_AGENT_REFACTOR_002",
-      "description": "Refactor CursorControlAgent to inherit from BaseAgent (Phase 3)",
-      "priority": "high",
-      "status": "pending",
-      "target_file": "agents/cursor/control_agent.py",
-      "keywords": ["refactor", "inheritance", "BaseAgent", "architecture"]
-    },
-    {
-      "task_id": "CLN_AGENT_IMPL_001",
-      "description": "Implement logic to trigger alerts or actions based on specific agent statuses (e.g., frequent errors)",
-      "priority": "medium",
-      "status": "pending",
-      "target_file": "agents/dreamforge/agents/agent_monitor_agent.py",
-      "keywords": ["implementation", "monitoring", "alerting", "error handling"]
-    },
-    {
-      "task_id": "CLN_AGENT_IMPL_002",
-      "description": "Implement actual Facebook API commenting logic",
-      "priority": "low",
-      "status": "pending",
-      "target_file": "agents/social/strategies/facebook_strategy.py",
-      "keywords": ["implementation", "api", "social", "facebook"]
-    },
-      {
-      "task_id": "CLN_AGENT_IMPL_003",
-      "description": "Implement actual Twitter API integration",
-      "priority": "low",
-      "status": "pending",
-      "target_file": "agents/social/strategies/twitter_strategy.py",
-      "keywords": ["implementation", "api", "social", "twitter"]
-    },
-    {
-      "task_id": "CLN_AGENT_STATE_001",
-      "description": "Re-evaluate state management location for CursorControlAgent",
-      "priority": "medium",
-      "status": "pending",
-      "target_file": "agents/cursor/control_agent.py",
-      "keywords": ["state management", "refactor", "architecture"]
-    },
-    {
-      "task_id": "CLN_CORE_CONFIG_001",
-      "description": "Centralize log/runtime path configuration",
-      "priority": "medium",
-      "status": "pending",
-      "target_file": "core/utils/performance_logger.py",
-      "keywords": ["configuration", "logging", "refactor", "centralization"]
-    },
-    {
-      "task_id": "CLN_CORE_MODULE_001",
-      "description": "Expand or reconnect core/coordination/system_diagnostics.py to full version",
-      "priority": "high",
-      "status": "pending",
-      "target_file": "core/coordination/system_diagnostics.py",
-      "keywords": ["core", "module", "implementation", "diagnostics"]
-    },
-      {
-      "task_id": "CLN_DREAMFORGE_IMPL_001",
-      "description": "Replace placeholder with actual LLM call",
-      "priority": "high",
-      "status": "pending",
-      "target_file": "dreamforge/core/llm_bridge.py",
-      "keywords": ["implementation", "llm", "api", "placeholder"]
-    }
-  ]
+  {
+    "task_id": "autoflake-clean-core-utils",
+    "action": "REMOVE_DEAD_CODE",
+    "description": "Remove unused imports/variables from core utilities.",
+    "params": { "target_directory": "core/utils/" },
+    "target_agent": "RefactorAgent",
+    "status": "pending",
+    "priority": 2
+  }
+]

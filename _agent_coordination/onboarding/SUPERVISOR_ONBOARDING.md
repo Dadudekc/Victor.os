@@ -102,4 +102,27 @@ The Supervisor is not just a reviewer of tasks—they are a project-aware strate
 - This enables agents to recover from stalls or rejoin execution loops without needing user input.
 - **Utility:** The command shown utilizes `tools/send_mailbox_message.py`. See `TOOLS_GUIDE.md`.
 
+## 5. Project Health & Scanning Tools
+
+Maintaining project health is crucial. Utilize the following tools, especially the `project_scanner`, for oversight and task generation.
+
+### Project Scanner (`project_scanner`)
+
+*   **Purpose:** Analyzes the codebase, identifies areas for improvement (complexity, TODOs), and extracts actionable tasks from comments.
+*   **Location:** `_agent_coordination/supervisor_tools/project_scanner/` (Requires locating the specific runnable script within, e.g., `cli.py` or `main.py` - currently unresolved).
+*   **Running:** (Once runnable script is found/fixed)
+    ```bash
+    # Example assuming runnable is project_scanner.cli
+    python -m project_scanner.cli scan --project-root . [FLAGS]
+    ```
+*   **Common Flags:**
+    *   `--summarize`: Console snapshot (complexity, TODO/FIXME samples).
+    *   `--save-task-list`: **(Recommended)** Generates/updates `TASKS.md` in project root with all TODOs/FIXMEs.
+    *   `--save-chatgpt-context`: Generates detailed `chatgpt_project_context.json`.
+    *   `--ignore <path>`: Excludes paths (e.g., `.venv`).
+*   **Workflow:** Run regularly with `--save-task-list`, review `TASKS.md`, use it to assign granular tasks to agents.
+*   **Focus Areas:** Use scanner output to address TODOs/FIXMEs, reduce complexity, eliminate placeholders, and ensure professionalism.
+
+*(Note: Refer to the `TOOLS_GUIDE.md` for details on other supervisor utilities like `check_project_structure.py`, `generate_task_list_from_code.py`, etc., mentioned under Advanced Capabilities.)*
+
 --- 

@@ -1,6 +1,7 @@
 # Python cache files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 *.pyo
 *.pyd
 
@@ -29,6 +30,10 @@ todo_report_categories/
 
 # Environment variables
 .env
+.venv
+venv/
+env/
+ENV/
 
 # IDE specific folders
 .vscode/
@@ -44,4 +49,37 @@ build/
 social/social_config.json
 
 # Secrets storage (e.g., cookies)
-secrets/ 
+secrets/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary / Output Files
+*.log
+logs/
+*.tmp
+*.swp
+*.bak
+*.patch
+*.diff
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.out
+
+# Test / Coverage
+.coverage
+htmlcov/
+
+# Specific Project Files to Ignore
+chatgpt_cookies.json
+temp_chats.json
+test_pyqt.py 
