@@ -22,6 +22,13 @@ except ImportError as e:
     print(f"Error importing core modules for integration test: {e}")
     _core_imports_ok = False
 
+# Import the specific functions from the new location
+from agents.dreamforge.core.prompt_staging_service import write_to_cursor_input, read_from_cursor_output
+
+# Assume other necessary imports like SocialMediaAgent, TaskContext, process_feedback are correct
+from social.core.agents.social_media_agent import SocialMediaAgent
+from core.models.task_context import TaskContext
+
 @unittest.skipUnless(_core_imports_ok, "Core dependencies not met, skipping integration test")
 class TestFullPromptCycleSimulation(unittest.TestCase):
 
@@ -29,15 +36,17 @@ class TestFullPromptCycleSimulation(unittest.TestCase):
     @patch('core.prompt_staging_service.load_state')
     @patch('core.prompt_staging_service._load_project_analysis')
     @patch('core.prompt_staging_service.template_engine')
-    @patch('tools.chat_cursor_bridge.write_to_cursor_input')
-    @patch('tools.chat_cursor_bridge.read_from_cursor_output')
+    @patch('agents.dreamforge.core.prompt_staging_service.write_to_cursor_input')
+    @patch('agents.dreamforge.core.prompt_staging_service.read_from_cursor_output')
+    @patch('social.core.agents.social_media_agent.PromptRenderer')
     def test_simulated_prompt_cycle(self, 
-                                  mock_read_bridge, 
-                                  mock_write_bridge, 
+                                  mock_read_output, 
+                                  mock_write_input, 
                                   mock_template_engine, 
                                   mock_load_analysis, 
                                   mock_load_state, 
-                                  mock_log_event):
+                                  mock_log_event,
+                                  mock_renderer):
         """Simulate the full prompt cycle from rendering to response fetching."""
         # --- Arrange --- 
         
@@ -55,11 +64,11 @@ class TestFullPromptCycleSimulation(unittest.TestCase):
         mock_template_engine.jinja_env = True # Assume engine is available
 
         # 3. Mock Bridge Write
-        mock_write_bridge.return_value = True # Simulate successful write
+        mock_write_input.return_value = True # Simulate successful write
 
         # 4. Mock Bridge Read (Simulate response arriving)
         simulated_response = {"status": "success", "output": "LLM response data"}
-        mock_read_bridge.return_value = simulated_response
+        mock_read_output.return_value = simulated_response
         
         # --- Act --- 
         
@@ -69,13 +78,13 @@ class TestFullPromptCycleSimulation(unittest.TestCase):
         # Step 3: Stage the prompt (write to bridge)
         staged_ok = False
         if final_rendered_prompt:
-            staged_ok = chat_cursor_bridge.write_to_cursor_input(final_rendered_prompt)
+            staged_ok = write_to_cursor_input(final_rendered_prompt)
         
         # Step 4 & 5: Fetch the response (read from bridge)
         fetched_response = None
         if staged_ok: # Only try to read if staging worked
             # In a real scenario, there might be a wait here
-            fetched_response = chat_cursor_bridge.read_from_cursor_output()
+            fetched_response = read_from_cursor_output()
             
         # Step 6: Log results (Implicitly done by the services, checked in asserts)
         
@@ -94,10 +103,10 @@ class TestFullPromptCycleSimulation(unittest.TestCase):
         
         # Verify bridge write call
         self.assertTrue(staged_ok)
-        mock_write_bridge.assert_called_once_with(rendered_output)
+        mock_write_input.assert_called_once_with(rendered_output)
         
         # Verify bridge read call
-        mock_read_bridge.assert_called_once()
+        mock_read_output.assert_called_once()
         self.assertEqual(fetched_response, simulated_response)
         
         # Verify logging calls (using ANY for context details where needed)

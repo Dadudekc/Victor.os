@@ -4,7 +4,8 @@ import subprocess
 import time
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
-from tools.cursor_dispatcher import generate_cursor_prompt_from_context, dispatch_to_cursor
+from dream_mode.agents.cursor_dispatcher import generate_cursor_prompt_from_context, dispatch_to_cursor
+from core.models.task_context import TaskContext
 
 def log_event(event_type, agent_id, data):
     """Mock log_event function for test coverage reporting."""
