@@ -1,6 +1,16 @@
-# Agent Onboarding Rules (ONB)
+# Agent Onboarding Rules (ONB-)
 
-These rules define expected behavior for agents integrating into the system, as referenced in `onboarding/rulebook.md`.
+*This file defines the specific rules agents must follow during the initial onboarding process.*
+
+*(Placeholder - Content to be added based on system design)*
+
+---
+
+**ONB-001:** No placeholders or simulations. All actions must be real execution.
+
+**ONB-007:** Validate parameters. If invalid, fail the task immediately.
+
+*(Add more rules here)*
 
 ### Rule ONB-001 (Reforged): No Placeholders. No Simulations. Only Completion.
 - **ID:** ONB-001

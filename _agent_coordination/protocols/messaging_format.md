@@ -119,4 +119,75 @@ A `TASK_COMPLETED` event with a `results` payload containing a JSON list of task
 
 - Tasks must conform to the global `task_list.json` schema.
 - Planning agents may inject additional metadata or dependencies if needed.
-- This message type enables agents to recursively expand goals into sub-actions. 
+- This message type enables agents to recursively expand goals into sub-actions.
+
+# Messaging Format Protocol
+
+*This file defines the standard formats for messages exchanged between agents, primarily via shared mailboxes in this version.*
+
+*(Placeholder - Content to be added based on system design)*
+
+---
+
+## 1. Shared Mailbox Message Structure (`mailbox_N.json`)
+
+Each mailbox file (`mailbox_1.json`, etc.) has the following top-level structure:
+
+```json
+{
+  "status": "online" | "offline" | "idle" | "busy",
+  "assigned_agent_id": "<agent_id>" | null,
+  "last_seen_utc": "<iso_timestamp>",
+  "messages": [
+    // Array of message objects (see below)
+  ],
+  "processed_message_ids": [
+    "<message_id_1>",
+    "<message_id_2>",
+    ...
+  ]
+}
+```
+
+## 2. Individual Message Object (within `messages[]`)
+
+Each object within the `messages` array follows this structure:
+
+```json
+{
+  "message_id": "<unique_uuid>", // Automatically generated upon sending
+  "sender_agent_id": "<agent_id>" | "System" | "User",
+  "timestamp_dispatched": "<iso_timestamp>",
+  "command": "<action_verb>", // e.g., "refactor_file", "run_test", "request_status"
+  "params": {
+    // Key-value pairs specific to the command
+    // Example: "target_file": "path/to/file.py"
+  },
+  "task_id": "<optional_tracking_id>" // Optional: For linking to a master task list
+}
+```
+
+## 3. Status Reporting Structure (`completed_tasks.json`)
+
+This file is an **append-only JSON Lines** file. Each line is a complete JSON object representing a task outcome:
+
+```json
+// Line 1
+{"message_id": "msg_uuid_1", "task_id": "task_abc", "agent_id": "RefactorAgent", "status": "COMPLETED", "timestamp": "<iso_timestamp>", "output": {"files_changed": 1, "details": "..."}, "error_details": null}
+// Line 2
+{"message_id": "msg_uuid_2", "task_id": "task_def", "agent_id": "TestAgent", "status": "FAILED", "timestamp": "<iso_timestamp>", "output": null, "error_details": {"code": "AssertionError", "message": "Test failed..."}}
+// ... more lines
+```
+
+*Key Fields:*
+- `message_id`: The ID of the message that triggered the task.
+- `task_id`: Optional ID linking to a broader task.
+- `agent_id`: The agent reporting the status.
+- `status`: `COMPLETED` or `FAILED`.
+- `timestamp`: Time of completion/failure.
+- `output`: JSON object with successful execution details (optional).
+- `error_details`: JSON object with failure reason (only if `status` is `FAILED`).
+
+---
+
+*(Further details on specific commands and parameters should be documented elsewhere, potentially linked from the command registry or specific agent docs.)* 

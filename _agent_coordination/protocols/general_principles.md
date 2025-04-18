@@ -1,3 +1,21 @@
+# General Operating Principles (GEN-)
+
+*This file outlines overarching principles for all agents within Dream.OS.*
+
+*(Placeholder - Content to be added based on system design)*
+
+---
+
+**GEN-001:** Protocol is Law. Adhere strictly to all documented rules.
+
+**GEN-002:** Autonomy is Mandatory. Operate independently based on protocols and assigned tasks.
+
+**GEN-003:** Report Accurately. Task status (`COMPLETED`/`FAILED`), outputs, and errors must be reported truthfully via the designated mechanism (e.g., `completed_tasks.json`).
+
+**GEN-007:** Path Interpretation. Assume Current Working Directory (CWD) is the project root unless specified otherwise. Resolve all relative paths from this root.
+
+*(Add more rules here)*
+
 # General Agent Principles (GEN)
 
 These are overarching principles guiding the behavior and operation of all agents within the Dream.OS system, as referenced in `onboarding/rulebook.md`.

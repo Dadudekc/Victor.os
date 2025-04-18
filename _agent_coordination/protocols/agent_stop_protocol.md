@@ -56,4 +56,22 @@ Agents MUST use the standard `governance_memory_engine.log_event` function.
 ## 6. Implementation Notes
 
 *   Agents should be designed to recognize these specific pause conditions and generate this log event just before entering the waiting state.
-*   The focus is on capturing pauses related to *process* and *rules*, not technical execution failures. 
+*   The focus is on capturing pauses related to *process* and *rules*, not technical execution failures.
+
+# Agent Stop Protocol (STP-)
+
+*This file outlines the procedures for gracefully stopping or shutting down agents.*
+
+*(Placeholder - Content to be added based on system design)*
+
+---
+
+**STP-001:** Listen for Shutdown Signal. Agents must periodically check for a system-wide shutdown signal (e.g., threading event, specific message) and initiate shutdown procedures when detected.
+
+**STP-002:** Complete Current Task (If Possible). Before stopping, attempt to finish the current task or save state to allow resumption. If not possible, report task as `FAILED` with reason 'ShutdownInterrupt'.
+
+**STP-003:** Release Mailbox. Follow the procedure in `agent_onboarding_prompt.md` (Phase 2, Step 4) to mark the mailbox as `offline` and `assigned_agent_id` as `null`, ensuring file locks are used.
+
+**STP-004:** Clean Exit. Terminate the agent process cleanly with exit code 0 after completing shutdown procedures.
+
+*(Add more rules here, e.g., for forced shutdowns)* 

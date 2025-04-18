@@ -1,5 +1,4 @@
 # Agent Coordination Documentation
-
 This directory contains essential documents for coordinating agent behavior and understanding system-wide protocols within the Dream.OS project.
 
 Consult these documents to understand how agents should operate, communicate, and integrate within the broader system.

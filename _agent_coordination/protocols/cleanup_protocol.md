@@ -1,3 +1,25 @@
+# System Maintenance Protocol (#CLEANUPTIME / CLN-)
+
+*This file governs agent behavior during the dedicated system state focused on self-repair, refactoring, and coherence enforcement.*
+
+*(Placeholder - Content to be added based on system design)*
+
+---
+
+**CLN-001:** Cleanup Trigger. The `#CLEANUPTIME` state can be triggered by a Supervisor, a schedule, or specific system events (e.g., high error rates).
+
+**CLN-002:** Task Focus. During cleanup, agents should prioritize tasks related to:
+    - Code refactoring (e.g., applying `black`, `isort`, `autoflake`).
+    - Dependency updates.
+    - Documentation generation/updates.
+    - Removing dead code.
+    - Verifying protocol adherence.
+    - Running integration tests.
+
+**CLN-003:** Specific Agent Roles. Certain agents (e.g., `RefactorAgent`, `DocAgent`) may have primary responsibility during cleanup, while others pause non-essential tasks.
+
+*(Add more rules here, e.g., coordination methods during cleanup, specific tools to use)*
+
 # Cleanup Protocol (CLN)
 
 **ID:** PROTOCOL-CLEANUP-001

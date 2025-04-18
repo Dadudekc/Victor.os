@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 from prometheus_client import REGISTRY
 
 # Import the module under test
-from tools.cursor_result_listener import (
+from _agent_coordination.tools.cursor_result_listener import (
     update_execution_metrics,
     update_error_metrics,
     update_queue_metrics,

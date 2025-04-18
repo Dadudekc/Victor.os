@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
 class TaskType(str, Enum):
-    """Task types for inter-agent communication."""
+    """General task types for inter-agent or system communication."""
     
     # Code Generation Tasks
     GENERATE_TESTS = "generate_tests"

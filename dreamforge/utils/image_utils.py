@@ -1,20 +1,3 @@
-import os
-import sys
+"""Placeholder for image processing utilities specific to the dreamforge module."""
 
-# Add project root to sys.path
-script_dir = os.path.dirname(__file__) # social/utils
-project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Example imports
-try:
-    # from PIL import Image
-    pass
-except ImportError as e:
-    print(f"[ImageUtils] Warning: Failed to import dependencies: {e}")
-
-
-def some_image_function():
-    # ... (rest of function)
-    pass 
+# Add image utility functions here as needed.

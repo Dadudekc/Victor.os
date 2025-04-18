@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 from prometheus_client import REGISTRY
 
-from tools.cursor_result_listener import (
+from _agent_coordination.tools.cursor_result_listener import (
     CursorResultListener,
     CursorResultError,
     MalformedResponseError,
@@ -23,7 +23,7 @@ from tools.cursor_result_listener import (
 @pytest.fixture
 def mock_config_service():
     """Mock configuration service."""
-    with patch('tools.cursor_result_listener.config_service') as mock:
+    with patch('_agent_coordination.tools.cursor_result_listener.config_service') as mock:
         mock.get.side_effect = lambda key, default: {
             "cursor.poll_interval": 0.1,
             "cursor.metrics_port": 8000,
@@ -40,7 +40,7 @@ def mock_config_service():
 @pytest.fixture
 def mock_log_event():
     """Mock log_event function."""
-    with patch('tools.cursor_result_listener.log_event') as mock:
+    with patch('_agent_coordination.tools.cursor_result_listener.log_event') as mock:
         mock.return_value = True
         yield mock
 
@@ -61,7 +61,7 @@ def test_dirs(tmp_path):
 @pytest.fixture
 def listener(test_dirs, mock_config_service, mock_log_event):
     """Create CursorResultListener instance with test configuration."""
-    with patch('tools.cursor_result_listener.Path') as mock_path:
+    with patch('_agent_coordination.tools.cursor_result_listener.Path') as mock_path:
         mock_path.return_value = Path("/tmp")
         listener = CursorResultListener()
         # Override paths with test directories
@@ -233,7 +233,7 @@ async def test_process_file_cursor_error(listener, sample_prompt_file):
 @pytest.mark.asyncio
 async def test_main_loop_startup_shutdown(listener):
     """Test main loop startup and graceful shutdown."""
-    with patch('tools.cursor_result_listener.start_http_server'):
+    with patch('_agent_coordination.tools.cursor_result_listener.start_http_server'):
         # Start listener in background task
         listener_task = asyncio.create_task(listener.start())
         
@@ -262,7 +262,7 @@ async def test_main_loop_file_processing(listener, test_dirs):
         }))
         files.append(file_path)
     
-    with patch('tools.cursor_result_listener.start_http_server'):
+    with patch('_agent_coordination.tools.cursor_result_listener.start_http_server'):
         # Start listener in background
         listener_task = asyncio.create_task(listener.start())
         
@@ -430,5 +430,48 @@ def test_production_config_validation(mock_config_service):
         value = mock_config_service.get(setting, None)
         assert value is not None, f"Missing required production setting: {setting}"
 
+# --- CLI Entrypoint Test ---
+
+def test_cli_entrypoint():
+    """Test the main() CLI entrypoint with basic arguments."""
+    # Mock os.makedirs to avoid actual directory creation
+    with patch('os.makedirs'), \
+         patch('sys.argv', ['script_name', '--verbose']), \
+         patch('_agent_coordination.tools.cursor_result_listener.start_http_server'), \
+         patch('asyncio.run') as mock_run, \
+         patch('_agent_coordination.tools.cursor_result_listener.CursorResultListener') as MockListener:
+
+        # Mock the listener instance and its methods
+        mock_listener_instance = MockListener.return_value
+        mock_listener_instance.start = AsyncMock()
+        mock_listener_instance.stop = AsyncMock()
+
+        # Run the main function from the module
+        from _agent_coordination.tools.cursor_result_listener import main as listener_main
+        listener_main()
+
+        # Assertions
+        MockListener.assert_called_once()
+        mock_run.assert_called_once()
+        # Check if asyncio.run was called with listener.start()
+        # The actual coroutine might be wrapped, so check the structure or call args
+        # This part might need adjustment based on how main() calls asyncio.run
+        
+        # Verify signal handlers were set (if possible to mock/check)
+        # Example: Check if signal.signal was called with expected arguments
+
+# --- Coverage Test (optional example) ---
+# This test executes the main script with coverage analysis enabled
+
+# def test_script_coverage():
+#     """Run the script with coverage measurement."""
+#     try:
+#         # Using pytest.main to run coverage
+#         # This requires coverage package to be installed
+#         # Adjust path as necessary
+#         pytest.main(['-v', '--cov=_agent_coordination.tools.cursor_result_listener', '--cov-report=html'])
+#     except Exception as e:
+#         pytest.fail(f"Coverage test failed: {e}")
+
 if __name__ == '__main__':
-    pytest.main(['-v', '--cov=tools.cursor_result_listener', '--cov-report=html']) 
+    pytest.main(['-v', '--cov=_agent_coordination.tools.cursor_result_listener', '--cov-report=html']) 

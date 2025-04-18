@@ -66,7 +66,7 @@ class DeploymentAgent:
         # Run pytest with coverage
         result = await self.cmd.run_command(
             "pytest tests/tools/test_cursor_result_listener.py -v "
-            "--cov=tools.cursor_result_listener --cov-report=html"
+            "--cov=_agent_coordination.tools.cursor_result_listener --cov-report=html"
         )
         
         if "failed" in result.lower():
@@ -163,7 +163,7 @@ class DeploymentAgent:
             User=dream
             Group=dream
             WorkingDirectory=/opt/dream
-            ExecStart=/usr/bin/python3 -m tools.cursor_result_listener
+            ExecStart=/usr/bin/python3 -m _agent_coordination.tools.cursor_result_listener
             Restart=always
             RestartSec=5
 
