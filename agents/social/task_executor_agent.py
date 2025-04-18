@@ -1,187 +1,216 @@
 """
-Agent responsible for reading tasks from a list, dispatching them to appropriate agents
-via the AgentBus, and potentially monitoring their status.
+Agent responsible for receiving TASK_QUEUED events, dispatching corresponding
+command events to target agents via the AgentBus, and processing status events
+(TASK_COMPLETED, TASK_FAILED) to update task status via TaskStatusUpdater.
 """
 import logging
 import os
-import sys
-import json
+# Removed sys path manipulation
+# import sys
+# Removed json/os imports related to direct file access
+# import json
 import time
 import threading
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-# Adjust path for sibling imports if necessary
-script_dir = os.path.dirname(__file__)
-parent_dir = os.path.dirname(script_dir)
-utils_dir = os.path.join(parent_dir, 'utils') # Path to core/utils
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-if utils_dir not in sys.path:
-    sys.path.append(utils_dir) # Add utils dir for TaskStatusUpdater import
+# Canonical imports
+from core.coordination.agent_bus import AgentBus
+from core.coordination.dispatcher import Event, EventType
 
+# Status Updater Utility (ensure its path/import is correct)
 try:
-    from coordination.agent_bus import AgentBus, Message
-    # Import the new utility
-    from task_status_updater import TaskStatusUpdater
+    from utils.task_status_updater import TaskStatusUpdater
 except ImportError as e:
-     logger.warning(f"Could not import relatively: {e}. Assuming execution context provides modules.")
-     # Define dummy classes if needed for standalone script execution
-     class AgentBus:
-         def register_agent(self, *args, **kwargs): pass
-         def send_message(self, *args, **kwargs): return "dummy_msg_id"
-         def register_handler(self, *args, **kwargs): pass
-     class Message:
-         sender = "DummySender"
-         status = "SUCCESS"
-         payload = {}
-         task_id = "dummy-task-id"
-         id = "dummy-msg_id"
-     class TaskStatusUpdater:
-         def __init__(self, *args, **kwargs): pass
-         def update_task_status(self, *args, **kwargs): 
-             print("[DummyTaskStatusUpdater] Update called with:", args, kwargs)
-             return True
+     # Fallback path if utils is not directly under core
+     try:
+         from task_status_updater import TaskStatusUpdater
+     except ImportError:
+         logger.critical(f"CRITICAL: Could not import TaskStatusUpdater utility: {e}. TaskExecutorAgent will not function.")
+         # Define dummy for basic loading, but agent will fail
+         class TaskStatusUpdater:
+             def __init__(self, *args, **kwargs): pass
+             def update_task_status(self, *args, **kwargs): logger.error("Dummy TaskStatusUpdater called!"); return False
 
-# Ensure logger setup if not done globally
-if not logging.getLogger().hasHandlers():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# TaskStatus constants might still be needed by TaskStatusUpdater or for interpreting data
+try:
+    from agents.task_executor_agent import TaskStatus # Defines standard status strings
+except ImportError:
+     logger.warning("Could not import TaskStatus constants definition.")
+     class TaskStatus:
+        PENDING = "PENDING"; INVALID = "INVALID"; DISPATCHED = "DISPATCHED"; DISPATCH_FAILED = "DISPATCH_FAILED"
+        RUNNING = "RUNNING"; COMPLETED = "COMPLETED"; FAILED = "FAILED"; ERROR = "ERROR"; UNKNOWN = "UNKNOWN"
+
 logger = logging.getLogger(__name__)
 
 AGENT_NAME = "TaskExecutorAgent"
-DEFAULT_TASK_LIST_PATH = "task_list.json"
-# Define known task statuses
-class TaskStatus:
-    PENDING = "PENDING"
-    INVALID = "INVALID"
-    DISPATCHED = "DISPATCHED"
-    DISPATCH_FAILED = "DISPATCH_FAILED"
-    RUNNING = "RUNNING" # Set by target agent
-    COMPLETED = "COMPLETED" # Set by target agent via response/update
-    FAILED = "FAILED" # Set by target agent via response/update
-    ERROR = "ERROR" # Set by target agent via response/update
-    UNKNOWN = "UNKNOWN" # Added for normalization
+# Removed DEFAULT_TASK_LIST_PATH
 
 class TaskExecutorAgent:
-    """Reads tasks from a file and dispatches them via the AgentBus."""
+    """Receives TASK_QUEUED events and orchestrates task execution via other agents."""
 
-    def __init__(self, agent_bus: AgentBus, task_status_updater: TaskStatusUpdater, task_list_path: str = DEFAULT_TASK_LIST_PATH, task_list_lock: Optional[threading.Lock] = None):
+    def __init__(self, agent_bus: AgentBus, task_status_updater: TaskStatusUpdater):
         """
         Initializes the task executor.
 
         Args:
             agent_bus: The central AgentBus instance.
             task_status_updater: The utility for updating task statuses.
-            task_list_path: Path to the JSON file containing the task list.
-            task_list_lock: A threading.Lock() object for synchronizing access to task_list.json
-                          (primarily for reading tasks to dispatch, status updates handled by updater).
         """
         self.agent_name = AGENT_NAME
         self.bus = agent_bus
         self.status_updater = task_status_updater # Store the updater instance
-        self.task_list_path = os.path.abspath(task_list_path)
-        self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
-        # Lock mainly used for reading now
-        self._lock = task_list_lock if task_list_lock else threading.Lock()
-
-        # Ensure task list file exists (read-only check initially)
-        if not os.path.exists(self.task_list_path):
-            logger.warning(f"Task list file not found at {self.task_list_path}, creating an empty one.")
-            try:
-                 # Create directory if it doesn't exist
-                 os.makedirs(os.path.dirname(self.task_list_path), exist_ok=True)
-                 with open(self.task_list_path, 'w') as f:
-                     json.dump([], f)
-            except IOError as e:
-                logger.error(f"Failed to create task list file: {e}")
-                raise
+        self._stop_event = threading.Event() # Kept if background monitoring/cleanup needed
+        self._thread: Optional[threading.Thread] = None # Kept if background tasks added later
 
         # Register agent
-        self.bus.register_agent(self.agent_name, capabilities=["task_execution", "task_status_handling"])
-        # Register handler for messages directed to this agent (e.g., responses)
-        self.bus.register_handler(self.agent_name, self.handle_response)
-        # Register handler for TASK_STATUS_UPDATE messages if this agent should handle them
-        # (Alternatively, AgentMonitorAgent could handle these based on DEFAULT_UPDATE_TARGET)
-        # self.bus.register_handler(MSG_TYPE_TASK_UPDATE, self.handle_direct_status_update)
+        try:
+            self.bus.register_agent(self.agent_name, capabilities=["task_execution", "task_dispatch"])
+            logger.info(f"{self.agent_name} registered.")
+        except Exception as e:
+            logger.critical(f"Failed to register TaskExecutorAgent: {e}")
+            raise
 
-        logger.info(f"{self.agent_name} initialized. Monitoring task list: {self.task_list_path}")
+        # Register handlers for relevant EventTypes
+        try:
+            # Handle requests to queue and execute a task
+            self.bus.register_handler(EventType.TASK_QUEUED, self.handle_event)
+            # Handle responses indicating task completion/failure
+            self.bus.register_handler(EventType.TASK_COMPLETED, self.handle_event)
+            self.bus.register_handler(EventType.TASK_FAILED, self.handle_event)
+            # Optionally handle progress updates
+            # self.bus.register_handler(EventType.TASK_PROGRESS, self.handle_event)
+            logger.info(f"Registered handlers for {EventType.TASK_QUEUED.name}, {EventType.TASK_COMPLETED.name}, {EventType.TASK_FAILED.name}")
+        except Exception as e:
+            logger.critical(f"Failed to register event handlers for TaskExecutorAgent: {e}")
+            raise # Cannot function without handlers
 
-    def _normalize_status(self, agent_status: Optional[str]) -> str:
-        """Maps agent response status to standardized task status."""
-        if not agent_status:
-            return TaskStatus.UNKNOWN # Or FAILED?
-        status_upper = agent_status.upper()
-        # Map more specific errors to FAILED or ERROR
-        return {
-            "SUCCESS": TaskStatus.COMPLETED,
-            "FAILED": TaskStatus.FAILED,
-            "ERROR": TaskStatus.ERROR,
-            "EXECUTION_ERROR": TaskStatus.ERROR,
-            "BAD_REQUEST": TaskStatus.FAILED,
-            "UNKNOWN_ACTION": TaskStatus.FAILED,
-            "COMPLETED": TaskStatus.COMPLETED, # Handle cases where status is already correct
-            "INVALID_STATE": TaskStatus.FAILED,
-            "TIMEOUT": TaskStatus.FAILED,
-            # Add mappings for other potential agent statuses
-        }.get(status_upper, TaskStatus.UNKNOWN) # Default if status is not explicitly mapped
+        logger.info(f"{self.agent_name} initialized and listening for task events.")
 
-    def _load_tasks(self) -> List[Dict[str, Any]]:
-        """Loads tasks from the JSON file. Returns empty list on error."""
-        # Use the shared lock passed to the updater if possible, or the internal one
-        lock_to_use = self.status_updater.lock if hasattr(self.status_updater, 'lock') else self._lock
-        with lock_to_use: # Use the appropriate lock
-            try:
-                with open(self.task_list_path, 'r', encoding='utf-8') as f:
-                    tasks = json.load(f)
-                if not isinstance(tasks, list):
-                    logger.error(f"Invalid format in task list file {self.task_list_path}. Expected a list, got {type(tasks).__name__}.")
-                    return []
-                # Validate basic task structure?
-                return tasks
-            except FileNotFoundError:
-                 logger.error(f"Task list file vanished: {self.task_list_path}")
-                 return []
-            except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON from task list file {self.task_list_path}: {e}")
-                # Optionally attempt to recover or backup the bad file
-                return []
-            except IOError as e:
-                logger.error(f"Error reading task list file {self.task_list_path}: {e}")
-                return []
-            except Exception as e:
-                 logger.error(f"Unexpected error loading tasks: {e}", exc_info=True)
-                 return []
+    def _normalize_status(self, event_type: EventType, event_data: Dict[str, Any]) -> str:
+        """Maps incoming event type/data to a standardized TaskStatus string."""
+        if event_type == EventType.TASK_COMPLETED:
+            return TaskStatus.COMPLETED
+        elif event_type == EventType.TASK_FAILED:
+            # Could potentially differentiate between FAILED and ERROR based on data
+            return TaskStatus.FAILED # Or TaskStatus.ERROR if error details indicate exception
+        # Add handling for TASK_PROGRESS if needed
+        else:
+            logger.warning(f"Attempted to normalize unhandled event type: {event_type.name}")
+            return TaskStatus.UNKNOWN
 
-    def handle_response(self, message: Message):
-        """Handles response messages received from other agents by using the TaskStatusUpdater."""
-        logger.debug(f"{self.agent_name} received response message: Type={message.type}, Sender={message.sender}, Status={message.status}, TaskID={getattr(message, 'task_id', 'N/A')}")
+    # --- REMOVED _load_tasks, _check_dependencies, run_cycle --- 
 
-        task_id = getattr(message, 'task_id', None)
+    def handle_event(self, event: Event):
+        """Handles incoming TASK_QUEUED, TASK_COMPLETED, and TASK_FAILED events."""
+        logger.debug(f"{self.agent_name} received event: Type={event.type.name}, Source={event.source_id}, EventID={event.id}")
+
+        if event.type == EventType.TASK_QUEUED:
+            self._dispatch_task(event)
+        elif event.type in [EventType.TASK_COMPLETED, EventType.TASK_FAILED]:
+            self._process_task_update(event)
+        # Handle TASK_PROGRESS if subscribed
+        # elif event.type == EventType.TASK_PROGRESS:
+        #     self._process_task_update(event) # Might use same logic or dedicated one
+        else:
+            logger.warning(f"Received unexpected event type in handler: {event.type.name}. Ignoring.")
+
+    def _dispatch_task(self, queue_event: Event):
+        """Processes a TASK_QUEUED event and dispatches the actual command event."""
+        task_data = queue_event.data
+        task_id = task_data.get("task_id")
+
         if not task_id:
-            logger.warning(f"Received response message from {message.sender} without a task_id. Cannot update task status. Msg ID: {message.id}")
+            logger.error(f"Received {EventType.TASK_QUEUED.name} event (ID: {queue_event.id}) without a 'task_id' in data. Cannot process.")
+            # Optionally send a TASK_FAILED event back to source?
             return
 
-        # Normalize the status received from the agent
-        final_task_status = self._normalize_status(message.status)
-        if final_task_status not in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.ERROR]:
-            logger.warning(f"Received response for task {task_id} with unhandled status '{message.status}'. Not updating final task status.")
-            # Optionally, update with an 'intermediate' status?
+        # Validate required fields (action, target_agent, params?)
+        action = task_data.get("action")
+        target_agent = task_data.get("target_agent")
+        params = task_data.get("params", {})
+
+        if not action or not target_agent:
+            error_msg = f"Task {task_id} is invalid: Missing 'action' or 'target_agent' in data."
+            logger.error(error_msg + f" (Event ID: {queue_event.id})")
+            self.status_updater.update_task_status(task_id=task_id, status=TaskStatus.INVALID, error_details=error_msg)
             return
 
-        # Extract result or error details from the payload
+        # Determine the EventType for the command based on the action string
+        # This requires a mapping or convention
+        try:
+            # Assuming action string matches EventType enum member name (e.g., action="POST_CONTENT")
+            command_event_type = EventType[action.upper()] 
+        except KeyError:
+            error_msg = f"Task {task_id} has unknown action '{action}'. Cannot map to EventType."
+            logger.error(error_msg + f" (Event ID: {queue_event.id})")
+            self.status_updater.update_task_status(task_id=task_id, status=TaskStatus.INVALID, error_details=error_msg)
+            return
+
+        # Construct the command event payload (usually the 'params' dict)
+        command_data = params
+        # IMPORTANT: Ensure the original task_id is included for correlation in responses
+        # The receiving agent should put this task_id into the correlation_id of its response event
+        command_data["task_id"] = task_id # Let target agent know the task ID its working on
+        command_data["queue_event_id"] = queue_event.id # Optionally pass queue event id too
+
+        command_event = Event(
+            type=command_event_type,
+            source_id=self.agent_name,
+            target_id=target_agent,
+            data=command_data,
+            priority=task_data.get("priority", 0) # Pass priority from queued task
+            # The new event will get its own unique ID automatically
+        )
+
+        try:
+            # Dispatch the actual command event to the target agent
+            self.bus.dispatch(command_event)
+            logger.info(f"Dispatched command event {command_event.id} ({command_event_type.name}) for task {task_id} to agent {target_agent}.")
+
+            # Update task status to DISPATCHED
+            # Store the dispatched command event ID for future reference/correlation?
+            update_success = self.status_updater.update_task_status(
+                task_id=task_id,
+                status=TaskStatus.DISPATCHED,
+                # Optionally store the dispatched command event ID
+                # dispatched_event_id=command_event.id 
+            )
+            if not update_success:
+                logger.error(f"Failed to update task {task_id} status to DISPATCHED after dispatching event {command_event.id}.")
+                # This is problematic, task might run but status is wrong.
+
+        except Exception as e:
+            error_msg = f"Failed to dispatch command event {command_event.id} for task {task_id}: {e}"
+            logger.error(error_msg, exc_info=True)
+            # Update task status to DISPATCH_FAILED
+            self.status_updater.update_task_status(task_id=task_id, status=TaskStatus.DISPATCH_FAILED, error_details=str(e))
+
+    def _process_task_update(self, status_event: Event):
+        """Processes TASK_COMPLETED/TASK_FAILED events using the TaskStatusUpdater."""
+        event_data = status_event.data
+        # Task ID should be in the correlation_id field of the response event data
+        task_id = event_data.get("correlation_id")
+
+        if not task_id:
+            # Compatibility: Check if task_id is directly in payload (older agents might do this)
+            task_id = event_data.get("task_id") 
+            if task_id:
+                 logger.warning(f"Received status event {status_event.id} ({status_event.type.name}) with 'task_id' in data instead of 'correlation_id'. Processing anyway.")
+            else:
+                logger.error(f"Received status event {status_event.id} ({status_event.type.name}) from {status_event.source_id} without 'correlation_id' in data. Cannot link to original task.")
+                return
+
+        # Normalize the status based on the event type
+        final_task_status = self._normalize_status(status_event.type, event_data)
+
+        # Extract result or error details from the event data
         result_summary = None
         error_details = None
         if final_task_status == TaskStatus.COMPLETED:
-            # Try to find a meaningful summary in the payload
-            result_summary = str(message.payload) # Default to string representation
-            if isinstance(message.payload, dict):
-                result_summary = message.payload.get('summary', message.payload.get('result', str(message.payload)))
+            result_summary = str(event_data.get('results', '')) # Adapt based on expected result structure
         elif final_task_status in [TaskStatus.FAILED, TaskStatus.ERROR]:
-             if isinstance(message.payload, dict):
-                error_details = message.payload.get('error', message.payload.get('error_details', str(message.payload)))
-             else:
-                 error_details = str(message.payload) # Store whatever payload came back
+             error_details = str(event_data.get('error', '')) # Adapt based on expected error structure
 
         # Use the TaskStatusUpdater
         success = self.status_updater.update_task_status(
@@ -189,231 +218,57 @@ class TaskExecutorAgent:
             status=final_task_status,
             result_summary=result_summary,
             error_details=error_details,
-            originating_agent=message.sender # Attribute the update to the agent that sent the response
+            originating_agent=status_event.source_id # Agent that completed/failed the task
         )
 
         if not success:
-            logger.error(f"TaskStatusUpdater failed to update status for task '{task_id}' from agent {message.sender}. Check updater logs.")
+            logger.error(f"TaskStatusUpdater failed to update status for task '{task_id}' based on event {status_event.id} from agent {status_event.source_id}.")
         else:
-             logger.info(f"TaskStatusUpdater successfully processed status update for task '{task_id}' to {final_task_status}.")
+             logger.info(f"TaskStatusUpdater successfully processed status update for task '{task_id}' to {final_task_status} based on event {status_event.id}.")
 
-    def _check_dependencies(self, task_to_check: Dict[str, Any], all_tasks_map: Dict[str, Dict[str, Any]]) -> bool:
-        """Checks if all dependencies for a given task are met (status is COMPLETED)."""
-        dependencies = task_to_check.get("depends_on", [])
-        if not dependencies:
-            return True # No dependencies
-        
-        for dep_id in dependencies:
-            dep_task = all_tasks_map.get(dep_id)
-            if not dep_task:
-                logger.warning(f"Task '{task_to_check.get('task_id')}' has unmet dependency: Task '{dep_id}' not found.")
-                # Treat missing dependency as unmet for safety
-                return False
-            if dep_task.get("status") != TaskStatus.COMPLETED:
-                 logger.debug(f"Task '{task_to_check.get('task_id')}' dependency '{dep_id}' not met (Status: {dep_task.get('status')}).")
-                 return False # Dependency not complete
-        
-        logger.debug(f"All dependencies met for task '{task_to_check.get('task_id')}'.")
-        return True
+    # --- REMOVED handle_response (merged into handle_event/_process_task_update) --- 
 
-    def run_cycle(self):
-        """Loads tasks, sorts by priority, checks dependencies, finds pending ones, and dispatches them."""
-        logger.debug(f"{self.agent_name} starting run cycle...")
-        tasks = self._load_tasks()
-        if not tasks:
-            return
-
-        # Create a map for quick dependency lookup
-        tasks_map = {task.get("task_id"): task for task in tasks if isinstance(task, dict) and task.get("task_id")}
-
-        # Sort tasks by priority (lower number = higher priority), PENDING first
-        def sort_key(task):
-            if not isinstance(task, dict):
-                return (float('inf'), float('inf')) # Invalid tasks last
-            status = task.get("status", TaskStatus.PENDING).upper()
-            priority = task.get("priority", 99) # Default priority if missing
-            # Sort PENDING tasks by priority, then other statuses
-            status_order = 0 if status == TaskStatus.PENDING else 1
-            return (status_order, priority)
-
-        sorted_tasks = sorted(tasks, key=sort_key)
-
-        tasks_updated = False
-        for i, task in enumerate(sorted_tasks):
-            if not isinstance(task, dict):
-                 logger.warning(f"Skipping invalid entry in task list (index {i}, original list): Not a dictionary.")
-                 continue
-
-            task_id = task.get("task_id")
-            status = task.get("status", TaskStatus.PENDING).upper()
-            action = task.get("action") or task.get("command")
-            params = task.get("params", {})
-            target_agent = task.get("target_agent")
-            required_capability = task.get("capability")
-            retry_count = task.get("retry_count", 0)
-
-            if status == TaskStatus.PENDING:
-                if not task_id or not action:
-                     logger.error(f"Skipping invalid PENDING task (missing id or action): {task}")
-                     if task_id:
-                          if self.status_updater.update_task_status(task_id, TaskStatus.INVALID):
-                              tasks_updated = True
-                     continue
-                
-                # --- Dependency Check --- #
-                if not self._check_dependencies(task, tasks_map):
-                    logger.debug(f"Skipping task '{task_id}' due to unmet dependencies.")
-                    continue # Skip this task for now
-
-                # --- Retry Logic (Placeholder/Increment) --- #
-                # Increment retry count on dispatch attempt (even if it fails to send)
-                # More complex retry logic (e.g., exponential backoff, based on failure type)
-                # would likely live in the response handling or a dedicated retry mechanism.
-                task["retry_count"] = retry_count + 1 
-                tasks_updated = True # Mark for save because retry_count changed
-                logger.debug(f"Attempting dispatch for task '{task_id}', attempt #{task['retry_count']}.")
-
-                # --- Dispatch Logic (Remains the same) --- #
-                recipient = None
-                if target_agent:
-                    recipient = target_agent
-                elif required_capability:
-                    # TODO: Implement capability lookup via AgentBus - RESOLVED
-                    # Use the new AgentBus method
-                    recipient = self.bus.find_first_agent_by_capability(required_capability)
-                    if not recipient:
-                        # if required_capability == "cursor_control": # Old hardcoded logic
-                        #      recipient = "CursorControlAgent"
-                        # else:
-                        logger.warning(f"Cannot dispatch task '{task_id}': No registered agent found for capability '{required_capability}'")
-                        # Use the updater to mark as failed
-                        if not self.status_updater.update_task_status(task_id, TaskStatus.DISPATCH_FAILED):
-                            logger.error(f"Failed to update task {task_id} status to DISPATCH_FAILED")
-                        # tasks_updated = True # Status update handles persistence?
-                        continue
-                elif action in ["GET_EDITOR_CONTENT", "RUN_TERMINAL_COMMAND", "GET_TERMINAL_OUTPUT", "OPEN_FILE", "INSERT_TEXT", "FIND_ELEMENT"]:
-                     recipient = "CursorControlAgent"
-                else:
-                    logger.error(f"Cannot dispatch task '{task_id}': No target agent/capability, and action '{action}' unknown.")
-                    self.status_updater.update_task_status(task_id, TaskStatus.DISPATCH_FAILED)
-                    tasks_updated = True
-                    continue
-
-                # --- Send Message --- #
-                message_payload = {"action": action, "params": params}
-                # TODO: Determine message_type more dynamically - Use action as default
-                # message_type = "CURSOR_COMMAND" if recipient == "CursorControlAgent" else "GENERIC_TASK"
-                # Use the action itself as the message type by default.
-                # Agents should register handlers for the actions they support.
-                message_type = action 
-
-                logger.info(f"Dispatching task '{task_id}' (Action: {action}, Type: {message_type}) to agent '{recipient}'")
-                sent_msg_id = self.bus.send_message(
-                    sender=self.agent_name,
-                    recipient=recipient,
-                    message_type=message_type,
-                    payload=message_payload,
-                    task_id=task_id # Include task_id
-                )
-
-                if sent_msg_id:
-                    self.status_updater.update_task_status(task_id, TaskStatus.DISPATCHED)
-                else:
-                    logger.error(f"Failed to send message for task '{task_id}' to agent '{recipient}'")
-                    self.status_updater.update_task_status(task_id, TaskStatus.DISPATCH_FAILED)
-                # tasks_updated is already True due to retry_count increment
-
-        # Save changes if any task status or retry_count was updated
-        if tasks_updated:
-            if not self.status_updater.update_task_status(task_id, TaskStatus.DISPATCHED):
-                 logger.error("Failed to save updated task list!")
-
-        logger.debug(f"{self.agent_name} run cycle finished.")
-
+    # --- Lifecycle methods (start/stop) --- 
+    # Keep these if agent needs background tasks later, otherwise can be removed.
     def _run_loop(self):
-        """The main loop for the agent thread."""
-        logger.info(f"{self.agent_name} background thread started.")
+        """Placeholder for potential background monitoring or cleanup loop."""
         while not self._stop_event.is_set():
             try:
-                self.run_cycle()
+                # Example: Check for stalled tasks?
+                logger.debug(f"{self.agent_name} background loop running...")
+                time.sleep(60) # Sleep for a minute
             except Exception as e:
-                 logger.error(f"Critical error in {self.agent_name} run loop: {e}", exc_info=True)
-            # Wait before the next cycle
-            time.sleep(5) # Check for new tasks every 5 seconds (adjust as needed)
-        logger.info(f"{self.agent_name} background thread stopped.")
+                logger.error(f"Error in {self.agent_name} background loop: {e}", exc_info=True)
+                time.sleep(10) # Prevent tight loop on error
 
     def start(self):
-        """Starts the agent's task processing loop in a separate thread."""
+        """Starts the agent's background thread if implemented."""
         if self._thread is not None and self._thread.is_alive():
-            logger.warning(f"{self.agent_name} is already running.")
+            logger.warning(f"{self.agent_name} start called but thread is already running.")
             return
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._run_loop, name=f"{self.agent_name}Loop", daemon=True)
-        self._thread.start()
-        logger.info(f"{self.agent_name} started background thread.")
+        # Uncomment to enable background loop
+        # self._thread = threading.Thread(target=self._run_loop, daemon=True)
+        # self._thread.start()
+        logger.info(f"{self.agent_name} started (background loop {'enabled' if self._thread else 'disabled'}).")
 
     def stop(self):
-        """Signals the agent's background thread to stop and waits for it."""
-        if self._thread is None or not self._thread.is_alive():
-            logger.info(f"{self.agent_name} is not running.")
-            return
-
-        logger.info(f"Stopping {self.agent_name} background thread...")
+        """Stops the agent's background thread."""
+        logger.info(f"Stopping {self.agent_name}...")
         self._stop_event.set()
-        self._thread.join(timeout=10) # Wait for thread to finish
-        if self._thread.is_alive():
-             logger.warning(f"{self.agent_name} background thread did not stop gracefully after 10s.")
-        else:
-             logger.info(f"{self.agent_name} background thread stopped successfully.")
+        if self._thread and self._thread.is_alive():
+            try:
+                self._thread.join(timeout=5.0) # Wait for the thread to finish
+                if self._thread.is_alive():
+                     logger.warning(f"{self.agent_name} background thread did not stop promptly.")
+            except Exception as e:
+                 logger.error(f"Error joining background thread for {self.agent_name}: {e}")
         self._thread = None
+        # Unregister? Depends on system lifecycle management
+        # try:
+        #     self.bus.unregister_agent(self.agent_name)
+        # except Exception as e:
+        #     logger.error(f"Error unregistering TaskExecutorAgent: {e}")
+        logger.info(f"{self.agent_name} stopped.")
 
-# ========= USAGE BLOCK START ==========
-# Minimal block, full testing requires AgentBus and other agents running.
-if __name__ == "__main__":
-    print(f">>> Running module: {__file__} (Basic Checks)")
-    # Create a dummy task list for basic check
-    dummy_task_file = "./temp_executor_tasks.json"
-    dummy_tasks = [
-        {"task_id": "task1", "status": "PENDING", "action": "GET_EDITOR_CONTENT"},
-        {"task_id": "task2", "status": "PENDING", "action": "RUN_TERMINAL_COMMAND", "params": {"command": "ls -l"}, "target_agent": "CursorControlAgent"},
-        {"task_id": "task3", "status": "DISPATCHED", "action": "OTHER"}
-    ]
-    try:
-        with open(dummy_task_file, 'w') as f:
-            json.dump(dummy_tasks, f, indent=2)
-        print(f"Created dummy task file: {dummy_task_file}")
-
-        # Basic instantiation check (requires a dummy AgentBus)
-        class DummyBus:
-            def register_agent(self, *args, **kwargs): print(f"DummyBus: Registering {args[0]}")
-            def send_message(self, *args, **kwargs): print(f"DummyBus: Sending message {kwargs.get('payload')} to {kwargs.get('recipient')}"); return f"msg_{time.time()}"
-
-        print("\n>>> Instantiating TaskExecutorAgent with DummyBus...")
-        bus = DummyBus()
-        executor = TaskExecutorAgent(agent_bus=bus, task_list_path=dummy_task_file)
-        print(">>> Executor instantiated.")
-
-        print("\n>>> Running one cycle...")
-        executor.run_cycle()
-        print(">>> Cycle finished.")
-
-        print("\n>>> Checking updated task file...")
-        with open(dummy_task_file, 'r') as f:
-             updated_tasks = json.load(f)
-        print(json.dumps(updated_tasks, indent=2))
-        # Check if task1 and task2 status changed to DISPATCHED
-        assert updated_tasks[0].get("status") == "DISPATCHED"
-        assert updated_tasks[1].get("status") == "DISPATCHED"
-        assert updated_tasks[2].get("status") == "DISPATCHED" # Status should remain unchanged
-        print(">>> Task statuses updated as expected in file.")
-
-    except Exception as e:
-        print(f"ERROR in usage block: {e}", file=sys.stderr)
-    finally:
-        if os.path.exists(dummy_task_file):
-             os.remove(dummy_task_file)
-             print(f"Removed dummy task file: {dummy_task_file}")
-
-    print(f">>> Module {filename} basic checks complete.")
-    sys.exit(0)
-# ========= USAGE BLOCK END ========== 
+# --- REMOVED Main execution block --- 

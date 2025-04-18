@@ -14,8 +14,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from _agent_coordination.core.agent_bus import AgentBus
-    from _agent_coordination.core.bus_types import AgentStatus
+    from core.coordination.agent_bus import AgentBus
+    from core.coordination.bus_types import AgentStatus
     from core.coordination.dispatcher import Event, EventType
     # --- CSCL Integration Import --- #
     # We need to dispatch TO CursorIntegrationAgent, not directly use controller here

@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, List, Any
+import traceback
 
 # --- Core Agent Bus Integration ---
 # Assuming the refactored AgentBus and its components are accessible via this path
@@ -18,8 +19,8 @@ sys.path.insert(0, str(project_root))
 
 # Import necessary components (adjust if Event/EventType moved)
 try:
-    from _agent_coordination.core.agent_bus import AgentBus
-    from _agent_coordination.core.bus_types import AgentStatus
+    from core.coordination.agent_bus import AgentBus
+    from core.coordination.bus_types import AgentStatus
     from core.coordination.dispatcher import Event, EventType
     BUS_AVAILABLE = True
 except ImportError as e:

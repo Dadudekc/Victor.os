@@ -53,4 +53,70 @@ Each agent instance typically operates within its `/d:/Dream.os/runtime/AgentX/`
 
 - **Atomicity:** Assume file writes are generally atomic for simplicity, but be mindful of potential race conditions in high-concurrency scenarios (consider file locking or queueing systems if needed later).
 - **Cleanup:** Processes reading from message files (e.g., `/d:/Dream.os/temp/cursor_output.json`, `/d:/Dream.os/runtime/AgentX/outbox/msg_*.json`) should ideally delete or archive the file after successful processing to prevent reprocessing.
-- **Error Handling:** Implement robust error handling (e.g., `try...except` blocks) when reading/writing/parsing these files. 
+- **Error Handling:** Implement robust error handling (e.g., `try...except` blocks) when reading/writing/parsing these files.
+
+## Supported Message Types
+
+This section documents specific message structures used for inter-agent communication or triggering actions via the event bus or mailbox system.
+
+### GENERATE_TASK_SEQUENCE
+
+Used to instruct a planning-capable agent to break down a high-level goal into a list of executable tasks.
+
+#### Structure
+
+```json
+{
+  "type": "GENERATE_TASK_SEQUENCE",
+  "source_id": "Agent_0",  // the initiator
+  "target_id": "PlanningAgent", // or use broadcast
+  "data": {
+    "task_id": "plan-001",
+    "params": {
+      "goal": "Refactor the legacy utils directory and remove unused code."
+    }
+  }
+}
+```
+
+#### Expected Response
+
+A `TASK_COMPLETED` event with a `results` payload containing a JSON list of tasks:
+
+```json
+{
+  "type": "TASK_COMPLETED",
+  "source_id": "PlanningAgent",
+  "target_id": "TaskExecutorAgent",
+  "data": {
+    "correlation_id": "plan-001",
+    "task_id": "plan-001",
+    "results": [
+      {
+        "task_id": "task-001",
+        "action": "REFACTOR_IMPORTS",
+        "params": { "target_file": "core/utils/legacy_parser.py" },
+        "target_agent": "RefactorAgent",
+        "status": "PENDING",
+        "priority": 3,
+        "depends_on": []
+      },
+      {
+        "task_id": "task-002",
+        "action": "REMOVE_DEAD_CODE",
+        "params": { "target_directory": "agents/social/" },
+        "target_agent": "RefactorAgent",
+        "status": "PENDING",
+        "priority": 2,
+        "depends_on": ["task-001"]
+      }
+    ]
+  }
+}
+```
+
+#### Notes
+
+- Tasks must conform to the global `task_list.json` schema.
+- Planning agents may inject additional metadata or dependencies if needed.
+- This message type enables agents to recursively expand goals into sub-actions. 

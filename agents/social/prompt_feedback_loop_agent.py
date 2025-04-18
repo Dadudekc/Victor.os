@@ -1,396 +1,250 @@
 """
-Agent responsible for monitoring task failures and injecting new diagnostic tasks.
+Agent responsible for monitoring task failures via events and injecting new diagnostic tasks.
 """
 import logging
 import os
-import sys
+# Removed sys path manipulation
+# import sys
 import json
 import time
 import threading
 import uuid # For generating unique task IDs
 from datetime import datetime
 from typing import Optional, Dict, Any, List
+from pathlib import Path
 
-# Adjust path for sibling imports if necessary
-script_dir = os.path.dirname(__file__)
-parent_dir = os.path.dirname(script_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
+# Canonical imports
+from core.coordination.agent_bus import AgentBus
+from core.coordination.dispatcher import Event, EventType
+# Removed AgentStatus import
+# from core.coordination.bus_types import AgentStatus
 
+# TaskStatus constants might still be useful for interpreting event data, but EventType is primary
+# Keep this import for now, but may become redundant
 try:
-    from coordination.agent_bus import AgentBus, Message
-    # Use TaskStatus constants for consistency
-    from agents.task_executor_agent import TaskStatus 
+    from agents.task_executor_agent import TaskStatus # Defines standard status strings
 except ImportError:
-     logger.warning("Could not import AgentBus/TaskStatus relatively.")
-     # Define dummy classes if needed
-     class AgentBus: 
-         def register_agent(self, *args, **kwargs): pass
-         def send_message(self, *args, **kwargs): return "dummy_msg_id"
-     class Message: pass
-     class TaskStatus: 
+     logger.warning("Could not import TaskStatus constants.")
+     class TaskStatus:
         FAILED = "FAILED"; ERROR = "ERROR"; PENDING = "PENDING"; COMPLETED = "COMPLETED"
 
-# Ensure logger setup if not done globally
-if not logging.getLogger().hasHandlers():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 AGENT_NAME = "PromptFeedbackLoopAgent"
-DEFAULT_TASK_LIST_PATH = "task_list.json"
-MAX_REPAIR_ATTEMPTS = 1 # Limit repair attempts per failed task
+# Removed TASK_LIST_PATH constant, agent no longer directly accesses the list
+# DEFAULT_TASK_LIST_PATH = "task_list.json"
+MAX_REPAIR_ATTEMPTS = 1 # Keep configuration for repair logic
+
+# Define the ID of the agent responsible for task execution
+TASK_EXECUTOR_AGENT_ID = "TaskExecutorAgent" # Make this configurable or import from constants?
 
 class PromptFeedbackLoopAgent:
-    """Monitors for failed tasks via AgentBus messages and injects repair/diagnostic tasks."""
+    """Monitors for TASK_FAILED events via AgentBus and injects diagnostic tasks."""
 
-    def __init__(self, agent_bus: AgentBus, task_list_path: str = DEFAULT_TASK_LIST_PATH, task_list_lock: Optional[threading.Lock] = None):
+    def __init__(self, agent_bus: AgentBus):
         """
         Initializes the feedback loop agent.
 
         Args:
             agent_bus: The central AgentBus instance.
-            task_list_path: Path to the JSON file containing the task list.
-            task_list_lock: A shared threading.Lock() for task list access.
         """
         self.agent_name = AGENT_NAME
         self.bus = agent_bus
-        self.task_list_path = os.path.abspath(task_list_path)
-        self._lock = task_list_lock if task_list_lock else threading.Lock()
-
-        # Ensure task list file exists (though TaskExecutorAgent likely creates it)
-        if not os.path.exists(self.task_list_path):
-            logger.warning(f"Task list file not found at {self.task_list_path} by {self.agent_name}. Attempting creation.")
-            try:
-                 os.makedirs(os.path.dirname(self.task_list_path), exist_ok=True)
-                 with open(self.task_list_path, 'w') as f:
-                     json.dump([], f)
-            except IOError as e:
-                logger.error(f"Failed to create task list file: {e}")
-                # Agent might not be able to function
+        # Removed task list path and lock, agent uses events now
+        # self.task_list_path = os.path.abspath(task_list_path)
+        # self._lock = task_list_lock if task_list_lock else threading.Lock()
+        self._processed_failures: Dict[str, int] = {} # Keep track of repair attempts {task_id: count}
+        self._processed_lock = threading.Lock() # Lock for accessing _processed_failures
 
         # Register agent
         self.bus.register_agent(self.agent_name, capabilities=["feedback_loop", "task_injection"])
-        
-        # Register handler for relevant messages indicating failure
-        # Option 1: Listen to messages directed to TaskExecutorAgent with failed status
-        self.bus.register_handler("TaskExecutorAgent", self.handle_potential_failure)
-        # Option 2: Listen for specific ERROR messages (might be less reliable for task status)
-        self.bus.register_handler("ERROR", self.handle_potential_failure)
-        # Option 3: Define and listen for a specific TASK_FAILED message type (ideal)
-        # self.bus.register_handler("TASK_FAILED", self.handle_task_failure)
-        
-        logger.info(f"{self.agent_name} initialized. Listening for task failures on AgentBus.")
 
-    # --- Use Task List Load/Save/Update Logic (Could be refactored to common utility) ---
-    def _load_tasks(self) -> List[Dict[str, Any]]:
-        """Loads tasks from the JSON file. Returns empty list on error."""
-        # Duplicated from TaskExecutorAgent - Consider refactoring later
-        with self._lock:
-            try:
-                with open(self.task_list_path, 'r', encoding='utf-8') as f:
-                    tasks = json.load(f)
-                if not isinstance(tasks, list):
-                    logger.error(f"Invalid format in task list file {self.task_list_path}. Expected list.")
-                    return []
-                return tasks
-            except FileNotFoundError:
-                 logger.warning(f"Task list file not found during load: {self.task_list_path}")
-                 return []
-            except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON from task list file {self.task_list_path}: {e}")
-                return []
-            except IOError as e:
-                logger.error(f"Error reading task list file {self.task_list_path}: {e}")
-                return []
-            except Exception as e:
-                 logger.error(f"Unexpected error loading tasks: {e}", exc_info=True)
-                 return []
+        # Register handler specifically for TASK_FAILED events
+        try:
+            self.bus.register_handler(EventType.TASK_FAILED, self.handle_event)
+            logger.info(f"Registered handler for EventType: {EventType.TASK_FAILED.name}")
+        except Exception as e:
+            logger.error(f"Failed to register handler for {EventType.TASK_FAILED.name}: {e}")
+            # Agent might not function correctly
 
-    def _save_tasks(self, tasks: List[Dict[str, Any]]) -> bool:
-        """Saves the modified task list back to the JSON file."""
-        # Duplicated from TaskExecutorAgent - Consider refactoring later
-        with self._lock:
-            temp_path = self.task_list_path + ".tmp"
-            try:
-                with open(temp_path, 'w', encoding='utf-8') as f:
-                    json.dump(tasks, f, indent=2)
-                os.replace(temp_path, self.task_list_path)
-                return True
-            except IOError as e:
-                logger.error(f"Error writing task list file {self.task_list_path}: {e}")
-            except Exception as e:
-                 logger.error(f"Unexpected error saving tasks: {e}", exc_info=True)
-                 if os.path.exists(temp_path): 
-                     try: os.remove(temp_path)
-                     except OSError: pass
-            return False
+        logger.info(f"{self.agent_name} initialized. Listening for {EventType.TASK_FAILED.name} events.")
 
-    def _mark_repair_triggered(self, tasks: List[Dict[str, Any]], task_id: str) -> bool:
-        """Finds a task and marks it as having triggered a repair action."""
-        found = False
-        for task in tasks:
-            if isinstance(task, dict) and task.get("task_id") == task_id:
-                repair_attempts = task.get("repair_attempts", 0)
-                task["repair_attempts"] = repair_attempts + 1
-                # Using repair_attempts counter instead of a boolean flag
-                task["last_updated"] = datetime.now().isoformat()
-                logger.info(f"Marked task '{task_id}' as repair attempt #{task['repair_attempts']}.")
-                found = True
-                break
-        if not found:
-            logger.warning(f"Could not find task '{task_id}' to mark repair attempt.")
-        return found
+    # --- REMOVED Task List Load/Save/Update Logic ---
+    # def _load_tasks(self) -> List[Dict[str, Any]]: ...
+    # def _save_tasks(self, tasks: List[Dict[str, Any]]) -> bool: ...
+    # def _mark_repair_triggered(self, tasks: List[Dict[str, Any]], task_id: str) -> bool: ...
 
-    def _create_diagnostic_task(self, failed_task: Dict[str, Any]) -> Dict[str, Any]:
-        """Generates a diagnostic task tailored to the type of failure."""
-        original_task_id = failed_task.get("task_id", "unknown_original")
-        original_action = failed_task.get("action")
-        original_params = failed_task.get("params", {})
-        failure_reason = f"Task failed with status {failed_task.get('status')}. Last response: {failed_task.get('last_response')}"
-        
-        new_task_id = f"repair_{original_task_id}_{uuid.uuid4().hex[:6]}"
+    def _check_and_increment_repair_attempts(self, task_id: str) -> bool:
+        """Checks if max repair attempts reached for a task ID and increments count. Thread-safe."""
+        with self._processed_lock:
+            attempts = self._processed_failures.get(task_id, 0)
+            if attempts >= MAX_REPAIR_ATTEMPTS:
+                logger.warning(f"Max repair attempts ({MAX_REPAIR_ATTEMPTS}) reached for failed task {task_id}. Skipping injection.")
+                return False # Max attempts reached
+            else:
+                self._processed_failures[task_id] = attempts + 1
+                logger.info(f"Incrementing repair attempt count for task {task_id} to {attempts + 1}.")
+                return True # Ok to proceed
+
+    def _create_diagnostic_task_data(self, failed_event: Event) -> Optional[Dict[str, Any]]:
+        """Generates the data payload for a diagnostic task event based on the failed event."""
+        failed_data = failed_event.data
+        # Extract details about the original task from the failed event data
+        # The structure of failed_data depends on what TaskExecutorAgent puts in TASK_FAILED events
+        original_task_id = failed_data.get("task_id") or failed_data.get("correlation_id") # Prefer task_id if present
+        if not original_task_id:
+             logger.error(f"Cannot create diagnostic task: Missing 'task_id' or 'correlation_id' in TASK_FAILED event data (Event ID: {failed_event.id}). Data: {failed_data}")
+             return None
+
+        # Use details likely provided by TaskExecutorAgent in the TASK_FAILED event data payload
+        original_action = failed_data.get("original_action", "unknown_action")
+        original_params = failed_data.get("original_params", {})
+        failure_reason = failed_data.get("error", "Unknown error")
+
+        # Check repair attempts for the original task ID
+        if not self._check_and_increment_repair_attempts(original_task_id):
+            return None # Max attempts reached or other issue
+
+        new_task_id = f"diag_{original_task_id}_{uuid.uuid4().hex[:6]}"
         diag_commands = [
             f"echo \"[Agent Repair] Task {original_task_id} (Action: {original_action}) failed. Diagnosing...\"",
-            f"echo \"Failure Reason: {failure_reason[:150]}...\""
+            f"echo \"Failure Reason: {str(failure_reason)[:150]}...\"" # Ensure reason is string
         ]
-        target_agent = "CursorControlAgent" # Default target
-        diag_action = "RUN_TERMINAL_COMMAND" # Default action
+        target_agent = "CursorControlAgent" # Default target for diagnostics
+        diag_action = "RUN_TERMINAL_COMMAND" # Default diagnostic action
 
-        # --- Context-Specific Diagnostics ---
+        # --- Context-Specific Diagnostics (logic remains similar, using extracted data) ---
         if original_action == "RUN_TERMINAL_COMMAND":
-            # Check CWD and list files
-            diag_commands.append("pwd")
-            diag_commands.append("ls -alh")
-            # If original command might have logs, try to tail them (example)
+            diag_commands.extend(["pwd", "ls -alh"])
             original_command = original_params.get("command", "")
             if "build" in original_command or ".py" in original_command:
-                 # Very basic log file guessing - needs improvement
-                 diag_commands.append("echo \"Attempting to check recent logs...\"" )
-                 diag_commands.append("ls -lt *.log | head -n 5") # List recent log files
-                 # diag_commands.append("tail -n 20 latest.log") # Requires knowing log name
-        
+                 diag_commands.extend(["echo \"Attempting to check recent logs...\"", "ls -lt *.log | head -n 5"])
+
         elif original_action == "OPEN_FILE":
             file_path = original_params.get("file_path")
             if file_path:
-                # Check if file exists and its permissions
-                diag_commands.append(f"echo \"Checking file status for: {file_path}\"" )
-                diag_commands.append(f"ls -ld \"{file_path}\"" ) # Use quotes for paths with spaces
+                diag_commands.extend([f"echo \"Checking file status for: {file_path}\"", f"ls -ld \"{file_path}\"" ])
             else:
-                 diag_commands.append("echo \"Original OPEN_FILE task missing file_path parameter.\"" )
-                 diag_commands.append("pwd")
-                 diag_commands.append("ls -alh")
+                 diag_commands.extend(["echo \"Original OPEN_FILE task missing file_path parameter.\"", "pwd", "ls -alh"])
 
         elif original_action in ["GET_EDITOR_CONTENT", "SET_EDITOR_CONTENT", "INSERT_EDITOR_TEXT", "FIND_ELEMENT", "ENSURE_CURSOR_FOCUSED"]:
-             # Likely indicates an issue with Cursor interaction or the instance itself
-             diag_commands.append("echo \"Checking Cursor process status...\"" )
-             if sys.platform == "win32":
-                 diag_commands.append("tasklist | findstr Cursor")
-             else: # Linux/macOS
-                 diag_commands.append("ps aux | grep -i [C]ursor") # [C] prevents grep finding itself
-             # Could also inject a task to explicitly refocus?
-             # diag_action = "ENSURE_CURSOR_FOCUSED" # Requires CursorControlAgent to handle this action
+             diag_commands.append("echo \"Checking Cursor process status...\"")
+             check_cmd = "tasklist | findstr Cursor" if os.name == 'nt' else "ps aux | grep -i [C]ursor"
+             diag_commands.append(check_cmd)
 
         else:
-             # Default diagnostics for unknown actions
-             diag_commands.append("echo \"Running default diagnostics (pwd, ls)...\"" )
-             diag_commands.append("pwd")
-             diag_commands.append("ls -alh")
+             diag_commands.extend(["echo \"Running default diagnostics (pwd, ls)...\"", "pwd", "ls -alh"])
 
-        # Combine commands into a single string for shell execution
+        # --- End Context-Specific Diagnostics ---
+
         full_diag_command = " && ".join(diag_commands)
 
-        repair_task = {
+        # Construct the data payload for the new TASK_QUEUED event
+        new_task_data = {
             "task_id": new_task_id,
-            "status": TaskStatus.PENDING,
-            "task_type": f"diagnose_{original_action}_failure", # More specific type
-            "action": diag_action, # Could be different if not RUN_TERMINAL_COMMAND
+            "status": TaskStatus.PENDING, # TaskExecutor expects status
+            "task_type": f"diagnose_{original_action}_failure",
+            "action": diag_action,
             "params": {
                 "command": full_diag_command,
                 "related_task_id": original_task_id,
-                "failure_reason": failure_reason,
+                "failure_reason": str(failure_reason), # Ensure string
                 "original_task_action": original_action,
-                "original_task_params": original_params 
+                "original_task_params": original_params
             },
-            "depends_on": [original_task_id],
-            "priority": 1, 
+            # 'depends_on' might be handled by TaskExecutor based on related_task_id?
+            # "depends_on": [original_task_id], # Or maybe not needed if repair runs independently
+            "priority": 1, # Higher priority for diagnostics?
             "retry_count": 0,
-            "repair_attempts": 0,
             "target_agent": target_agent
+            # Add any other fields TaskExecutorAgent expects for new tasks
         }
-        logger.info(f"Generated diagnostic task {new_task_id} for failed task {original_task_id} (Action: {original_action}).")
-        return repair_task
+        logger.info(f"Generated diagnostic task data for {new_task_id} (related to failed task {original_task_id}) Action: {diag_action}")
+        return new_task_data
+
+    def _dispatch_diagnostic_task(self, diagnostic_task_data: Dict[str, Any]):
+         """Dispatches a TASK_QUEUED event to add the diagnostic task."""
+         new_task_id = diagnostic_task_data.get("task_id", "unknown_new_task")
+         failed_task_id = diagnostic_task_data.get("params", {}).get("related_task_id", "unknown_original")
+
+         event = Event(
+             type=EventType.TASK_QUEUED, # Event type to request task execution
+             source_id=self.agent_name,
+             target_id=TASK_EXECUTOR_AGENT_ID, # Target the agent managing the queue
+             data=diagnostic_task_data,
+             priority=diagnostic_task_data.get("priority", 1) # Use priority from task data
+         )
+         try:
+            self.bus.dispatch(event)
+            logger.info(f"Dispatched {EventType.TASK_QUEUED.name} event for diagnostic task {new_task_id} (failed task: {failed_task_id}) to {TASK_EXECUTOR_AGENT_ID}.")
+            # Log this injection event to the monitor agent
+            self._log_injection_event(failed_task_id, new_task_id)
+         except Exception as e:
+             logger.error(f"Failed to dispatch diagnostic task event for {new_task_id}: {e}", exc_info=True)
 
     def _log_injection_event(self, failed_task_id: str, new_task_id: str):
-         """Sends a log message to the AgentMonitorAgent (if available)."""
-         log_payload = {
+         """Dispatches a SYSTEM_EVENT to the AgentMonitorAgent."""
+         log_data = {
+             "event_description": "Diagnostic task created in response to failure",
              "failed_task_id": failed_task_id,
-             "new_task_id": new_task_id,
+             "diagnostic_task_id": new_task_id,
              "trigger_agent": self.agent_name
          }
-         # Send to monitor or broadcast an event
-         self.bus.send_message(
-             sender=self.agent_name,
-             recipient="AgentMonitorAgent", # Direct message to monitor
-             message_type="SYSTEM_EVENT", 
-             payload=log_payload,
-             status="AUTO_REPAIR_TASK_CREATED"
+         # Use a specific EventType if defined, otherwise use a generic one
+         log_event_type = EventType.SYSTEM # Or a more specific MONITOR_LOG type
+
+         event = Event(
+             type=log_event_type,
+             source_id=self.agent_name,
+             target_id="AgentMonitorAgent", # Target the monitor agent
+             data=log_data
+             # No specific priority needed for log events usually
          )
+         try:
+            self.bus.dispatch(event)
+            logger.debug(f"Dispatched logging event to AgentMonitorAgent for task injection ({new_task_id}).")
+         except Exception as e:
+             logger.warning(f"Could not dispatch logging event for task injection: {e}")
 
-    # --- New Message Handler --- 
-    def handle_potential_failure(self, message: Message):
-        """Handles messages that might indicate a task failure."""
-        # Check if message represents a failed task
-        task_id = getattr(message, 'task_id', None)
-        status = getattr(message, 'status', None)
-        
-        is_failure = status in [TaskStatus.FAILED, TaskStatus.ERROR]
-        # If listening to TaskExecutorAgent, check recipient
-        is_response_to_executor = message.recipient == "TaskExecutorAgent"
+    # --- Event Handler --- 
+    def handle_event(self, event: Event):
+        """Handles TASK_FAILED events."""
+        if event.type != EventType.TASK_FAILED:
+             logger.warning(f"Received unexpected event type: {event.type.name}. Expected {EventType.TASK_FAILED.name}. Ignoring.")
+             return
 
-        # Determine if this message signals a failure we should act on
-        # This logic might need refinement based on actual message flow
-        if task_id and is_failure and is_response_to_executor:
-             logger.info(f"Detected potential failure for task {task_id} via message {message.id} from {message.sender}.")
-             self.trigger_repair_task_injection(task_id)
-        elif message.type == "ERROR" and task_id: # Handle generic ERROR messages linked to a task
-             logger.info(f"Detected potential failure for task {task_id} via generic ERROR message {message.id} from {message.sender}.")
-             self.trigger_repair_task_injection(task_id)
-        # Add handling for specific TASK_FAILED event type if implemented later
-        # elif message.type == "TASK_FAILED":
-        #    self.trigger_repair_task_injection(task_id)
+        logger.info(f"Received {EventType.TASK_FAILED.name} event (ID: {event.id}, Source: {event.source_id}). Checking for repair action.")
 
-    def trigger_repair_task_injection(self, failed_task_id: str):
-        """Loads tasks, checks repair attempts, creates, and injects a diagnostic task."""
-        tasks = self._load_tasks()
-        if not tasks: 
-            logger.error("Cannot trigger repair: Failed to load task list.")
-            return
+        # Create the data for the diagnostic task based on the failed event
+        diagnostic_task_data = self._create_diagnostic_task_data(failed_event=event)
 
-        failed_task = None
-        for task in tasks:
-             if isinstance(task, dict) and task.get("task_id") == failed_task_id:
-                 failed_task = task
-                 break
-        
-        if not failed_task:
-            logger.warning(f"Cannot trigger repair: Failed task {failed_task_id} not found in list.")
-            return
-
-        # Check if max repair attempts exceeded
-        repair_attempts = failed_task.get("repair_attempts", 0)
-        if repair_attempts >= MAX_REPAIR_ATTEMPTS:
-            logger.info(f"Skipping repair for task {failed_task_id}: Max repair attempts ({MAX_REPAIR_ATTEMPTS}) reached.")
-            return
-
-        # Create the diagnostic/repair task
-        repair_task = self._create_diagnostic_task(failed_task)
-        logger.info(f"Generated repair task {repair_task['task_id']} for failed task {failed_task_id}.")
-
-        # Mark the original task as having triggered a repair
-        marked = self._mark_repair_triggered(tasks, failed_task_id)
-        
-        # Add the new repair task to the list
-        tasks.append(repair_task)
-
-        # Save the updated task list
-        if self._save_tasks(tasks):
-            logger.info(f"Successfully injected repair task {repair_task['task_id']} into task list.")
-            # Log the injection event separately? 
-            self._log_injection_event(failed_task_id, repair_task['task_id'])
+        if diagnostic_task_data:
+            # Dispatch the event to queue the new diagnostic task
+            self._dispatch_diagnostic_task(diagnostic_task_data)
         else:
-            logger.error(f"Failed to save task list after injecting repair task for {failed_task_id}.")
+            # Reason for not creating data (e.g., max attempts) already logged in _create_diagnostic_task_data
+             logger.debug(f"No diagnostic task generated for failed event {event.id}.")
 
-    # Add shutdown method if needed for cleanup
+    # --- REMOVED trigger_repair_task_injection (logic moved into handle_event/create/dispatch) ---
+    # def trigger_repair_task_injection(self, failed_task_id: str): ...
+
     def shutdown(self):
+        """Perform any cleanup needed for the feedback loop agent."""
         logger.info(f"Shutting down {self.agent_name}...")
-        # Unregister?
-        # self.bus.deregister_agent(self.agent_name)
+        # Persist processed failures? Might be useful across restarts
+        # with self._processed_lock:
+        #     try: # Example persistence
+        #         with open("run/state/feedback_loop_processed.json", "w") as f:
+        #             json.dump(self._processed_failures, f)
+        #     except Exception as e:
+        #         logger.error(f"Failed to save processed failures state: {e}")
+
+        # Unregister? (Optional, depends on bus lifecycle)
+        # try:
+        #     self.bus.unregister_agent(self.agent_name)
+        # except Exception as e:
+        #     logger.error(f"Error unregistering agent {self.agent_name}: {e}")
+
         logger.info(f"{self.agent_name} shutdown complete.")
 
-# ========= USAGE BLOCK START ==========
-# Minimal block, primarily for structure verification
-if __name__ == "__main__":
-    print(f">>> Running module: {__file__} (Basic Checks)")
-    dummy_task_file = "./temp_feedback_loop_tasks.json"
-    dummy_log_file = "./temp_monitor_agent_log_feedback.jsonl"
-
-    # Sample tasks including a failed one
-    sample_tasks = [
-        {"task_id": "task_ok", "status": "COMPLETED", "action": "GET_EDITOR_CONTENT", "repair_attempts": 0},
-        {"task_id": "task_fail_1", "status": "FAILED", "action": "RUN_TERMINAL_COMMAND", "params": {"command": "bad_cmd"}, "last_response": {"error": "Command failed"}, "repair_attempts": 0},
-        {"task_id": "task_fail_2", "status": "ERROR", "action": "OTHER_ACTION", "repair_attempts": 1} # Already attempted repair
-    ]
-
-    # Dummy Monitor Agent to receive log messages
-    logged_events = []
-    class DummyMonitor:
-        def handle_event_message(self, message):
-             print(f"DummyMonitor received: {message.payload}")
-             logged_events.append(message.payload)
-
-    # Dummy Agent Bus
-    class DummyBus:
-        handlers = {}
-        monitor = DummyMonitor()
-        def register_agent(self, agent_name, *args, **kwargs): print(f"DummyBus: Registering {agent_name}")
-        def register_handler(self, target, handler): self.handlers[target] = handler
-        def send_message(self, sender, recipient, message_type, payload, status=None, **kwargs):
-            print(f"DummyBus: Sending message from {sender} to {recipient} (Type: {message_type}, Status: {status})")
-            if recipient == "AgentMonitorAgent":
-                 # Simulate message delivery to monitor
-                 class Msg: pass
-                 m = Msg()
-                 m.sender=sender; m.recipient=recipient; m.type=message_type; m.payload=payload; m.status=status
-                 self.monitor.handle_event_message(m)
-            return f"msg_{time.time()}"
-
-    bus = DummyBus()
-    try:
-        with open(dummy_task_file, 'w') as f: json.dump(sample_tasks, f, indent=2)
-        print(f"Created dummy task file: {dummy_task_file}")
-
-        print("\n>>> Instantiating PromptFeedbackLoopAgent...")
-        agent = PromptFeedbackLoopAgent(agent_bus=bus, task_list_path=dummy_task_file)
-        print(">>> Agent instantiated.")
-
-        print("\n>>> Running one cycle...")
-        agent.run_cycle()
-        print(">>> Cycle finished.")
-
-        print("\n>>> Checking updated task file...")
-        with open(dummy_task_file, 'r') as f: updated_tasks = json.load(f)
-        print(json.dumps(updated_tasks, indent=2))
-
-        # Assertions
-        assert len(updated_tasks) == 4 # Original 3 + 1 new repair task
-        original_failed_task = next(t for t in updated_tasks if t["task_id"] == "task_fail_1")
-        assert original_failed_task.get("repair_attempts") == 1 # Marked as attempted
-        original_error_task = next(t for t in updated_tasks if t["task_id"] == "task_fail_2")
-        assert original_error_task.get("repair_attempts") == 1 # Unchanged as max attempts reached
-        repair_task = next(t for t in updated_tasks if t["task_id"].startswith("repair_task_fail_1"))
-        assert repair_task["status"] == "PENDING"
-        assert repair_task["priority"] == 1
-        assert repair_task["depends_on"] == ["task_fail_1"]
-        print(">>> Task list updated correctly.")
-
-        print("\n>>> Checking logged events...")
-        print(json.dumps(logged_events, indent=2))
-        assert len(logged_events) == 1
-        assert logged_events[0]["failed_task_id"] == "task_fail_1"
-        assert logged_events[0]["new_task_id"] == repair_task["task_id"]
-        print(">>> Injection event logged correctly.")
-
-    except Exception as e:
-        print(f"ERROR in usage block: {e}", file=sys.stderr)
-        raise
-    finally:
-        if os.path.exists(dummy_task_file):
-             os.remove(dummy_task_file)
-             print(f"Removed dummy task file: {dummy_task_file}")
-        if os.path.exists(dummy_log_file):
-             os.remove(dummy_log_file)
-             # print(f"Removed dummy monitor log: {dummy_log_file}")
-
-    print(f">>> Module {__file__} basic checks complete.")
-    sys.exit(0)
-# ========= USAGE BLOCK END ========== 
+# --- REMOVED Main execution block --- 

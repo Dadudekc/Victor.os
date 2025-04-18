@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import logging
+import threading
+import time
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
@@ -17,6 +19,7 @@ try:
     from dreamforge.core.governance_memory_engine import log_event
     # from dreamforge.core.coordination.agent_bus import AgentBus # OLD IMPORT
     from core.coordination.agent_bus import AgentBus # CANONICAL IMPORT
+    from core.coordination.dispatcher import Event, EventType
     from dreamforge.core.prompt_staging_service import PromptStagingService
     from dreamforge.core.feedback_engine import FeedbackEngine
     # Import other necessary agents or services as needed
@@ -474,3 +477,241 @@ if __name__ == '__main__':
         print("Workflow test finished.")
     else:
         print("Skipping WorkflowAgent test due to import errors.") 
+
+AGENT_NAME = "TaskOrchestratorAgent"
+DEFAULT_TASK_LIST_PATH = "task_list.json"
+TASK_EXECUTOR_AGENT_ID = "TaskExecutorAgent"
+
+class TaskOrchestratorAgent:
+    """Monitors task_list.json and dispatches TASK_QUEUED events for tasks ready to execute."""
+
+    def __init__(self, agent_bus: AgentBus, task_list_path: str = DEFAULT_TASK_LIST_PATH, interval: int = 10):
+        """
+        Initializes the orchestrator agent.
+
+        Args:
+            agent_bus: The central AgentBus instance.
+            task_list_path: Path to the task list file.
+            interval: Time (in seconds) between orchestration cycles.
+        """
+        self.agent_name = AGENT_NAME
+        self.bus = agent_bus
+        self.task_list_path = task_list_path
+        self.interval = interval
+        self._lock = threading.Lock()
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+
+        self.bus.register_agent(self.agent_name, capabilities=["task_orchestration", "workflow_initiation"])
+        logger.info(f"{self.agent_name} initialized. Monitoring {self.task_list_path}")
+
+    def _load_tasks(self) -> List[Dict[str, Any]]:
+        """Safely loads the task list file."""
+        with self._lock:
+            try:
+                if not os.path.exists(self.task_list_path):
+                    logger.warning(f"Task list file {self.task_list_path} does not exist.")
+                    # Create an empty file if it doesn't exist
+                    try:
+                        with open(self.task_list_path, 'w', encoding='utf-8') as f:
+                            json.dump([], f)
+                        logger.info(f"Created empty task list file: {self.task_list_path}")
+                    except IOError as e_create:
+                        logger.error(f"Failed to create task list file {self.task_list_path}: {e_create}")
+                    return []
+
+                with open(self.task_list_path, "r", encoding="utf-8") as f:
+                    tasks = json.load(f)
+                    if not isinstance(tasks, list):
+                        logger.error(f"Task list file {self.task_list_path} does not contain a valid JSON list. Resetting to empty list.")
+                        # Overwrite corrupt file with empty list?
+                        # Or handle more gracefully? For now, return empty.
+                        # Consider backing up the corrupt file first.
+                        return []
+                    return tasks
+            except json.JSONDecodeError as e_decode:
+                logger.error(f"Failed to decode JSON from task list {self.task_list_path}: {e_decode}. Returning empty list.")
+                # Consider backing up the corrupt file.
+                return []
+            except IOError as e_io:
+                logger.error(f"IO error loading task list {self.task_list_path}: {e_io}")
+                return []
+            except Exception as e:
+                logger.error(f"Unexpected error loading task list {self.task_list_path}: {e}", exc_info=True)
+                return []
+
+    def _save_tasks(self, tasks: List[Dict[str, Any]]) -> bool:
+        """Writes updated task list back to file using atomic write pattern."""
+        with self._lock:
+            temp_path = self.task_list_path + ".tmp"
+            try:
+                with open(temp_path, "w", encoding="utf-8") as f:
+                    json.dump(tasks, f, indent=2)
+                # Atomic replace operation
+                os.replace(temp_path, self.task_list_path)
+                return True
+            except IOError as e_io:
+                logger.error(f"IO error saving task list to {self.task_list_path}: {e_io}")
+            except Exception as e:
+                logger.error(f"Unexpected error saving task list {self.task_list_path}: {e}", exc_info=True)
+            finally:
+                # Clean up temp file if it still exists after an error
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except OSError as e_remove:
+                        logger.error(f"Failed to remove temporary task list file {temp_path}: {e_remove}")
+            return False
+
+    def _check_dependencies(self, task: Dict[str, Any], completed_ids: set) -> bool:
+        """Returns True if all task dependencies are met."""
+        # Ensure depends_on is a list
+        deps = task.get("depends_on", [])
+        if not isinstance(deps, list):
+            logger.warning(f"Task {task.get('task_id')} has invalid 'depends_on' field (not a list): {deps}. Treating as no dependencies.")
+            return True
+        return all(dep_id in completed_ids for dep_id in deps)
+
+    def _dispatch_task(self, task: Dict[str, Any]) -> bool:
+        """Dispatches a TASK_QUEUED event for the given task."""
+        task_id = task.get("task_id")
+        action = task.get("action")
+        target_agent = task.get("target_agent", TASK_EXECUTOR_AGENT_ID) # Default to executor if not specified
+
+        if not task_id:
+            logger.warning("Skipping task dispatch: Task missing 'task_id'. Task data: {task}")
+            return False
+        if not action:
+             logger.warning(f"Skipping task dispatch: Task {task_id} missing 'action'.")
+             # Optionally mark as INVALID?
+             return False
+        # Removed target_agent check, defaulting is acceptable
+        # if not target_agent:
+        #      logger.warning(f"Skipping task dispatch: Task {task_id} missing 'target_agent'.")
+        #      return False
+
+        event_data = {
+            "task_id": task_id,
+            "action": action,
+            "params": task.get("params", {}),
+            "target_agent": target_agent,
+            "priority": task.get("priority", 0),
+            # Add any other necessary fields from the task spec
+        }
+
+        event = Event(
+            type=EventType.TASK_QUEUED,
+            source_id=self.agent_name,
+            target_id=TASK_EXECUTOR_AGENT_ID, # Always target the executor for queuing
+            data=event_data,
+            priority=event_data["priority"]
+        )
+
+        try:
+            self.bus.dispatch(event)
+            logger.info(f"Dispatched {EventType.TASK_QUEUED.name} for task {task_id} (Action: {action}) to {TASK_EXECUTOR_AGENT_ID}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to dispatch {EventType.TASK_QUEUED.name} event for task {task_id}: {e}", exc_info=True)
+            return False
+
+    def run_cycle(self):
+        """Scans the task list and dispatches ready tasks."""
+        logger.debug(f"{self.agent_name} starting run cycle...")
+        tasks = self._load_tasks()
+        if not tasks:
+            logger.debug("Task list is empty or failed to load.")
+            return
+
+        # Determine completed task IDs for dependency checking
+        # Consider DISPATCHED as potentially met for simpler logic, or require COMPLETED strictly?
+        # Let's require COMPLETED for dependency check.
+        completed_ids = {t["task_id"] for t in tasks if isinstance(t, dict) and t.get("status") == "COMPLETED"}
+        dispatched_count = 0
+        tasks_changed = False
+
+        for task in tasks:
+            # Basic validation
+            if not isinstance(task, dict) or "task_id" not in task:
+                logger.warning(f"Skipping invalid task entry: {task}")
+                continue
+
+            task_id = task["task_id"]
+            status = task.get("status")
+
+            if status == "PENDING":
+                if not self._check_dependencies(task, completed_ids):
+                    logger.debug(f"Task {task_id} waiting on dependencies.")
+                    continue
+
+                # Attempt to dispatch
+                success = self._dispatch_task(task)
+                if success:
+                    # IMPORTANT: Update status locally immediately after dispatch
+                    # to prevent re-dispatching in the same/next cycle.
+                    # The final status (COMPLETED/FAILED) will come from TaskStatusUpdater later.
+                    task["status"] = "DISPATCHED" # Mark as dispatched in our local list
+                    task["last_dispatched_at"] = datetime.now().isoformat() # Optional tracking
+                    dispatched_count += 1
+                    tasks_changed = True
+                    # Add the newly dispatched task to completed_ids if DISPATCHED counts for deps
+                    # completed_ids.add(task_id) # Uncomment if DISPATCHED meets dependency needs
+                else:
+                    # Optional: Mark as DISPATCH_FAILED?
+                    # task["status"] = "DISPATCH_FAILED"
+                    # tasks_changed = True
+                     logger.error(f"Failed to dispatch PENDING task {task_id}, leaving as PENDING for next cycle.")
+
+        # Save the task list *only* if statuses were changed (to DISPATCHED)
+        if tasks_changed:
+            logger.info(f"Dispatched {dispatched_count} task(s) in this cycle. Saving updated task list.")
+            save_success = self._save_tasks(tasks)
+            if not save_success:
+                 logger.error("Critical: Failed to save task list after updating statuses to DISPATCHED.")
+        else:
+             logger.debug("No tasks dispatched in this cycle.")
+
+        logger.debug(f"{self.agent_name} run cycle finished.")
+
+    def start(self):
+        """Starts the periodic orchestration loop."""
+        if self._thread and self._thread.is_alive():
+            logger.warning(f"{self.agent_name} already running.")
+            return
+        logger.info(f"Starting {self.agent_name} with cycle interval {self.interval}s...")
+        self._stop_event.clear()
+        self._thread = threading.Thread(target=self._run_loop, name=f"{self.agent_name}Loop", daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        """Stops the orchestration loop."""
+        if not self._thread or not self._thread.is_alive():
+            logger.info(f"{self.agent_name} is not running.")
+            return
+        logger.info(f"Stopping {self.agent_name}...")
+        self._stop_event.set()
+        try:
+            self._thread.join(timeout=self.interval + 1) # Wait slightly longer than interval
+            if self._thread.is_alive():
+                logger.warning(f"{self.agent_name} thread did not stop gracefully.")
+        except Exception as e:
+             logger.error(f"Error joining {self.agent_name} thread: {e}")
+        self._thread = None
+        logger.info(f"{self.agent_name} stopped.")
+
+    def _run_loop(self):
+        """Internal loop that runs the orchestration cycle at regular intervals."""
+        logger.info(f"{self.agent_name} run loop started.")
+        while not self._stop_event.is_set():
+            start_time = time.monotonic()
+            try:
+                self.run_cycle()
+            except Exception as e:
+                logger.error(f"Critical error in {self.agent_name} run_cycle: {e}", exc_info=True)
+            
+            # Calculate sleep time, ensuring it's not negative if cycle took too long
+            elapsed_time = time.monotonic() - start_time
+            sleep_time = max(0, self.interval - elapsed_time)
+            if self._stop_event.wait(timeout=sleep_time):
+                break # Stop event was set during sleep
+        logger.info(f"{self.agent_name} run loop stopped.") 

@@ -8,6 +8,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Any
+import traceback
+from enum import Enum, auto
+from core.models.task import Task, TaskStatus # Assuming Task model is defined
+# from _agent_coordination.core.agent_bus import AgentBus # OLD IMPORT
+from core.coordination.agent_bus import AgentBus # CANONICAL IMPORT
+from core.coordination.bus_types import AgentStatus as AgentCoordinationStatus # Use canonical status
 
 # --- Core Agent Bus Integration ---
 project_root = Path(__file__).parent.parent

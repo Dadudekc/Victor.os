@@ -1,0 +1,10 @@
+{
+  "source": "Agent_0",
+  "message_type": "GENERATE_TASK_SEQUENCE",
+  "content": {
+    "task_id": "plan-001",
+    "params": {
+      "goal": "Clean up the legacy utils directory"
+    }
+  }
+} 

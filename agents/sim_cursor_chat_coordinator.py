@@ -5,6 +5,7 @@ import random
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Any
+import traceback
 
 # --- Core Agent Bus Integration ---
 import sys
@@ -13,8 +14,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from _agent_coordination.core.agent_bus import AgentBus
-    from _agent_coordination.core.bus_types import AgentStatus
+    from core.coordination.agent_bus import AgentBus
+    from core.coordination.bus_types import AgentStatus
     from core.coordination.dispatcher import Event, EventType
     BUS_AVAILABLE = True
 except ImportError as e:
