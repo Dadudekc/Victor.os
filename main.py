@@ -31,12 +31,14 @@ try:
     # These are needed for RUN_TASK mode
     from core.tools.registry import get_registry
     from core.agents.tool_executor_agent import ToolExecutionAgent
+    from core.tools.functional.context_planner_tool import ContextPlannerTool
     _toolchain_available = True
 except ImportError as e:
     # Log import error but allow other modes to potentially run
     logging.warning(f"⚠️ Toolchain components not available (required for --run-task): {e}")
     get_registry = None
     ToolExecutionAgent = None
+    ContextPlannerTool = None # Ensure planner is None if import fails
     _toolchain_available = False
 
 
@@ -85,42 +87,53 @@ def run_tool_chain_loop(task_description: str):
     logger.info(f"📌 Task: {task_description}")
 
     # Check if core components loaded
-    if not _toolchain_available:
-         logger.error("❌ Cannot run task: Core toolchain components (registry, executor agent) failed to import.")
+    if not _toolchain_available or not get_registry or not ToolExecutionAgent or not ContextPlannerTool:
+         logger.error("❌ Cannot run task: Core toolchain components failed to import.")
          sys.exit(1)
 
     try:
+        # Get the populated tool registry
         registry = get_registry()
-        # Ensure planner tool exists in the registry
-        planner_tool_name = "context_planner" # Or read from config?
+        
+        # Get the planner tool from the registry
+        planner_tool_name = "context_planner"
         planner = registry.get_tool(planner_tool_name)
         if not planner:
+             # This check might be redundant if ContextPlannerTool import succeeded, but good practice
              logger.error(f"❌ Planner tool '{planner_tool_name}' not found in registry.")
              sys.exit(1)
              
-        executor = ToolExecutionAgent() # Assuming this can be instantiated directly
+        # Instantiate the real ToolExecutionAgent (it gets registry internally)
+        executor = ToolExecutionAgent() 
 
         logger.info("🛠 Generating execution plan...")
-        # Ensure planner arguments match expectation
-        plan_result = planner.execute(args={"task_description": task_description}) 
+        # Execute the planner tool to get the plan
+        plan_result = planner.execute(args={"task_description": task_description}, context={}) # Pass empty context
         
-        # Validate plan result structure (adjust based on actual planner output)
+        # Validate plan result structure 
         if not isinstance(plan_result, dict) or "plan" not in plan_result:
             logger.error(f"❌ Planner returned unexpected result format: {plan_result}")
             sys.exit(1)
             
         plan = plan_result.get("plan")
-        if not plan: # Handles None or empty plan
-            logger.error("❌ Planner failed to generate a valid plan.")
-            sys.exit(1)
+        if not plan or not isinstance(plan, list):
+            logger.error(f"❌ Planner failed to generate a valid list-based plan. Result: {plan}")
+            # If plan is empty list, maybe log info instead of error?
+            if isinstance(plan, list) and not plan:
+                 logger.info("ℹ️ Planner generated an empty plan (no actions needed based on rules).")
+                 # Exit gracefully for empty plan? Or let executor handle it?
+                 # For now, let executor handle empty plan if it can.
+            else:
+                 sys.exit(1) # Exit for invalid plan format
         
-        logger.info(f"📊 Plan Generated: {plan}") # Log the plan itself for debugging
+        logger.info(f"📊 Plan Generated: {plan}") 
 
+        # --- Execute the plan using the real executor --- 
         logger.info("⚙️ Executing plan...")
-        # Ensure executor arguments match expectation
-        result = executor.execute_plan(plan=plan) 
+        result = executor.execute_plan(plan=plan)
+        # --- End execution --- 
         
-        # Validate execution result structure (adjust based on actual executor output)
+        # Process results (existing logic seems compatible)
         if not isinstance(result, dict):
             logger.error(f"❌ Executor returned unexpected result format: {result}")
             sys.exit(1)
