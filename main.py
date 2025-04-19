@@ -42,20 +42,11 @@ except ImportError as e:
     _toolchain_available = False
 
 
-# --- Logging ---
-# Ensure logs directory exists (handled by setup_environment, but good practice here too)
-log_dir = Path(__file__).parent / "logs"
-log_dir.mkdir(parents=True, exist_ok=True)
-log_file = log_dir / f"dream_os_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
-# Configure logging to both console and file
+# --- Logging (Simplified for GUI launch test) ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file, encoding='utf-8'),
-        logging.StreamHandler(sys.stdout) # Use stdout instead of default stderr
-    ]
+    handlers=[logging.StreamHandler(sys.stdout)] # Temporarily remove FileHandler
 )
 logger = logging.getLogger("DreamOS")
 
