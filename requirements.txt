@@ -31,4 +31,7 @@ numpy==1.24.3
 pandas==2.0.2
 opencv-python==4.8.0.74
 loguru==0.7.0
-GitPython==3.1.31 
+GitPython==3.1.31
+
+# Add Jinja2 for template rendering
+jinja2 
