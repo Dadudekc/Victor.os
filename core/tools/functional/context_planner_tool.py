@@ -57,22 +57,40 @@ class ContextPlannerTool(AgentTool):
         is_refactor = 'refactor' in task_lower
         is_update = 'update' in task_lower
 
-        if (is_migration or is_refactor or is_update) and len(files) >= 2:
+        # Check if keywords match and we have at least one file (source). 
+        # If only one file is mentioned, assume it's both source and target (in-place update).
+        if (is_migration or is_refactor or is_update) and files:
             logger.debug("Applying Migration/Refactor/Update rule.")
-            # Heuristic: Assume first file is source, last is target? Or identify with keywords?
-            # Let's assume for now: Read all files, write placeholder to last file.
-            for file in files:
-                plan.append({"tool": "read_file", "args": {"filepath": file}})
             
-            target_file = files[-1] # Simplistic assumption
-            # TODO: Improve target file identification (e.g., look for keywords like 'to')
+            # Read all mentioned files
+            for file_path in files:
+                plan.append({"tool": "read_file", "args": {"filepath": file_path}})
             
+            # Determine target file. Simplistic assumption: last file is target.
+            # If only one file, it's the target for in-place update.
+            target_file = files[-1] 
+            
+            # Try a slightly better heuristic for migration/refactoring: Look for 'to'
+            if (is_migration or is_refactor) and ' to ' in task_lower:
+                try:
+                    # Extract the part after ' to ' and see if it contains a known file
+                    potential_target_part = task_lower.split(' to ')[1]
+                    for f in files:
+                        # Check if the base filename (without path) is in the target part
+                        # Escaped backslash for Windows paths
+                        if f.split('/')[-1].split('\\')[-1] in potential_target_part:
+                             target_file = f
+                             logger.debug(f"Identified target file heuristically based on 'to': {target_file}")
+                             break
+                except Exception as e:
+                    logger.warning(f"Error parsing target file after 'to': {e}. Falling back to last file.")
+
             action_verb = "migrated" if is_migration else "refactored" if is_refactor else "updated"
             plan.append({
                 "tool": "write_file", 
                 "args": {
                     "filepath": target_file, 
-                    "content": f"# TODO: Implement {action_verb} code for {target_file} based on task and content of other files."
+                    "content": f"# TODO: Implement {action_verb} code for {target_file} based on task and content of other files read in previous steps."
                     # In a real scenario, an LLM tool would generate this content using context from read_file steps.
                 }
             })
