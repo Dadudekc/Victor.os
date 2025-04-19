@@ -1,10 +1,18 @@
 import sys
 import logging
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget, QLabel, QStatusBar
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, 
+    QStackedWidget, QLabel, QStatusBar, QListWidgetItem, QSizePolicy
+)
+from PyQt5.QtCore import QTimer, QSize, Qt
+from PyQt5.QtGui import QFont, QIcon # Import QIcon
+
 import json
 from pathlib import Path
 from core.services.event_logger import log_structured_event
+
+# Import the new Forge Tab
+from .fragment_forge_tab import FragmentForgeTab
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +26,11 @@ class DummyTaskManager:
         pass # In a real implementation, add to internal list/db
 
 class DreamOSMainWindow(QMainWindow):
-    """Main application window for Dream.OS."""
+    """Main application window for Dream.OS using Sidebar Navigation."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        logger.info("Initializing DreamOSMainWindow GUI...")
+        logger.info("Initializing DreamOSMainWindow GUI with Sidebar Navigation...")
         self.setWindowTitle("Dream.OS")
         self.setGeometry(100, 100, 1200, 800) # Default size
 
@@ -30,41 +38,116 @@ class DreamOSMainWindow(QMainWindow):
         self.task_manager = DummyTaskManager()
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout(self.central_widget)
         
-        self.tab_widget = QTabWidget()
-        self.layout.addWidget(self.tab_widget)
+        # --- Main Layout: Sidebar + Content Stack ---
+        self.main_h_layout = QHBoxLayout(self.central_widget)
+        self.main_h_layout.setSpacing(0) # No space between sidebar and content
+        self.main_h_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Add a default status bar
+        # --- Sidebar --- 
+        self.sidebar = QListWidget()
+        self.sidebar.setViewMode(QListView.IconMode) # Use IconMode for better visuals
+        self.sidebar.setMovement(QListView.Static) # Prevent item dragging
+        self.sidebar.setMaximumWidth(120) # Set a max width for the sidebar
+        self.sidebar.setSpacing(10)
+        self.sidebar.setIconSize(QSize(48, 48)) # Example icon size
+        # Basic styling (can be enhanced with stylesheets)
+        self.sidebar.setStyleSheet("""
+            QListWidget {
+                background-color: #f0f0f0;
+                border-right: 1px solid #d0d0d0;
+            }
+            QListWidget::item {
+                padding: 10px;
+                margin: 2px;
+                border-radius: 4px; /* Rounded corners */
+            }
+            QListWidget::item:selected {
+                background-color: #cce5ff; /* Light blue for selection */
+                color: black;
+                border: 1px solid #99cfff;
+            }
+            QListWidget::item:hover {
+                background-color: #e6e6e6;
+            }
+        """)
+        self.main_h_layout.addWidget(self.sidebar)
+
+        # --- Content Stack ---
+        self.content_stack = QStackedWidget()
+        self.main_h_layout.addWidget(self.content_stack)
+
+        # --- Status Bar ---
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Dream.OS Initialized.")
 
-        # Add some example tabs (replace with actual tabs later)
-        self._create_example_tabs()
+        # --- Populate Sidebar and Content Stack ---
+        self._create_navigation()
+        
+        # Connect sidebar selection to stack change
+        self.sidebar.currentRowChanged.connect(self.content_stack.setCurrentIndex)
+        
+        # Select the first item by default
+        self.sidebar.setCurrentRow(0)
         
         logger.info("DreamOSMainWindow GUI Initialized.")
 
-    def _create_example_tabs(self):
-        """Creates placeholder tabs."""
-        tab1 = QWidget()
-        tab1_layout = QVBoxLayout(tab1)
-        tab1_layout.addWidget(QLabel("Welcome to Dream.OS - Dashboard Tab (Placeholder)"))
-        self.tab_widget.addTab(tab1, "Dashboard")
+    def _create_navigation(self):
+        """Creates sidebar items and corresponding content widgets."""
+        # 1. Dashboard (Placeholder)
+        dashboard_widget = QWidget()
+        dash_layout = QVBoxLayout(dashboard_widget)
+        dash_layout.addWidget(QLabel("Welcome to Dream.OS - Dashboard"))
+        dash_layout.setAlignment(Qt.AlignCenter)
+        self.add_navigation_item("Dashboard", "icons/dashboard.png", dashboard_widget) # Assumes icon path
         
-        tab2 = QWidget()
-        tab2_layout = QVBoxLayout(tab2)
-        tab2_layout.addWidget(QLabel("Agent Management Tab (Placeholder)"))
-        self.tab_widget.addTab(tab2, "Agents")
+        # 2. Fragment Forge
+        forge_widget = FragmentForgeTab(self) # Pass parent
+        self.add_navigation_item("Forge", "icons/forge.png", forge_widget)
         
-        logger.debug("Example tabs created.")
+        # 3. Agents (Placeholder)
+        agents_widget = QWidget()
+        agents_layout = QVBoxLayout(agents_widget)
+        agents_layout.addWidget(QLabel("Agent Management"))
+        agents_layout.setAlignment(Qt.AlignCenter)
+        self.add_navigation_item("Agents", "icons/agents.png", agents_widget)
+        
+        # 4. Tasks (Placeholder)
+        tasks_widget = QWidget()
+        tasks_layout = QVBoxLayout(tasks_widget)
+        tasks_layout.addWidget(QLabel("Task Management"))
+        tasks_layout.setAlignment(Qt.AlignCenter)
+        self.add_navigation_item("Tasks", "icons/tasks.png", tasks_widget)
+
+        # Add more items here (Logs, Settings, etc.)
+        logger.debug("Navigation structure created.")
+        
+    def add_navigation_item(self, text: str, icon_path: str, widget: QWidget):
+        """Adds an item to the sidebar and its corresponding widget to the stack."""
+        item = QListWidgetItem(self.sidebar)
+        # Try loading icon, fallback to text only if fails
+        icon = QIcon(icon_path)
+        if not icon.isNull():
+             item.setIcon(icon)
+        else:
+             logger.warning(f"Icon not found or invalid: {icon_path}")
+             # Consider adding placeholder icon
+             
+        item.setText(text)
+        item.setTextAlignment(Qt.AlignCenter)
+        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        # item.setSizeHint(QSize(100, 70)) # Adjust size hint if needed
+        
+        self.content_stack.addWidget(widget)
+        logger.debug(f"Added navigation item: '{text}'")
 
     # --- Methods called by main.py test mode (Enhanced Stubs) ---
     
-    def get_tab_names(self) -> list:
-        """Returns names of the tabs."""
-        names = [self.tab_widget.tabText(i) for i in range(self.tab_widget.count())]
-        logger.debug(f"Returning tab names: {names}")
+    def get_sidebar_items(self) -> list:
+        """Returns names of the sidebar items."""
+        names = [self.sidebar.item(i).text() for i in range(self.sidebar.count())]
+        logger.debug(f"Returning sidebar item names: {names}")
         return names
         
     def log_event(self, event_name: str, event_data: dict):
