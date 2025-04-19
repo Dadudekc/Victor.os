@@ -13,6 +13,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtGui import QFont
+from datetime import datetime # Import datetime for save ID
+import os # Import os for basename
 
 # Placeholder for Template Engine and Memory Manager (to be imported from core)
 # from core.rendering import TemplateEngine 
@@ -209,25 +211,53 @@ class FragmentForgeTab(QWidget):
         self.attach_bgm_button.clicked.connect(self._attach_file_bgm)
 
     def _update_preview(self):
-        """Gather data from input fields and update the preview pane."""
-        # Placeholder: Implement Jinja2 rendering logic here
+        """Gather data from input fields and update the preview pane using TemplateEngine."""
         fragment_data = self._gather_fragment_data()
         
-        # Example basic preview (replace with actual Jinja2 rendering)
-        preview_text = f"""--- Fragment: {fragment_data.get('name', 'Untitled')} ---
-Author: {fragment_data.get('author', 'N/A')}
-Rank: {fragment_data.get('rank', 'N/A')}    Resonance: {fragment_data.get('resonance', 0)}%
-Tags: {fragment_data.get('tags', [])}
-Tone: {fragment_data.get('tone', [])}
-Activation: {fragment_data.get('activation', [])}
-Narrative Role: {fragment_data.get('narrative_role', 'N/A')}
-
---- Core Text ---
-{fragment_data.get('core_text', '')}
-"""
-        # In reality, use self.template_engine.render(template_name, **fragment_data)
+        # Define a default Jinja2 template for the preview
+        # This could be loaded from a file or configuration later
+        preview_template = """
+        <style>
+            .label { font-weight: bold; }
+            .core-text { 
+                white-space: pre-wrap; /* Preserve whitespace */ 
+                font-family: monospace; 
+                background-color: #f8f8f8;
+                border: 1px solid #eee;
+                padding: 10px;
+                margin-top: 10px;
+            }
+        </style>
+        <p><span class="label">Fragment:</span> {{ fragment.name | default('Untitled') }}</p>
+        <p><span class="label">Author:</span> {{ fragment.author | default('N/A') }}</p>
+        <p>
+            <span class="label">Rank:</span> {{ fragment.rank | default('N/A') }} &nbsp;&nbsp;
+            <span class="label">Resonance:</span> {{ fragment.resonance | default(0) }}%
+        </p>
+        <p><span class="label">Tags:</span> {{ fragment.tags | join(', ') | default('None') }}</p>
+        <p><span class="label">Tone:</span> {{ fragment.tone | join(', ') | default('None') }}</p>
+        <p><span class="label">Activation:</span> {{ fragment.activation | join(', ') | default('None') }}</p>
+        <p><span class="label">Narrative Role:</span> {{ fragment.narrative_role | default('N/A') }}</p>
         
-        self.preview_output.setText(preview_text)
+        {% if fragment.voice_file %}
+        <p><span class="label">Voice:</span> {{ fragment.voice_file | basename }}</p>
+        {% endif %}
+        {% if fragment.bgm_file %}
+        <p><span class="label">BGM:</span> {{ fragment.bgm_file | basename }}</p>
+        {% endif %}
+
+        <div class="core-text">{{ fragment.core_text | default('(No core text entered)') }}</div>
+        """
+
+        try:
+            # Pass fragment data under a 'fragment' key for the template context
+            # Add os.path.basename as a filter for convenience
+            self.template_engine.env.filters['basename'] = os.path.basename 
+            rendered_html = self.template_engine.render(preview_template, context={"fragment": fragment_data})
+            self.preview_output.setHtml(rendered_html) # Use setHtml for styled preview
+        except Exception as e:
+            logger.error(f"Failed to render fragment preview: {e}", exc_info=True)
+            self.preview_output.setText(f"Error rendering preview:\n{e}")
 
     def _gather_fragment_data(self) -> dict:
         """Collects data from all input fields into a dictionary."""
@@ -247,29 +277,34 @@ Narrative Role: {fragment_data.get('narrative_role', 'N/A')}
         }
 
     def _save_fragment(self):
-        """Handles saving the current fragment data."""
+        """Handles saving the current fragment data using MemoryManager."""
         fragment_data = self._gather_fragment_data()
-        if not fragment_data.get("core_text") and not fragment_data.get("name"):
+        name = fragment_data.get("name")
+        core_text = fragment_data.get("core_text")
+
+        if not core_text and not name:
             logger.warning("Cannot save fragment: Core text or name is missing.")
-            # Optionally show a message box to the user
+            # TODO: Show a QMessageBox.warning to the user
             return
             
-        fragment_id = f"fragment_{fragment_data.get('name', 'untitled').lower().replace(' ', '_')}_{int(datetime.now().timestamp())}" 
+        # Use name for ID generation, fallback to timestamp if no name
+        base_id = name.lower().replace(' ', '_').replace('\'', '') if name else "fragment"
+        fragment_id = f"{base_id}_{int(datetime.now().timestamp())}" 
         
-        logger.info(f"Saving fragment: {fragment_id} - {fragment_data.get('name')}")
+        logger.info(f"Attempting to save fragment: ID='{fragment_id}', Name='{name}'")
         
-        # Placeholder: Call MemoryManager to save the fragment
-        # success = self.memory_manager.save_fragment(fragment_id, fragment_data)
-        # if success:
-        #    logger.info(f"Fragment '{fragment_id}' saved successfully.")
-        #    # Optionally clear the form or load next fragment
-        # else:
-        #    logger.error(f"Failed to save fragment '{fragment_id}'.")
-        #    # Optionally show error message box
-        
-        # For now, just log the data
-        print(f"DEBUG: Save Fragment triggered. Data: {fragment_data}")
-
+        try:
+            success = self.memory_manager.save_fragment(fragment_id, fragment_data)
+            if success:
+                logger.info(f"Fragment '{fragment_id}' saved successfully.")
+                # TODO: Show a status message or clear the form
+                # self.clear_form() # Optional: Add a method to clear fields
+            else:
+                logger.error(f"Failed to save fragment '{fragment_id}' using MemoryManager.")
+                # TODO: Show a QMessageBox.critical
+        except Exception as e:
+            logger.error(f"Exception occurred during fragment save: {e}", exc_info=True)
+            # TODO: Show a QMessageBox.critical
 
     def _attach_file_dialog(self, title: str, file_filter: str) -> Optional[str]:
         """Opens a file dialog and returns the selected file path."""
