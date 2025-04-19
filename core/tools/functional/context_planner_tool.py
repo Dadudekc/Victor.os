@@ -85,29 +85,46 @@ class ContextPlannerTool(AgentTool):
         if (is_migration or is_refactor or is_update) and files:
             logger.debug("Applying Migration/Refactor/Update rule.")
             
-            # Read all mentioned files
-            for file_path in files:
-                plan.append({"tool": "read_file", "args": {"filepath": file_path}})
-            
-            # Determine target file. Simplistic assumption: last file is target.
             # If only one file, it's the target for in-place update.
-            target_file = files[-1] 
-            
-            # Try a slightly better heuristic for migration/refactoring: Look for 'to'
-            if (is_migration or is_refactor) and ' to ' in task_lower:
-                try:
-                    # Extract the part after ' to ' and see if it contains a known file
-                    potential_target_part = task_lower.split(' to ')[1]
-                    for f in files:
-                        # Check if the base filename (without path) is in the target part
-                        # Escaped backslash for Windows paths
-                        if f.split('/')[-1].split('\\')[-1] in potential_target_part:
-                             target_file = f
-                             logger.debug(f"Identified target file heuristically based on 'to': {target_file}")
-                             break
-                except Exception as e:
-                    logger.warning(f"Error parsing target file after 'to': {e}. Falling back to last file.")
+            target_file = files[-1] # Default target if only one file or heuristic fails
+            source_files = files[:-1] if len(files) > 1 else files # Default source(s)
 
+            # Refined heuristic for migration/refactoring: Prioritize file after ' to '
+            if (is_migration or is_refactor) and ' to ' in task_lower and len(files) > 1:
+                found_target_after_to = False
+                try:
+                    parts = task_lower.split(' to ', 1) # Split only once
+                    if len(parts) > 1:
+                        potential_target_part = parts[1]
+                        # Check extracted files against the part after ' to '
+                        for f in files:
+                             # Using basename check might be fragile, consider full path check if needed
+                             basename = f.split('/')[-1].split('\\')[-1]
+                             if basename in potential_target_part:
+                                 # Found a potential target file after ' to '
+                                 target_file = f 
+                                 source_files = [sf for sf in files if sf != target_file] # All others are sources
+                                 logger.debug(f"Prioritized target file based on 'to': {target_file}")
+                                 found_target_after_to = True
+                                 break # Stop after finding the first match after 'to'
+                    
+                    if not found_target_after_to:
+                         logger.warning(f"' to ' keyword found, but couldn't identify a known file in the part after it. Falling back to default target: {target_file}")
+                except Exception as e:
+                    logger.warning(f"Error parsing target file after 'to': {e}. Falling back to default target: {target_file}")
+            elif len(files) == 1:
+                 # If only one file, it's both source and target (in-place)
+                 source_files = files
+                 target_file = files[0]
+                 logger.debug(f"Single file identified, assuming in-place update/refactor/migration: {target_file}")
+
+            # Ensure plan reflects correct source/target
+            plan = [] # Rebuild plan with potentially reordered/identified files
+            # Read source file(s)
+            for src_file in source_files:
+                 plan.append({"tool": "read_file", "args": {"filepath": src_file}})
+                 
+            # Add write step for the identified target file
             action_verb = "migrated" if is_migration else "refactored" if is_refactor else "updated"
             plan.append({
                 "tool": "write_file", 
@@ -128,7 +145,7 @@ class ContextPlannerTool(AgentTool):
         elif 'search' in task_lower or 'find' in task_lower or 'grep' in task_lower:
             logger.debug("Applying Search rule.")
             # Prioritize symbol if available, else first target, else placeholder
-            search_term = symbols[0] if symbols else targets[0] if targets else "<placeholder_search_term>"
+            search_term = symbols[0] if symbols else files[0] if files else "<placeholder_search_term>"
             # Search in first file mentioned or default path
             search_path = files[0] if files else "."
             plan.append({"tool": "grep_search", "args": {"query": search_term, "path": search_path}})
