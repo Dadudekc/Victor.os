@@ -9,7 +9,8 @@ from PyQt5.QtGui import QFont, QIcon # Import QIcon
 
 import json
 from pathlib import Path
-from core.services.event_logger import log_structured_event
+# Commented out problematic import
+# from core.services.event_logger import log_structured_event 
 
 # Import backend components
 from core.memory.memory_manager import MemoryManager
@@ -165,12 +166,12 @@ class DreamOSMainWindow(QMainWindow):
     def log_event(self, event_name: str, event_data: dict):
         """Logs an event locally and using the core structured event logger."""
         logger.info(f"[Stub] Event logged locally: {event_name} - Data: {event_data}")
-        # Log using the core service
-        log_structured_event(
-            event_type=f"GUI_{event_name}", 
-            data=event_data, 
-            source="DreamOSMainWindow"
-        )
+        # Log using the core service (Commented out)
+        # log_structured_event(
+        #     event_type=f"GUI_{event_name}", 
+        #     data=event_data, 
+        #     source="DreamOSMainWindow"
+        # )
         # Simulate notifying mailbox (as seen in main.py test)
         self.notify_mailbox(event_name, event_data)
         
@@ -178,7 +179,8 @@ class DreamOSMainWindow(QMainWindow):
          """Placeholder for sending notification to agent mailbox."""
          log_info = {"event_name": event_name, "event_data_keys": list(event_data.keys())}
          logger.info(f"[Stub] Sending notification to Agent Mailbox: Event '{event_name}' occurred.")
-         log_structured_event("GUI_MAILBOX_NOTIFY_SENT", log_info, "DreamOSMainWindow")
+         # Log using the core service (Commented out)
+         # log_structured_event("GUI_MAILBOX_NOTIFY_SENT", log_info, "DreamOSMainWindow")
          # Simulate syncing with board (as seen in main.py test)
          self.sync_event_with_board("mailbox_update", {"event": event_name})
          
@@ -188,7 +190,8 @@ class DreamOSMainWindow(QMainWindow):
          """
          log_info = {"sync_type": sync_type, "data_keys": list(data.keys())}
          logger.info(f"[Stub] Syncing '{sync_type}' with Central Agent Board. Data: {data}")
-         log_structured_event("GUI_BOARD_SYNC_ATTEMPT", log_info, "DreamOSMainWindow")
+         # Log using the core service (Commented out)
+         # log_structured_event("GUI_BOARD_SYNC_ATTEMPT", log_info, "DreamOSMainWindow")
 
          # If this is the task add sync, append to task_list.json
          if sync_type == "task_add" and isinstance(data, dict) and 'id' in data:
@@ -223,10 +226,12 @@ class DreamOSMainWindow(QMainWindow):
             with open(TASK_LIST_PATH, 'w', encoding='utf-8') as f:
                 json.dump(tasks, f, indent=2) # Write back with indentation
             logger.info(f"Successfully appended task {task_data.get('id')} to {TASK_LIST_PATH}")
-            log_structured_event("GUI_TASK_APPENDED", {"task_id": task_data.get('id')}, "DreamOSMainWindow")
+            # Log using the core service (Commented out)
+            # log_structured_event("GUI_TASK_APPENDED", {"task_id": task_data.get('id')}, "DreamOSMainWindow")
         except Exception as e:
             logger.error(f"Failed to append task to {TASK_LIST_PATH}: {e}", exc_info=True)
-            log_structured_event("GUI_TASK_APPEND_FAILED", {"task_id": task_data.get('id'), "error": str(e)}, "DreamOSMainWindow")
+            # Log using the core service (Commented out)
+            # log_structured_event("GUI_TASK_APPEND_FAILED", {"task_id": task_data.get('id'), "error": str(e)}, "DreamOSMainWindow")
 
     # --- Window Management ---
         
