@@ -21,6 +21,59 @@
     "target_agent": "RefactorAgent",
     "status": "pending",
     "priority": 5,
-    "depends_on": ["plan-full-sync"]
+    "depends_on": [
+      "plan-full-sync"
+    ]
+  },
+  {
+    "id": "task_test_185857",
+    "task_type": "SIMULATION",
+    "action": "RunTest",
+    "target_agent": "TestRunner",
+    "timestamp_created": "2025-04-18T18:58:57.028244",
+    "timestamp_updated": "2025-04-18T18:58:57.028244",
+    "name": "Autonomous Test Task",
+    "description": "Generated via test mode.",
+    "priority": "High",
+    "status": "Pending",
+    "params": {
+      "mode": "test"
+    },
+    "result_summary": null,
+    "error_message": null
+  },
+  {
+    "id": "task_test_185914",
+    "task_type": "SIMULATION",
+    "action": "RunTest",
+    "target_agent": "TestRunner",
+    "timestamp_created": "2025-04-18T18:59:14.260692",
+    "timestamp_updated": "2025-04-18T18:59:14.260692",
+    "name": "Autonomous Test Task",
+    "description": "Generated via test mode.",
+    "priority": "High",
+    "status": "Pending",
+    "params": {
+      "mode": "test"
+    },
+    "result_summary": null,
+    "error_message": null
+  },
+  {
+    "id": "task_test_191026",
+    "task_type": "SIMULATION",
+    "action": "RunTest",
+    "target_agent": "TestRunner",
+    "timestamp_created": "2025-04-18T19:10:26.049072",
+    "timestamp_updated": "2025-04-18T19:10:26.049072",
+    "name": "Autonomous Test Task",
+    "description": "Generated via test mode.",
+    "priority": "High",
+    "status": "Pending",
+    "params": {
+      "mode": "test"
+    },
+    "result_summary": null,
+    "error_message": null
   }
-] 
+]
