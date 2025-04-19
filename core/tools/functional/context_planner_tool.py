@@ -69,147 +69,33 @@ class ContextPlannerTool(AgentTool):
 
         logger.info(f"Executing '{self.name}' for task: {task_description[:100]}...")
         
-        plan: List[Dict[str, Any]] = []
         files, symbols = self._extract_targets(task_description)
         task_lower = task_description.lower()
 
-        # --- Rule-Based Planning Logic --- 
-        is_migration = 'migrate' in task_lower
-        is_refactor = 'refactor' in task_lower
-        is_update = 'update' in task_lower
-        is_create = 'create' in task_lower
-        is_extract = 'extract' in task_lower
+        # --- Rule Processing --- 
+        plan = None
+        rule_methods = [
+            self._rule_extract_symbol,
+            self._rule_refactor_symbol,
+            self._rule_create_file,
+            self._rule_migrate_update_generic_refactor,
+            self._rule_read_analyze,
+            self._rule_search,
+            # Fallback rule (applied last if no other rule matches)
+            self._rule_fallback_log
+        ]
+
+        for rule_method in rule_methods:
+            plan = rule_method(task_description, task_lower, files, symbols)
+            if plan is not None: # First rule that returns a plan wins
+                break
         
-        # Rule Order Matters! More specific rules should come first.
-
-        # Rule: Extract Class/Function from one file to another
-        if is_extract and symbols and len(files) >= 2:
-            # Basic Assumption: extract <symbol> from <file1> to <file2>
-            logger.debug("Applying Extract Symbol rule.")
-            target_symbol = symbols[0]
-            # Heuristic: file after 'from' is source, file after 'to' is target
-            source_file = None
-            target_file = None
-            try:
-                # Split robustly, considering potential missing keywords
-                parts_from = task_lower.split(' from ', 1)
-                if len(parts_from) > 1:
-                    potential_source_part = parts_from[1]
-                    parts_to = potential_source_part.split(' to ', 1)
-                    if len(parts_to) > 1:
-                        source_part = parts_to[0]
-                        target_part = parts_to[1]
-                        
-                        # Find matching files in the parts
-                        for f in files:
-                            # Simple basename check
-                            basename = os.path.basename(f) # Use os.path.basename
-                            if basename in source_part:
-                                source_file = f
-                            if basename in target_part:
-                                target_file = f
-                                
-                if not source_file or not target_file:
-                     logger.warning("Could not reliably determine source/target for extraction. Skipping rule.")
-                else:
-                    logger.info(f"Extraction plan: Extract '{target_symbol}' from '{source_file}' to '{target_file}'")
-                    # Plan: Read source, Read target, Write source (modified), Write target (modified)
-                    plan.append({"tool": "read_file", "args": {"filepath": source_file}})
-                    plan.append({"tool": "read_file", "args": {"filepath": target_file}})
-                    plan.append({
-                        "tool": "write_file", 
-                        "args": {
-                            "filepath": source_file, 
-                            "content": f"# TODO: Remove extracted symbol '{target_symbol}' from this file ({source_file}). Content based on previous read step."
-                        }
-                    })
-                    plan.append({
-                        "tool": "write_file", 
-                        "args": {
-                            "filepath": target_file, 
-                            "content": f"# TODO: Add extracted symbol '{target_symbol}' to this file ({target_file}). Content based on previous read steps and task."
-                        }
-                    })
-            except Exception as e:
-                logger.warning(f"Error parsing extract command structure: {e}. Skipping rule.")
-
-        # Rule: Refactor a specific symbol (function/class) within a file
-        elif is_refactor and symbols and files:
-            logger.debug("Applying Refactor Symbol rule.")
-            # Basic assumption: refactor first symbol in first file mentioned
-            target_symbol = symbols[0]
-            target_file = files[0] 
-            # Plan: Read the file, (optionally grep for symbol), write back with TODO
-            plan.append({"tool": "read_file", "args": {"filepath": target_file}})
-            plan.append({
-                "tool": "write_file",
-                "args": {
-                    "filepath": target_file,
-                    "content": f"# TODO: Refactor symbol '{target_symbol}' in {target_file} based on task description and file content read in previous steps."
-                }
-            })
-            
-        # Rule: Migration / Update (Generic file movement/change, less specific than extract/refactor symbol)
-        elif (is_migration or is_update or (is_refactor and not symbols)) and files:
-            logger.debug("Applying Migration/Update/Generic Refactor rule.")
-            # ... (existing migration/update/generic refactor logic) ...
-            # This logic needs to correctly identify source/target and generate plan
-            # Assuming the logic refined earlier for `to` keyword exists here
-            # Simplified placeholder for demonstration:
-            target_file = files[-1]
-            source_files = files[:-1] if len(files) > 1 else files
-            # (Add the refined heuristic logic here from previous steps if needed)
-            for src_file in source_files:
-                 plan.append({"tool": "read_file", "args": {"filepath": src_file}})
-            action_verb = "migrated" if is_migration else "refactored" if is_refactor else "updated"
-            plan.append({
-                "tool": "write_file", 
-                "args": {
-                    "filepath": target_file, 
-                    "content": f"# TODO: Implement {action_verb} code for {target_file} based on task and content of other files read in previous steps."
-                 }
-             })
-
-        # Rule: If task involves creating a file
-        elif is_create and files and not plan:
-             logger.debug("Applying Create File rule.")
-             for fp in files:
-                 basename = os.path.basename(fp)
-                 class_name_parts = basename.replace(".py", "").split('_')
-                 class_name = "".join(part.capitalize() for part in class_name_parts)
-                 if not class_name: class_name = "MyClass" 
-                 placeholder = f"# TODO: Implement the {class_name} class\n\nclass {class_name}:\n    \"\"\"Placeholder for {class_name}.\"\"\"\n    pass\n"
-                 plan.append({
-                     "tool": "write_file",
-                     "args": {"filepath": fp, "content": placeholder}
-                 })
-
-        # Rule: If task involves reading/analyzing files (and not covered above)
-        elif files and not plan and ('read' in task_lower or 'analyze' in task_lower or 'use' in task_lower or 'check' in task_lower):
-             logger.debug("Applying Read/Analyze rule.")
-             for file in files:
-                 plan.append({"tool": "read_file", "args": {"filepath": file}})
+        # Ensure plan is a list, even if fallback didn't return one (shouldn't happen)
+        plan = plan if plan is not None else []
         
-        # Rule: If task involves searching (and not covered above)
-        elif not plan and ('search' in task_lower or 'find' in task_lower or 'grep' in task_lower):
-             logger.debug("Applying Search rule.")
-             search_term = symbols[0] if symbols else files[0] if files else "<placeholder_search_term>"
-             search_path = files[0] if files else "."
-             plan.append({"tool": "grep_search", "args": {"query": search_term, "path": search_path}})
-            
-        # Fallback: If no specific rules match and no plan generated yet
-        if not plan and task_description:
-            logger.warning("Planner could not generate specific steps based on rules, adding generic log_message placeholder.")
-            plan.append({
-                "tool": "log_message", 
-                "args": {"message": f"Placeholder action for task: {task_description}"} 
-            })
-
-        # --- End Planning Logic ---
-        
-        # --- Add Narration and Versioning (Enhancements 3 & 4) ---
+        # --- Result Generation --- 
         plan_narration = self._generate_plan_narration(plan, task_description)
-        version = "0.3.0" # Example version
+        version = "0.3.1" # Incremented version for refactor
 
         result = {
              "plan_version": version,
@@ -217,11 +103,124 @@ class ContextPlannerTool(AgentTool):
              "plan_narration": plan_narration,
              "plan": plan
         }
-        # --- End Enhancements --- 
         
         self._log_execution(args, f"Generated plan v{version} with {len(plan)} steps.")
         return result 
 
+    # --- Individual Rule Methods --- 
+    
+    def _rule_extract_symbol(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: Extract Class/Function from one file to another."""
+        if 'extract' in task_lower and symbols and len(files) >= 2:
+            logger.debug("Applying Extract Symbol rule.")
+            target_symbol = symbols[0]
+            source_file = None
+            target_file = None
+            try:
+                parts_from = task_lower.split(' from ', 1)
+                if len(parts_from) > 1:
+                    potential_source_part = parts_from[1]
+                    parts_to = potential_source_part.split(' to ', 1)
+                    if len(parts_to) > 1:
+                        source_part = parts_to[0]
+                        target_part = parts_to[1]
+                        for f in files:
+                            basename = os.path.basename(f)
+                            if basename in source_part: source_file = f
+                            if basename in target_part: target_file = f
+                if not source_file or not target_file:
+                     logger.warning("Could not reliably determine source/target for extraction. Skipping rule.")
+                     return None # Rule doesn't match clearly
+                else:
+                    logger.info(f"Extraction plan: Extract '{target_symbol}' from '{source_file}' to '{target_file}'")
+                    plan = []
+                    plan.append({"tool": "read_file", "args": {"filepath": source_file}})
+                    plan.append({"tool": "read_file", "args": {"filepath": target_file}})
+                    plan.append({"tool": "write_file", "args": {"filepath": source_file, "content": f"# TODO: Remove extracted symbol '{target_symbol}' from {source_file}."}})
+                    plan.append({"tool": "write_file", "args": {"filepath": target_file, "content": f"# TODO: Add extracted symbol '{target_symbol}' to {target_file}."}})
+                    return plan
+            except Exception as e:
+                logger.warning(f"Error parsing extract command structure: {e}. Skipping rule.")
+        return None # Rule condition not met
+        
+    def _rule_refactor_symbol(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: Refactor a specific symbol (function/class) within a file."""
+        if 'refactor' in task_lower and symbols and files:
+            logger.debug("Applying Refactor Symbol rule.")
+            target_symbol = symbols[0]
+            target_file = files[0] 
+            plan = [
+                {"tool": "read_file", "args": {"filepath": target_file}},
+                {"tool": "write_file", "args": {"filepath": target_file, "content": f"# TODO: Refactor symbol '{target_symbol}' in {target_file}."}}
+            ]
+            return plan
+        return None
+        
+    def _rule_create_file(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+         """Rule: If task involves creating a file."""
+         if 'create' in task_lower and files:
+             logger.debug("Applying Create File rule.")
+             plan = []
+             for fp in files:
+                 basename = os.path.basename(fp)
+                 class_name_parts = basename.replace(".py", "").split('_')
+                 class_name = "".join(part.capitalize() for part in class_name_parts) or "MyClass"
+                 placeholder = f"# TODO: Implement the {class_name} class\n\nclass {class_name}:\n    \"\"\"Placeholder for {class_name}.\"\"\"\n    pass\n"
+                 plan.append({"tool": "write_file", "args": {"filepath": fp, "content": placeholder}})
+             return plan
+         return None
+
+    def _rule_migrate_update_generic_refactor(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: Migration / Update / Generic Refactor (no specific symbol mentioned)."""
+        is_migration = 'migrate' in task_lower
+        is_refactor = 'refactor' in task_lower
+        is_update = 'update' in task_lower
+        # Trigger if keywords match AND it's not a symbol refactor (handled above)
+        if (is_migration or is_update or (is_refactor and not symbols)) and files:
+            logger.debug("Applying Migration/Update/Generic Refactor rule.")
+            # Simplified logic - assumes prior refined heuristic for target finding exists or is added here
+            target_file = files[-1]
+            source_files = files[:-1] if len(files) > 1 else files
+            # TODO: Re-integrate the 'from ... to ...' target identification logic here if needed
+            plan = []
+            for src_file in source_files:
+                 plan.append({"tool": "read_file", "args": {"filepath": src_file}})
+            action_verb = "migrated" if is_migration else "refactored" if is_refactor else "updated"
+            plan.append({"tool": "write_file", "args": {"filepath": target_file, "content": f"# TODO: Implement {action_verb} code for {target_file}."}})
+            return plan
+        return None
+
+    def _rule_read_analyze(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: If task involves reading/analyzing files."""
+        if files and ('read' in task_lower or 'analyze' in task_lower or 'use' in task_lower or 'check' in task_lower):
+             logger.debug("Applying Read/Analyze rule.")
+             plan = []
+             for file in files:
+                 plan.append({"tool": "read_file", "args": {"filepath": file}})
+             return plan
+        return None
+        
+    def _rule_search(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: If task involves searching."""
+        if 'search' in task_lower or 'find' in task_lower or 'grep' in task_lower:
+             logger.debug("Applying Search rule.")
+             search_term = symbols[0] if symbols else files[0] if files else "<placeholder_search_term>"
+             search_path = files[0] if files else "."
+             plan = [{"tool": "grep_search", "args": {"query": search_term, "path": search_path}}]
+             return plan
+        return None
+        
+    def _rule_fallback_log(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Fallback Rule: Logs a message if no other rules matched."""
+        logger.warning("Planner could not apply specific rules, adding generic log_message placeholder.")
+        plan = [{
+            "tool": "log_message", 
+            "args": {"message": f"Placeholder action for task: {task}"} 
+        }]
+        return plan
+        
+    # --- Helper Methods --- 
+    
     def _generate_plan_narration(self, plan: List[Dict[str, Any]], task: str) -> str:
         """Generates a simple human-readable narration of the plan."""
         if not plan:
@@ -248,5 +247,6 @@ class ContextPlannerTool(AgentTool):
         return "\n".join(parts)
 
     def _log_execution(self, args: Dict[str, Any], message: str):
-        """Logs the execution of the tool."""
+        """Logs the execution result message."""
+        # Simplified from previous version which took args
         logger.info(message) 
