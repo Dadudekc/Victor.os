@@ -107,28 +107,46 @@ def run_tool_chain_loop(task_description: str):
         executor = ToolExecutionAgent() 
 
         logger.info("🛠 Generating execution plan...")
-        # Execute the planner tool to get the plan
-        plan_result = planner.execute(args={"task_description": task_description}, context={}) # Pass empty context
+        plan_result = planner.execute(args={"task_description": task_description}, context={}) 
         
-        # Validate plan result structure 
-        if not isinstance(plan_result, dict) or "plan" not in plan_result:
-            logger.error(f"❌ Planner returned unexpected result format: {plan_result}")
+        # --- Display Narration & Log Versioned Plan --- 
+        if not isinstance(plan_result, dict) or "plan" not in plan_result or "plan_narration" not in plan_result:
+            logger.error(f"❌ Planner returned unexpected result format (missing plan/narration): {plan_result}")
             sys.exit(1)
             
         plan = plan_result.get("plan")
-        if not plan or not isinstance(plan, list):
-            logger.error(f"❌ Planner failed to generate a valid list-based plan. Result: {plan}")
-            # If plan is empty list, maybe log info instead of error?
-            if isinstance(plan, list) and not plan:
-                 logger.info("ℹ️ Planner generated an empty plan (no actions needed based on rules).")
-                 # Exit gracefully for empty plan? Or let executor handle it?
-                 # For now, let executor handle empty plan if it can.
-            else:
-                 sys.exit(1) # Exit for invalid plan format
-        
-        logger.info(f"📊 Plan Generated: {plan}") 
+        plan_narration = plan_result.get("plan_narration", "(No narration provided)")
+        plan_version = plan_result.get("plan_version", "N/A")
 
+        # Log the full plan structure for traceability
+        try:
+             # Use default=str to handle non-serializable objects if any appear in future
+             plan_json = json.dumps(plan_result, indent=2, default=str) 
+             logger.info(f"📄 Plan Generated (v{plan_version}):\n{plan_json}")
+        except Exception as json_e:
+             logger.error(f"Failed to serialize plan result to JSON: {json_e}")
+             logger.info(f"Raw Plan Result: {plan_result}") # Log raw on failure
+
+        # Validate plan list format (as before)
+        if not isinstance(plan, list):
+            logger.error(f"❌ Planner failed to generate a valid list-based plan. Plan type: {type(plan)}.")
+            sys.exit(1)
+        
+        # Print narration for the user
+        print("\n" + "-"*10 + " Proposed Plan " + "-"*10)
+        print(plan_narration)
+        print("-"*35 + "\n")
+        # --- End Narration/Logging Enhancements ---
+
+        if not plan:
+            logger.info("ℹ️ Planner generated an empty plan. No actions to execute.")
+            # Exit gracefully for empty plan
+            print("✅ Task requires no actions.")
+            sys.exit(0)
+        
         # --- Execute the plan using the real executor --- 
+        # Optional: Add a small delay or prompt before execution?
+        # time.sleep(2)
         logger.info("⚙️ Executing plan...")
         result = executor.execute_plan(plan=plan)
         # --- End execution --- 
