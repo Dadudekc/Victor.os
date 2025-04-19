@@ -2,7 +2,8 @@ import sys
 import logging
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, 
-    QStackedWidget, QLabel, QStatusBar, QListWidgetItem, QSizePolicy
+    QStackedWidget, QLabel, QStatusBar, QListWidgetItem, QSizePolicy,
+    QListView
 )
 from PyQt5.QtCore import QTimer, QSize, Qt
 from PyQt5.QtGui import QFont, QIcon # Import QIcon
