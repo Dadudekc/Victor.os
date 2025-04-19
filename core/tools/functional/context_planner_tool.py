@@ -150,6 +150,26 @@ class ContextPlannerTool(AgentTool):
             search_path = files[0] if files else "."
             plan.append({"tool": "grep_search", "args": {"query": search_term, "path": search_path}})
             
+        # Rule: If task involves creating a file
+        elif "create" in task_lower and files:
+             logger.debug("Applying Create File rule.")
+             for fp in files:
+                 # Derive a plausible class name from the filename
+                 # e.g., fancy_adapter.py -> FancyAdapter
+                 basename = fp.split('/')[-1].split('\\')[-1]
+                 class_name_parts = basename.replace(".py", "").split('_')
+                 class_name = "".join(part.capitalize() for part in class_name_parts)
+                 if not class_name: # Handle cases like just ".py"
+                     class_name = "MyClass" 
+                 
+                 placeholder = f"# TODO: Implement the {class_name} class\n\nclass {class_name}:\n    \"\"\"Placeholder for {class_name}.\"\"\"\n    pass\n"
+                 plan.append({
+                     "tool": "write_file",
+                     "args": {"filepath": fp, "content": placeholder},
+                     # Optional: Add a description field if the executor uses it
+                     # "description": f"Create {fp} with placeholder {class_name} class"
+                 })
+                 
         # Fallback: If no specific rules match, add a generic log message
         if not plan and task_description:
             logger.warning("Planner could not generate specific steps based on rules, adding generic log_message placeholder.")
