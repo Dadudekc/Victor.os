@@ -11,6 +11,10 @@ import json
 from pathlib import Path
 from core.services.event_logger import log_structured_event
 
+# Import backend components
+from core.memory.memory_manager import MemoryManager
+from core.rendering.template_engine import TemplateEngine
+
 # Import the new Forge Tab
 from .fragment_forge_tab import FragmentForgeTab
 
@@ -34,8 +38,12 @@ class DreamOSMainWindow(QMainWindow):
         self.setWindowTitle("Dream.OS")
         self.setGeometry(100, 100, 1200, 800) # Default size
 
-        # --- Core Components (Placeholders/Basic Implementation) ---
+        # --- Instantiate Core Backend Components ---
+        self.memory_manager = MemoryManager() 
+        self.template_engine = TemplateEngine()
         self.task_manager = DummyTaskManager()
+        
+        # --- Core Components (Placeholders/Basic Implementation) ---
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         
@@ -102,8 +110,12 @@ class DreamOSMainWindow(QMainWindow):
         dash_layout.setAlignment(Qt.AlignCenter)
         self.add_navigation_item("Dashboard", "icons/dashboard.png", dashboard_widget) # Assumes icon path
         
-        # 2. Fragment Forge
-        forge_widget = FragmentForgeTab(self) # Pass parent
+        # 2. Fragment Forge (Pass backend instances)
+        forge_widget = FragmentForgeTab( # Pass instances
+            memory_manager=self.memory_manager, 
+            template_engine=self.template_engine,
+            parent=self
+        )
         self.add_navigation_item("Forge", "icons/forge.png", forge_widget)
         
         # 3. Agents (Placeholder)

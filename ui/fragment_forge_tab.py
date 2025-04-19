@@ -18,15 +18,35 @@ from PyQt5.QtGui import QFont
 # from core.rendering import TemplateEngine 
 # from core.memory import MemoryManager
 
+# Type hinting imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from core.memory.memory_manager import MemoryManager
+    from core.rendering.template_engine import TemplateEngine
+
 logger = logging.getLogger(__name__)
 
 class FragmentForgeTab(QWidget):
     """GUI Tab Widget for interacting with the Dream Fragment Forge."""
 
-    def __init__(self, parent=None):
+    def __init__(self, memory_manager: 'MemoryManager', template_engine: 'TemplateEngine', parent=None):
+        """
+        Initializes the FragmentForgeTab.
+        
+        Args:
+            memory_manager (MemoryManager): Instance of the memory manager.
+            template_engine (TemplateEngine): Instance of the template engine.
+            parent: Parent widget.
+        """
         super().__init__(parent)
-        self.template_engine = None # Placeholder
-        self.memory_manager = None # Placeholder
+        # Store backend instances
+        if not memory_manager:
+             raise ValueError("MemoryManager instance is required.")
+        if not template_engine:
+             raise ValueError("TemplateEngine instance is required.")
+             
+        self.memory_manager = memory_manager
+        self.template_engine = template_engine
         
         # --- Autocompletion Models (Example - Populate these from memory/config) ---
         self.tags_model = QStringListModel([
@@ -48,7 +68,7 @@ class FragmentForgeTab(QWidget):
         
         self._init_ui()
         self._connect_signals()
-        logger.info("FragmentForgeTab initialized.")
+        logger.info("FragmentForgeTab initialized with backend components.")
         
     def _init_ui(self):
         """Initialize the UI layout and widgets."""
