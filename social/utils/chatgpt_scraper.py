@@ -25,6 +25,9 @@ from .selenium_utils import wait_for_element, safe_click, safe_send_keys
 from pathlib import Path
 import asyncio # Import asyncio if not already present, for potential async helpers
 
+# Import placeholder for DriverManager - Assuming it exists and follows a singleton or similar pattern
+# from core.chat_engine.driver_manager import DriverManager
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -66,6 +69,8 @@ class ChatGPTScraper:
         self.password = password
         self.driver = None
         self.wait = None
+        # Placeholder: Get the driver manager instance if needed
+        # self.driver_manager = DriverManager.get_instance()
         logger.info("Initializing ChatGPT Scraper")
 
     def __enter__(self):
@@ -83,9 +88,9 @@ class ChatGPTScraper:
 
     @retry_on_exception(max_attempts=3, exceptions=(WebDriverException,))
     def setup_browser(self) -> None:
-        """Initialize and configure the browser with retry mechanism."""
+        """Initialize and configure the browser using the DriverManager."""
         try:
-            options = uc.ChromeOptions()
+            options = uc.ChromeOptions() # Still configure options here
             if self.headless:
                 options.add_argument("--headless")
             options.add_argument("--disable-blink-features=AutomationControlled")
@@ -95,31 +100,47 @@ class ChatGPTScraper:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--start-maximized")
 
-            logger.info("Attempting to initialize uc.Chrome...")
-            print("DEBUG: Attempting to initialize uc.Chrome...")
-            self.driver = uc.Chrome(options=options)
-            print("DEBUG: uc.Chrome initialized successfully.")
-            logger.info("uc.Chrome initialized.")
+            # --- MODIFIED PART --- 
+            logger.info("Requesting browser instance from DriverManager...")
+            # Placeholder: Replace direct uc.Chrome call with DriverManager call
+            # self.driver = self.driver_manager.get_driver(options=options)
+            # --- TEMPORARY --- (Kept original for now until DriverManager is provided)
+            self.driver = uc.Chrome(options=options) 
+            # --- END MODIFIED PART --- 
 
+            if not self.driver:
+                 raise WebDriverException("DriverManager failed to provide a driver instance.")
+
+            logger.info("Browser instance obtained.")
             self.wait = WebDriverWait(self.driver, WAIT_TIMEOUT)
             logger.info("Browser setup completed successfully")
+
         except WebDriverException as e:
             logger.error(f"Failed to setup browser: {str(e)}")
-            print(f"ERROR in setup_browser: {type(e).__name__}: {e}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error during browser setup: {str(e)}", exc_info=True)
-            print(f"UNEXPECTED ERROR in setup_browser: {type(e).__name__}: {e}")
             raise
 
     def cleanup(self) -> None:
-        """Clean up resources."""
+        """Clean up resources, potentially releasing the driver via DriverManager."""
         if self.driver:
             try:
+                # --- MODIFIED PART --- 
+                logger.info("Releasing browser instance via DriverManager...")
+                # Placeholder: Notify DriverManager to release/quit the driver
+                # released = self.driver_manager.release_driver(self.driver)
+                # if not released:
+                #      logger.warning("DriverManager did not handle driver release, attempting manual quit.")
+                #      self.driver.quit()
+                # --- TEMPORARY --- (Kept original for now until DriverManager is provided)
                 self.driver.quit()
+                # --- END MODIFIED PART ---
                 logger.info("Browser cleanup completed")
             except WebDriverException as e:
                 logger.error(f"Error during browser cleanup: {str(e)}")
+            finally:
+                 self.driver = None # Ensure driver reference is cleared
 
     def save_cookies(self) -> bool:
         """
