@@ -9,19 +9,19 @@ import logging
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, 
     QPushButton, QComboBox, QFormLayout, QSizePolicy, QFileDialog,
-    QCompleter, QGroupBox, QSpinBox
+    QCompleter, QGroupBox, QSpinBox, QListWidget, QListWidgetItem
 )
 from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtGui import QFont
 from datetime import datetime # Import datetime for save ID
 import os # Import os for basename
+from typing import TYPE_CHECKING, Optional
 
 # Placeholder for Template Engine and Memory Manager (to be imported from core)
 # from core.rendering import TemplateEngine 
 # from core.memory import MemoryManager
 
 # Type hinting imports
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from core.memory.memory_manager import MemoryManager
     from core.rendering.template_engine import TemplateEngine
@@ -68,21 +68,33 @@ class FragmentForgeTab(QWidget):
             "Error Handling", "Onboarding Tip", "World Lore"
         ])
         
+        # --- UI Initialization ---
         self._init_ui()
         self._connect_signals()
+        self._populate_fragment_list() # Populate list on startup
         logger.info("FragmentForgeTab initialized with backend components.")
         
     def _init_ui(self):
         """Initialize the UI layout and widgets."""
         main_layout = QHBoxLayout(self)
         
-        # --- Left Side: Input Form ---
+        # --- Left Side: Fragment List + Input Form ---
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
-        left_layout.setSpacing(15) # Add spacing between elements
+        left_layout.setSpacing(15)
 
-        # Quote Input
-        quote_group = QGroupBox("Fragment Core")
+        # --- Fragment List ---
+        list_group = QGroupBox("Existing Fragments")
+        list_layout = QVBoxLayout()
+        self.fragment_list = QListWidget()
+        self.fragment_list.setAlternatingRowColors(True)
+        self.fragment_list.setMaximumHeight(150) # Limit initial height
+        list_layout.addWidget(self.fragment_list)
+        list_group.setLayout(list_layout)
+        left_layout.addWidget(list_group)
+        
+        # --- Fragment Core Input ---
+        quote_group = QGroupBox("Fragment Editor") # Renamed group
         quote_layout = QVBoxLayout()
         self.quote_input = QTextEdit()
         self.quote_input.setPlaceholderText("Enter or paste the core quote, lore text, or memory fragment here...")
@@ -158,19 +170,26 @@ class FragmentForgeTab(QWidget):
         metadata_group.setLayout(form_layout)
         left_layout.addWidget(metadata_group)
         
-        # Action Buttons
+        # --- Action Buttons --- 
         action_layout = QHBoxLayout()
+        self.new_fragment_button = QPushButton("New Fragment") # Added New button
         self.attach_voice_button = QPushButton("Attach Voice")
         self.attach_bgm_button = QPushButton("Attach BGM")
         self.save_button = QPushButton("Save Fragment")
-        self.save_button.setStyleSheet("background-color: #4CAF50; color: white;") # Style save button
+        self.save_button.setStyleSheet("background-color: #4CAF50; color: white;")
+        self.delete_fragment_button = QPushButton("Delete Fragment") # Added Delete button
+        self.delete_fragment_button.setStyleSheet("background-color: #f44336; color: white;")
+        
+        action_layout.addWidget(self.new_fragment_button)
+        action_layout.addStretch(1)
         action_layout.addWidget(self.attach_voice_button)
         action_layout.addWidget(self.attach_bgm_button)
-        action_layout.addStretch()
+        action_layout.addStretch(1)
+        action_layout.addWidget(self.delete_fragment_button)
         action_layout.addWidget(self.save_button)
         left_layout.addLayout(action_layout)
 
-        left_layout.addStretch() # Push content upwards
+        # left_layout.addStretch() # Removed stretch to allow list to take space
 
         # --- Right Side: Live Preview ---
         right_panel = QWidget()
@@ -186,14 +205,17 @@ class FragmentForgeTab(QWidget):
         preview_group.setLayout(preview_layout)
         right_layout.addWidget(preview_group)
 
-        # Set size policies
-        left_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        # Set size policies (adjust if needed)
+        left_panel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred) # Let left panel take needed size
         right_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        main_layout.addWidget(left_panel, 1) # Give left panel 1/3 space
-        main_layout.addWidget(right_panel, 2) # Give right panel 2/3 space
+        main_layout.addWidget(left_panel, 1) 
+        main_layout.addWidget(right_panel, 2)
 
     def _connect_signals(self):
         """Connect widget signals to handler methods."""
+        # Connect list selection
+        self.fragment_list.currentItemChanged.connect(self._on_fragment_selected)
+        
         # Connect input fields to trigger preview update
         self.quote_input.textChanged.connect(self._update_preview)
         self.name_input.textChanged.connect(self._update_preview)
@@ -206,9 +228,48 @@ class FragmentForgeTab(QWidget):
         self.narrative_role_input.textChanged.connect(self._update_preview)
 
         # Connect buttons
+        self.new_fragment_button.clicked.connect(self._clear_form)
         self.save_button.clicked.connect(self._save_fragment)
         self.attach_voice_button.clicked.connect(self._attach_file_voice)
         self.attach_bgm_button.clicked.connect(self._attach_file_bgm)
+        self.delete_fragment_button.clicked.connect(self._delete_fragment)
+
+    def _populate_fragment_list(self):
+        """Loads fragment IDs/names from MemoryManager and populates the list."""
+        self.fragment_list.blockSignals(True) # Prevent selection signal during population
+        self.fragment_list.clear()
+        try:
+            fragment_ids = self.memory_manager.list_fragment_ids()
+            # Sort IDs for consistent order (optional)
+            fragment_ids.sort()
+            
+            for frag_id in fragment_ids:
+                 # Attempt to get name for display, fallback to ID
+                 frag_data = self.memory_manager.load_fragment(frag_id)
+                 display_name = frag_data.get("name", frag_id) if frag_data else frag_id
+                 item = QListWidgetItem(f"{display_name} ({frag_id[:8]}...)") # Show name + partial ID
+                 item.setData(Qt.UserRole, frag_id) # Store the full ID with the item
+                 self.fragment_list.addItem(item)
+            logger.info(f"Populated fragment list with {len(fragment_ids)} items.")
+        except Exception as e:
+            logger.error(f"Failed to populate fragment list: {e}", exc_info=True)
+        finally:
+             self.fragment_list.blockSignals(False)
+
+    def _on_fragment_selected(self, current: QListWidgetItem, previous: QListWidgetItem):
+        """Handles selection change in the fragment list."""
+        if current:
+            fragment_id = current.data(Qt.UserRole) # Retrieve the stored ID
+            logger.info(f"Fragment selected: {fragment_id}")
+            fragment_data = self.memory_manager.load_fragment(fragment_id)
+            if fragment_data:
+                 self.load_fragment(fragment_data, fragment_id) # Pass ID for context
+            else:
+                 logger.error(f"Could not load data for selected fragment ID: {fragment_id}")
+                 self._clear_form() # Clear form if load fails
+        else:
+             # No item selected, potentially clear form
+             self._clear_form()
 
     def _update_preview(self):
         """Gather data from input fields and update the preview pane using TemplateEngine."""
@@ -284,27 +345,86 @@ class FragmentForgeTab(QWidget):
 
         if not core_text and not name:
             logger.warning("Cannot save fragment: Core text or name is missing.")
-            # TODO: Show a QMessageBox.warning to the user
+            # TODO: Show a QMessageBox.warning
             return
             
-        # Use name for ID generation, fallback to timestamp if no name
-        base_id = name.lower().replace(' ', '_').replace('\'', '') if name else "fragment"
-        fragment_id = f"{base_id}_{int(datetime.now().timestamp())}" 
+        # Check if we are editing an existing fragment (simple check based on selection)
+        current_item = self.fragment_list.currentItem()
+        fragment_id = current_item.data(Qt.UserRole) if current_item else None
+        is_update = bool(fragment_id)
+
+        if not is_update:
+            # Generate new ID only if it's not an update
+            base_id = name.lower().replace(' ', '_').replace('\'', '') if name else "fragment"
+            timestamp = int(datetime.now().timestamp() * 1000) # Use milliseconds for finer grain
+            fragment_id = f"{base_id}_{timestamp}"
         
-        logger.info(f"Attempting to save fragment: ID='{fragment_id}', Name='{name}'")
+        logger.info(f"Attempting to {'update' if is_update else 'save new'} fragment: ID='{fragment_id}', Name='{name}'")
         
         try:
             success = self.memory_manager.save_fragment(fragment_id, fragment_data)
             if success:
                 logger.info(f"Fragment '{fragment_id}' saved successfully.")
-                # TODO: Show a status message or clear the form
-                # self.clear_form() # Optional: Add a method to clear fields
+                self._populate_fragment_list() # Refresh list after saving
+                # Reselect the saved item
+                items = self.fragment_list.findItems(f"*({fragment_id[:8]}...)*", Qt.MatchWildcard)
+                if items: self.fragment_list.setCurrentItem(items[0])
+                # TODO: Show status message
             else:
                 logger.error(f"Failed to save fragment '{fragment_id}' using MemoryManager.")
-                # TODO: Show a QMessageBox.critical
+                # TODO: Show QMessageBox.critical
         except Exception as e:
             logger.error(f"Exception occurred during fragment save: {e}", exc_info=True)
-            # TODO: Show a QMessageBox.critical
+            # TODO: Show QMessageBox.critical
+
+    def _delete_fragment(self):
+        """Handles deleting the currently selected fragment."""
+        current_item = self.fragment_list.currentItem()
+        if not current_item:
+            logger.warning("No fragment selected to delete.")
+            # TODO: Show QMessageBox.information
+            return
+            
+        fragment_id = current_item.data(Qt.UserRole)
+        fragment_name = self.name_input.text() or fragment_id # Get name for confirmation
+        
+        # TODO: Add a confirmation dialog (QMessageBox.question)
+        logger.warning(f"Attempting to delete fragment: ID='{fragment_id}', Name='{fragment_name}'")
+        
+        try:
+            success = self.memory_manager.delete_fragment(fragment_id)
+            if success:
+                logger.info(f"Fragment '{fragment_id}' deleted successfully.")
+                self._clear_form() # Clear form after delete
+                self._populate_fragment_list() # Refresh list
+                # TODO: Show status message
+            else:
+                 logger.error(f"Failed to delete fragment '{fragment_id}' using MemoryManager (maybe already deleted?).")
+                 # TODO: Show QMessageBox.critical
+        except Exception as e:
+            logger.error(f"Exception occurred during fragment delete: {e}", exc_info=True)
+            # TODO: Show QMessageBox.critical
+
+    def _clear_form(self):
+         """Clears all input fields and resets buttons/state."""
+         self.fragment_list.clearSelection() # Deselect item in list
+         self.quote_input.clear()
+         self.name_input.clear()
+         self.author_input.clear()
+         self.tags_input.clear()
+         self.rank_combo.setCurrentIndex(0) # Reset to first item
+         self.resonance_spinbox.setValue(0)
+         self.activation_input.clear()
+         self.tone_input.clear()
+         self.narrative_role_input.clear()
+         self._voice_file_path = None
+         self._bgm_file_path = None
+         self.attach_voice_button.setText("Attach Voice")
+         self.attach_bgm_button.setText("Attach BGM")
+         self._update_preview()
+         logger.info("Fragment form cleared.")
+         # Set focus to name or quote input
+         self.name_input.setFocus()
 
     def _attach_file_dialog(self, title: str, file_filter: str) -> Optional[str]:
         """Opens a file dialog and returns the selected file path."""
@@ -336,7 +456,7 @@ class FragmentForgeTab(QWidget):
             logger.info(f"BGM file attached: {file_path}")
             self.attach_bgm_button.setText(f"BGM: {os.path.basename(file_path)}") # Update button text
 
-    def load_fragment(self, fragment_data: dict):
+    def load_fragment(self, fragment_data: dict, fragment_id: Optional[str] = None):
          """Loads data from a dictionary into the form fields."""
          self.quote_input.setPlainText(fragment_data.get("core_text", ""))
          self.name_input.setText(fragment_data.get("name", ""))
@@ -362,7 +482,8 @@ class FragmentForgeTab(QWidget):
          else: self.attach_bgm_button.setText("Attach BGM")
          
          self._update_preview() # Update preview after loading
-         logger.info(f"Loaded fragment '{fragment_data.get('name', 'N/A')}' into Forge.")
+         display_name = fragment_data.get('name', fragment_id or 'N/A')
+         logger.info(f"Loaded fragment '{display_name}' (ID: {fragment_id}) into Forge.")
 
 # Example Usage (for standalone testing)
 if __name__ == '__main__':
