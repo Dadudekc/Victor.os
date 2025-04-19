@@ -26,17 +26,40 @@ class ContextPlannerTool(AgentTool):
                 "Output: {'plan': [{'tool': 'tool_name', 'args': {...}}, ...]}")
 
     def _extract_targets(self, task_description: str) -> tuple[List[str], List[str]]:
-        """Extracts potential file paths and symbols from backticks."""
-        targets = BACKTICK_PATTERN.findall(task_description)
-        # Improved heuristic: check for common code file extensions or paths
+        """Extracts potential file paths (from backticks or recognized patterns) and symbols (from backticks)."""
+        backtick_targets = BACKTICK_PATTERN.findall(task_description)
+
+        # Heuristic for finding potential file paths NOT in backticks
+        # Looks for words containing common path separators or ending in common extensions
+        # This is a basic heuristic and might need refinement
+        potential_paths = re.findall(r'\b[\.\/\\\w\-\+]+\.(?:py|js|ts|java|c|cpp|h|md|json|yaml|txt|log)\b|\b(?:[\w\-\/\.\\:]+[/\\])+[\w\-\/\.\\:]*\b', task_description)
+
+        # Combine and deduplicate
+        all_targets = list(set(backtick_targets + potential_paths))
+
+        # Identify files based on extension or path structure
         files = [
-            t for t in targets 
+            t for t in all_targets 
             if '.' in t or '/' in t or '\\' in t or 
-               t.endswith( ('.py', '.js', '.ts', '.java', '.c', '.cpp', '.h', '.md', '.json', '.yaml'))
+               t.endswith( ('.py', '.js', '.ts', '.java', '.c', '.cpp', '.h', '.md', '.json', '.yaml', '.txt', '.log'))
         ]
-        symbols = [t for t in targets if t not in files] 
-        logger.debug(f"Extracted files: {files}, Symbols: {symbols}")
-        return files, symbols
+        # Symbols are backtick targets that weren't identified as files
+        symbols = [t for t in backtick_targets if t not in files] 
+        
+        # Filter out potential duplicates or fragments if a longer path including them exists
+        # E.g., if both "dir/file.py" and "file.py" are found, keep "dir/file.py"
+        filtered_files = []
+        for f1 in files:
+            is_subpath = False
+            for f2 in files:
+                if f1 != f2 and f1 in f2:
+                    is_subpath = True
+                    break
+            if not is_subpath:
+                filtered_files.append(f1)
+                
+        logger.debug(f"Extracted files: {filtered_files}, Symbols: {symbols}")
+        return filtered_files, symbols
 
     def execute(self, args: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         task_description = args.get("task_description")
