@@ -26,7 +26,7 @@ from pathlib import Path
 import asyncio # Import asyncio if not already present, for potential async helpers
 
 # Import placeholder for DriverManager - Assuming it exists and follows a singleton or similar pattern
-# from core.chat_engine.driver_manager import DriverManager
+from core.chat_engine.driver_manager import DriverManager
 
 # Configure logging
 logging.basicConfig(
@@ -69,8 +69,13 @@ class ChatGPTScraper:
         self.password = password
         self.driver = None
         self.wait = None
-        # Placeholder: Get the driver manager instance if needed
-        # self.driver_manager = DriverManager.get_instance()
+        # Get the driver manager instance using specific config for this scraper
+        self.driver_manager = DriverManager.get_instance(
+            config_key=f"chatgpt_scraper_{username or 'default'}", # Key based on user or default
+            headless=self.headless,
+            cookie_file=self.cookie_file, # Pass relevant config
+            undetected_mode=True # Explicitly request undetected
+        )
         logger.info("Initializing ChatGPT Scraper")
 
     def __enter__(self):
@@ -90,37 +95,35 @@ class ChatGPTScraper:
     def setup_browser(self) -> None:
         """Initialize and configure the browser using the DriverManager."""
         try:
-            options = uc.ChromeOptions() # Still configure options here
-            if self.headless:
-                options.add_argument("--headless")
-            options.add_argument("--disable-blink-features=AutomationControlled")
-            options.add_argument("--disable-extensions")
-            options.add_argument("--disable-popup-blocking")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--start-maximized")
-
+            # Options configuration is now handled by DriverManager based on init args
+            # We just need to get the driver instance.
+            
             # --- MODIFIED PART --- 
             logger.info("Requesting browser instance from DriverManager...")
-            # Placeholder: Replace direct uc.Chrome call with DriverManager call
-            # self.driver = self.driver_manager.get_driver(options=options)
-            # --- TEMPORARY --- (Kept original for now until DriverManager is provided)
-            self.driver = uc.Chrome(options=options) 
+            # Replace direct uc.Chrome call with DriverManager call
+            self.driver = self.driver_manager.get_driver() # <<< Use DriverManager
+            # --- REMOVED TEMPORARY --- 
+            # self.driver = uc.Chrome(options=options) 
             # --- END MODIFIED PART --- 
 
             if not self.driver:
-                 raise WebDriverException("DriverManager failed to provide a driver instance.")
+                 # get_driver should raise RuntimeError if it fails after retries
+                 raise WebDriverException("DriverManager failed to provide a driver instance after retries.")
 
             logger.info("Browser instance obtained.")
-            self.wait = WebDriverWait(self.driver, WAIT_TIMEOUT)
+            # Use the wait timeout configured in the DriverManager instance
+            self.wait = WebDriverWait(self.driver, self.driver_manager.wait_timeout)
             logger.info("Browser setup completed successfully")
 
+        except RuntimeError as e: # Catch RuntimeError from get_driver
+            logger.error(f"Failed to get driver from DriverManager: {e}")
+            raise WebDriverException(f"DriverManager failure: {e}") from e # Raise as WebDriverException
         except WebDriverException as e:
             logger.error(f"Failed to setup browser: {str(e)}")
-            raise
+            raise # Re-raise WebDriver specific errors
         except Exception as e:
             logger.error(f"Unexpected error during browser setup: {str(e)}", exc_info=True)
-            raise
+            raise # Re-raise other unexpected errors
 
     def cleanup(self) -> None:
         """Clean up resources, potentially releasing the driver via DriverManager."""
@@ -128,17 +131,14 @@ class ChatGPTScraper:
             try:
                 # --- MODIFIED PART --- 
                 logger.info("Releasing browser instance via DriverManager...")
-                # Placeholder: Notify DriverManager to release/quit the driver
-                # released = self.driver_manager.release_driver(self.driver)
-                # if not released:
-                #      logger.warning("DriverManager did not handle driver release, attempting manual quit.")
-                #      self.driver.quit()
-                # --- TEMPORARY --- (Kept original for now until DriverManager is provided)
-                self.driver.quit()
+                # Notify DriverManager to release/quit the driver
+                self.driver_manager.release_driver() # <<< Use DriverManager release
+                # --- REMOVED TEMPORARY --- 
+                # self.driver.quit()
                 # --- END MODIFIED PART ---
-                logger.info("Browser cleanup completed")
-            except WebDriverException as e:
-                logger.error(f"Error during browser cleanup: {str(e)}")
+                logger.info("Browser cleanup completed via manager.")
+            except Exception as e: # Catch broader exceptions during release
+                logger.error(f"Error during browser release via manager: {str(e)}")
             finally:
                  self.driver = None # Ensure driver reference is cleared
 
@@ -318,56 +318,50 @@ class ChatGPTScraper:
             bool: True if successful, False otherwise
         """
         try:
-            # Use __enter__ to setup browser via context manager if not already done
-            # Note: __enter__ itself should ideally be async if setup_browser becomes async
-            # For now, assuming setup_browser remains synchronous or handles its own async tasks
             if not self.driver:
-                # setup_browser might need to become async or use asyncio.run if it uses await
-                await asyncio.to_thread(self.setup_browser)
-                if not self.driver: # Check if setup failed
+                # Use the setup_browser method which now uses the manager
+                await asyncio.to_thread(self.setup_browser) 
+                if not self.driver:
                     return False
 
-            logger.info(f"Navigating to {CHATGPT_URL + model_append}")
-            # Use asyncio.to_thread for potentially blocking Selenium calls
-            await asyncio.to_thread(self.driver.get, CHATGPT_URL + model_append)
+            logger.info(f"Navigating to {self.driver_manager.CHATGPT_URL + model_append}")
+            await asyncio.to_thread(self.driver.get, self.driver_manager.CHATGPT_URL + model_append)
             logger.info("Navigated to ChatGPT")
-            await asyncio.sleep(3) # Use asyncio sleep
+            await asyncio.sleep(3) 
 
             login_successful = False
-            # Use asyncio.to_thread for blocking load_cookies call
-            cookies_loaded = await asyncio.to_thread(self.load_cookies)
+            # Use DriverManager's cookie loading
+            cookies_loaded = await asyncio.to_thread(self.driver_manager.load_cookies, target_url=self.driver_manager.CHATGPT_URL)
             if cookies_loaded:
-                logger.info("Session restored using cookies.")
-                await asyncio.to_thread(self.driver.refresh) # Refresh to apply cookies
-                await asyncio.sleep(5)
-                # Verify login state after loading cookies (wait_for_element is likely blocking)
-                post_login_elem = await asyncio.to_thread(wait_for_element, self.driver, POST_LOGIN_ELEMENT_SELECTOR, timeout=10)
-                if post_login_elem:
+                logger.info("Session restored using cookies via DriverManager.")
+                # driver.refresh() is called inside load_cookies
+                await asyncio.sleep(2) # Allow refresh
+                # Use DriverManager's login check
+                login_verified = await asyncio.to_thread(self.driver_manager.is_logged_in)
+                if login_verified:
                     logger.info("Login verified after loading cookies.")
                     login_successful = True
                 else:
-                    logger.warning("Cookies loaded, but login state not verified. Clearing cookies.")
-                    await asyncio.to_thread(self.driver.delete_all_cookies)
+                    logger.warning("Cookies loaded, but login state not verified. Clearing cookies via manager.")
+                    await asyncio.to_thread(self.driver_manager.clear_cookies)
 
             if not login_successful:
                 logger.info("Attempting login...")
-                # _perform_login likely needs adaptation if helper functions become async
-                # For now, assume it remains mostly synchronous internally or uses asyncio.to_thread
-                # If _perform_login becomes async def, it needs to be awaited here.
+                # _perform_login still uses self.driver directly, which is fine for now
                 login_attempt_success = await asyncio.to_thread(self._perform_login)
                 if login_attempt_success:
                     login_successful = True
-                    await asyncio.sleep(3) # Wait a bit after login
-                    await asyncio.to_thread(self.save_cookies)
+                    await asyncio.sleep(3) 
+                    # Save cookies via manager
+                    await asyncio.to_thread(self.driver_manager.save_cookies)
                 else:
-                    logger.warning("Automated login failed or no credentials provided.")
                     logger.info("Please log in manually in the browser window (waiting 30s)...")
                     await asyncio.sleep(30)
-                    post_login_elem = await asyncio.to_thread(wait_for_element, self.driver, POST_LOGIN_ELEMENT_SELECTOR, timeout=5)
-                    if post_login_elem:
+                    login_verified = await asyncio.to_thread(self.driver_manager.is_logged_in)
+                    if login_verified:
                         logger.info("Manual login detected.")
                         login_successful = True
-                        await asyncio.to_thread(self.save_cookies)
+                        await asyncio.to_thread(self.driver_manager.save_cookies)
                     else:
                         logger.error("Manual login timeout or failed.")
                         return False
@@ -403,8 +397,7 @@ class ChatGPTScraper:
             logger.error(f"Scraper run failed: {str(e)}", exc_info=True)
             return False
         finally:
-            # Ensure cleanup happens, even if called from async context
-            # cleanup itself should ideally be synchronous or handle its own blocking calls
+            # Use the cleanup method which now calls manager.release_driver()
             await asyncio.to_thread(self.cleanup)
 
     @retry_on_exception(max_attempts=3, exceptions=(WebDriverException, NoSuchElementException, TimeoutException))
