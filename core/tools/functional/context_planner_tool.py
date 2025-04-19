@@ -170,6 +170,25 @@ class ContextPlannerTool(AgentTool):
                      # "description": f"Create {fp} with placeholder {class_name} class"
                  })
                  
+        # Rule: Refactor a specific symbol (function/class) within a file
+        elif is_refactor and symbols and files:
+            logger.debug("Applying Refactor Symbol rule.")
+            # Basic assumption: refactor first symbol in first file mentioned
+            target_symbol = symbols[0]
+            target_file = files[0] 
+            
+            # Plan: Read the file, (optionally grep for symbol), write back with TODO
+            plan.append({"tool": "read_file", "args": {"filepath": target_file}})
+            # Optional: Add grep step to confirm symbol existence/location
+            # plan.append({"tool": "grep_search", "args": {"query": f"def\s+{target_symbol}", "path": target_file}})
+            plan.append({
+                "tool": "write_file",
+                "args": {
+                    "filepath": target_file,
+                    "content": f"# TODO: Refactor symbol '{target_symbol}' in {target_file} based on task description and file content read in previous steps."
+                }
+            })
+            
         # Fallback: If no specific rules match, add a generic log message
         if not plan and task_description:
             logger.warning("Planner could not generate specific steps based on rules, adding generic log_message placeholder.")
