@@ -79,3 +79,7 @@ htmlcov/
 chatgpt_cookies.json
 temp_chats.json
 test_pyqt.py
+
+# Browser profiles (can contain sensitive data and lots of files)
+chrome_profile/
+drivers/ # Directory where chromedriver is cached
