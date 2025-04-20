@@ -1,0 +1,7 @@
+# models.yaml
+# Update this list any time OpenAI adds/removes models.
+models:
+  - gpt-4o          # great for most questions
+  - gpt-4.5         # research preview
+  - o4-mini
+  - o4-mini-high 

@@ -11,7 +11,7 @@ from dreamscape_generator.src import (
     generate_episode, 
     # send_prompt_to_chatgpt # This is not used directly here yet
 )
-from utils import GuiLogHandler, post_to_discord # Keep utils import separate
+from utils import GuiLogHandler, post_to_discord, load_models_yaml, load_prompt_templates # Keep utils import separate, add template loader
 
 # --------------------------------------------------------------------------- #
 #                              Worker Thread                                  #
@@ -47,7 +47,13 @@ class GenerationWorker(QThread):
         logging.info("Worker thread started. Building context...")
         try:
             ctx = build_context() # Uses imported function
+            # --- Log prompt values for debugging ---
+            logger.info(f"[DEBUG] Worker received prompt from GUI: '{self.prompt}'")
+            # ---------------------------------------
             rendered = self.prompt or ctx["rendered_prompt"]
+            # --- Log final rendered prompt ---
+            logger.info(f"[DEBUG] Using final rendered prompt: '{rendered[:100]}...'") # Log start of prompt
+            # --------------------------------
             self.context_ready.emit(rendered)
             logging.info("Context built successfully.")
         except Exception as e:
@@ -81,15 +87,38 @@ class DreamscapeGenerator(QWidget):
         self.setWindowTitle("Dreamscape Episode Generator")
         self.resize(1000, 700)
 
+        # --- Load templates first ---
+        self.loaded_templates = load_prompt_templates()
+        # ---------------------------
+
         # ================= left column =================
         left = QVBoxLayout()
+        
+        # --- Model Selector --- 
         self.model_select = QComboBox()
-        self.model_select.addItems(["gpt-4o", "gpt-4.5", "o4-mini", "o4-mini-high"])
+        available_models = load_models_yaml() 
+        if available_models:
+            self.model_select.addItems(available_models)
+        else:
+            logging.error("No models loaded from models.yaml or defaults. Check file and logs.")
+            self.model_select.addItem("ERROR: No models loaded")
+            self.model_select.setEnabled(False)
+        left.addWidget(self.model_select) # Add to layout
+        
+        # --- Template Selector --- 
+        self.template_select = QComboBox()
+        self.template_select.addItem("(Custom Prompt)") # Default option
+        if self.loaded_templates:
+             self.template_select.addItems(sorted(self.loaded_templates.keys()))
+        self.template_select.currentIndexChanged.connect(self.on_template_selected)
+        left.addWidget(self.template_select) # Add to layout
+        # -------------------------
+        
         self.headless = QCheckBox("Headless Mode")
         self.discord = QCheckBox("Post to Discord", checked=True)
         self.reverse = QCheckBox("Reverse Order")
 
-        self.prompt_box = QTextEdit()
+        self.prompt_box = QTextEdit() # Main prompt entry
         self.gen_btn   = QPushButton("Generate Episodes")
         self.cancel_btn = QPushButton("Cancel Generation")
         self.cancel_btn.setEnabled(False)
@@ -97,7 +126,8 @@ class DreamscapeGenerator(QWidget):
         self.gen_btn.clicked.connect(self.start_generation)
         self.cancel_btn.clicked.connect(self.cancel_generation)
 
-        for w in [self.model_select, self.headless, self.discord,
+        # Add remaining widgets to left layout
+        for w in [self.headless, self.discord,
                   self.reverse, self.prompt_box, self.gen_btn, self.cancel_btn]:
             left.addWidget(w)
 
@@ -126,6 +156,18 @@ class DreamscapeGenerator(QWidget):
 
         self.worker: GenerationWorker | None = None
 
+    # --- Add handler for template selection --- 
+    def on_template_selected(self, index):
+        template_name = self.template_select.itemText(index)
+        logging.debug(f"Template selected: '{template_name}' at index {index}")
+        if template_name == "(Custom Prompt)":
+            # Optional: Clear the prompt box or do nothing
+            # self.prompt_box.clear()
+            pass 
+        elif template_name in self.loaded_templates:
+            self.prompt_box.setPlainText(self.loaded_templates[template_name])
+    # ------------------------------------------
+
     # --- Add handler for tab double-click ---
     def handle_tab_double_click(self, index):
         if index == self.log_tab_index:
@@ -135,12 +177,18 @@ class DreamscapeGenerator(QWidget):
 
     # ------------------------------------------------------------------ #
     def start_generation(self):
-        logging.info("[DEBUG] start_generation called.")
-        if self.worker:
-            logging.warning("Generation already in progress. Ignoring call.")
-            return  # already running
+        logging.info("[DEBUG] start_generation called.") 
+        # Use button state as the primary guard against rapid clicks
+        if not self.gen_btn.isEnabled():
+            logging.warning("Generation button is disabled, likely already running. Ignoring call.")
+            return
         
-        logging.info("[DEBUG] self.worker is None, proceeding to start generation.")
+        # Secondary check (optional, but doesn't hurt)
+        if self.worker:
+            logging.warning("Worker object exists, generation already in progress. Ignoring call.")
+            return  
+        
+        logging.info("[DEBUG] Generation not running, proceeding to start.") 
         
         model = self.model_select.currentText()
         prompt = self.prompt_box.toPlainText().strip()
@@ -152,12 +200,16 @@ class DreamscapeGenerator(QWidget):
         self.worker.finished.connect(self.on_done)
         self.worker.context_ready.connect(self.context_tab.setPlainText)
         self.worker.log_ready.connect(self.append_log)
+        
+        # Disable button immediately BEFORE starting worker
+        self.gen_btn.setEnabled(False); self.cancel_btn.setEnabled(True)
+        
         self.worker.start()
 
-        self.gen_btn.setEnabled(False); self.cancel_btn.setEnabled(True)
         self.append_log(f"--- Generation started with {model} ---")
 
     def cancel_generation(self):
+        logging.info("[DEBUG] cancel_generation called.") # Add log
         if self.worker:
             self.worker.stop()
             self.worker.wait(1000)
@@ -166,6 +218,12 @@ class DreamscapeGenerator(QWidget):
             self.append_log("--- Generation cancelled ---")
 
     def on_done(self, content: str):
+        logging.info("[DEBUG] on_done called.") # Add log
+        # Ensure content is a string before setting
+        if not isinstance(content, str):
+             logging.warning(f"on_done received non-string content (type: {type(content)}), converting.")
+             content = str(content) # Convert potential non-strings
+             
         self.content_tab.setPlainText(content)
 
         if self.discord.isChecked():
@@ -173,9 +231,10 @@ class DreamscapeGenerator(QWidget):
             note = "✅ Discord post successful" if success else "⚠️ Discord post failed"
             self.append_log(note)
 
+        # Re-enable button AFTER everything else is done
         self.gen_btn.setEnabled(True); self.cancel_btn.setEnabled(False)
         self.append_log("--- Generation finished ---")
-        self.worker = None
+        self.worker = None # Set worker to None last
 
     def append_log(self, msg: str):
         self.log_tab.append(msg)

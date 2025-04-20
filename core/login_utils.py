@@ -86,7 +86,7 @@ async def ensure_login(page: Page, service: Literal["chatgpt", "deepseek"]) -> N
 #                       ChatGPT (chat.openai.com) login                        #
 # --------------------------------------------------------------------------- #
 
-CHAT_URL  = "https://chat.openai.com/"
+CHAT_URL = "https://chat.openai.com/"
 
 async def _is_chatgpt_logged_in(page: Page) -> bool:
     try:
@@ -105,49 +105,111 @@ async def _login_chatgpt(page: Page, email: str | None, password: str | None):
     if not email or not password:
         raise ValueError("CHATGPT_EMAIL / CHATGPT_PASSWORD env vars not set or empty")
 
-    log.info("🔑 ChatGPT login flow starting")
+    log.info("🔑 ChatGPT login flow starting (Robust v2)")
     await page.goto(CHAT_URL, timeout=30_000, wait_until='domcontentloaded')
 
     # ---------- screen 1: splash -------------------------------------------
-    log.debug("Looking for initial 'Log in' button (Role)")
+    log.debug("Looking for initial 'Log in' button (Try Role, TestID, CSS)")
+    clicked_login = False
     try:
-        await page.get_by_role("button", name="Log in", exact=True).click(timeout=8_000) # Increased timeout slightly
+        # Try ARIA role first
+        await page.get_by_role("button", name="Log in", exact=True).click(timeout=6_000)
         log.info("Clicked 'Log in' button (Role)")
+        clicked_login = True
     except PlaywrightTimeout:
-        log.warning("Role 'Log in' button not found or timed out, trying CSS fallback.")
+        log.warning("Role 'Log in' button timed out, trying data-testid.")
         try:
-             await page.click("button:has-text('Log in')", timeout=8_000)
-             log.info("Clicked 'Log in' button (CSS Fallback)")
-        except PlaywrightTimeout as e_css:
-            log.error(f"CSS fallback for 'Log in' button also failed: {e_css}")
-            # Check if maybe we are already past this screen?
-            if await _is_chatgpt_logged_in(page):
-                 log.warning("Already logged in after failing to find login button. Proceeding.")
-                 return
-            raise RuntimeError("Could not find or click the initial 'Log in' button.") from e_css
+            # Try data-testid (common in React apps)
+            await page.locator("button[data-testid='login-button']").click(timeout=6_000) # Adjust testid if known
+            log.info("Clicked 'Log in' button (data-testid)")
+            clicked_login = True
+        except PlaywrightTimeout:
+            log.warning("data-testid 'Log in' button timed out, trying CSS fallback.")
+            try:
+                # Try CSS fallback
+                await page.click("button:has-text('Log in')", timeout=8_000)
+                log.info("Clicked 'Log in' button (CSS Fallback)")
+                clicked_login = True
+            except PlaywrightTimeout as e_css:
+                log.error(f"All attempts to find 'Log in' button failed: {e_css}")
+                if await _is_chatgpt_logged_in(page):
+                    log.warning("Already logged in after failing to find login button. Proceeding.")
+                    # Skip to end if already logged in
+                    return
+                raise RuntimeError("Could not find or click the initial 'Log in' button.") from e_css
 
-    # Re-check if login occurred unexpectedly (e.g., session restored)
+    # Re-check if login occurred unexpectedly
     if await _is_chatgpt_logged_in(page):
         log.info("✅ Logged in state detected after clicking Login button. Success.")
         return
 
     # ---------- screen 2: email --------------------------------------------
-    log.debug("Looking for email textbox (Role)")
-    await page.get_by_role("textbox", name="Email address").fill(email, timeout=10_000) # Use specific label if available
-    log.debug("Filled email textbox. Looking for Continue button (Role)")
-    await page.get_by_role("button", name="Continue").click(timeout=6_000)
+    log.debug("Looking for email input (Try Placeholder, Name, Type)")
+    email_filled = False
+    try:
+        await page.get_by_placeholder("Email address", exact=True).fill(email, timeout=10_000)
+        email_filled = True
+    except PlaywrightTimeout:
+        log.warning("Email placeholder not found, trying name=username.")
+        try:
+            await page.locator("input[name='username']").fill(email, timeout=5_000)
+            email_filled = True
+        except PlaywrightTimeout:
+            log.warning("Email name=username not found, trying type=email.")
+            try:
+                await page.locator("input[type='email']").fill(email, timeout=5_000)
+                email_filled = True
+            except PlaywrightTimeout as e_email:
+                 log.error(f"Could not find email input field: {e_email}")
+                 raise RuntimeError("Failed to find email input field.") from e_email
+
+    log.debug("Filled email input. Looking for Continue button (Role, CSS)")
+    try:
+        await page.get_by_role("button", name="Continue").click(timeout=6_000)
+    except PlaywrightTimeout:
+        log.warning("Role Continue button timed out, trying CSS.")
+        try:
+            await page.locator("button[type='submit']:has-text('Continue')").click(timeout=6_000)
+        except PlaywrightTimeout as e_cont1:
+            log.error(f"Could not find first Continue button: {e_cont1}")
+            raise RuntimeError("Failed to click first Continue button.") from e_cont1
     log.info("Submitted email.")
 
-    # Re-check if login occurred after email (less likely)
     if await _is_chatgpt_logged_in(page):
         log.info("✅ Logged in state detected after submitting email. Success.")
         return
 
     # ---------- screen 3: password -----------------------------------------
-    log.debug("Looking for password label/textbox (Label)")
-    await page.get_by_label("Password").fill(password, timeout=10_000)
-    log.debug("Filled password textbox. Looking for Continue button (Role)")
-    await page.get_by_role("button", name="Continue").click(timeout=6_000)
+    log.debug("Looking for password input (Try Label, Placeholder, Type)")
+    password_filled = False
+    try:
+        await page.get_by_label("Password").fill(password, timeout=10_000)
+        password_filled = True
+    except PlaywrightTimeout:
+        log.warning("Password label not found, trying placeholder.")
+        try:
+            await page.get_by_placeholder("Password", exact=True).fill(password, timeout=5_000)
+            password_filled = True
+        except PlaywrightTimeout:
+             log.warning("Password placeholder not found, trying type=password.")
+             try:
+                 await page.locator("input[type='password']").fill(password, timeout=5_000)
+                 password_filled = True
+             except PlaywrightTimeout as e_pass:
+                 log.error(f"Could not find password input field: {e_pass}")
+                 raise RuntimeError("Failed to find password input field.") from e_pass
+
+    log.debug("Filled password input. Looking for final Continue button (Role, CSS)")
+    try:
+        # Often the same button as before
+        await page.get_by_role("button", name="Continue").click(timeout=6_000)
+    except PlaywrightTimeout:
+         log.warning("Role Continue button timed out, trying CSS.")
+         try:
+            await page.locator("button[type='submit']:has-text('Continue')").click(timeout=6_000)
+         except PlaywrightTimeout as e_cont2:
+            log.error(f"Could not find second Continue button: {e_cont2}")
+            raise RuntimeError("Failed to click second Continue button.") from e_cont2
     log.info("Submitted password.")
 
     # ---------- confirm we're in -------------------------------------------

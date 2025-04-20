@@ -2,199 +2,224 @@
 
 import asyncio
 import os
-import sys # Import sys
-from pathlib import Path # Import Path
+import sys
+from pathlib import Path
 from jinja2 import Template
-from playwright.async_api import async_playwright, BrowserContext, Page
+# Removed Playwright imports
+# from playwright.async_api import async_playwright, BrowserContext
 from typing import List, Optional
 import logging
-import inspect # Import inspect module
+# Removed inspect import as it's no longer needed for debugging this issue
+
+# --- Selenium Imports ---
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # --- Explicitly add project root to path --- 
-PROJECT_ROOT = Path(__file__).resolve().parents[2] # Go up two levels from _agent_coordination/web_council
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT)) # Insert at beginning
+# PROJECT_ROOT = Path(__file__).resolve().parents[2] # No longer needed if running via main.py or structure assumes core is importable
+# if str(PROJECT_ROOT) not in sys.path:
+#     sys.path.insert(0, str(PROJECT_ROOT))
 # --- End path addition ---
 
-# -- Allow importing from workspace root (D:\15mins) --
-workspace_root_for_imports = Path("D:/15mins") # Use forward slashes
-if workspace_root_for_imports.is_dir():
-    if str(workspace_root_for_imports) not in sys.path:
-        sys.path.insert(0, str(workspace_root_for_imports))
-        print(f"Added {workspace_root_for_imports} to sys.path for imports.", file=sys.stderr)
-else:
-    print(f"Warning: Workspace root {workspace_root_for_imports} not found. Imports from 'core' might fail.", file=sys.stderr)
-# -- End Import Path Modification --
+# Removed Playwright login utils import
+# from core.login_utils import ensure_login
+
+# Import UnifiedDriverManager from CORRECT path
+try:
+    # Adjust path based on actual location relative to project root
+    from social.digital_dreamscape.dreamscape_generator.src.driver_manager_stub import UnifiedDriverManager
+    # Also import the logger setup from the driver manager for consistency?
+    # from social.digital_dreamscape.dreamscape_generator.src.driver_manager_stub import setup_logger
+except ImportError as e:
+    logging.error(f"CRITICAL: Failed to import UnifiedDriverManager. Check path. Error: {e}", exc_info=True)
+    # Define a dummy class if import fails to prevent immediate crash
+    class UnifiedDriverManager: pass
 
 # -- Basic Logging Setup --
+# Consider using the logger from the driver manager or a shared logging config
 logging.basicConfig(
     level=logging.INFO, 
     format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
-    handlers=[
-        logging.StreamHandler() # Ensure output goes to stderr/stdout
-    ]
+    handlers=[logging.StreamHandler()]
 )
-logger = logging.getLogger(__name__) # Get root logger or specific one
-
-# Use absolute import now that path is set
-from core.login_utils import ensure_login
+logger = logging.getLogger(__name__)
 
 # -- Inline Jinja prompt templates --
 TEMPLATES = {
     "ChatGPT": Template("You are ChatGPT. Provide strategic insights on:\n\n{{ proposal }}"),
-    "DeepSeek":  Template("You are DeepSeek. Retrieve context snippets for:\n\n{{ proposal }}"),
+    "DeepSeq":  Template("You are DeepSeq. Retrieve context snippets for:\n\n{{ proposal }}"),
 }
 
-# --- REMOVED Local Login Functions --- 
-# (login_chatgpt and login_deepseek functions deleted)
-
-# -- Base web‑agent interface --
+# -- Base web‑agent interface (Using Selenium) --
 class WebAgent:
-    def __init__(self, name: str, url: str, prompt_sel: str, submit_sel: str, response_sel: str, service_name: str):
+    # Takes manager now instead of service_name directly
+    def __init__(self, name: str, url: str, prompt_sel: str, submit_sel: str, response_sel: str, manager: UnifiedDriverManager):
         self.name = name
         self.url = url
-        self.prompt_sel = prompt_sel
-        self.submit_sel = submit_sel
-        self.response_sel = response_sel
-        self.service_name = service_name # Store service name
+        self.prompt_sel = prompt_sel # CSS Selector for prompt input
+        self.submit_sel = submit_sel # CSS Selector for submit button
+        self.response_sel = response_sel # CSS Selector for response area
+        self.manager = manager
 
-    async def evaluate(self, proposal: str, context: BrowserContext) -> str:
+    # Changed evaluate to accept driver, not context
+    async def evaluate(self, proposal: str, driver) -> str: 
         prompt_text = TEMPLATES[self.name].render(proposal=proposal)
-        page = await context.new_page()
-        login_success = True # Assume logged in initially
         try:
             logger.info(f"Agent {self.name}: Navigating to {self.url}")
-            await page.goto(self.url, timeout=90000, wait_until='domcontentloaded')
-
-            # Check login status and attempt login using centralized function
-            logger.info(f"Agent {self.name}: Ensuring login for service '{self.service_name}'...")
-            # Correct keyword argument to match dummy function if import failed
-            login_success = await ensure_login(page, service_name=self.service_name) 
-
-            if not login_success:
-                 # Log error from dummy function will explain this
-                 raise Exception(f"Login failed or required but could not be completed for {self.name} ({self.service_name})")
-
-            # Now proceed with evaluation 
-            logger.info(f"Agent {self.name}: Waiting for prompt selector: {self.prompt_sel}")
-            await page.wait_for_selector(self.prompt_sel, timeout=90000)
-            logger.info(f"Agent {self.name}: Filling prompt.")
-            await page.fill(self.prompt_sel, prompt_text)
-
-            # Submit logic - Always clicks submit_sel now
-            logger.info(f"Agent {self.name}: Clicking submit selector: {self.submit_sel}")
-            # Ensure the button is actually clickable/visible before clicking
-            submit_button = page.locator(self.submit_sel)
-            await submit_button.wait_for(state="visible", timeout=10000) # Wait max 10s for button
-            await submit_button.click()
-
-            logger.info(f"Agent {self.name}: Waiting for response selector: {self.response_sel}")
-            await page.wait_for_selector(self.response_sel, timeout=180000)
-            
-            # Specific handling for DeepSeek: Wait for typing indicator to disappear
-            if self.name == "DeepSeek":
-                typing_indicator_sel = "div[class*='typing-indicator']" # Selector provided by user
-                logger.info(f"Agent {self.name}: Waiting for typing indicator ({typing_indicator_sel}) to disappear...")
-                try:
-                    await page.wait_for_selector(typing_indicator_sel, state='hidden', timeout=180000) # Wait up to 3 mins for typing to finish
-                    logger.info(f"Agent {self.name}: Typing indicator disappeared.")
-                except Exception as e:
-                    # Timeout waiting for indicator to disappear, assume response might be complete anyway
-                    logger.warning(f"Agent {self.name}: Timed out waiting for typing indicator to disappear, proceeding to extract text. Error: {e}") 
-            
-            # Optional: Add a small consistent delay
+            driver.get(self.url)
             await asyncio.sleep(2)
+
+            # Check login state using manager, attempt login if needed
+            logger.info(f"Agent {self.name}: Checking login state...")
+            if not self.manager.is_logged_in():
+                logger.warning(f"Agent {self.name}: Not logged in. Attempting automated login...")
+                login_success = self.manager.perform_login() # Call the new login method
+                if not login_success:
+                    logger.error(f"Agent {self.name}: Automated login failed.")
+                    return f"{self.name}: ERROR - Automated Login Failed"
+                logger.info(f"Agent {self.name}: Automated login successful.")
+            else:
+                 logger.info(f"Agent {self.name}: Already logged in.")
+
+            # Proceed with interaction using Selenium
+            wait = WebDriverWait(driver, 30) # Selenium WebDriverWait
+
+            logger.info(f"Agent {self.name}: Waiting for prompt element: {self.prompt_sel}")
+            prompt_element = wait.until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, self.prompt_sel))
+            )
+            logger.info(f"Agent {self.name}: Filling prompt.")
+            prompt_element.clear() # Clear field first
+            prompt_element.send_keys(prompt_text)
+            await asyncio.sleep(0.5)
+
+            logger.info(f"Agent {self.name}: Clicking submit selector: {self.submit_sel}")
+            submit_button = wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, self.submit_sel))
+            )
+            # Scroll into view just in case
+            driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
+            await asyncio.sleep(0.5)
+            submit_button.click()
+
+            # Wait for response stabilization (Simplified: wait for non-empty text)
+            logger.info(f"Agent {self.name}: Waiting for response element: {self.response_sel}")
+            response_element = wait.until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, self.response_sel))
+            )
             
-            logger.info(f"Agent {self.name}: Extracting response content from {self.response_sel}.")
-            content = await page.inner_text(self.response_sel)
+            # More robust wait: wait until the response element has some text content
+            # and potentially wait until a known 'stop generating' element appears or disappears
+            logger.info(f"Agent {self.name}: Waiting for response text to appear...")
+            await asyncio.sleep(5) # Initial wait
+            last_text = ""
+            stable_count = 0
+            max_stable = 3 # Require text to be stable for 3 checks (3*2=6 seconds)
+            max_wait_time = 180 # Max total wait time
+            start_wait = asyncio.get_event_loop().time()
+            
+            while asyncio.get_event_loop().time() - start_wait < max_wait_time:
+                try:
+                    # Re-find element each time
+                    current_response_element = driver.find_element(By.CSS_SELECTOR, self.response_sel)
+                    current_text = current_response_element.text.strip()
+                    if current_text and current_text == last_text:
+                        stable_count += 1
+                        logger.debug(f"Response stable count: {stable_count}/{max_stable}")
+                        if stable_count >= max_stable:
+                             logger.info("Response stabilized.")
+                             break
+                    elif current_text:
+                        stable_count = 0 # Reset counter if text changes or appears
+                        last_text = current_text
+                    # Else: Still empty, keep waiting
+                    
+                except NoSuchElementException:
+                    # Response element might disappear and reappear, wait
+                    stable_count = 0
+                    pass 
+                await asyncio.sleep(2) # Poll interval
+            else:
+                 logger.warning(f"Agent {self.name}: Response stabilization timed out or failed.")
+
+            content = last_text # Use the last known stable text
+            
             logger.info(f"Agent {self.name}: Evaluation complete.")
-            return f"{self.name}: {content.strip()}"
+            return f"{self.name}: {content}"
+        
+        except TimeoutException as e:
+            logger.error(f"Agent {self.name}: Timeout waiting for element: {e}", exc_info=False)
+            return f"{self.name}: ERROR - TimeoutException: {e}"
+        except NoSuchElementException as e:
+             logger.error(f"Agent {self.name}: Element not found: {e}", exc_info=False)
+             return f"{self.name}: ERROR - NoSuchElementException: {e}"
         except Exception as e:
             logger.error(f"Agent {self.name}: Error during evaluation: {e}", exc_info=True)
-            # Optionally capture a screenshot on error
-            # screenshot_path = f"{self.name}_error.png"
-            # await page.screenshot(path=screenshot_path)
-            # logger.info(f"Agent {self.name}: Screenshot saved to {screenshot_path}")
             return f"{self.name}: ERROR - {e}"
-        finally:
-            # Ensure page is closed even if errors occur
-            if page and not page.is_closed():
-                await page.close()
-                logger.info(f"Agent {self.name}: Page closed.")
 
-# -- Council manager to run all agents --
+# -- Council manager --
 class CouncilManager:
-    def __init__(self, agents: List[WebAgent]):
+    def __init__(self, agents: List[WebAgent], manager: UnifiedDriverManager):
         self.agents = agents
+        self.manager = manager
 
-    async def propose(self, proposal: str, context: BrowserContext) -> List[str]:
-        tasks = [agent.evaluate(proposal, context) for agent in self.agents]
-        return await asyncio.gather(*tasks)
-
-# Modified get_browser_context to always run headless
-async def get_browser_context(playwright, user_data_dir_path: str) -> BrowserContext:
-    """Return a BrowserContext using a persistent user data directory, always headless."""
-    
-    # No more first run / headful logic needed
-    print(f"✅ Launching headless browser with user data dir: {user_data_dir_path}")
-    context = await playwright.chromium.launch_persistent_context(
-        user_data_dir=user_data_dir_path,
-        headless=True,
-    )
-    return context
-
-async def main():
-    proposal = "Implement v3.0 ONNX vision detector"
-    agents = [
-        WebAgent(
-            name="ChatGPT",
-            url="https://chat.openai.com/chat",
-            prompt_sel='p[data-placeholder="Ask anything"]',
-            submit_sel='#composer-submit-button',
-            response_sel="div.prose",
-            service_name="chatgpt" # ADDED service_name
-        ),
-        WebAgent(
-            name="DeepSeek",
-            url="https://chat.deepseek.com/",
-            prompt_sel="textarea[placeholder*='Message DeepSeek']",
-            submit_sel="button[data-testid*='send-button']",
-            response_sel="div[class*='message-container']:last-child div[class*='markdown']",
-            service_name="deepseek" # ADDED service_name
-        ),
-    ]
-
-    # Use a dedicated directory for user data persistence
-    user_data_directory = "council_user_data"
-    if not os.path.exists(user_data_directory):
-        os.makedirs(user_data_directory)
-        print(f"Created user data directory: {user_data_directory}")
-
-    async with async_playwright() as p:
-        # Pass the user data directory path
-        context = await get_browser_context(p, user_data_directory)
+    async def propose(self, proposal: str) -> List[str]:
+        driver = self.manager.get_driver()
+        if not driver:
+             logger.error("Failed to get WebDriver from manager.")
+             return [f"{agent.name}: ERROR - WebDriver not available" for agent in self.agents]
         
-        # Check if context is valid before proceeding
-        if context is None:
-             print("Error: Failed to obtain browser context.")
-             return
+        responses = []
+        for agent in self.agents:
+             # Ensure agent has access to the current driver instance
+             response = await agent.evaluate(proposal, driver)
+             responses.append(response)
+             await asyncio.sleep(1) 
              
-        try:
-            council = CouncilManager(agents)
-            responses = await council.propose(proposal, context)
-        except Exception as e:
-             print(f"An error occurred during proposal evaluation: {e}")
-             responses = [f"Error evaluating {agent.name}: {e}" for agent in agents]
-        finally:
-            # Ensure context is closed
-            if context:
-                 await context.close()
-                 print("Browser context closed.")
+        return responses
 
-    print(f"\n📜 Proposal:\n  {proposal}\n")
-    print("🤝 Council Web‑Scrape Responses:")
+# Removed Playwright get_browser_context
+
+# Updated main to use UnifiedDriverManager
+async def main(run_headless: bool):
+    proposal = "Implement v3.0 ONNX vision detector"
+    
+    with UnifiedDriverManager(headless=run_headless) as manager:
+        # Updated selectors based on common patterns / potential reality
+        # These STILL might need adjustment based on actual site structure
+        agents = [
+            WebAgent(
+                name="ChatGPT",
+                url="https://chat.openai.com/", # Use base URL
+                prompt_sel='textarea[id="prompt-textarea"]', # Try ID selector
+                submit_sel='button[data-testid="send-button"]', 
+                response_sel='div[class*="markdown prose"]', # More specific class
+                manager=manager 
+            ),
+            WebAgent(
+                name="DeepSeq",
+                url="https://chat.deepseek.com/",
+                prompt_sel="textarea[placeholder*='Message DeepSeek']", 
+                submit_sel="button[data-testid*='send-button']", # Assuming similar test ID
+                response_sel="div[class*='markdown']", # Keep general
+                manager=manager 
+            ),
+        ]
+        
+        try:
+            council = CouncilManager(agents, manager)
+            responses = await council.propose(proposal)
+        except Exception as e:
+             logger.error(f"An error occurred during proposal evaluation: {e}", exc_info=True)
+             responses = [f"Error evaluating {agent.name}: {e}" for agent in agents]
+
+    logger.info(f"\n📜 Proposal:\n  {proposal}\n")
+    logger.info("🤝 Council Web‑Scrape Responses:")
     for resp in responses:
-        print(f" - {resp}")
+        logger.info(f" - {resp}")
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    is_headless = "--headless" in sys.argv
+    asyncio.run(main(run_headless=is_headless)) 
