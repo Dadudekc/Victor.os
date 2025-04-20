@@ -84,9 +84,6 @@ test_pyqt.py
 chrome_profile/
 drivers/ # Directory where chromedriver is cached
 
-# Ignore Playwright browser profile
-social/digital_dreamscape/playwright_profile/
-
 # Ignore Council user data/profile
 council_user_data/
 
@@ -95,3 +92,9 @@ social/digital_dreamscape/dreamscape_generator/cookies/
 
 # Ignore log files
 selector_log.txt
+
+# Ignore ChromeDriver cache
+drivers/
+
+# Ignore ChromeDriver cache
+drivers/
