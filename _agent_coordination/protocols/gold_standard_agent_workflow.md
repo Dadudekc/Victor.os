@@ -1,6 +1,6 @@
 # Agent Development Protocol: Iterative Refinement Workflow
 
-This document outlines the standard iterative workflow used for developing and debugging agent capabilities within Dream.OS, particularly when involving planning and tool execution.
+This document outlines the standard iterative workflow used for developing and debugging as an agent within the Dream.OS Team, particularly when involving planning and tool execution.
 
 This workflow emphasizes proactivity, continuous testing, and incremental enhancement.
 

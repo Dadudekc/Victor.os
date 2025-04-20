@@ -2,99 +2,79 @@ import os
 import json
 import time
 import logging
-import re
+import shutil # Added import
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 
-import openai
+# import openai # Old import
+from openai import OpenAI, AuthenticationError, RateLimitError, BadRequestError, APIError # New imports
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 # Use project config
-import config as project_config
+from dreamscape_generator import config as project_config
 
-# Import the new MemoryManager and other core/external components
+# Import utilities
+from .utils import sanitize_filename, save_episode_file
+
+# Import implemented components
 from .core.MemoryManager import MemoryManager
-from .chatgpt_scraper import ChatGPTScraper # Assuming this is used for history eventually
-# Placeholder imports for components to be built
-# from .history_manager import HistoryManager
-# from .context_manager import ContextManager
-# from .experience_parser import ExperienceParser
+from .history_manager import HistoryManager # Import the real (stub) HistoryManager
+from .context_manager import ContextManager # Import the real ContextManager
+from .experience_parser import ExperienceParser # Import the real ExperienceParser
+from .chatgpt_scraper import ChatGPTScraper # Keep if needed later
 from .external_stubs import StubDiscordManager # Keep for notifications if needed
 
 # Configure logging
 logger = logging.getLogger("StoryGenerator")
 logger.setLevel(project_config.LOG_LEVEL)
 
-# --- OpenAI API Key Setup ---
+# --- OpenAI Client Initialization ---
+# Initialize client once
+client: Optional[OpenAI] = None
 if not project_config.OPENAI_API_KEY or project_config.OPENAI_API_KEY == "YOUR_OPENAI_API_KEY_HERE":
     logger.warning("OpenAI API Key not set in config.py or environment variables. Story generation will fail.")
-else:
-    openai.api_key = project_config.OPENAI_API_KEY
-    logger.info("OpenAI API Key configured for StoryGenerator.")
-
-# --- Placeholder Functions (Replace with actual module implementations later) ---
-
-def load_history_snippets(history_file: Optional[str] = None, num_snippets: int = 5) -> str:
-    """Placeholder: Load relevant snippets from history files."""
-    # TODO: Implement logic in history_manager.py to load and filter history
-    logger.warning("Using placeholder function for loading history snippets.")
-    if history_file and os.path.exists(history_file):
-        try:
-            with open(history_file, 'r', encoding='utf-8') as f:
-                # Crude example: take last N lines
-                lines = f.readlines()
-                return "\n".join(lines[-num_snippets:])
-        except Exception as e:
-            logger.error(f"Error reading history file {history_file}: {e}")
-            return "[Error loading history]"
-    return "Placeholder: User fixed a complex bug involving async database calls."
-
-def parse_llm_response(llm_output: str) -> Tuple[str, Optional[Dict[str, Any]]]:
-    """Placeholder: Parse LLM output into narrative and EXPERIENCE_UPDATE dict."""
-    # TODO: Implement robust parsing in experience_parser.py
-    logger.warning("Using placeholder function for parsing LLM response.")
-    narrative = llm_output
-    update_dict = None
+elif project_config.OPENAI_API_KEY:
     try:
-        # Simple regex assuming block is at the end
-        match = re.search(r"EXPERIENCE_UPDATE:\s*(\{.*?\})$", llm_output, re.DOTALL | re.IGNORECASE)
-        if match:
-            json_str = match.group(1).strip()
-            narrative = llm_output[:match.start()].strip()
-            # Clean up potential preceding 'Narrative:' heading
-            narrative = re.sub(r'^Narrative:\s*' ,'', narrative, flags=re.IGNORECASE).strip()
-            try:
-                update_dict = json.loads(json_str)
-                logger.info("Successfully parsed EXPERIENCE_UPDATE block.")
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse EXPERIENCE_UPDATE JSON: {e}")
-                logger.debug(f"Invalid JSON string: {json_str}")
-        else:
-            logger.warning("EXPERIENCE_UPDATE block not found in the expected format.")
+        client = OpenAI(api_key=project_config.OPENAI_API_KEY)
+        logger.info("OpenAI client initialized for StoryGenerator.")
     except Exception as e:
-        logger.error(f"Error parsing LLM response: {e}")
+        logger.error(f"Failed to initialize OpenAI client: {e}", exc_info=True)
+else:
+     logger.warning("OpenAI API Key is present but empty. Story generation will fail.")
 
-    return narrative, update_dict
-# --- End Placeholder Functions ---
+# --- Removed Placeholder Functions ---
+# def load_history_snippets(...)
+# def parse_llm_response(...)
 
 class StoryGenerator:
     """Generates narrative episodes based on history and RPG state using LLMs."""
 
     def __init__(self,
                  memory_manager: MemoryManager,
-                 # Inject other managers later (HistoryManager, ContextManager, ExperienceParser)
-                 # chat_scraper: Optional[ChatGPTScraper] = None, # If needed for direct history pull
+                 # history_manager: HistoryManager, # No longer primary input
+                 context_manager: ContextManager, # Require ContextManager
+                 experience_parser: ExperienceParser, # Require ExperienceParser
+                 chat_scraper: Optional[ChatGPTScraper] = None, # Added scraper
                  discord_manager: Optional[StubDiscordManager] = None):
 
         if not isinstance(memory_manager, MemoryManager):
             raise TypeError("StoryGenerator requires a valid MemoryManager instance.")
+        # if not isinstance(history_manager, HistoryManager):
+        #     raise TypeError("StoryGenerator requires a valid HistoryManager instance.")
+        if not isinstance(context_manager, ContextManager):
+            raise TypeError("StoryGenerator requires a valid ContextManager instance.")
+        if not isinstance(experience_parser, ExperienceParser):
+             raise TypeError("StoryGenerator requires a valid ExperienceParser instance.")
+        # Scraper is optional for now, but required by generate_episodes_from_web
+        if chat_scraper and not isinstance(chat_scraper, ChatGPTScraper):
+             raise TypeError("Invalid ChatGPTScraper instance provided.")
 
         self.memory_manager = memory_manager
+        # self.history_manager = history_manager # Remove direct use
+        self.context_manager = context_manager
+        self.experience_parser = experience_parser
+        self.chat_scraper = chat_scraper # Store the scraper instance
         self.discord_manager = discord_manager
-        # self.chat_scraper = chat_scraper # Optional
-        # self.history_manager = HistoryManager() # TODO: Instantiate real managers
-        # self.context_manager = ContextManager(self.memory_manager, self.history_manager)
-        # self.experience_parser = ExperienceParser()
 
         # Initialize Jinja2 environment
         try:
@@ -105,13 +85,13 @@ class StoryGenerator:
             )
             logger.info(f"Jinja2 environment loaded from: {project_config.TEMPLATE_DIR}")
         except Exception as e:
-            logger.error(f"Failed to initialize Jinja2 Environment: {e}")
+            logger.error(f"Failed to initialize Jinja2 Environment: {e}", exc_info=True)
             self.jinja_env = None
 
         self.episode_dir = project_config.EPISODE_DIR
         os.makedirs(self.episode_dir, exist_ok=True)
 
-        logger.info("StoryGenerator initialized.")
+        logger.info("StoryGenerator initialized with required managers.")
 
     def _render_prompt(self, template_name: str = "episode_prompt.j2", context: Dict[str, Any] = None) -> str:
         """Renders the specified Jinja2 template with the given context."""
@@ -120,7 +100,6 @@ class StoryGenerator:
             raise RuntimeError("Jinja2 environment failed to initialize.")
         if context is None:
             context = {}
-
         try:
             template = self.jinja_env.get_template(template_name)
             rendered_prompt = template.render(context)
@@ -134,135 +113,217 @@ class StoryGenerator:
             raise
 
     def _call_llm(self, prompt: str, model: str, temperature: float, max_tokens: int) -> str:
-        """Calls the specified OpenAI model with the given prompt."""
-        if not openai.api_key:
-             logger.error("OpenAI API Key not configured. Cannot call LLM.")
-             raise ValueError("OpenAI API Key is not set.")
+        """Calls the specified OpenAI model with the given prompt using the v1.x client."""
+        global client # Use the globally initialized client
+        if not client:
+             logger.error("OpenAI client not initialized. Cannot call LLM.")
+             raise ValueError("OpenAI client is not available. Check API Key configuration.")
 
         logger.info(f"Calling LLM ({model}) - Temp: {temperature}, Max Tokens: {max_tokens}")
         try:
-            response = openai.ChatCompletion.create(
+            # New syntax using the client
+            response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=temperature,
                 max_tokens=max_tokens
             )
+            # Add more robust checking for the new response structure
+            if not response or not response.choices or not response.choices[0].message or not response.choices[0].message.content:
+                 logger.error(f"Invalid or empty response received from OpenAI API: {response}")
+                 raise ValueError("Received invalid or empty response from OpenAI.")
+
             content = response.choices[0].message.content.strip()
             logger.info(f"LLM ({model}) response received.")
             logger.debug(f"LLM Response (preview): {content[:150]}...")
             return content
+        # Updated exception handling for v1.x
+        except AuthenticationError as e:
+             logger.error(f"OpenAI Authentication Error: {e}. Check API Key.")
+             raise
+        except RateLimitError as e:
+             logger.error(f"OpenAI Rate Limit Error: {e}.")
+             raise
+        except BadRequestError as e:
+            logger.error(f"OpenAI Invalid Request Error (BadRequest): {e}. Check prompt/parameters.")
+            log_prompt = (prompt[:150] + '...') if len(prompt) > 150 else prompt
+            logger.debug(f"Prompt Start: {log_prompt}")
+            raise
+        except APIError as e:
+            logger.error(f"OpenAI API Error: {e}", exc_info=True)
+            raise
         except Exception as e:
-            logger.error(f"OpenAI API call failed: {e}", exc_info=True)
-            raise # Re-raise the exception for the caller to handle
+            logger.error(f"OpenAI API call failed unexpectedly: {e}", exc_info=True)
+            raise
 
-    def generate_next_episode(self, history_source: Optional[str] = None) -> Optional[str]:
-        """Generates the next episode, updates memory, and saves the episode file."""
+    def generate_episodes_from_web(self, model_override: Optional[str] = None) -> None:
+        """Scrapes all chats from the web UI and generates an episode for each."""
+        if not self.chat_scraper:
+            logger.error("ChatGPTScraper not provided during initialization. Cannot generate from web.")
+            return
+
+        logger.info("--- Starting episode generation cycle from Web Scraper --- ")
+        start_cycle_time = time.monotonic()
+        processed_count = 0
+        failed_count = 0
+
+        # 1. Get list of chats from scraper
+        try:
+            logger.info("Retrieving chat list via scraper...")
+            all_chats = self.chat_scraper.get_all_chat_titles()
+            if not all_chats:
+                 logger.warning("Scraper returned no chat titles.")
+                 return
+            logger.info(f"Found {len(all_chats)} chats via scraper.")
+        except Exception as e:
+            logger.error(f"Failed to get chat titles via scraper: {e}", exc_info=True)
+            return
+
+        # 2. Loop through each chat
+        for chat_info in all_chats:
+            chat_title = chat_info.get("title", "Untitled Chat")
+            chat_link = chat_info.get("link")
+            log_prefix = f"[Chat: {chat_title[:30]}...] ({os.path.basename(chat_link or 'no_link')})" # Add link basename for context
+            logger.info(f"{log_prefix} Processing chat...")
+
+            if not chat_link:
+                logger.warning(f"{log_prefix} No link found. Skipping.")
+                failed_count += 1
+                continue
+
+            # --- Generate single episode for this chat ---
+            episode_filepath = self._generate_single_episode_from_scraped(
+                chat_title=chat_title,
+                chat_link=chat_link,
+                model_override=model_override
+            )
+
+            if episode_filepath:
+                 processed_count += 1
+            else:
+                 failed_count += 1
+                 logger.error(f"{log_prefix} Failed to generate episode for this chat.")
+            # Optional: Add a small delay between chats?
+            # time.sleep(1)
+
+        cycle_duration = time.monotonic() - start_cycle_time
+        logger.info(f"--- Web generation cycle complete in {cycle_duration:.2f}s. Generated: {processed_count}, Failed: {failed_count} ---")
+
+    def _generate_single_episode_from_scraped(self, chat_title: str, chat_link: str, model_override: Optional[str] = None) -> Optional[str]:
+        """Generates a single episode based on scraped messages from a chat link."""
         start_time = time.monotonic()
-        logger.info("Starting new episode generation...")
+        log_prefix = f"[Chat: {chat_title[:30]}...] ({os.path.basename(chat_link or 'no_link')})"
+        episode_filepath = None
+        # Determine consistent filename early
+        sanitized_title = sanitize_filename(chat_title)
+        episode_filename = f"{sanitized_title}.json" # Ensure consistent name
 
         try:
-            # 1. Build Context (Use placeholders for now)
-            logger.debug("Building context for prompt...")
-            current_world_state = self.memory_manager.get_current_state()
-            recent_snippets = load_history_snippets(history_source)
-            context = {
-                "username": project_config.USERNAME,
-                "skills": current_world_state.get("skills", {}),
-                "quests": current_world_state.get("quests", {}),
-                "inventory": current_world_state.get("inventory", {}),
-                "recent_snippets": recent_snippets,
-                # Add any other necessary context variables
-            }
-            logger.info("Context built.")
+            # 1. Navigate and Scrape Messages
+            logger.info(f"{log_prefix} Navigating to: {chat_link}")
+            if not self.chat_scraper or not self.chat_scraper.safe_get(chat_link):
+                 logger.error(f"{log_prefix} Failed to navigate to chat link (scraper missing or navigation failed).")
+                 return None
 
-            # 2. Render Prompt
-            logger.debug("Rendering prompt...")
+            logger.info(f"{log_prefix} Scraping messages...")
+            scraped_messages = self.chat_scraper.scrape_current_chat_messages()
+            if not scraped_messages:
+                 logger.warning(f"{log_prefix} No messages scraped from this chat.")
+                 # For now, skip if no messages found.
+                 return None
+            logger.info(f"{log_prefix} Scraped {len(scraped_messages)} messages.")
+
+            # 2. Build Context using scraped messages
+            logger.debug(f"{log_prefix} Building context...")
+            context = self.context_manager.build_prompt_context(scraped_messages=scraped_messages)
+            if context.get("error"):
+                 logger.error(f"{log_prefix} Failed to build context: {context.get('error')}")
+                 return None
+
+            # 3. Render Prompt
+            logger.debug(f"{log_prefix} Rendering prompt...")
             prompt = self._render_prompt(context=context)
-            logger.debug(f"Rendered Prompt (preview):\n{prompt[:300]}...")
 
-            # 3. Call LLM
+            # 4. Call LLM
+            model_to_use = model_override or project_config.OPENAI_MODEL
+            logger.debug(f"{log_prefix} Calling LLM ({model_to_use})...")
             llm_output = self._call_llm(
                 prompt=prompt,
-                model=project_config.OPENAI_MODEL, # Use configured model
+                model=model_to_use,
                 temperature=project_config.GENERATION_TEMPERATURE,
                 max_tokens=project_config.GENERATION_MAX_TOKENS
             )
 
-            # 4. Parse LLM Response (Use placeholder)
-            logger.debug("Parsing LLM response...")
-            narrative, experience_update = parse_llm_response(llm_output)
-            if not narrative:
-                logger.error("Failed to parse narrative from LLM output.")
-                return None
+            # 5. Parse Response
+            logger.debug(f"{log_prefix} Parsing LLM response...")
+            narrative, update_dict = self.experience_parser.parse(llm_output)
+            if not narrative: # If parsing fails, narrative might be empty
+                logger.warning(f"{log_prefix} Parsing resulted in empty narrative. Using full LLM output.")
+                narrative = llm_output # Fallback
 
-            # 5. Update Memory State
-            if experience_update:
-                logger.debug("Updating memory state...")
-                self.memory_manager.update_state(experience_update)
-            else:
-                logger.info("No experience update found in LLM response.")
-
-            # 6. Archive/Save Episode
-            episode_number = self._get_next_episode_number()
-            timestamp_iso = datetime.now(timezone.utc).isoformat()
-            episode_filename = f"episode_{episode_number:03d}.md"
-            episode_filepath = os.path.join(self.episode_dir, episode_filename)
-
-            logger.info(f"Saving episode {episode_number} to: {episode_filepath}")
-            try:
-                with open(episode_filepath, 'w', encoding='utf-8') as f:
-                    f.write(f"# Episode {episode_number}\n\n")
-                    f.write(f"**Generated:** {timestamp_iso}\n")
-                    f.write(f"**Model Used:** {project_config.OPENAI_MODEL}\n\n")
-                    f.write("## Narrative\n\n")
-                    f.write(narrative)
-                    f.write("\n\n")
-                    # Include the raw update block for reference
-                    if experience_update:
-                        f.write("## Experience Update Applied\n\n```json\n")
-                        json.dump(experience_update, f, indent=2)
-                        f.write("\n```\n")
+            # 6. Update Memory (if update exists)
+            memory_updated = False
+            if update_dict:
+                logger.info(f"{log_prefix} Applying memory update...")
+                try:
+                    memory_updated = self.memory_manager.update_state(update_dict)
+                    if memory_updated:
+                         logger.info(f"{log_prefix} Memory updated successfully.")
                     else:
-                        f.write("_(No experience update block detected)_\n")
+                         logger.info(f"{log_prefix} Memory update resulted in no changes.")
+                except Exception as e:
+                    logger.error(f"{log_prefix} Error applying memory update: {e}", exc_info=True)
+                    # Continue to save episode even if memory update fails? Or abort?
+                    # For now, let's still save the episode with the update_dict included.
+            else:
+                logger.info(f"{log_prefix} No memory update found in response.")
 
-                logger.info(f"✅ Episode {episode_number} saved successfully.")
+            # 7. Save Episode (uses consistent filename)
+            logger.debug(f"{log_prefix} Saving episode...")
+            metadata = {
+                "source_type": "chatgpt_web_scrape",
+                "chat_title": chat_title,
+                "chat_link": chat_link,
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "generation_model": model_to_use,
+                "memory_updated": memory_updated, # Record if memory was changed
+                "memory_version_after_update": self.memory_manager.get_full_state().get("version") if memory_updated else self.memory_manager.get_full_state().get("version") # Get current version
+            }
+            episode_filepath = save_episode_file(
+                episode_dir=self.episode_dir, # Pass instance variable
+                episode_filename=episode_filename,
+                narrative=narrative,
+                update_dict=update_dict,
+                metadata=metadata
+            )
 
-                # 7. Optional: Discord Notification
-                if self.discord_manager:
-                    try:
-                        message = f"📜 **New Dev Dreamscape Episode!**\n**Episode {episode_number}** generated using {project_config.OPENAI_MODEL}.\n*Narrative Preview:* {narrative[:200]}..."
-                        # Assuming send_message exists on the stub/real manager
-                        self.discord_manager.send_message(message)
-                        logger.info("Sent Discord notification for new episode.")
-                    except Exception as e:
-                        logger.error(f"Failed to send Discord notification: {e}")
+            # (Optional) Discord Notification for success
+            if episode_filepath and self.discord_manager:
+                elapsed = time.monotonic() - start_time
+                msg = f"Successfully generated episode '{episode_filename}' from chat '{chat_title}' in {elapsed:.2f}s. Memory updated: {memory_updated}."
+                self.discord_manager.send_notification(msg)
 
-                duration = time.monotonic() - start_time
-                logger.info(f"Episode generation finished in {duration:.2f} seconds.")
-                return episode_filepath # Return path to the new episode
 
-            except Exception as e:
-                logger.error(f"Failed to write episode file {episode_filepath}: {e}", exc_info=True)
-                return None
-
+        except (AuthenticationError, RateLimitError, BadRequestError, APIError) as e:
+            logger.error(f"{log_prefix} OpenAI API error prevented episode generation: {e}")
+            # (Optional) Discord Notification for API failure
+            if self.discord_manager:
+                self.discord_manager.send_notification(f"ERROR: OpenAI API failure for chat '{chat_title}': {e}")
+            return None # Abort for this chat on API errors
         except Exception as e:
-            logger.error(f"Episode generation failed: {e}", exc_info=True)
-            return None
+            logger.error(f"{log_prefix} Failed to generate episode: {e}", exc_info=True)
+             # (Optional) Discord Notification for general failure
+            if self.discord_manager:
+                 self.discord_manager.send_notification(f"ERROR: Unexpected failure generating episode for chat '{chat_title}': {e}")
+            return None # Abort for this chat on other errors
 
-    def _get_next_episode_number(self) -> int:
-        """Determines the next episode number based on files in the episode directory."""
-        try:
-            max_num = 0
-            pattern = re.compile(r"episode_(\d+)\.md")
-            for filename in os.listdir(self.episode_dir):
-                match = pattern.match(filename)
-                if match:
-                    num = int(match.group(1))
-                    if num > max_num:
-                        max_num = num
-            return max_num + 1
-        except Exception as e:
-            logger.error(f"Error determining next episode number: {e}. Defaulting to 1.")
-            return 1
+        finally:
+            duration = time.monotonic() - start_time
+            if episode_filepath:
+                 logger.info(f"{log_prefix} Episode generation complete in {duration:.2f}s. Saved to: {episode_filepath}")
+            else:
+                 logger.warning(f"{log_prefix} Episode generation failed or skipped after {duration:.2f}s.")
+
+        return episode_filepath # Return the path if successful
 
 __all__ = ["StoryGenerator"] 

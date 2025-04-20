@@ -75,6 +75,7 @@ class ContextPlannerTool(AgentTool):
         # --- Rule Processing --- 
         plan = None
         rule_methods = [
+            self._rule_copy_file,
             self._rule_extract_symbol,
             self._rule_refactor_symbol,
             self._rule_create_file,
@@ -109,6 +110,31 @@ class ContextPlannerTool(AgentTool):
 
     # --- Individual Rule Methods --- 
     
+    def _rule_copy_file(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
+        """Rule: Copy a file from source to destination."""
+        # Look for 'copy' keyword and exactly two files
+        if 'copy' in task_lower and len(files) == 2:
+            # Basic heuristic: assume first file mentioned is source, second is destination
+            # This could be improved by parsing phrases like "copy X to Y"
+            source_file = files[0]
+            dest_file = files[1]
+            # A simple check to swap if the order seems wrong based on common phrasing
+            if f"copy {dest_file}" in task_lower and f"to {source_file}" in task_lower:
+                source_file, dest_file = dest_file, source_file
+            elif f"copy of {dest_file}" in task_lower and f"named {source_file}" in task_lower:
+                 source_file, dest_file = dest_file, source_file # less likely pattern
+
+            logger.debug(f"Applying Copy File rule: {source_file} -> {dest_file}")
+            plan = [
+                {"tool": "read_file", "args": {"filepath": source_file}},
+                # NOTE: The write_file content here is a placeholder.
+                # A real implementation would require the executor to use the context
+                # from the previous read_file step (e.g., context['step_0_result']['content'])
+                {"tool": "write_file", "args": {"filepath": dest_file, "content": f"# TODO: Content should be copied from {source_file}"}}
+            ]
+            return plan
+        return None
+
     def _rule_extract_symbol(self, task: str, task_lower: str, files: List[str], symbols: List[str]) -> Optional[List[Dict]]:
         """Rule: Extract Class/Function from one file to another."""
         if 'extract' in task_lower and symbols and len(files) >= 2:

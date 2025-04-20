@@ -4,79 +4,88 @@ import threading
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Callable
+import copy # For deep merging
 
 # Use project-level config for consistency
-import config as project_config
+# import config as project_config
+from dreamscape_generator import config as project_config
 
 # Configure logging
 logger = logging.getLogger("MemoryManager")
 logger.setLevel(project_config.LOG_LEVEL)
 
-# Define structure for memory components
-DEFAULT_SKILLS = lambda: {}
-DEFAULT_QUESTS = lambda: {"active": [], "completed": []}
-DEFAULT_INVENTORY = lambda: {}
-# Add other memory components as needed (e.g., reputation, locations)
+# Default structure for the memory state data
+DEFAULT_MEMORY_DATA = lambda: {
+    "skills": {},
+    "quests": {"active": [], "completed": []},
+    "inventory": {},
+    # Add other memory components as needed (e.g., reputation, locations)
+}
 
 # Constants for file names
-SKILLS_FILE = "skills.json"
-QUESTS_FILE = "quests.json"
-INVENTORY_FILE = "inventory.json"
+MEMORY_STATE_FILE = "memory_state.json"
 
 class MemoryManager:
-    """Manages the RPG world state (skills, quests, inventory) stored in JSON files."""
+    """Manages the consolidated RPG world state stored in a single JSON file."""
 
     def __init__(self, memory_dir: str = project_config.MEMORY_DIR):
         self.memory_dir = memory_dir
         os.makedirs(self.memory_dir, exist_ok=True)
         logger.info(f"MemoryManager initialized. Using directory: {self.memory_dir}")
 
-        # File paths
-        self.skills_file_path = os.path.join(self.memory_dir, SKILLS_FILE)
-        self.quests_file_path = os.path.join(self.memory_dir, QUESTS_FILE)
-        self.inventory_file_path = os.path.join(self.memory_dir, INVENTORY_FILE)
+        # File path
+        self.memory_file_path = os.path.join(self.memory_dir, MEMORY_STATE_FILE)
 
         # Thread lock for safe file access
         self._lock = threading.Lock()
 
         # Load initial state
-        self.skills: Dict[str, Dict[str, Any]] = self._load_json_file(self.skills_file_path, DEFAULT_SKILLS(), "Skills")
-        self.quests: Dict[str, List[str]] = self._load_json_file(self.quests_file_path, DEFAULT_QUESTS(), "Quests")
-        self.inventory: Dict[str, int] = self._load_json_file(self.inventory_file_path, DEFAULT_INVENTORY(), "Inventory")
+        self.memory_state: Dict[str, Any] = self._load_state()
 
-    def _load_json_file(self, file_path: str, default_factory: Callable[[], Any], state_name: str) -> Any:
-        """Loads a JSON file safely, returning default if not found or invalid."""
+    def _load_state(self) -> Dict[str, Any]:
+        """Loads the consolidated memory state from JSON file safely."""
+        default_state = {
+            "version": 0,
+            "last_updated": None,
+            "data": DEFAULT_MEMORY_DATA()
+        }
         with self._lock:
-            if os.path.exists(file_path):
+            if os.path.exists(self.memory_file_path):
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as file:
-                        data = json.load(file)
-                        logger.info(f"✅ Loaded {state_name} from {file_path}")
-                        return data
+                    with open(self.memory_file_path, 'r', encoding='utf-8') as file:
+                        loaded_state = json.load(file)
+                        # Ensure essential keys exist
+                        if "version" not in loaded_state: loaded_state["version"] = 0
+                        if "last_updated" not in loaded_state: loaded_state["last_updated"] = None
+                        if "data" not in loaded_state: loaded_state["data"] = DEFAULT_MEMORY_DATA()
+                        logger.info(f"✅ Loaded Memory State (v{loaded_state['version']}) from {self.memory_file_path}")
+                        return loaded_state
                 except json.JSONDecodeError as e:
-                    logger.error(f"❌ Failed to decode JSON from {state_name} file {file_path}: {e}. Using default.")
-                    return default_factory()
+                    logger.error(f"❌ Failed to decode JSON from {self.memory_file_path}: {e}. Using default state.")
+                    return default_state
                 except Exception as e:
-                    logger.error(f"❌ Failed to load {state_name} from {file_path}: {e}. Using default.")
-                    return default_factory()
+                    logger.error(f"❌ Failed to load state from {self.memory_file_path}: {e}. Using default state.")
+                    return default_state
             else:
-                logger.warning(f"⚠️ No {state_name} file found at {file_path}. Initializing with default state.")
-                return default_factory()
+                logger.warning(f"⚠️ No memory state file found at {self.memory_file_path}. Initializing with default state.")
+                self._save_state(default_state) # Save the initial default state
+                return default_state
 
-    def _async_save_json_file(self, file_path: str, data: Any, state_name: str) -> None:
-        """Saves data to a JSON file asynchronously and safely."""
+    def _save_state(self, state_to_save: Dict[str, Any], is_async: bool = True) -> None:
+        """Saves the provided state to the JSON file, optionally asynchronously."""
         # Create a deep copy to prevent modification during saving process
-        data_copy = json.loads(json.dumps(data))
+        state_copy = copy.deepcopy(state_to_save)
 
         def save_task() -> None:
-            temp_file_path = file_path + '.tmp'
+            temp_file_path = self.memory_file_path + '.tmp'
             try:
-                with open(temp_file_path, 'w', encoding='utf-8') as file:
-                    json.dump(data_copy, file, indent=4, ensure_ascii=False)
-                os.replace(temp_file_path, file_path)
-                logger.debug(f"💾 {state_name} saved asynchronously to {file_path}")
+                with self._lock: # Ensure write operation is atomic regarding self.memory_state updates
+                    with open(temp_file_path, 'w', encoding='utf-8') as file:
+                        json.dump(state_copy, file, indent=4, ensure_ascii=False)
+                    os.replace(temp_file_path, self.memory_file_path)
+                logger.debug(f"💾 Memory State (v{state_copy.get('version', 'N/A')}) saved to {self.memory_file_path}")
             except Exception as e:
-                logger.error(f"❌ Failed to save {state_name} to {file_path}: {e}")
+                logger.error(f"❌ Failed to save Memory State to {self.memory_file_path}: {e}")
             finally:
                  if os.path.exists(temp_file_path):
                      try:
@@ -84,95 +93,106 @@ class MemoryManager:
                      except Exception as e_rem:
                          logger.error(f"Failed to remove temp file {temp_file_path}: {e_rem}")
 
-        threading.Thread(target=save_task, daemon=True).start()
+        if is_async:
+            threading.Thread(target=save_task, daemon=True).start()
+        else:
+            save_task() # Execute synchronously
 
-    def save_all_memory_states(self) -> None:
-        """Saves all current memory components to their respective files."""
-        logger.info("💾 Saving all memory states...")
-        self._async_save_json_file(self.skills_file_path, self.skills, "Skills")
-        self._async_save_json_file(self.quests_file_path, self.quests, "Quests")
-        self._async_save_json_file(self.inventory_file_path, self.inventory, "Inventory")
+    def get_current_state_data(self) -> Dict[str, Any]:
+         """Returns a deep copy of the 'data' portion of the current memory state."""
+         with self._lock:
+            return copy.deepcopy(self.memory_state.get("data", DEFAULT_MEMORY_DATA()))
 
-    def get_current_state(self) -> Dict[str, Any]:
-         """Returns a dictionary representing the current RPG world state."""
-         # Return copies to prevent external modification
-         return {
-            "skills": json.loads(json.dumps(self.skills)),
-            "quests": json.loads(json.dumps(self.quests)),
-            "inventory": json.loads(json.dumps(self.inventory)),
-            # Add other state components here
-         }
+    def get_full_state(self) -> Dict[str, Any]:
+        """Returns a deep copy of the entire current memory state, including metadata."""
+        with self._lock:
+            return copy.deepcopy(self.memory_state)
 
-    def update_state(self, update_dict: Dict[str, Any]) -> None:
-        """Updates the memory state based on a parsed EXPERIENCE_UPDATE dictionary."""
-        if not isinstance(update_dict, dict):
-            logger.warning("Received invalid update_dict (not a dict). Skipping update.")
-            return
+    def _deep_merge_dicts(self, base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+        """Recursively merges update dict into base dict."""
+        for key, value in update.items():
+            if isinstance(value, dict):
+                # Get node or create one
+                node = base.setdefault(key, {})
+                if isinstance(node, dict):
+                    self._deep_merge_dicts(node, value)
+                else:
+                    # Handle case where base has a non-dict at key
+                    base[key] = value
+            else:
+                base[key] = value
+        return base
+
+    def update_state(self, update_dict: Dict[str, Any]) -> bool:
+        """Updates the memory state['data'] based on a dictionary of updates.
+
+        Uses merging logic similar to AletheiaPromptManager:
+        - Appends unique items to lists.
+        - Deep merges dictionaries.
+        - Replaces scalar values.
+
+        Increments version and updates timestamp on successful update.
+
+        Returns:
+            bool: True if the state was changed, False otherwise.
+        """
+        if not isinstance(update_dict, dict) or not update_dict:
+            logger.warning(f"Received invalid or empty update_dict: {update_dict}. Skipping update.")
+            return False
 
         logger.info(f"Applying memory updates: {json.dumps(update_dict)}")
-        updated = False
+        changed = False
         with self._lock:
-            # --- Update Skills --- (Handles XP gain, level calculation could be added)
-            if isinstance(update_dict.get("skills"), dict):
-                for skill_name, skill_update in update_dict["skills"].items():
-                    if isinstance(skill_update, dict) and "xp_gain" in skill_update:
-                        xp_gain = skill_update.get("xp_gain", 0)
-                        if isinstance(xp_gain, (int, float)) and xp_gain > 0:
-                            if skill_name not in self.skills:
-                                self.skills[skill_name] = {"level": 1, "xp": 0}
-                            self.skills[skill_name]["xp"] = self.skills[skill_name].get("xp", 0) + xp_gain
-                            # TODO: Add level up logic based on XP thresholds if desired
-                            logger.debug(f"Updated skill '{skill_name}': +{xp_gain} XP -> Total {self.skills[skill_name]['xp']}")
-                            updated = True
+            current_data = self.memory_state["data"]
+            original_data_json = json.dumps(current_data, sort_keys=True) # For change detection
 
-            # --- Update Quests --- (Handles new quests and status changes)
-            if isinstance(update_dict.get("quests_new"), list):
-                for quest_name in update_dict["quests_new"]:
-                    if isinstance(quest_name, str) and quest_name not in self.quests.get("active", []) and quest_name not in self.quests.get("completed", []):
-                        self.quests.setdefault("active", []).append(quest_name)
-                        logger.debug(f"Added new active quest: '{quest_name}'")
-                        updated = True
+            for key, value in update_dict.items():
+                if key not in current_data:
+                    # If key is new, just add it
+                    current_data[key] = copy.deepcopy(value)
+                    changed = True
+                    logger.debug(f"Added new key '{key}' to memory data.")
+                    continue
 
-            if isinstance(update_dict.get("quests_updated"), list):
-                for quest_update in update_dict["quests_updated"]:
-                    if isinstance(quest_update, dict) and "name" in quest_update and "status" in quest_update:
-                        quest_name = quest_update["name"]
-                        new_status = quest_update["status"]
-                        # Move from active to completed
-                        if new_status == "completed" and quest_name in self.quests.get("active", []):
-                            self.quests["active"].remove(quest_name)
-                            self.quests.setdefault("completed", []).append(quest_name)
-                            logger.debug(f"Moved quest '{quest_name}' to completed.")
-                            updated = True
-                        # Add other status transitions if needed (e.g., failed, active)
+                target = current_data[key]
 
-            # --- Update Inventory --- (Handles adding/removing items)
-            if isinstance(update_dict.get("inventory_added"), dict):
-                for item_name, count in update_dict["inventory_added"].items():
-                    if isinstance(item_name, str) and isinstance(count, int) and count > 0:
-                        self.inventory[item_name] = self.inventory.get(item_name, 0) + count
-                        logger.debug(f"Added inventory: +{count} '{item_name}'")
-                        updated = True
+                if isinstance(target, list) and isinstance(value, list):
+                    # Append unique items from the update list
+                    initial_len = len(target)
+                    for item in value:
+                        # Use deepcopy for complex items if necessary, basic check for now
+                        if item not in target:
+                            target.append(copy.deepcopy(item))
+                    if len(target) > initial_len:
+                         logger.debug(f"Appended {len(target) - initial_len} items to list '{key}'.")
+                         changed = True
+                elif isinstance(target, dict) and isinstance(value, dict):
+                    # Deep merge dictionaries
+                    initial_json = json.dumps(target, sort_keys=True)
+                    merged_dict = self._deep_merge_dicts(target, value)
+                    current_data[key] = merged_dict # Update the reference in current_data
+                    if json.dumps(merged_dict, sort_keys=True) != initial_json:
+                        logger.debug(f"Merged dictionary updates for key '{key}'.")
+                        changed = True
+                else:
+                    # Replace scalar values or handle type mismatch by replacement
+                    if target != value:
+                         logger.debug(f"Replaced value for key '{key}'. Old: {target}, New: {value}")
+                         current_data[key] = copy.deepcopy(value)
+                         changed = True
 
-            if isinstance(update_dict.get("inventory_removed"), dict):
-                 for item_name, count in update_dict["inventory_removed"].items():
-                    if isinstance(item_name, str) and isinstance(count, int) and count > 0:
-                         current_count = self.inventory.get(item_name, 0)
-                         new_count = max(0, current_count - count)
-                         if new_count == 0:
-                             if item_name in self.inventory: del self.inventory[item_name]
-                             logger.debug(f"Removed inventory: All '{item_name}'")
-                         else:
-                             self.inventory[item_name] = new_count
-                             logger.debug(f"Removed inventory: -{count} '{item_name}'")
-                         updated = True
+            # Check if anything actually changed (more robust than just tracking flags)
+            final_data_json = json.dumps(current_data, sort_keys=True)
+            if final_data_json != original_data_json:
+                 changed = True # Confirm change
+                 self.memory_state["version"] = self.memory_state.get("version", 0) + 1
+                 self.memory_state["last_updated"] = datetime.now(timezone.utc).isoformat()
+                 logger.info(f"Memory state updated successfully to version {self.memory_state['version']}.")
+                 self._save_state(self.memory_state, is_async=True) # Save changes asynchronously
+            else:
+                 logger.info("No effective changes applied to memory state.")
+                 changed = False
 
-            # --- Add other update logic here (reputation, locations, etc.) ---
-
-        if updated:
-            logger.info("Memory state updated successfully.")
-            self.save_all_memory_states() # Save changes asynchronously
-        else:
-            logger.info("No applicable memory updates found in the provided dictionary.")
+        return changed
 
 __all__ = ["MemoryManager"] 
