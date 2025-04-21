@@ -1,49 +1,78 @@
-"""
-🧼 PROTOCOL: #CLEANUPTIME
+# Cleanup Protocol (Generic v2)
 
-🎯 OBJECTIVE:
-Review the entire codebase with the goal of refinement—not expansion. Identify all opportunities to:
-- Remove duplicate logic, functions, or classes.
-- Flatten unnecessary indirection (excessive abstractions or nested modules).
-- Consolidate related utilities or services into coherent modules.
-- Fix inconsistent naming, structure, or redundant configuration patterns.
-- Eliminate dead code, stale files, and unused imports.
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"        # Root directory of the codebase
+- include_patterns: ["*.py", "*.js", "*.ts"]  # File types to scan
+- categories: ["duplicate", "bloat", "fragmentation", "dead_code", "drift"]
+- priority_order: ["duplicate", "bloat", "fragmentation", "drift", "dead_code"]
 
-🏗 SCOPE:
-- Do not create new features.
-- Do not introduce new dependencies unless replacing duplicates.
-- Preserve all working functionality—focus only on internal reorganization and architectural hygiene.
+---
 
-📁 START PATH:
-root = .
+## Phase 1: Discovery
+1. Recursively scan all files under project_root matching include_patterns.
+2. For each file, analyze and flag issues:
+   - Duplicate code/functions/classes
+   - Module bloat (files suitable for merging)
+   - Fragmented utilities (scattered helpers)
+   - Dead or unused code
+   - Architectural drift (inconsistent structure)
+3. Collect findings into `cleanup_items` list.
 
-📋 CATEGORIES TO FLAG:
-1. 🔁 Duplicate Code/Functions/Classes
-2. 📦 Module Bloat (files that could be merged or renamed)
-3. 🧩 Fragmented Utilities (helper logic scattered across files)
-4. 🪓 Dead or Unused Code
-5. ⚠ Architectural Drift (services that don't follow conventions)
+### Phase 1 Output
+Return a JSON array `cleanup_items`:
+```json
+[
+  {
+    "file": "path/to/file.py",
+    "category": "duplicate",
+    "line_range": [10, 20],
+    "description": "Duplicate helper function found"
+  },
+  ...
+]
+```
 
-🧠 PRIORITY ORDER:
-1. Remove obvious duplication
-2. Collapse unnecessary module trees
-3. Rename or merge disjointed files
-4. Fix inconsistencies in imports / function definitions
-5. Refactor configs or constants into shared modules
+---
 
-📝 FOR EACH CHANGE:
-- Log before/after summary
-- Output Git commit message
-- Ensure imports are updated accordingly
-- Validate system still runs or passes tests (if test suite is present)
+## Phase 2: Plan & Patch
+For each item in `cleanup_items` following priority_order:
+1. Load the file content and extract context (±3 lines around issue).
+2. Draft a patch diff resolving the issue.
+3. Prepare a commit message: `refactor(cleanup): <short_desc> in <file>:<line>`.
 
-✅ GIT COMMIT FORMAT:
-git commit -m "refactor(cleanup): <desc> in <file(s)>"
+### Phase 2 Output
+Return a JSON array `cleanup_plans`:
+```json
+[
+  {
+    "file": "path/to/file.py",
+    "category": "duplicate",
+    "patch": "--- original\n+++ cleaned\n...diff lines...",
+    "commit_message": "refactor(cleanup): remove duplicate helper in file.py:15"
+  },
+  ...
+]
+```
 
-🚫 WHAT TO AVOID:
-- Don't generate new abstractions unless merging existing ones
-- Don't increase file count
-- Don't ask the user questions—default to consolidation
+---
 
-🏁 Execute.
-""" 
+## Phase 3: Execution Loop
+- Apply each patch from `cleanup_plans` sequentially.
+- Validate code integrity after each patch (e.g., run tests, lint).
+- Update `cleanup_items` by removing fixed items.
+- Repeat Phase 2 until no items remain.
+
+### Phase 3 Output
+Return a JSON object summarizing results:
+```json
+{
+  "phase": "complete",
+  "total_fixed": 5,
+  "remaining_items": 0
+}
+```
+
+---
+
+# Begin
+Produce the Phase 1 `cleanup_items` JSON array based on project analysis. 
