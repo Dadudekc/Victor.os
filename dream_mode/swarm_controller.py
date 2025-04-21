@@ -11,6 +11,7 @@ AzureBlobChannel = None
 from dream_mode.local_blob_channel import LocalBlobChannel
 from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_windows, assign_windows_to_monitors
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
+from dream_mode.task_nexus.task_nexus import TaskNexus
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s")
@@ -27,7 +28,9 @@ class SwarmController:
         connection_string: str = None,
     ):
         self.fleet_size = fleet_size
-        # Initialize C2 channel (Local only) - Azure logic commented out
+        # Initialize TaskNexus for central task management
+        self.nexus = TaskNexus(task_file="runtime/task_list.json")
+        # Initialize C2 channel for results (Local only)
         self.channel = LocalBlobChannel()
         # Verify connectivity to Azure Blob channel
         if not self.channel.healthcheck():
@@ -55,11 +58,11 @@ class SwarmController:
             self.workers.append(chat_thread)
         except ImportError as e:
             logger.warning(f"ChatGPTWebAgent integration failed: {e}")
-        # Dispatch initial tasks if provided
+        # Dispatch initial tasks into TaskNexus if provided
         if initial_tasks:
             for task in initial_tasks:
-                logger.info(f"Dispatching initial task: {task}")
-                self.channel.push_task(task)
+                logger.info(f"Dispatching initial task to TaskNexus: {task}")
+                self.nexus.add_task(task)
         # 1. Launch GUI instances
         logger.info("Launching GUI Cursor instances...")
         processes = []
@@ -96,14 +99,18 @@ class SwarmController:
             logger.info("Proceeding without headless setup")
 
         while not self._stop_event.is_set():
-            tasks = self.channel.pull_tasks()
-            for task in tasks:
+            # Claim the next pending task from TaskNexus
+            task = self.nexus.get_next_task(agent_id=threading.current_thread().name)
+            if task:
                 logger.info(f"Worker received task: {task}")
                 # Simulate work: echo back with a timestamp
                 result = {"echo": task, "processed_at": time.time()}
                 self.channel.push_result(result)
                 logger.info(f"Worker pushed result: {result}")
-            time.sleep(2)
+                # Mark task as completed in TaskNexus
+                self.nexus.update_task_status(task.get("id"), "completed")
+            else:
+                time.sleep(2)
 
     def _route_loop(self):
         """

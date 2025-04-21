@@ -63,7 +63,8 @@ def main():
                         default=DEFAULT_OUTPUT_DIR / f"{datetime.utcnow():%Y-%m-%d_%H-%M-%S}_lore.md",
                         help="Destination markdown file for lore")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    args = parser.parse_args()
+    # Allow legacy flags like --once to be ignored
+    args, _ = parser.parse_known_args()
 
     # Load translation
     translation = load_translation(args.translation)

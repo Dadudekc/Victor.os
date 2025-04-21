@@ -9,6 +9,7 @@ from dream_mode.utils.html_parser import extract_latest_reply
 from dream_mode.utils.task_parser import extract_task_metadata
 
 from dream_mode.local_blob_channel import LocalBlobChannel
+from dream_mode.task_nexus.task_nexus import TaskNexus
 import os  # for environment variables
 from typing import Dict
 
@@ -31,6 +32,8 @@ class ChatGPTWebAgent:
 
         # Initialize C2 channel (Local only)
         self.channel = LocalBlobChannel()
+        # Initialize central TaskNexus for coordinating tasks
+        self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Track which results have been injected into ChatGPT UI
         self.injected_result_ids = set()
 
@@ -143,12 +146,12 @@ class ChatGPTWebAgent:
                     return # Skip saving
 
                 self._save_pending_responses(inbox)
-                # Push parsed task to C2 channel
+                # Add parsed task to TaskNexus
                 try:
-                    self.channel.push_task(parsed)
-                    logger.info(f"[{self.agent_id}] Dispatched task to C2 channel: {parsed.get('task_id')}")
+                    self.nexus.add_task(parsed)
+                    logger.info(f"[{self.agent_id}] Dispatched task to TaskNexus: {parsed.get('task_id')}")
                 except Exception as e:
-                    logger.error(f"[{self.agent_id}] Failed to push task to channel: {e}", exc_info=True)
+                    logger.error(f"[{self.agent_id}] Failed to add task to TaskNexus: {e}", exc_info=True)
             else:
                 # Parsing failed (TaskParser already logged error)
                 logger.warning(f"[{self.agent_id}] Failed to parse structured metadata from the new response.")
