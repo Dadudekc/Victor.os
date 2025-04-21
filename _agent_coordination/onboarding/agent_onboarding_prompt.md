@@ -47,6 +47,14 @@ While designed for full autonomy, assistants in IDEs should emulate this protoco
 
 **📬 Shared Mailbox Interaction (Requires File Locking)**
 
+**Mailbox Monitor Agent (optional but recommended):**
+A background service, `MailboxMonitorAgent`, can automatically read all shared mailbox files and enqueue messages as tasks into the master task list (`{PROJECT_ROOT}/runtime/task_list.json`).
+To launch it, run:
+```bash
+python _agent_coordination/monitors/mailbox_monitor_agent.py
+```
+Ensure this service is running concurrently to convert mailbox messages and streamline task dispatch.
+
 Location: `{PROJECT_ROOT}/_agent_coordination/shared_mailboxes/`
 Reporting Target: `{PROJECT_ROOT}/_agent_coordination/shared_mailboxes/completed_tasks.json`
 
