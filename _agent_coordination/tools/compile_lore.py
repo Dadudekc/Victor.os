@@ -52,6 +52,7 @@ def compile_lore(translation: dict, tasks: list, output_path: Path, template_tex
 
 def main():
     parser = argparse.ArgumentParser(description="Compile Dreamscape lore from tasks.")
+    parser.add_argument("--once", action="store_true", help="Alias for single-run execution (no-op)")
     parser.add_argument("--translation", type=Path, default=DEFAULT_TRANSLATION,
                         help="Path to dream_translation.yaml")
     parser.add_argument("--tasks", type=Path, default=DEFAULT_TASK_LIST,

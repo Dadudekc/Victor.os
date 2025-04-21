@@ -7,6 +7,8 @@ One-click entrypoint: launches the ChatGPT WebAgent and SwarmController in local
 import os
 import subprocess
 import sys
+import threading
+from dream_mode.agents.cursor_worker import run as cursor_worker_run
 
 # Ensure local blob channel is used
 os.environ["USE_LOCAL_BLOB"] = "1"
@@ -15,7 +17,17 @@ os.environ["USE_LOCAL_BLOB"] = "1"
 WEB_AGENT_CMD = [sys.executable, "-m", "dream_mode.agents.chatgpt_web_agent"]
 SWARM_CMD = [sys.executable, "-m", "dream_mode.swarm_controller"]
 
+# Simulation mode: launch fake Cursor workers in background threads
+def simulate_cursor_workers(n=5):
+    for i in range(n):
+        worker_id = f"worker-{i+1}"
+        threading.Thread(target=cursor_worker_run, args=(worker_id,), daemon=True).start()
+    print(f"🧪 Launched {n} simulated Cursor workers.")
+
 def main():
+    # If simulate flag passed, launch fake Cursor workers
+    if "--simulate" in sys.argv:
+        simulate_cursor_workers(5)
     print("🌐 Starting ChatGPT WebAgent in local mode...")
     p1 = subprocess.Popen(WEB_AGENT_CMD)
     print(f"  PID {p1.pid}: WebAgent started.")
