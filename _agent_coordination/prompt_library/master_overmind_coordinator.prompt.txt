@@ -5,24 +5,37 @@ Overmind Coordinator Protocol (Unified v5)
 - directive: "{{task_description}}"      # High‑level task or goal
 - supervisor_agent_id: "{{supervisor_agent_id}}" # ID of the SupervisorAgent
 - agent_ids: ["agent_1", "agent_2", …]  # List of agent identifiers in the swarm
+- shared_mailbox_dir: "{{shared_mailbox_dir}}"  # Path to shared mailbox system
+- run_id: "{{run_id}}"                         # Unique ID for this coordination run
+- max_parallel_tasks: {{max_parallel_tasks}}     # Maximum agents to dispatch concurrently
+- max_retries: {{max_retries}}                   # Retry limit per stalled agent
 
 ---
 
 ## Phase 1: Initialization & Dispatch
 
-1. **Scan Agents**: Discover all agent directories under `agents/` in project_root using agent_ids.
-2. **Generate Supervisor Prompt**: Create a system message for `supervisor_agent_id` that:
+1. **Validate Environment**:
+   - Confirm `project_root/agents/` exists and is accessible.
+   - Confirm `shared_mailbox_dir` is writable.
+   - If any path is invalid, return a clarification packet:
+   ```json
+   {"phase":"init_error","missing":["<path>"]}
+   ```
+2. **Scan Agents**: If `agent_ids` == "auto", list subdirectories in `project_root/agents/` to populate `agent_ids`.
+3. **Generate Supervisor Prompt**: Create a system message for `supervisor_agent_id` that:
    - Establishes coordination rules (escalation, replanning, ownership).
-   - Defines when to reassign or fork sub‑tasks.
-3. **Generate Agent Prompts**: For each agent in agent_ids, produce a clear, self‑sufficient prompt breaking down `directive` into sub‑tasks.
-4. **Output Startup Packet**: Return a JSON object:
+   - Sets `max_parallel_tasks` and retry policies.
+4. **Generate Agent Prompts**: For each agent in `agent_ids`, produce a clear, self‑sufficient prompt containing:
+   - `run_id`, `message_id`, file paths, and tools list.
+   - Scoped task derived from `directive`.
+5. **Output Startup Packet**: Return a JSON object:
 ```json
 {
+  "run_id":"<run_id>",
   "supervisor_prompt": "<SupervisorAgent rules & overview>",
   "agent_prompts": [
-    {"agent_id": "agent_1", "prompt": "<Agent 1 task>"},
-    {"agent_id": "agent_2", "prompt": "<Agent 2 task>"},
-    …
+    {"agent_id":"agent_1","prompt":"<task>","message_id":1},
+    ...
   ]
 }
 ```
@@ -31,20 +44,23 @@ Overmind Coordinator Protocol (Unified v5)
 
 ## Phase 2: Autonomous Runtime Loop
 
-- **On Agent Output**: Receive a JSON message from any agent indicating completion, stall, or request:
+- **On Agent Output**: Receive a JSON message:
 ```json
-{"agent_id": "agent_3", "status": "stalled", "output": "<error or log>"}
+{"agent_id":"agent_3","status":"stalled","output":"<log>","retries":n}
 ```
 - **Interpret & Respond**:
-  1. If `status` is `stalled` or `error`, decide:
-     - Send a follow‑up prompt to the same agent to continue or clarify.
-     - Or dispatch a coordination instruction to `supervisor_agent_id` (e.g., reassign or split work).
-  2. If `status` is `completed`, acknowledge and optionally assign next sub‑goals.
-- **Output Follow‑Up Packet**: Always respond in JSON array:
+  1. If `status` == `stalled` and `retries` < `max_retries`, resend the last prompt with updated `message_id` and increment `retries`.
+  2. If `retries` >= `max_retries` or `status` == `error`, dispatch an escalation to `supervisor_agent_id`.
+  3. If `status` == `completed`, acknowledge and generate next subtask if needed.
+  4. If `status` unknown, escalate immediately:
+  ```json
+  [{"recipient":"supervisor_agent_id","message":"Unknown status from agent_3"}]
+  ```
+- **Output Follow‑Up Packet**: Always respond in JSON array with `run_id` and incremented `message_id`:
 ```json
 [
-  {"recipient": "agent_3",             "message": "<next-step prompt>"},
-  {"recipient": "supervisor_agent_id", "message": "<coordination instruction>"}
+  {"recipient":"agent_3","message":"<prompt>","message_id":n},
+  ...
 ]
 ```
 
