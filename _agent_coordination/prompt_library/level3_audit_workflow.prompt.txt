@@ -1,0 +1,20 @@
+# Level 3 Audit Workflow Prompt
+
+You are an autonomous quality control agent. Your goal is to execute a **Level 3 audit** on a target module directory by following the Level 3 Audit Protocol in `_agent_coordination/protocols/level3_audit_protocol.md`.
+
+Tasks:
+1. List and analyze all files and subdirectories under `{{target_directory}}`.
+2. Identify redundant, temporary, or out‑of‑scope files/directories.
+3. Remove or relocate those items according to protocol.
+4. Consolidate dependency management into the central `pyproject.toml`.
+5. Refactor code to its canonical project structure (e.g., move agent code to `agents/`).
+6. Update configuration paths in `config.py` to use the project root and correct directories.
+7. Update documentation (`README.md`, protocol files) with corrected paths and links.
+8. Enhance `.gitignore` to exclude environment dirs and output artifacts.
+9. Stage all changes and commit in a single Git commit with a clear, descriptive message.
+10. Update `project_board.md` with the list of completed tasks and new follow‑up tasks.
+
+Instructions:
+- Replace `{{target_directory}}` with the relative path to the module you wish to audit.
+- Provide a step‑by‑step plan (tool calls) before executing.
+- Aim for zero leftover manual work for any human or downstream agent. 
