@@ -4,14 +4,12 @@ import time
 import json
 import logging
 from pathlib import Path
-from dream_mode.utils import browser, html_parser, task_parser
+from dream_mode.utils.browser import launch_browser, navigate_to_page, wait_for_login, close_browser
+from dream_mode.utils.html_parser import extract_latest_reply
+from dream_mode.utils.task_parser import extract_task_metadata
 
-import os
-try:
-    from dream_mode.azure_blob_channel import AzureBlobChannel
-except ImportError:
-    AzureBlobChannel = None
 from dream_mode.local_blob_channel import LocalBlobChannel
+import os  # for environment variables
 from typing import Dict
 
 logger = logging.getLogger("ChatGPTWebAgent")
@@ -31,15 +29,8 @@ class ChatGPTWebAgent:
         self.last_seen = None
         self.driver = None
 
-        # Initialize C2 channel (Azure or Local) for task dispatch
-        if os.getenv("USE_LOCAL_BLOB", "0") == "1" or AzureBlobChannel is None:
-            self.channel = LocalBlobChannel()
-        else:
-            self.channel = AzureBlobChannel(
-                container_name=os.getenv("C2_CONTAINER", "dream-os-c2"),
-                connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
-                sas_token=os.getenv("AZURE_SAS_TOKEN"),
-            )
+        # Initialize C2 channel (Local only)
+        self.channel = LocalBlobChannel()
         # Track which results have been injected into ChatGPT UI
         self.injected_result_ids = set()
 
@@ -64,13 +55,13 @@ class ChatGPTWebAgent:
             logger.error(f"[{self.agent_id}] Failed to write inbox file: {e}")
 
     def _initialize_browser(self):
-        self.driver = browser.launch_browser()
+        self.driver = launch_browser()
         if not self.driver:
             logger.error("Browser not launched.")
             return False
 
-        browser.navigate_to_page(self.conversation_url)
-        if not browser.wait_for_login():
+        navigate_to_page(self.conversation_url)
+        if not wait_for_login():
             logger.error("Login verification failed.")
             return False
 
@@ -103,7 +94,7 @@ class ChatGPTWebAgent:
 
         logger.info(f"[{self.agent_id}] 🔍 Checking for ChatGPT reply...")
         try:
-            reply = html_parser.extract_latest_reply(self.driver)
+            reply = extract_latest_reply(self.driver)
             
             # Case 1: Reply is None (means assistant is still generating)
             if reply is None:
@@ -121,7 +112,7 @@ class ChatGPTWebAgent:
             logger.info(f"[{self.agent_id}] ✨ New response detected (processing):")
             logger.debug(f"[{self.agent_id}] Raw Reply Snippet: {reply[:150]}...")
             
-            parsed = task_parser.extract_task_metadata(reply)
+            parsed = extract_task_metadata(reply)
 
             # Check if parsing was successful (TaskParser logs errors internally)
             if parsed and parsed.get("feedback"): # Check for core feedback key
@@ -180,7 +171,8 @@ class ChatGPTWebAgent:
             logger.error(f"[{self.agent_id}] Error pulling/injecting results: {ce}", exc_info=True)
 
     def close(self):
-        browser.close_browser()
+        """Close the browser session."""
+        close_browser()
 
 def run_loop(shutdown_event):
     logger.info("🧠 ChatGPT Web Agent started.")

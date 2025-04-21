@@ -6,10 +6,8 @@ import subprocess
 import argparse
 from typing import Any, Dict, List
 
-try:
-    from dream_mode.azure_blob_channel import AzureBlobChannel
-except ImportError:
-    AzureBlobChannel = None
+# Azure C2 channel logic commented out - using LocalBlobChannel only
+AzureBlobChannel = None
 from dream_mode.local_blob_channel import LocalBlobChannel
 from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_windows, assign_windows_to_monitors
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
@@ -29,18 +27,8 @@ class SwarmController:
         connection_string: str = None,
     ):
         self.fleet_size = fleet_size
-        # Initialize C2 channel (Azure or Local) for task/result exchange
-        use_local = os.getenv("USE_LOCAL_BLOB", "0") == "1" or AzureBlobChannel is None or (
-            not connection_string and not sas_token
-        )
-        if use_local:
-            self.channel = LocalBlobChannel()
-        else:
-            self.channel = AzureBlobChannel(
-                container_name=container_name,
-                sas_token=sas_token,
-                connection_string=connection_string,
-            )
+        # Initialize C2 channel (Local only) - Azure logic commented out
+        self.channel = LocalBlobChannel()
         # Verify connectivity to Azure Blob channel
         if not self.channel.healthcheck():
             logger.error("AzureBlobChannel healthcheck failed, aborting SwarmController initialization.")
@@ -167,8 +155,10 @@ if __name__ == "__main__":
     # Resolve credentials: CLI flags or environment
     conn_str = args.connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
     sas_tok = args.sas_token or os.getenv("AZURE_STORAGE_SAS_TOKEN")
-    if not conn_str and not sas_tok:
-        parser.error("Either --connection-string or --sas-token must be provided or set in environment variables.")
+    # Allow local mode fallback without Azure credentials
+    use_local = os.getenv("USE_LOCAL_BLOB", "0") == "1"
+    if not use_local and not conn_str and not sas_tok:
+        parser.error("Either --connection-string or --sas-token must be provided or set in environment variables (or enable USE_LOCAL_BLOB=1 for local mode).")
 
     controller = SwarmController(
         fleet_size=args.fleet_size,

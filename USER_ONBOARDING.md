@@ -7,6 +7,7 @@ Welcome to the Dream.OS multi‑agent swarm control system! This guide will walk
 3. Running the ChatGPT WebAgent
 4. Running the SwarmController (Cursor fleet)
 5. Passing directives and commands
+6. One‑Click Launch Script
 
 ---
 
@@ -42,6 +43,23 @@ Welcome to the Dream.OS multi‑agent swarm control system! This guide will walk
    ```
 3. (Optional) For local testing without Azure:
    - The channel will use mocks if `azure-storage-blob` is not installed.
+
+---
+
+## 2.5 One‑Click Launch Script
+
+We provide a helper script `run_dream_os.py` that starts both the ChatGPT WebAgent and the SwarmController in local mode. Simply:
+
+```bash
+python run_dream_os.py
+```
+
+This will:
+- Set `USE_LOCAL_BLOB=1`
+- Launch the WebAgent (opens your ChatGPT browser session)
+- Launch the SwarmController (runs Cursor agents locally)
+
+Press `Ctrl+C` to terminate both.
 
 ---
 
