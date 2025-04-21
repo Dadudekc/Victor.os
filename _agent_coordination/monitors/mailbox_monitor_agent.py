@@ -35,8 +35,10 @@ except ImportError:
 
 # --- Configuration ---
 AGENT_ID = "agent_mailbox_monitor"
-MAILBOX_DIR = AGENT_COORDINATION_DIR / "mailboxes"
-SUPERVISOR_MAILBOX_FILE = MAILBOX_DIR / "supervisor_mailbox.json"
+# Monitor all agent mailboxes in shared_mailboxes
+SHARED_MAILBOX_DIR = AGENT_COORDINATION_DIR / "shared_mailboxes"
+MAILBOX_DIR = SHARED_MAILBOX_DIR
+# Remove single-file supervisor mailbox; process all *.json files in MAILBOX_DIR
 TASK_LIST_FILE = PROJECT_ROOT / "runtime" / "task_list.json"
 CHECK_INTERVAL_SECONDS = 5
 
@@ -84,49 +86,49 @@ class MailboxMonitorAgent:
         self.running = False
         logger.info(f"[{AGENT_ID}] Initialized.")
 
-    def _read_mailbox(self) -> List[Dict]:
-        """Safely reads the mailbox file using portalocker."""
-        if not SUPERVISOR_MAILBOX_FILE.exists():
+    def _read_mailbox_file(self, mailbox_file: Path) -> List[Dict]:
+        """Safely reads the specified mailbox file using portalocker."""
+        if not mailbox_file.exists():
             return []
         
-        lock_file = acquire_lock(SUPERVISOR_MAILBOX_FILE)
+        lock_file = acquire_lock(mailbox_file)
         if not lock_file:
              return [] # Could not get lock, try again later
 
         try:
             # Lock acquired, now read the actual content
             # Re-open in read mode (or seek to beginning if needed)
-            with open(SUPERVISOR_MAILBOX_FILE, 'r', encoding='utf-8') as f:
+            with open(mailbox_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 if not content.strip():
                     return []
                 mailbox = json.loads(content)
                 return mailbox if isinstance(mailbox, list) else []
         except json.JSONDecodeError:
-            logger.error(f"Mailbox file {SUPERVISOR_MAILBOX_FILE} contains invalid JSON.")
+            logger.error(f"Mailbox file {mailbox_file} contains invalid JSON.")
             return []
         except Exception as e:
-            logger.error(f"Error reading mailbox file {SUPERVISOR_MAILBOX_FILE}: {e}", exc_info=True)
+            logger.error(f"Error reading mailbox file {mailbox_file}: {e}", exc_info=True)
             return []
         finally:
             release_lock(lock_file)
 
-    def _write_mailbox(self, mailbox_data: List[Dict]) -> bool:
+    def _write_mailbox(self, mailbox_file: Path, mailbox_data: List[Dict]) -> bool:
         """Safely writes the updated mailbox data back to the file using portalocker."""
-        lock_file = acquire_lock(SUPERVISOR_MAILBOX_FILE)
+        lock_file = acquire_lock(mailbox_file)
         if not lock_file:
             return False
 
         try:
             # Lock acquired, now write the content (this will overwrite)
-            with open(SUPERVISOR_MAILBOX_FILE, 'w', encoding='utf-8') as f:
+            with open(mailbox_file, 'w', encoding='utf-8') as f:
                 # Need to seek to beginning if opened in append mode before locking
                 # f.seek(0)
                 # f.truncate() # Clear file before writing new content
                 json.dump(mailbox_data, f, indent=2)
             return True
         except Exception as e:
-            logger.error(f"Error writing mailbox file {SUPERVISOR_MAILBOX_FILE}: {e}", exc_info=True)
+            logger.error(f"Error writing mailbox file {mailbox_file}: {e}", exc_info=True)
             return False
         finally:
             release_lock(lock_file)
@@ -168,48 +170,28 @@ class MailboxMonitorAgent:
         finally:
             release_lock(lock_file)
 
+    def _get_mailbox_files(self) -> List[Path]:
+        """Returns a list of all JSON mailbox files in the mailbox directory."""
+        return sorted(MAILBOX_DIR.glob('*.json'))
+
     def _process_unread_messages(self):
-        """Reads mailbox, processes unread messages, updates mailbox and task list."""
-        mailbox = self._read_mailbox()
-        if not mailbox:
-            return # Nothing to process or error reading
-
-        updated = False
-        processed_indices = [] # Track indices to update
-        mailbox_copy = mailbox[:] # Work on a copy to modify status
-
-        for i, message in enumerate(mailbox_copy):
-            if isinstance(message, dict) and message.get("status") == "unread":
-                message_id = message.get("message_id", "unknown_msg")
-                logger.info(f"Processing unread message: {message_id}")
-                
-                # 1. Validate and transform payload into task
-                task_data = self._transform_message_to_task(message)
-                
-                if task_data:
-                    # 2. Add task to task_list.json
-                    if self._add_task_to_list(task_data):
-                        # 3. Mark mailbox message as processed in the copy
-                        message["status"] = "processed"
-                        message.pop("error", None) # Remove previous error if reprocessing
-                        logger.info(f"Successfully processed message {message_id} and added task {task_data['task_id']}.")
+        """Processes unread messages across all agent mailboxes and enqueues tasks."""
+        for mailbox_file in self._get_mailbox_files():
+            mailbox = self._read_mailbox_file(mailbox_file)
+            if not mailbox:
+                continue
+            updated = False
+            for message in mailbox:
+                if isinstance(message, dict) and message.get('status') == 'unread':
+                    # process message as before, then mark and write back per mailbox_file
+                    task_data = self._transform_message_to_task(message)
+                    if task_data and self._add_task_to_list(task_data):
+                        message['status'] = 'processed'
                         updated = True
                     else:
-                        # Failed to add task, mark message as failed in the copy
-                        message["status"] = "failed"
-                        message["error"] = "Failed to add task to task_list.json"
-                        logger.error(f"Failed to add task for message {message_id}. Marked message as failed.")
-                        updated = True # Still updated the status
-                else:
-                    # Transformation failed, mark message as failed in the copy
-                    message["status"] = "failed"
-                    message["error"] = "Failed to transform message payload into valid task data."
-                    logger.error(f"Failed to transform message {message_id}. Marked message as failed.")
-                    updated = True # Still updated the status
-
-        # Rewrite the mailbox file only if changes were made
-        if updated:
-            self._write_mailbox(mailbox_copy)
+                        message['status'] = 'failed'
+            if updated:
+                self._write_mailbox(mailbox_file, mailbox)
 
     def _transform_message_to_task(self, message: Dict) -> Optional[Dict]:
         """Transforms a mailbox message into a task list entry dictionary."""
@@ -251,7 +233,7 @@ class MailboxMonitorAgent:
         logger.info(f"[{AGENT_ID}] Starting run loop (checking every {CHECK_INTERVAL_SECONDS}s)...")
         while self.running:
             try:
-                logger.debug(f"Checking {SUPERVISOR_MAILBOX_FILE}...")
+                logger.debug(f"Checking {MAILBOX_DIR}...")
                 self._process_unread_messages()
             except Exception as e:
                 logger.error(f"[{AGENT_ID}] Error in main loop: {e}", exc_info=True)
@@ -282,13 +264,13 @@ async def main():
     }
     # Write initial mailbox if it doesn't exist or is empty
     # Use locking here as well for safety in test setup
-    lock = acquire_lock(SUPERVISOR_MAILBOX_FILE)
+    lock = acquire_lock(MAILBOX_DIR / "test_message.json")
     mailbox_content = []
     try:
         if lock:
-            if SUPERVISOR_MAILBOX_FILE.exists() and SUPERVISOR_MAILBOX_FILE.stat().st_size > 0:
+            if MAILBOX_DIR.exists() and MAILBOX_DIR.stat().st_size > 0:
                  try:
-                      with open(SUPERVISOR_MAILBOX_FILE, 'r') as f:
+                      with open(MAILBOX_DIR / "test_message.json", 'r') as f:
                            mailbox_content = json.load(f)
                            if not isinstance(mailbox_content, list):
                                 mailbox_content = []
@@ -298,9 +280,9 @@ async def main():
             # Check if test message already exists (simple check)
             if not any(m.get("message_id") == test_message["message_id"] for m in mailbox_content):
                 mailbox_content.append(test_message)
-                with open(SUPERVISOR_MAILBOX_FILE, 'w') as f:
+                with open(MAILBOX_DIR / "test_message.json", 'w') as f:
                     json.dump(mailbox_content, f, indent=2)
-                logger.info(f"Added/updated test message in mailbox: {SUPERVISOR_MAILBOX_FILE}")
+                logger.info(f"Added/updated test message in mailbox: {MAILBOX_DIR / 'test_message.json'}")
             else:
                 logger.info("Test message already exists in mailbox.")
     finally:
@@ -317,7 +299,7 @@ async def main():
 
 if __name__ == "__main__":
     print(f"Running Mailbox Monitor Agent directly (for testing). Press Ctrl+C to stop.")
-    print(f"Monitoring mailbox: {SUPERVISOR_MAILBOX_FILE}")
+    print(f"Monitoring mailbox: {MAILBOX_DIR}")
     print(f"Adding tasks to: {TASK_LIST_FILE}")
     try:
         import portalocker # Check if installed
