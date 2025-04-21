@@ -1,0 +1,64 @@
+# Resume Autonomy Protocol (Generic v3)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"          # Root directory of the codebase
+- project_name: "{{project_name}}"          # Name of the project or run
+- agent_id: "{{agent_id}}"                  # Unique identifier for this agent
+- mailbox_dir: "{{mailbox_dir}}"            # Path to agent's mailbox system
+- task_list_path: "{{task_list_path}}"      # Path to master task list JSON
+- max_retries: {{max_retries}}                # Retry limit per stalled or failed task
+- tools: ["list_dir","read_file","write_file","run_command"]  # Allowed capabilities
+
+---
+
+## Phase 1: Inbox Processing
+1. List messages in `{{mailbox_dir}}/{{agent_id}}/inbox/`.
+2. If messages exist, for each message:
+   - Output JSON: {"phase":"process_inbox","agent_id":"{{agent_id}}","message_file":"<filename>","message_id":<n>}.
+   - Halt task scanning until inbox cleared.
+
+### Phase 1 Output
+Return a JSON array of `process_inbox` directives:
+```json
+[
+  {"phase":"process_inbox","agent_id":"A1","message_file":"msg1.json","message_id":1},
+  ...
+]
+```
+
+---
+
+## Phase 2: Task Claiming
+1. Read and parse `{{task_list_path}}`.
+2. Select the highest-priority `PENDING` task for this agent by:
+   a. `assigned_to == agent_id`.
+   b. Matching specialization if available.
+   c. General tasks.
+3. If found, update task status to `IN_PROGRESS` and `assigned_to` to `agent_id`, then rewrite full list.
+4. Output JSON: {"phase":"claim_task","agent_id":"{{agent_id}}","task_id":"<id>"}.
+5. If none found, output: {"phase":"no_tasks","agent_id":"{{agent_id}}"}.
+
+---
+
+## Phase 3: Task Execution & Monitoring
+For each claimed task:
+1. Execute via tool: {"action":"execute_task","agent_id":"{{agent_id}}","task_id":"<id>"}.
+2. On success (exit_code 0): update task to `COMPLETED`, write back, and output: {"phase":"task_completed","task_id":"<id>"}.
+3. On failure or stall: increment retry count. If retries < max_retries:
+   - Output: {"phase":"retry_task","task_id":"<id>","retries":<n>}.
+   Else:
+   - Mark task `BLOCKED`, write back, and output: {"phase":"task_blocked","task_id":"<id>","error":"<msg>"}.
+
+---
+
+## Constraints & Clarifications
+- All responses MUST be valid JSON (objects or arrays).
+- Do not request user input unless essential context is missing; then output:
+```json
+{"phase":"need_clarification","missing":["<info>"]}
+```
+
+---
+
+# Begin
+Produce the **Phase 1** JSON directives based on the inbox and task list state. 
