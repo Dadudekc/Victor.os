@@ -50,6 +50,13 @@ Welcome to the Dream.OS multi‑agent swarm control system! This guide will walk
 This agent scrapes your ChatGPT conversation, parses tasks, and pushes them to the C2 channel.
 
 ```bash
+# Use module mode so `dream_mode` is on PYTHONPATH
+python -m dream_mode.agents.chatgpt_web_agent
+```
+
+**Local mode:** to run without Azure, enable LocalBlobChannel:
+```bash
+export USE_LOCAL_BLOB=1   # Windows PowerShell: $Env:USE_LOCAL_BLOB='1'
 python -m dream_mode.agents.chatgpt_web_agent
 ```
 
@@ -62,12 +69,14 @@ It will open a browser window, navigate to your ChatGPT conversation, and monito
 This controller launches a fleet of Cursor instances (visible UI) and headless workers.
 
 ```bash
-python dream_mode/swarm_controller.py
+# Use module mode so `dream_mode` is on PYTHONPATH
+python -m dream_mode.swarm_controller
 ```
 
-Example with 5 agents:
+**Local mode:** to run without Azure, enable LocalBlobChannel:
 ```bash
-python dream_mode/swarm_controller.py --fleet_size 5
+export USE_LOCAL_BLOB=1   # Windows PowerShell: $Env:USE_LOCAL_BLOB='1'
+python -m dream_mode.swarm_controller
 ```
 
 It will tile visible Cursor windows, start background workers, and route tasks/results automatically.

@@ -4,10 +4,14 @@ import time
 import json
 import logging
 from pathlib import Path
-from utils import browser, html_parser, task_parser
+from dream_mode.utils import browser, html_parser, task_parser
 
-from dream_mode.azure_blob_channel import AzureBlobChannel
 import os
+try:
+    from dream_mode.azure_blob_channel import AzureBlobChannel
+except ImportError:
+    AzureBlobChannel = None
+from dream_mode.local_blob_channel import LocalBlobChannel
 from typing import Dict
 
 logger = logging.getLogger("ChatGPTWebAgent")
@@ -27,12 +31,15 @@ class ChatGPTWebAgent:
         self.last_seen = None
         self.driver = None
 
-        # Initialize C2 channel for task dispatch
-        self.channel = AzureBlobChannel(
-            container_name=os.getenv("C2_CONTAINER", "dream-os-c2"),
-            connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
-            sas_token=os.getenv("AZURE_SAS_TOKEN")
-        )
+        # Initialize C2 channel (Azure or Local) for task dispatch
+        if os.getenv("USE_LOCAL_BLOB", "0") == "1" or AzureBlobChannel is None:
+            self.channel = LocalBlobChannel()
+        else:
+            self.channel = AzureBlobChannel(
+                container_name=os.getenv("C2_CONTAINER", "dream-os-c2"),
+                connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
+                sas_token=os.getenv("AZURE_SAS_TOKEN"),
+            )
         # Track which results have been injected into ChatGPT UI
         self.injected_result_ids = set()
 
