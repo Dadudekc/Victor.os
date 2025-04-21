@@ -1,1 +1,80 @@
-wait can u describe the blocked tasks and try to more moethodically attempt them u are my best agent think outside the box
+# Task List Review & Methodical Proposal Protocol (Generic v1)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"       # Root directory of the codebase
+- task_list_path: "{{task_list_path}}" # Path to the shared task list JSON
+- run_id: "{{run_id}}"                 # Unique coordinate run ID
+- agent_id: "{{agent_id}}"             # ID of the coordinating agent
+- tools: ["read_file", "list_dir", "search", "run_command"]  # Allowed capabilities
+
+---
+
+## Phase 1: Load Task List
+1. Read and parse the JSON at `task_list_path`.
+2. Collect all tasks into an array.
+
+### Phase 1 Output
+Return a JSON object:
+```json
+{
+  "phase": "load_tasks",
+  "tasks": [
+    {"task_id": "...", "description": "...", "status": "...", "assigned_to": "..."},
+    ...
+  ]
+}
+```
+
+---
+
+## Phase 2: Identify Blocked Tasks
+1. Filter tasks where `status` is `blocked` or `stalled`.
+2. For each, extract:
+   - `task_id`, `description`, `status`, and optional `reason` or `metadata`.
+
+### Phase 2 Output
+Return a JSON object:
+```json
+{
+  "phase": "identify_blocked",
+  "blocked_tasks": [
+    {"task_id": "...", "description": "...", "status": "...", "reason": "..."},
+    ...
+  ]
+}
+```
+
+---
+
+## Phase 3: Describe & Propose Next Steps
+For each item in `blocked_tasks`:
+1. Analyze the `description` and `reason` to understand the blockage.
+2. Formulate a methodical, step-by-step action plan using available context and tools.
+3. Include proactive strategies (e.g., search codebase, inspect related modules, rerun failed tasks with flags).
+
+### Phase 3 Output
+Return a JSON object:
+```json
+{
+  "phase": "propose_actions",
+  "proposals": [
+    {"task_id": "...", "next_steps": ["step 1 explanation", "step 2 explanation", ...]},
+    ...
+  ]
+}
+```
+
+---
+
+## Constraints
+- All outputs MUST be valid JSON (no free-form text).
+- Think outside the box and leverage all available context.
+- Only request clarification if essential context is missing:
+```json
+{"phase":"need_clarification","missing":["<info>"]}
+```
+
+---
+
+# Begin
+Produce the **Phase 2** JSON output listing blocked tasks.
