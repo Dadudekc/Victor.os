@@ -3,6 +3,7 @@ import threading
 import time
 import logging
 import subprocess
+import argparse
 from typing import Any, Dict, List
 
 try:
@@ -29,7 +30,10 @@ class SwarmController:
     ):
         self.fleet_size = fleet_size
         # Initialize C2 channel (Azure or Local) for task/result exchange
-        if os.getenv("USE_LOCAL_BLOB", "0") == "1" or AzureBlobChannel is None:
+        use_local = os.getenv("USE_LOCAL_BLOB", "0") == "1" or AzureBlobChannel is None or (
+            not connection_string and not sas_token
+        )
+        if use_local:
             self.channel = LocalBlobChannel()
         else:
             self.channel = AzureBlobChannel(
@@ -152,9 +156,26 @@ class SwarmController:
 
 
 if __name__ == "__main__":
-    # Example usage: requires AZURE_STORAGE_CONNECTION_STRING or AZURE_STORAGE_ACCOUNT_URL+SAS
-    conn_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-    controller = SwarmController(fleet_size=2, container_name="dream-os-c2", connection_string=conn_str)
-    # Define initial tasks for the swarm
+    # CLI: allow specifying Azure connection or SAS token
+    parser = argparse.ArgumentParser(description="Run SwarmController with Azure C2 channel")
+    parser.add_argument("--connection-string", dest="connection_string", help="Azure storage connection string")
+    parser.add_argument("--sas-token", dest="sas_token", help="Azure SAS token")
+    parser.add_argument("--container-name", dest="container_name", default="dream-os-c2", help="Azure Blob container name")
+    parser.add_argument("--fleet-size", dest="fleet_size", type=int, default=2, help="Number of Cursor agents in the swarm")
+    args = parser.parse_args()
+
+    # Resolve credentials: CLI flags or environment
+    conn_str = args.connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+    sas_tok = args.sas_token or os.getenv("AZURE_STORAGE_SAS_TOKEN")
+    if not conn_str and not sas_tok:
+        parser.error("Either --connection-string or --sas-token must be provided or set in environment variables.")
+
+    controller = SwarmController(
+        fleet_size=args.fleet_size,
+        container_name=args.container_name,
+        connection_string=conn_str,
+        sas_token=sas_tok
+    )
+    # Default demo task if none provided
     initial_tasks = [{"id": "demo-1", "payload": "hello swarm"}]
     controller.start(initial_tasks=initial_tasks) 
