@@ -11,6 +11,7 @@ import sys
 # import fcntl # fcntl is Unix-specific
 import portalocker # Use portalocker for cross-platform file locking
 from typing import List, Dict, Optional # Add typing
+import argparse
 
 # --- Path Setup ---
 # Assumes this file is in _agent_coordination/monitors/
@@ -46,24 +47,38 @@ CHECK_INTERVAL_SECONDS = 5
 MAILBOX_DIR.mkdir(parents=True, exist_ok=True)
 TASK_LIST_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+# Ensure TASK_LIST_FILE exists and is a JSON list on import
+try:
+    if not TASK_LIST_FILE.exists():
+        TASK_LIST_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(TASK_LIST_FILE, 'w', encoding='utf-8') as f:
+            json.dump([], f)
+except Exception as e:
+    logger.error(f"Error initializing task list file {TASK_LIST_FILE}: {e}", exc_info=True)
+
 # --- Cross-Platform File Locking Utilities (using portalocker) ---
-def acquire_lock(file_path):
-    """Acquires an exclusive lock on the file using portalocker."""
+def acquire_lock(file_path, lock_flags=portalocker.LOCK_EX | portalocker.LOCK_NB):
+    """Acquires a lock on the file using portalocker with specified flags."""
     try:
-        # Open in append mode (doesn't truncate), create if not exists
-        lock_file = open(file_path, 'a') 
-        portalocker.lock(lock_file, portalocker.LOCK_EX | portalocker.LOCK_NB)
-        logger.debug(f"Acquired lock for {file_path}")
-        return lock_file # Return the file handle
+        # Open file in read/write mode, create if not exists
+        mode = 'r+' if os.path.exists(file_path) else 'w+'
+        lock_file = open(file_path, mode)
+        portalocker.lock(lock_file, lock_flags)
+        logger.debug(f"Acquired lock for {file_path} with flags {lock_flags}")
+        return lock_file
     except portalocker.exceptions.LockException:
         logger.warning(f"Could not acquire lock for {file_path}, already locked.")
-        if 'lock_file' in locals():
-             lock_file.close() # Close if opened but lock failed
+        try:
+            lock_file.close()
+        except:
+            pass
         return None
     except Exception as e:
         logger.error(f"Error acquiring lock for {file_path}: {e}", exc_info=True)
-        if 'lock_file' in locals():
+        try:
             lock_file.close()
+        except:
+            pass
         return None
 
 def release_lock(lock_file):
@@ -91,7 +106,8 @@ class MailboxMonitorAgent:
         if not mailbox_file.exists():
             return []
         
-        lock_file = acquire_lock(mailbox_file)
+        # Use shared lock for reading to allow concurrent readers
+        lock_file = acquire_lock(mailbox_file, portalocker.LOCK_SH | portalocker.LOCK_NB)
         if not lock_file:
              return [] # Could not get lock, try again later
 
@@ -99,7 +115,11 @@ class MailboxMonitorAgent:
             # Lock acquired, now read the actual content
             # Re-open in read mode (or seek to beginning if needed)
             with open(mailbox_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+                try:
+                    content = f.read()
+                except PermissionError:
+                    logger.debug(f"Permission denied reading mailbox file {mailbox_file}, skipping.")
+                    return []
                 if not content.strip():
                     return []
                 mailbox = json.loads(content)
@@ -298,11 +318,22 @@ async def main():
         agent.stop() # Ensure stop is called
 
 if __name__ == "__main__":
-    print(f"Running Mailbox Monitor Agent directly (for testing). Press Ctrl+C to stop.")
+    parser = argparse.ArgumentParser(description="Mailbox Monitor Agent CLI")
+    parser.add_argument('--once', action='store_true', help='Process all mailboxes once and exit')
+    args = parser.parse_args()
+    print(f"Mailbox Monitor Agent starting. Mailbox dir: {MAILBOX_DIR}")
+    if args.once:
+        # Single-run mode for testing
+        agent = MailboxMonitorAgent()
+        agent._process_unread_messages()
+        print("Processed mailboxes once and exiting.")
+        sys.exit(0)
+    # Continuous run mode
+    print(f"Running continuously (interval: {CHECK_INTERVAL_SECONDS}s). Press Ctrl+C to stop.")
     print(f"Monitoring mailbox: {MAILBOX_DIR}")
     print(f"Adding tasks to: {TASK_LIST_FILE}")
     try:
-        import portalocker # Check if installed
+        import portalocker  # Ensure locking available
         asyncio.run(main())
     except ImportError:
         print("\nPlease install portalocker: pip install portalocker")
