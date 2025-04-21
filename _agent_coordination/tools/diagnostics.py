@@ -7,6 +7,7 @@ import argparse
 import sys
 import json
 import logging
+import os # Import os for path checks if needed, though pathlib is preferred
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -25,13 +26,21 @@ def check_directory_exists(dir_path: Path) -> bool:
     logger.info(f"Directory check PASSED: {dir_path}")
     return True
 
+def check_file_exists(file_path: Path) -> bool:
+    """Checks if a file exists and is a file."""
+    if not file_path.exists():
+        logger.warning(f"File check FAILED: Path not found: {file_path}")
+        return False
+    if not file_path.is_file():
+        logger.warning(f"File check FAILED: Path is not a file: {file_path}")
+        return False
+    logger.info(f"File check PASSED: {file_path}")
+    return True
+
 def check_json_file(file_path: Path) -> bool:
     """Checks if a file exists and contains valid JSON."""
-    if not file_path.exists():
-        logger.info(f"JSON check SKIPPED: File not found: {file_path}")
-        return True # Not a failure if file is optional
-    if not file_path.is_file():
-        logger.warning(f"JSON check FAILED: Path is not a file: {file_path}")
+    if not check_file_exists(file_path):
+        # check_file_exists already logged the warning
         return False
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -50,83 +59,116 @@ def check_json_file(file_path: Path) -> bool:
 def run_diagnostics(level: str, auto: bool):
     """Runs diagnostic checks based on the specified level."""
     logger.info(f"Running diagnostics (Level: {level}, Auto: {auto})")
-    
-    # Assume CWD is project root
+
+    # Assume CWD is project root (as per onboarding)
     project_root = Path.cwd()
-    
+
     results = {}
     all_passed = True
 
     # Basic Checks (always run)
     logger.info("--- Running Basic Checks ---")
-    results['mailbox_dir'] = check_directory_exists(project_root / "mailboxes")
-    # Use new path for agent coordination tools/protocols
     agent_coord_path = project_root / "_agent_coordination"
     results['agent_coord_dir'] = check_directory_exists(agent_coord_path)
     if results['agent_coord_dir']:
         results['agent_coord_tools_dir'] = check_directory_exists(agent_coord_path / "tools")
-        results['agent_coord_protocols_dir'] = check_directory_exists(agent_coord_path / "protocols")
+        results['agent_coord_onboarding_dir'] = check_directory_exists(agent_coord_path / "onboarding")
+        results['agent_coord_shared_mailboxes_dir'] = check_directory_exists(agent_coord_path / "shared_mailboxes")
     else:
+         # If base coord dir fails, subdirs implicitly fail
          results['agent_coord_tools_dir'] = False
-         results['agent_coord_protocols_dir'] = False
-         
-    # results['tools_dir'] = check_directory_exists(project_root / "tools") # Check old tools dir too? Maybe remove later.
+         results['agent_coord_onboarding_dir'] = False
+         results['agent_coord_shared_mailboxes_dir'] = False
 
     # Full Checks (optional)
     if level == 'full':
         logger.info("--- Running Full Checks ---")
-        # Example: Check task queue format (assuming it's optional)
-        results['task_queue_json'] = check_json_file(project_root / "dreamos" / "task_queue.json")
-        
-        # Example: Check if key protocol files exist within _agent_coordination/protocols
-        protocol_dir = project_root / "_agent_coordination" / "protocols"
-        results['protocols_dir_exists'] = check_directory_exists(protocol_dir) # Redundant if checked above, keep for clarity
-        if results['protocols_dir_exists']:
-             essential_protocols = [
-                 "agent_onboarding_rules.md", 
-                 "general_principles.md", 
-                 "messaging_format.md"
-             ]
-             missing_protocols = []
-             for proto_file in essential_protocols:
-                  path = protocol_dir / proto_file
-                  if not path.is_file():
-                       missing_protocols.append(proto_file)
-                       results[f'protocol_{proto_file}'] = False
-                  else:
-                       results[f'protocol_{proto_file}'] = True
-                       
-             if missing_protocols:
-                   logger.warning(f"Full Check FAILED: Missing essential protocol files: {', '.join(missing_protocols)}")
-             else: 
-                   logger.info("Full Check PASSED: Found essential protocol files.")
-        else:
-             logger.warning("Full Check SKIPPED: Protocol directory not found.")
 
-    # Determine overall outcome
-    # Basic level: only checks basic dir existence
-    # Full level: checks everything accumulated in results
-    critical_checks_passed = results.get('mailbox_dir', False) and results.get('agent_coord_dir', False) and results.get('agent_coord_tools_dir', False) and results.get('agent_coord_protocols_dir', False)
-    
-    if level == 'full':
-         for check_name, passed in results.items():
-              if not passed:
-                  all_passed = False
-                  break # No need to check further if one failed
-         final_outcome_passed = all_passed
-    else: # Basic level
-         final_outcome_passed = critical_checks_passed
-            
+        # Check essential onboarding files
+        onboarding_dir = project_root / "_agent_coordination" / "onboarding"
+        if results['agent_coord_onboarding_dir']:
+             essential_onboarding_files = [
+                 "agent_onboarding_prompt.md",
+                 "rulebook.md",
+                 "TOOLS_GUIDE.md"
+             ]
+             missing_onboarding = []
+             for ob_file in essential_onboarding_files:
+                  path = onboarding_dir / ob_file
+                  check_key = f'onboarding_{ob_file}'
+                  results[check_key] = check_file_exists(path)
+                  if not results[check_key]:
+                       missing_onboarding.append(ob_file)
+
+             if missing_onboarding:
+                   logger.warning(f"Full Check FAILED: Missing essential onboarding files: {', '.join(missing_onboarding)}")
+             else:
+                   logger.info("Full Check PASSED: Found essential onboarding files.")
+        else:
+             logger.warning("Full Check SKIPPED: Onboarding directory check failed.")
+             results['onboarding_rulebook.md'] = False # Mark as failed if dir missing
+             results['onboarding_TOOLS_GUIDE.md'] = False
+             results['onboarding_agent_onboarding_prompt.md'] = False
+
+        # Check shared mailbox files
+        mailbox_dir = project_root / "_agent_coordination" / "shared_mailboxes"
+        if results['agent_coord_shared_mailboxes_dir']:
+            missing_mailboxes = []
+            for i in range(1, 9): # Check mailbox_1.json to mailbox_8.json
+                mailbox_file = f"mailbox_{i}.json"
+                path = mailbox_dir / mailbox_file
+                check_key = f"shared_{mailbox_file}"
+                # Check existence AND json validity
+                results[check_key] = check_json_file(path)
+                if not results[check_key]:
+                    missing_mailboxes.append(mailbox_file)
+
+            if missing_mailboxes:
+                logger.warning(f"Full Check FAILED: Missing or invalid shared mailbox files: {', '.join(missing_mailboxes)}")
+            else:
+                logger.info("Full Check PASSED: Found and validated essential shared mailbox files.")
+        else:
+            logger.warning("Full Check SKIPPED: Shared mailboxes directory check failed.")
+            for i in range(1, 9):
+                results[f'shared_mailbox_{i}.json'] = False # Mark as failed if dir missing
+
+        # Optionally add checks for other important files/configs if needed
+        # e.g., results['project_board_json'] = check_json_file(mailbox_dir / "project_board.json")
+
+    # Determine overall outcome based on required checks for the level
+    critical_checks_passed = results.get('agent_coord_dir', False)
+
+    # Iterate through all results to determine final outcome for the *requested level*
+    final_outcome_passed = True
+    checks_to_consider = results.keys() if level == 'full' else ['agent_coord_dir', 'agent_coord_tools_dir', 'agent_coord_onboarding_dir', 'agent_coord_shared_mailboxes_dir']
+
+    for check_name in checks_to_consider:
+        # Use .get() to handle cases where a check might not have run (e.g., subdir check skipped)
+        if not results.get(check_name, False):
+            final_outcome_passed = False
+            # No need to break, log all failures below
+
     logger.info("--- Diagnostics Summary ---")
-    for check, result in sorted(results.items()): # Sort for consistent output
-         logger.info(f"  {check}: {'PASSED' if result else 'FAILED/SKIPPED'}")
-         
+    # Sort items for consistent output
+    for check, result in sorted(results.items()):
+         # Show SKIPPED explicitly if parent dir failed
+         status_str = 'PASSED' if result else 'FAILED'
+         # Example: If agent_coord_dir failed, mark subdir checks visually as skipped/failed due to parent
+         if not results.get('agent_coord_dir') and check.startswith('agent_coord_'):
+             if check != 'agent_coord_dir': status_str = 'FAILED (Parent Missing)'
+         elif not results.get('agent_coord_onboarding_dir') and check.startswith('onboarding_'):
+             status_str = 'FAILED (Parent Missing)'
+         elif not results.get('agent_coord_shared_mailboxes_dir') and check.startswith('shared_'):
+              status_str = 'FAILED (Parent Missing)'
+
+         logger.info(f"  {check}: {status_str}")
+
     if final_outcome_passed:
-        logger.info(f"Result: Diagnostics (Level: {level}) completed without critical warnings.")
-        sys.exit(0) # Exit code 0 indicates required checks passed for the level
+        logger.info(f"Result: Diagnostics (Level: {level}) completed successfully.")
+        sys.exit(0)
     else:
         logger.warning(f"Result: Diagnostics (Level: {level}) completed with warnings/failures.")
-        sys.exit(1) # Exit code 1 indicates issues found
+        sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

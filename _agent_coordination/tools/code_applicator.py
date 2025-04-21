@@ -8,6 +8,7 @@ import sys
 import shutil
 import logging
 import uuid # Needed for atomic writes
+import os # Import os for os.replace
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -95,17 +96,18 @@ def apply_code(target_file_str, code_input, code_file, code_stdin, mode, create_
     try:
         logger.info(f"Applying code to {target_file} (Mode: {mode})")
         if mode == 'overwrite':
-            # Write atomically if possible via temp file + rename
+            # Write atomically using temp file + os.replace()
             temp_file_path = target_file.with_suffix(f'.{uuid.uuid4()}.tmp')
             try:
                  with open(temp_file_path, 'w', encoding='utf-8') as f:
                       f.write(code_content)
-                 temp_file_path.rename(target_file)
+                 # Use os.replace for atomic overwrite
+                 os.replace(temp_file_path, target_file)
                  logger.info(f"Success: Overwrote {target_file}")
             except Exception as write_err:
                  # Clean up temp file on error
                  if temp_file_path.exists():
-                      try: temp_file_path.unlink() 
+                      try: temp_file_path.unlink()
                       except: pass
                  raise write_err # Re-raise the exception
 
@@ -140,12 +142,13 @@ def apply_code(target_file_str, code_input, code_file, code_stdin, mode, create_
                 original_content[end_index:]
             )
             
-            # Write atomically
+            # Write atomically using temp file + os.replace()
             temp_file_path = target_file.with_suffix(f'.{uuid.uuid4()}.tmp')
             try:
                  with open(temp_file_path, 'w', encoding='utf-8') as f:
                       f.write(new_content)
-                 temp_file_path.rename(target_file)
+                 # Use os.replace for atomic overwrite
+                 os.replace(temp_file_path, target_file)
                  logger.info(f"Success: Replaced content between markers in {target_file}")
             except Exception as write_err:
                  if temp_file_path.exists():

@@ -8,12 +8,14 @@ import random # Added for delays
 from jinja2 import Template
 from typing import List, Optional
 import logging
+import asyncio.subprocess # <--- Add subprocess import
 
 # --- Selenium Imports --- 
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys # <--- Import Keys
 
 # -- Allow importing from the directory containing the real UnifiedDriverManager --
 real_manager_dir = Path("D:/Dream.os/social/digital_dreamscape/dreamscape_generator/src")
@@ -25,11 +27,11 @@ else:
     print(f"CRITICAL WARNING: Directory for UnifiedDriverManager ({real_manager_dir}) not found. Imports will fail.", file=sys.stderr)
 # -- End Import Path Modification --
 
-# Attempt to import the real UnifiedDriverManager
+# Attempt to import the real UnifiedDriverManager and Locators
 try:
-    from unified_chrome_driver import UnifiedDriverManager, setup_logger # Import setup_logger too if needed
-    print("Successfully imported UnifiedDriverManager from unified_chrome_driver.", file=sys.stderr)
-    # Setup logger using the manager's setup function
+    from unified_chrome_driver import UnifiedDriverManager, setup_logger 
+    from chatgpt_locators import ChatGPTLocators # <--- Import Locators
+    print("Successfully imported UnifiedDriverManager and ChatGPTLocators.", file=sys.stderr)
     logger = setup_logger(name="QuorumWebSim")
 except ImportError as e:
     # Fallback logging if setup_logger fails or manager doesn't import
@@ -58,6 +60,7 @@ class WebAgent:
     # Evaluate expects a ready driver (logged in)
     async def evaluate(self, proposal: str, driver) -> str: 
         prompt_text = TEMPLATES[self.name].render(proposal=proposal)
+        prompt_text = prompt_text.replace('\n', ' ')
         try:
             logger.info(f"Agent {self.name}: Navigating to {self.url}")
             driver.get(self.url)
@@ -68,24 +71,17 @@ class WebAgent:
 
             logger.info(f"Agent {self.name}: Waiting for prompt element: {self.prompt_sel}")
             prompt_element = wait.until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, self.prompt_sel)) # Wait for clickable
+                EC.element_to_be_clickable(self.prompt_sel)
             )
             logger.info(f"Agent {self.name}: Filling prompt.")
+            prompt_element.click()
             prompt_element.clear()
             prompt_element.send_keys(prompt_text)
-            await asyncio.sleep(0.5)
+            prompt_element.send_keys(Keys.ENTER)
 
-            logger.info(f"Agent {self.name}: Clicking submit selector: {self.submit_sel}")
-            submit_button = wait.until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, self.submit_sel))
-            )
-            driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
-            await asyncio.sleep(0.5)
-            submit_button.click()
-
-            logger.info(f"Agent {self.name}: Waiting for response element: {self.response_sel}")
+            logger.info(f"Agent {self.name}: Prompt submitted via Enter key. Waiting for response element: {self.response_sel}")
             response_element = wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, self.response_sel))
+                EC.presence_of_element_located(self.response_sel)
             )
             
             logger.info(f"Agent {self.name}: Waiting for response text to appear/stabilize...")
@@ -98,7 +94,7 @@ class WebAgent:
             content = "" # Initialize content
             while asyncio.get_event_loop().time() - start_wait < max_wait_time:
                 try:
-                    current_response_element = driver.find_element(By.CSS_SELECTOR, self.response_sel)
+                    current_response_element = driver.find_element(*self.response_sel)
                     current_text = current_response_element.text.strip()
                     content = current_text 
                     if current_text and current_text == last_text:
@@ -129,28 +125,71 @@ class WebAgent:
             logger.error(f"Agent {self.name}: Error during evaluation: {e}", exc_info=True)
             return f"{self.name}: ERROR - {type(e).__name__}: {e}"
 
+# -- Ollama CLI Agent --
+class OllamaAgent:
+    def __init__(self, name: str, model: str):
+        self.name = name
+        self.model = model
+        # Simple template lookup for Ollama, assuming similar persona needs
+        # Could be made more specific if needed
+        self.template = TEMPLATES.get(name.split()[0], Template("{{ proposal }}")) # Fallback to just proposal
+
+    async def evaluate(self, proposal: str) -> str:
+        prompt_text = self.template.render(proposal=proposal)
+        prompt_text = prompt_text.replace('\n', ' ')
+        command = ["ollama", "run", self.model, prompt_text]
+        logger.info(f"Agent {self.name}: Running Ollama command: {' '.join(command[:3])} 'prompt...' ")
+        
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode == 0:
+                response = stdout.decode('utf-8').strip()
+                logger.info(f"Agent {self.name}: Evaluation complete.")
+                return f"{self.name}: {response}"
+            else:
+                error_message = stderr.decode('utf-8').strip()
+                logger.error(f"Agent {self.name}: Ollama CLI error (Code: {process.returncode}): {error_message}")
+                return f"{self.name}: ERROR - Ollama CLI failed: {error_message}"
+        except FileNotFoundError:
+            logger.error(f"Agent {self.name}: Ollama command not found. Is Ollama installed and in PATH?")
+            return f"{self.name}: ERROR - Ollama command not found."
+        except Exception as e:
+            logger.error(f"Agent {self.name}: Error running Ollama command: {e}", exc_info=True)
+            return f"{self.name}: ERROR - {type(e).__name__}: {e}"
+
 # -- Council manager --
 class CouncilManager:
-    # Removed manager from init
-    def __init__(self, agents: List[WebAgent]):
+    def __init__(self, agents: List[WebAgent | OllamaAgent]): # Allow mixed agent types
         self.agents = agents
-        # self.manager = manager # Removed
 
-    # Propose now takes driver
-    async def propose(self, proposal: str, driver) -> List[str]:
-        # driver = self.manager.get_driver() # Removed
-        if not driver:
-             logger.error("WebDriver instance not provided to propose method.")
-             return [f"{agent.name}: ERROR - WebDriver not available" for agent in self.agents]
+    async def propose(self, proposal: str, driver) -> List[str]: # Driver still needed for WebAgents
+        if not driver and any(isinstance(agent, WebAgent) for agent in self.agents):
+             logger.warning("WebDriver instance not provided, but WebAgents are present. WebAgents will fail.")
+             # Don't return immediately, let Ollama agents run
         
         responses = []
-        # Run evaluations sequentially with Selenium driver
         for agent in self.agents:
              logger.info(f"--- Starting evaluation for agent: {agent.name} ---")
-             response = await agent.evaluate(proposal, driver)
+             if isinstance(agent, WebAgent):
+                 if driver:
+                     response = await agent.evaluate(proposal, driver)
+                 else:
+                     response = f"{agent.name}: ERROR - WebDriver not available"
+             elif isinstance(agent, OllamaAgent):
+                 response = await agent.evaluate(proposal)
+             else:
+                 logger.warning(f"Unknown agent type: {type(agent)}. Skipping.")
+                 response = f"{agent.name}: ERROR - Unknown agent type"
+             
              responses.append(response)
              logger.info(f"--- Finished evaluation for agent: {agent.name} ---")
-             await asyncio.sleep(random.uniform(1, 3)) # Delay between agents
+             await asyncio.sleep(random.uniform(1, 3))
              
         return responses
 
@@ -174,6 +213,7 @@ async def main(run_headless: bool):
             if not driver:
                  raise Exception("Failed to initialize WebDriver from UnifiedDriverManager")
 
+            # ---> Restore interactive login check <--- 
             # Handle login/cookies (only really makes sense for non-headless)
             if not run_headless:
                  logger.info("Attempting to load cookies...")
@@ -202,18 +242,13 @@ async def main(run_headless: bool):
                 WebAgent(
                     name="ChatGPT",
                     url="https://chat.openai.com/",
-                    prompt_sel='textarea[id="prompt-textarea"]', 
-                    submit_sel='button[data-testid="send-button"]', 
-                    response_sel='div[class*="markdown prose"]'
-                    # Removed manager=manager 
+                    prompt_sel=ChatGPTLocators.TEXT_INPUT_AREA, 
+                    submit_sel=ChatGPTLocators.SEND_BUTTON, 
+                    response_sel=ChatGPTLocators.ASSISTANT_MESSAGE_SELECTOR 
                 ),
-                WebAgent(
-                    name="DeepSeq",
-                    url="https://chat.deepseek.com/",
-                    prompt_sel="textarea[placeholder*='Message DeepSeek']", 
-                    submit_sel="button[data-testid*='send-button']",
-                    response_sel="div[class*='markdown']" 
-                    # Removed manager=manager 
+                OllamaAgent(
+                    name="Ollama Mistral", # Update name to reflect model
+                    model="mistral:latest" # Use an available model from ollama list
                 ),
             ]
             
@@ -230,8 +265,8 @@ async def main(run_headless: bool):
          responses = [f"Error during main execution: {e}"]
     # Manager cleanup is handled by the `with` statement (__exit__)
 
-    logger.info(f"\n📜 Proposal:\n  {proposal}\n")
-    logger.info("🤝 Council Web‑Scrape Responses:")
+    logger.info(f"\nProposal:\n  {proposal}\n")
+    logger.info("Council Web-Scrape Responses:")
     for resp in responses:
         logger.info(f" - {resp}")
 

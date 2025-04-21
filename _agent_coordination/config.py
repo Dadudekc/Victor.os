@@ -3,22 +3,22 @@
 from pathlib import Path
 
 # --- Core Paths ---
-WORKSPACE_ROOT = Path(__file__).parent.resolve()
+WORKSPACE_ROOT = Path(__file__).parent.parent.resolve()
 
 # --- Key Directories --- #
-PROPOSALS_DIR = WORKSPACE_ROOT / "proposals"
+PROPOSALS_DIR = Path(__file__).parent / "proposals"
 LOG_DIR = WORKSPACE_ROOT / "logs"
-TOOLS_DIR = WORKSPACE_ROOT / "tools"
+TOOLS_DIR = Path(__file__).parent / "tools"
 
 # --- Key File Paths --- #
-RULEBOOK_PATH = WORKSPACE_ROOT / "rulebook.md"
+RULEBOOK_PATH = Path(__file__).parent / "rulebook.md"
 PROPOSALS_FILE_PATH = PROPOSALS_DIR / "rulebook_update_proposals.md"
 PROJECT_BOARD_PATH = WORKSPACE_ROOT / "project_board.md"
 
 # --- Logging Files --- #
-REFLECTION_LOG_FILE = LOG_DIR / "reflection_log.md"
-SECURITY_SCAN_LOG_FILE = LOG_DIR / "security_scan_log.md"
-AGENT_ACTIVITY_LOG_FILE = LOG_DIR / "agent_activity.log"
+REFLECTION_LOG_FILE = LOG_DIR / "coordination_reflection_log.md"
+SECURITY_SCAN_LOG_FILE = LOG_DIR / "coordination_security_scan_log.md"
+AGENT_ACTIVITY_LOG_FILE = LOG_DIR / "coordination_agent_activity.log"
 
 # --- Mailbox Structure --- #
 INBOX_SUBDIR = "inbox"

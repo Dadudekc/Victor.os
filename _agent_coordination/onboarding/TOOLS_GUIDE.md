@@ -1,11 +1,11 @@
 # Dream.OS Tools Guide
 
-This document provides guidance on the available tools within the `tools/` directory, intended for use by autonomous agents or developers.
+This document provides guidance on the available tools within the `_agent_coordination/tools/` directory, intended for use by autonomous agents or developers.
 
 ## Usage Principles (For Agents)
 
 - **Goal Alignment:** Select the tool that directly achieves your current task objective.
-- **Input Precision:** Provide all required arguments accurately. Paths should typically be relative to the project root (`.`) unless the tool specifies otherwise.
+- **Input Precision:** Provide all required arguments accurately. Paths should typically be relative to the **determined project root** (as per onboarding) unless the tool specifies otherwise. Tools assuming Current Working Directory (CWD) expect it to be the project root.
 - **Output Capture:** If a tool provides output data (e.g., JSON to stdout), ensure your execution mechanism captures it for parsing and use.
 - **Idempotency Awareness:** Be aware that some tools are safe to run multiple times (e.g., scanners), while others might have side effects if run repeatedly with the same inputs (e.g., `code_applicator` in append mode).
 - **Logging Interpretation:** Pay attention to status messages logged to stderr for progress and potential errors.
@@ -13,41 +13,22 @@ This document provides guidance on the available tools within the `tools/` direc
 
 ---
 
-## Agent Communication Tools
-
-### 1. `tools/send_mailbox_message.py`
-
-*   **Agent Goal:** To send a message directly to another agent's mailbox for processing.
-*   **Purpose:** Creates a message file (`msg_<uuid>.json`) in the target agent's inbox directory (`<mailbox_root>/<recipient>/inbox/`).
-*   **Arguments:**
-    *   `--recipient <agent_name>`: (Required) The ID of the agent who should receive this message.
-    *   `--payload-json "<json_string>"`: (Required) **You must construct this.** A valid JSON string representing the message payload (conforming to `messaging_format.md`). Example for shell: `--payload-json '{"command": "status_request", "details": "Provide current task ID."}'` (Note: Use single quotes around the whole JSON for shell compatibility, and standard double quotes inside the JSON).
-    *   `--sender <agent_name>`: (Optional) Your agent ID. Defaults to `UnknownSender`.
-    *   `--mailbox-root <path>`: (Optional) Specifies the root `mailboxes/` directory. If omitted, assumes `mailboxes/` is in the project root (`./mailboxes/`).
-*   **Output (stdout/stderr):** Logs success/failure status messages.
-*   **File Output:** Creates the `msg_<uuid>.json` file in the target inbox.
-*   **Exit Codes:** `0` (Success: Message file created), `1` (Failure: e.g., invalid JSON, invalid recipient, write error).
-*   **Agent Usage:** Use for direct agent-to-agent commands or notifications outside the main task list flow. Ensure the `--payload-json` string is valid JSON before calling.
-*   **Example Call:** `python tools/send_mailbox_message.py --recipient SupervisorAgent --sender PlanningAgent --payload-json '{"event": "plan_generated", "task_id": "plan_xyz"}'`
-
----
-
 ## Code Generation & Manipulation Tools
 
-### 2. `tools/code_applicator.py`
+### 1. `code_applicator.py`
 
 *   **Agent Goal:** To write or modify code in a specific file.
-*   **Purpose:** Applies provided code content to a target file using various modes.
+*   **Purpose:** Applies provided code content to a target file using various modes. Handles paths relative to the project root.
 *   **Arguments:**
     *   `--target-file <path>`: (Required) The path (relative to project root) of the file to create or modify.
     *   Input Source (Exactly ONE Required):
         *   `--code-input <string>`: Provide the code directly as a string argument.
-        *   `--code-file <path>`: Provide the path to a temporary file containing the code.
+        *   `--code-file <path>`: Provide the path (relative to project root) to a file containing the code.
         *   `--code-stdin`: Provide the code via standard input (e.g., pipe from another process).
-    *   `--mode {overwrite|replace_markers|append}`: (Optional) 
-        *   `overwrite` (Default): Replaces the entire file content.
+    *   `--mode {overwrite|replace_markers|append}`: (Optional)
+        *   `overwrite` (Default): Replaces the entire file content (atomic write).
         *   `append`: Adds the code to the end of the file.
-        *   `replace_markers`: Replaces content between specific start/end marker lines (ensure markers exist in the target file).
+        *   `replace_markers`: Replaces content between specific start/end marker lines (atomic write; markers must exist). Default markers: `# CODE_APPLICATOR_START`, `# CODE_APPLICATOR_END`.
     *   `--create-dirs`: (Optional Flag) If the target file's directory doesn't exist, create it.
     *   `--backup`: (Optional Flag) Create a `.bak` copy of the original file before changes.
     *   `--start-marker <string>`: (Optional) Custom start marker for `replace_markers` mode.
@@ -58,28 +39,25 @@ This document provides guidance on the available tools within the `tools/` direc
 *   **Exit Codes:** `0` (Success: Code applied), `1` (Failure: e.g., invalid arguments, file errors, marker errors).
 *   **Agent Usage:** Primary tool for implementing code changes. Select the appropriate input source and mode based on the task.
 *   **Example Calls:**
-    *   `python tools/code_applicator.py --target-file src/new_module.py --code-file /tmp/generated_code.py --create-dirs --mode overwrite`
+    *   `python tools/code_applicator.py --target-file src/new_module.py --code-file tmp/generated_code.py --create-dirs --mode overwrite`
     *   `python tools/code_applicator.py --target-file src/existing_module.py --code-input "\nprint('Done')\n" --mode append`
     *   `echo "<replacement_code>" | python tools/code_applicator.py --target-file config.py --code-stdin --mode replace_markers --start-marker "# START_CONFIG" --end-marker "# END_CONFIG"`
 
 ---
 
-## Project Analysis & Scanning Tools
+## Project Analysis & Planning Tools
 
-### 3. `tools/project_scanner.py`
+### 2. `project_scanner.py`
 
 *   **Agent Goal:** To understand the structure of the project, find existing code, or get an overview of file contents.
-*   **Purpose:** Scans a project directory, analyzes files (Python AST, basic info for others), identifies functions/classes/routes, and uses caching. Returns a summary of the project structure.
-*   **Arguments:**
-    *   `project_root`: (Required Positional) Path to the root directory to scan (usually `.`).
-    *   `--ignore [<path_prefix> ...]`: (Optional) List of path prefixes to exclude (relative to `project_root`).
-    *   `--cache-file <filename>`: (Optional) Name of the cache file (relative to `project_root`). Default: `project_scanner_cache.json`.
-    *   `--workers <N>`: (Optional) Number of worker threads.
-    *   `--output-json`: (Optional Flag) **Use this flag to get the analysis results.** Prints the analysis dictionary as JSON to **stdout**.
-    *   `--save-analysis-file <filename>`: (Optional) Also save the analysis to a file in `project_root`. Default: `project_analysis.json`. Use `""` to disable file saving.
-    *   `-v`, `--verbose`: (Optional Flag) Enable detailed logging to stderr.
-*   **Output (stdout/stderr):** Logs progress/status to stderr. **If `--output-json` is used, the resulting analysis dictionary is printed to stdout.**
-*   **Output Format (JSON):** A dictionary where keys are relative file paths and values are dictionaries containing analysis details (e.g., `language`, `functions`, `classes`, `complexity`, `size_bytes`).
+*   **Purpose:** Scans a project directory (from project root), analyzes files (Python AST, basic info for others), identifies functions/classes/routes, and uses caching based on file hashes. Returns a summary of the project structure. Uses multi-threading.
+*   **Arguments (passed to `perform_scan` function, likely used internally):**
+    *   `project_root`: (Required) Path to the root directory to scan (usually `.`).
+    *   `additional_ignore_patterns`: (Optional) List of path prefixes/globs to exclude.
+    *   `cache_file_name`: (Optional) Name of the cache file (relative to `project_root`). Default: `project_scanner_cache.json`.
+    *   `num_workers`: (Optional) Number of worker threads.
+*   **Output (stdout/stderr):** Logs progress/status to stderr. **No primary output to stdout unless explicitly designed for interaction (check source if needed).** The main result is the returned analysis dictionary and the updated cache file.
+*   **Output Format (Returned Dict / Saved File):** A dictionary where keys are relative file paths and values are dictionaries containing analysis details (e.g., `language`, `functions`, `classes`, `complexity`, `size_bytes`).
     ```json
     {
       "src/main.py": {
@@ -90,21 +68,62 @@ This document provides guidance on the available tools within the `tools/` direc
         "complexity": 5,
         "size_bytes": 200
       },
-      "README.md": {
-        "language": ".md",
-        "functions": [], "classes": {}, "routes": [],
-        "complexity": 50, "is_text": true, "size_bytes": 3000
-      }
-      ...
+      "README.md": {"language": ".md", ... }
+      // ...
     }
     ```
-*   **File Output:** Updates the cache file. Optionally saves the full analysis JSON file.
-*   **Exit Codes:** `0` (Success: Scan completed), `1` (Failure: e.g., invalid arguments, critical error).
-*   **Agent Usage:** Crucial for situational awareness. Run with `--output-json`, capture stdout, and parse the JSON. Use this data to check if functions/classes already exist before generating code, or to get a list of files for further processing.
-*   **Example Call (Agent Capture):** `python tools/project_scanner.py . --output-json`
-*   **Example Call (Save to File):** `python tools/project_scanner.py . --ignore venv/ --save-analysis-file project_map.json`
+*   **File Output:** Updates the cache file (`project_scanner_cache.json` by default).
+*   **Agent Usage:** Primarily intended to be used as an imported Python module by agents needing project structure awareness. An agent would call `perform_scan()` to get the analysis dictionary. Crucial for situational awareness, checking for existing code, etc.
+*   **Example Usage (Python):**
+    ```python
+    from tools.project_scanner import perform_scan
+    analysis = perform_scan(project_root='.')
+    if 'src/utils.py' in analysis:
+        print("Found utils.py")
+    ```
 
-### 4. `tools/proposal_security_scanner.py`
+### 3. `context_planner.py`
+
+*   **Agent Goal:** To determine what information (files, code definitions, usages) is needed to complete a complex task described in natural language.
+*   **Purpose:** Analyzes a task description (e.g., "Refactor `old_func` in `main.py` to use `NewClass` from `utils.py`") and generates a structured plan of actions using other tools (like `grep_search`, `read_file`, `codebase_search`) to gather the required context before attempting the main task.
+*   **Arguments (as Python function `generate_context_plan_v3`):**
+    *   `task_description`: (Required `str`) The natural language description of the task.
+*   **Output (Return Value):** A list of dictionaries, where each dictionary represents a step in the context-gathering plan. Each step includes:
+    *   `description`: Human-readable explanation of the step.
+    *   `action`: The tool/API action to perform (e.g., `grep_search`, `read_file`).
+    *   `target`: The primary target for the action (e.g., symbol name, file path).
+    *   `params`: A dictionary of parameters for the action (e.g., `{"query": "...", "case_sensitive": false}`).
+    *   `store_as`: (Optional) An identifier to store the result of this step for potential use in later steps (e.g., using a found file path in a subsequent `read_file`).
+*   **Agent Usage:** Intended to be imported and used by higher-level planning agents. Call `generate_context_plan_v3(task_description)` to get the context plan. Execute the steps in the plan using the appropriate tool calls (or internal API calls) to gather information before proceeding with the main task logic (like code generation).
+*   **Example Usage (Python):**
+    ```python
+    from tools.context_planner import generate_context_plan_v3
+    task = "Fix the `calculate_total` function in `billing.py` using the `get_rate` function from `rates.py`"
+    plan = generate_context_plan_v3(task)
+    # Agent would then iterate through 'plan' and execute each step
+    # e.g., if plan[0]['action'] == 'read_file', call read_file(target=plan[0]['target'])
+    ```
+
+### 4. `project_context_producer.py`
+
+*   **Agent Goal:** To get a very basic overview of potentially relevant files based on recent logs or the project structure.
+*   **Purpose:** Extracts potential file paths mentioned in a log snippet using regex and lists all Python files in the project directory. Outputs this information.
+*   **Arguments (as script):**
+    *   `conversation_log_snippet`: (Required Positional) Snippet of conversation log. Can be 'stdin' to read from stdin.
+    *   `project_directory`: (Required Positional) Path to the project root directory.
+    *   `--output-dict`: (Optional Flag) Print the context dictionary to stdout instead of writing a file.
+    *   `-v`, `--verbose`: (Optional Flag) Enable detailed logging.
+*   **Output (stdout/stderr):** Logs progress to stderr. If `--output-dict` is used, prints the context JSON to stdout.
+*   **File Output:** By default, writes the context to `agent_bridge_context.json` in the project root. Contains log length, project root path, paths mentioned in the log snippet, and a list of all Python files found.
+*   **Exit Codes:** `0` (Success), `1` (Failure: e.g., project dir not found, write error).
+*   **Agent Usage:** Can provide a quick, basic list of mentioned files or all Python files. May be less sophisticated than `project_scanner` or `context_planner` for deeper analysis.
+*   **Example Call:** `python tools/project_context_producer.py "Error in main.py line 50" . --output-dict`
+
+---
+
+## Security & State Management Tools
+
+### 5. `proposal_security_scanner.py`
 
 *   **Agent Goal:** To check a file containing proposed changes for potentially risky operations before they are approved or executed.
 *   **Purpose:** Scans a text file (e.g., Markdown containing agent proposals) for keywords/patterns defined in `RISKY_KEYWORDS` (e.g., `os.remove`, `eval(`).
@@ -118,51 +137,48 @@ This document provides guidance on the available tools within the `tools/` direc
 *   **Agent Usage:** Intended for Supervisor or Security agents. Run this tool on proposal files. Check the log file afterwards for any logged findings. An exit code of `0` only means the scan ran, not that the proposals are safe.
 *   **Example Call:** `python tools/proposal_security_scanner.py _agent_coordination/onboarding/rulebook_update_proposals.md --log-file logs/security.log -v`
 
----
+### 6. `check_confirmation_state.py`
 
-## Recovery & Diagnostics Tools (Simulated)
-
-**IMPORTANT:** These tools currently contain **placeholder logic only**. They print messages indicating simulated actions but **do not perform real operations**. They are intended for testing agent workflows involving recovery or diagnostics.
-
-### 5. `tools/check_confirmation_state.py`
-
-*   **Agent Goal:** (Simulated) Check if a potentially sensitive action requires confirmation.
-*   **Purpose:** Simulates this check.
-*   **Arguments:** None.
-*   **Output:** Prints message to stdout indicating simulated result.
-*   **Exit Codes:** `0` (Simulates: Confirmation NOT required), `1` (Simulates: Confirmation REQUIRED).
-*   **Agent Usage:** Test agent logic that handles confirmation requirements. **Do not rely on this for real confirmation.**
+*   **Agent Goal:** Check if a potentially sensitive action requires explicit user confirmation before proceeding.
+*   **Purpose:** Checks for the existence of a specific flag file in the Current Working Directory (CWD), which is assumed to be the project root.
+*   **Arguments:**
+    *   `--flag-file <filename>`: (Optional) Name of the flag file to check for. Default: `CONFIRMATION_REQUIRED.flag`.
+    *   `-v`, `--verbose`: (Optional Flag) Enable detailed logging.
+*   **Output (stdout/stderr):** Logs whether the flag file was found.
+*   **File Output:** None.
+*   **Exit Codes:** `0` (Confirmation NOT required: Flag file not found), `1` (Confirmation REQUIRED: Flag file found).
+*   **Agent Usage:** Use before performing potentially sensitive operations (defined by system policy). Check the exit code to determine if confirmation is needed.
 *   **Example Call:** `python tools/check_confirmation_state.py`
 
-### 6. `tools/reload_agent_context.py`
+### 7. `reload_agent_context.py` (Simulated)
 
 *   **Agent Goal:** (Simulated) Reload an agent's internal context or memory.
-*   **Purpose:** Simulates this action.
+*   **Purpose:** **Placeholder only.** Simulates sending a context reload signal. Does not perform any real action.
 *   **Arguments:** `--target <agent_name>` (Required).
-*   **Output:** Prints message to stdout indicating simulated success/failure.
-*   **Exit Codes:** `0` (Simulates: Success), `1` (Simulates: Failure).
-*   **Agent Usage:** Test agent logic for context reloading. **Does not actually reload context.**
+*   **Output (stdout/stderr):** Prints message to stderr indicating simulated success.
+*   **File Output:** None.
+*   **Exit Codes:** `0` (Simulated Success).
+*   **Agent Usage:** For testing agent workflows that might involve context reloading. **Do not rely on this for actual context management.**
 *   **Example Call:** `python tools/reload_agent_context.py --target PlanningAgent`
-
-### 7. `tools/diagnostics.py`
-
-*   **Agent Goal:** (Simulated) Run diagnostic checks on the system.
-*   **Purpose:** Simulates running checks.
-*   **Arguments:** `--level {basic|full}` (Optional), `--auto` (Optional Flag).
-*   **Output:** Prints simulated diagnostic steps/findings to stdout.
-*   **Exit Codes:** `0` (Simulates: Checks passed), `1` (Simulates: Warnings found).
-*   **Agent Usage:** Test agent logic for running diagnostics. **Does not perform real checks.**
-*   **Example Call:** `python tools/diagnostics.py --auto`
-
-### 8. `tools/project_context_producer.py`
-
-*   **Agent Goal:** (Simulated) Generate a context summary from logs/files.
-*   **Purpose:** Simulates context generation. Primarily intended for use as an imported Python module.
-*   **Arguments (as script):** `conversation_log_snippet` (Positional), `project_directory` (Positional), `--output-dict` (Optional Flag).
-*   **Output:** Writes simulated `agent_bridge_context.json` or prints dict if `--output-dict`.
-*   **Agent Usage:** Can be imported by agents needing simulated context analysis. Running as a script is mainly for testing the placeholder. **Does not perform real analysis.**
-*   **Example Call (as script):** `python tools/project_context_producer.py "Error occurred" . --output-dict`
 
 ---
 
-*(TODO: Add documentation for any other tools, e.g., cursor_dispatcher.py if it becomes a general tool.)* 
+## Diagnostics Tools
+
+### 8. `diagnostics.py`
+
+*   **Agent Goal:** To verify the basic structure and integrity of the agent coordination environment.
+*   **Purpose:** Performs checks on the existence and type (directory/file) of key paths (`_agent_coordination`, `tools`, `protocols`, `mailboxes`) and optionally validates JSON files and checks for essential protocol documents. Assumes CWD is project root.
+*   **Arguments:**
+    *   `--level {basic|full}`: (Optional) `basic` checks core directories. `full` performs all checks including JSON validation and essential protocol file presence. Default: `basic`.
+    *   `--auto`: (Optional Flag) Currently only affects logging detail.
+    *   `-v`, `--verbose`: (Optional Flag) Enable detailed logging.
+*   **Output (stdout/stderr):** Logs the results of each check (PASSED/FAILED/SKIPPED) and a final summary to stderr.
+*   **File Output:** None.
+*   **Exit Codes:** `0` (Success: All checks for the specified level passed), `1` (Failure: One or more checks failed for the specified level).
+*   **Agent Usage:** Can be run during agent initialization or troubleshooting to verify the environment structure. Check the exit code to determine if critical components are missing or invalid.
+*   **Example Call:** `python tools/diagnostics.py --level full`
+
+---
+
+*(Ensure this guide is kept up-to-date as tools are added, removed, or modified.)* 

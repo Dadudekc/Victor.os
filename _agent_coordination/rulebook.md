@@ -10,23 +10,23 @@ Detailed rules and procedures are modularized for clarity and maintainability. R
 
 1.  **Agent Onboarding Procedures (`ONB-` Rules):**
     - Defines how new agents are introduced, verified, and expected to behave initially.
-    - *See: [`../protocols/agent_onboarding_rules.md`](../protocols/agent_onboarding_rules.md)*
+    - *See: [`./protocols/agent_onboarding_rules.md`](./protocols/agent_onboarding_rules.md)*
 
 2.  **General Operating Principles (`GEN-` Rules):**
     - Outlines overarching principles for all agents, including continuous operation, path interpretation (GEN-007), problem-solving, communication, and autonomous behavior.
-    - *See: [`../protocols/general_principles.md`](../protocols/general_principles.md)*
+    - *See: [`./protocols/general_principles.md`](./protocols/general_principles.md)*
 
 3.  **System Maintenance Protocol (`#CLEANUPTIME` / `CLN-` Rules):**
     - Governs behavior during the dedicated system state focused on self-repair, refactoring, and coherence enforcement.
-    - *See: [`../protocols/cleanup_protocol.md`](../protocols/cleanup_protocol.md)*
+    - *See: [`./protocols/cleanup_protocol.md`](./protocols/cleanup_protocol.md)*
 
 4.  **Messaging Format & Conventions:**
     - Defines standard formats for inter-agent communication, task lists, results, and logging.
-    - *See: [`../protocols/messaging_format.md`](../protocols/messaging_format.md)*
+    - *See: [`./protocols/messaging_format.md`](./protocols/messaging_format.md)*
 
 5.  **Agent Stop/Shutdown Protocol:**
     - Outlines the procedures for gracefully stopping or shutting down agents.
-    - *See: [`../protocols/agent_stop_protocol.md`](../protocols/agent_stop_protocol.md)*
+    - *See: [`./protocols/agent_stop_protocol.md`](./protocols/agent_stop_protocol.md)*
 
 ---
 

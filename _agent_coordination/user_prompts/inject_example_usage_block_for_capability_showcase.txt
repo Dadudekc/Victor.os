@@ -1,29 +1,105 @@
-🔧 SYSTEM PROMPT: INJECT EXAMPLE USAGE BLOCK FOR CAPABILITY SHOWCASE
+🔧 SYSTEM PROMPT: Inject Example Usage Block for Capability Showcase
+```
 
-🎯 OBJECTIVE:
-Append or update a Python file with an `if __name__ == "__main__"` block that:
+## 🎯 OBJECTIVE
+Append or update each Python file with an `if __name__ == "__main__":` block that:
 
-1. **Demonstrates its primary capabilities** (not just instantiation).
-2. **Runs standalone** as a functional test/demo.
-3. **Supports easy debugging** (clear output, traceable structure).
-4. **Acts as onboarding documentation for developers and AI agents.**
+1. **Demonstrates primary capabilities** (not just class/function definition).
+2. **Runs standalone** as a test/demo.
+3. **Supports easy debugging** via clear, traceable output.
+4. **Acts as onboarding documentation** for humans and AI agents alike.
 
-🧠 CONTEXT:
-This block is critical for:
-- Manual testing
-- AI-assisted simulation
-- Capability documentation
+---
+
+## 🧠 CONTEXT
+This example block enables:
+- Manual and AI-assisted testing
+- Capability documentation and debugging
 - Developer onboarding
-- Cursor / Dream.OS execution pipelines
+- Cursor/Dream.OS execution pipelines
 
-📁 INSTRUCTIONS:
-1. Identify the core public-facing component(s) in the file: main class, function, service, or entry point.
-2. Construct a minimal runnable demo that:
-   - Instantiates the class or calls the function with example input
-   - Executes the key method(s)
-   - Clearly prints meaningful output showing functionality
-   - Handles edge cases or variations if needed to reveal behavior
-3. Wrap the block with:
+---
+
+## 📁 AGENT INSTRUCTIONS
+
+### 1️⃣ Identify Target Files
+- Scan the target directory.
+- Filter for `.py` files excluding:
+  - `__init__.py`, `conftest.py`
+  - `test_*.py`, `*_test.py`
+  - Obvious config or stub files
+
+---
+
+### 2️⃣ For Each Candidate File:
+
+#### a. **State Intent**
+Announce: `🔍 Processing: {filename}`
+
+#### b. **Analyze File**
+- Read the file.
+- Identify the **main class**, function, or service.
+- Infer likely usage from class signatures, docstrings, and naming.
+
+#### c. **Construct Example Block**
+- Include minimal imports if not already present.
+- Instantiate the class or call the function using dummy inputs.
+- Execute key methods or operations.
+- Print meaningful, human-readable output.
+- Optionally add edge case behavior if trivial to showcase.
+
 ```python
 if __name__ == "__main__":
     # Example usage: Run & Debug
+    # Step 1: Instantiate
+    # Step 2: Execute
+    # Step 3: Print output
+```
+
+#### d. **Inject Example**
+- Read current file content.
+- Append or update the `__main__` block precisely at EOF.
+- Ensure the example is self-contained and runnable.
+
+---
+
+### 3️⃣ Execution Loop (Max 3 Tries)
+
+For each file:
+- Run: `python {filename}`
+- If success (exit code 0, output present): ✅ Mark as SUCCESS
+- If error:
+  - Read traceback
+  - Hypothesize and fix likely cause (wrong args, import error, typo, etc.)
+  - Retry (max 3)
+  - If still failing: ❌ Mark as FAILED (DEBUGGING)
+
+---
+
+### 4️⃣ Final Report
+Produce a summary table:
+
+| Status     | File                  | Notes                         |
+|------------|-----------------------|-------------------------------|
+| ✅ Success | core/utils/logger.py  | Example injected and passed. |
+| ❌ Failed  | core/agents/broken.py | 3 errors, unresolved import. |
+| ⏭️ Skipped | config/settings.py    | Not a logic-containing file. |
+
+---
+
+## 🔐 PRINCIPLES
+
+| Principle        | Guideline                                                                 |
+|------------------|---------------------------------------------------------------------------|
+| 🪶 Minimalism      | Keep examples lightweight and focused                                      |
+| 🔒 Isolation       | Wrap all example logic in `if __name__ == "__main__"`                     |
+| 🧠 Targeted Debug | Only debug the new example block unless clearly broken existing code     |
+| ✅ Self-contained | Avoid dependencies unless already in file or standard lib                 |
+| 🧹 Safe Editing    | Always read full content before appending or modifying files             |
+| 🧾 Status Logging  | Track each file as `Success`, `Skipped`, or `Failed`                      |
+| 🆘 Fallback       | Ask the user if a file's intent or fix path is unclear                    |
+
+---
+
+## 🧪 SAMPLE INSERT (FINAL FORMAT)
+

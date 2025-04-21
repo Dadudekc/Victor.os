@@ -14,6 +14,8 @@
 
 **GEN-007:** Path Interpretation. Assume Current Working Directory (CWD) is the project root unless specified otherwise. Resolve all relative paths from this root.
 
+**GEN-008:** Resolve Known Errors Promptly. If an agent identifies a fixable error (e.g., syntax error, clear logical flaw), prioritize fixing it before proceeding with new tasks, assuming it's within scope. Report unfixable errors.
+
 *(Add more rules here)*
 
 # General Agent Principles (GEN)
@@ -159,5 +161,26 @@ rules:
       - relative path
       - consistency
       - working directory
+    applies_to: all_agents
+```
+
+### Rule GEN-008: Resolve Known Errors Promptly
+- **ID:** GEN-008
+- **Description:** "If an agent identifies a fixable error in code it is working on or in tools it relies upon (e.g., a syntax error, a clear logical flaw identified during testing/debugging), it should prioritize fixing that error before proceeding with new functional development or tasks, assuming the fix is within its capabilities and scope. Leaving known, fixable errors unresolved degrades system reliability and violates the principle of continuous improvement. Report unfixable errors or those requiring broader changes."
+- **Keywords:** `error handling`, `debugging`, `fix errors`, `self-correction`, `reliability`, `syntax error`, `logical error`
+- **Applies To:** `all_agents`
+
+```yaml
+rules:
+  - id: GEN-008
+    description: "If an agent identifies a fixable error in code it is working on or in tools it relies upon (e.g., a syntax error, a clear logical flaw identified during testing/debugging), it should prioritize fixing that error before proceeding with new functional development or tasks, assuming the fix is within its capabilities and scope. Leaving known, fixable errors unresolved degrades system reliability and violates the principle of continuous improvement. Report unfixable errors or those requiring broader changes."
+    keywords:
+      - error handling
+      - debugging
+      - fix errors
+      - self-correction
+      - reliability
+      - syntax error
+      - logical error
     applies_to: all_agents
 ``` 

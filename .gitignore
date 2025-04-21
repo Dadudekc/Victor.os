@@ -96,5 +96,5 @@ selector_log.txt
 # Ignore ChromeDriver cache
 drivers/
 
-# Ignore ChromeDriver cache
-drivers/
+# Ignore specific coordination module outputs
+_agent_coordination/chatgpt_output/
