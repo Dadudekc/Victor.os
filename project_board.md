@@ -9,6 +9,7 @@
   - Refactored `_agent_coordination/config.py` for correct workspace root and log paths.
   - Updated `_agent_coordination/README.md` links and tool listings.
   - Enhanced root `.gitignore` to exclude coordination outputs and env directories.
+- Completed Level 3 audit of `prompt_library/`: created `archive/` folder and archived legacy underscore-prefixed prompts.
 
 ## 🚀 New Follow‑Up Tasks
 

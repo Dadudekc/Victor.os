@@ -16,44 +16,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 # ---------------------------
-# Logger Setup
+# Logger Setup - REMOVED Custom Setup
 # ---------------------------
-# Use a central logger if available, otherwise setup basic
-try:
-    # Assuming project_config exists one level up
-    from .. import config as project_config 
-    log_level = project_config.LOG_LEVEL
-except (ImportError, AttributeError):
-    log_level = logging.INFO # Default if config is not found
-
-def setup_logger(name="UnifiedDriverManager", log_dir=os.path.join(os.getcwd(), "logs", "core")):
-    # Adjust log_dir relative to this file's location if needed?
-    # Assuming this file is in src/core, logs/core should be ../../logs/core
-    script_dir = os.path.dirname(__file__)
-    root_log_dir = os.path.abspath(os.path.join(script_dir, '..', '..', 'logs', 'core'))
-    log_dir_actual = root_log_dir # Use calculated path
-    os.makedirs(log_dir_actual, exist_ok=True)
-    
-    logger_instance = logging.getLogger(name)
-    if not logger_instance.hasHandlers(): # Avoid adding handlers multiple times
-        logger_instance.setLevel(log_level)
-        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-        
-        # File Handler
-        file_handler = logging.FileHandler(os.path.join(log_dir_actual, f"{name}.log"), encoding='utf-8')
-        file_handler.setFormatter(formatter)
-        logger_instance.addHandler(file_handler)
-        
-        # Stream Handler (to console) - Check if root logger already has one
-        # root_logger = logging.getLogger()
-        # if not any(isinstance(h, logging.StreamHandler) for h in root_logger.handlers):
-        stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setFormatter(formatter)
-        logger_instance.addHandler(stream_handler)
-            
-    return logger_instance
-
-logger = setup_logger()
+# Rely on root logger configured elsewhere (e.g., basicConfig in main script)
+logger = logging.getLogger(__name__) # Get logger instance
+# Set level here if needed, but basicConfig usually covers it
+# logger.setLevel(logging.INFO)
 
 # ---------------------------
 # UnifiedDriverManager Class
@@ -428,9 +396,11 @@ class UnifiedDriverManager:
     # (Removed for brevity in this example)
 
     # --- Destructor to ensure cleanup ---
-    def __del__(self):
-        """Ensure cleanup happens even if context manager isn't used."""
-        self.quit_driver()
+    # def __del__(self):
+    #     """Ensure cleanup happens even if context manager isn't used."""
+    #     # Removing __del__ as it can cause issues with multiprocessing/gc timing
+    #     # Rely on explicit quit_driver() or context manager __exit__
+    #     # self.quit_driver()
 
 # ---------------------------
 # Example Execution / Test

@@ -26,4 +26,20 @@ class ChatGPTLocators:
     # --- Other elements ---
     STOP_GENERATING_BUTTON = (By.XPATH, "//button[contains(text(), 'Stop generating')]") # Example
 
+    # Add other locators as needed
+    # --- Model Selection Locators (Guesses) ---
+    MODEL_SELECTOR_BUTTON = (By.XPATH, "//button[contains(., 'GPT-')]") # Button showing current model
+    MODEL_MENU_ITEM = (By.XPATH, "//div[@role='menuitemradio']//div[contains(text(), '{model_name}')]") # Template for model option
+    # -----------------------------------------
+
+    # Maybe add locators for Send button if needed, regenerate, stop etc.
+
+    # --- Chat History Locators (Guesses) ---
+    HISTORY_SIDEBAR = (By.XPATH, "//nav[contains(@aria-label, 'Chat history')]") # The nav element
+    HISTORY_LINK_ITEM = (By.XPATH, ".//a[contains(@href, '/c/')]") # Links within the sidebar
+    HISTORY_TITLE_TEXT = (By.XPATH, ".//div[contains(@class, 'overflow-hidden')]") # Div containing title text, relative to link
+    # --- Guessed scroll container (might be inside the nav) ---
+    HISTORY_SCROLL_CONTAINER = (By.XPATH, "//nav[contains(@aria-label, 'Chat history')]/div[contains(@class, 'flex-col')]") # Guessing a div with flex-col often scrolls
+    # ---------------------------------------
+
     # Add more locators as needed for specific scraper functionality... 

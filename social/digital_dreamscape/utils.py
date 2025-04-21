@@ -1,7 +1,21 @@
 import json, datetime, logging, typing
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt6.QtCore import pyqtSignal, QObject
 import os, requests, textwrap
 import yaml, pathlib
+import jinja2
+
+# --- Setup Jinja2 Environment ---
+# Assume templates are in 'discord_templates' relative to project root
+# Need to determine project root reliably. Assuming utils.py is one level down.
+_project_root = pathlib.Path(__file__).parent.parent 
+_template_loader = jinja2.FileSystemLoader(searchpath= _project_root / "discord_templates")
+_jinja_env = jinja2.Environment(
+    loader=_template_loader, 
+    autoescape=jinja2.select_autoescape(['html', 'xml']), # Basic autoescape
+    trim_blocks=True, 
+    lstrip_blocks=True
+)
+# --------------------------------
 
 # --- event logger -----------------------------------------------------------
 def log_event(tag, who, payload):
@@ -21,19 +35,24 @@ class GuiLogHandler(logging.Handler):
     Emits each formatted record via Qt signal so the GUI thread
     can safely append to a QTextEdit.
     """
-    _emitter = QtLogEmitter()
-
     def __init__(self):
         super().__init__()
+        self._emitter = QtLogEmitter()
         self.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
 
     def emit(self, record: logging.LogRecord):
         msg = self.format(record)
         self._emitter.log_signal.emit(msg)
 
-def post_to_discord(content: str, webhook: str | None = None) -> bool:
+def post_to_discord(
+    content: str | None = None, 
+    template: str | None = None,
+    template_context: dict | None = None,
+    webhook: str | None = None
+) -> bool:
     """
-    Sends `content` to a Discord channel via webhook.
+    Sends message to Discord.
+    Can send raw `content` OR render a `template` using `template_context`.
     Splits into ≤2000‑char chunks to respect Discord limits.
     """
     webhook = webhook or os.getenv("DISCORD_WEBHOOK_URL")
@@ -41,8 +60,31 @@ def post_to_discord(content: str, webhook: str | None = None) -> bool:
         logging.warning("Discord webhook not set; skipping post")
         return False
 
+    message_content = ""
+    if template:
+        if template_context is None: template_context = {}
+        try:
+            jinja_template = _jinja_env.get_template(template) 
+            message_content = jinja_template.render(template_context)
+            logging.info(f"Rendered Discord template '{template}'")
+        except jinja2.TemplateNotFound:
+            logging.error(f"Discord template '{template}' not found.")
+            return False
+        except Exception as e:
+            logging.error(f"Error rendering Discord template '{template}': {e}", exc_info=True)
+            return False
+    elif content:
+        message_content = content
+    else:
+        logging.warning("post_to_discord called with no content or template.")
+        return False
+
+    if not message_content.strip():
+        logging.warning("post_to_discord: Resulting message content is empty.")
+        return False
+
     # basic 2‑k chunking
-    chunks = textwrap.wrap(content, width=1990, break_long_words=False, replace_whitespace=False)
+    chunks = textwrap.wrap(message_content, width=1990, break_long_words=False, replace_whitespace=False)
     for chunk in chunks:
         resp = requests.post(webhook, json={"content": chunk})
         if resp.status_code >= 300:
@@ -94,3 +136,17 @@ def load_prompt_templates(template_dir="dreamscape_generator/templates") -> dict
          logging.warning(f"No .txt templates found in {template_path}")
          
     return templates 
+
+# --- Filename Sanitization ---
+def sanitize_filename(filename: str) -> str:
+    """Replaces potentially problematic filename characters with underscores.
+    
+    Also trims leading/trailing underscores and limits length to 50 chars.
+    """
+    import re # Import regex module locally
+    # Remove or replace invalid characters
+    sanitized = re.sub(r'[\/*?:"<>| ]+', "_", filename)
+    # Trim leading/trailing underscores that might result from replacements
+    sanitized = sanitized.strip("_")
+    # Limit length
+    return sanitized[:50] 

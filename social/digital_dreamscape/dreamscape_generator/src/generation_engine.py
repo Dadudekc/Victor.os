@@ -5,22 +5,55 @@ Uses ChatGPTScraper for web automation if available; otherwise raises.
 """
 import logging
 from pathlib import Path
+from typing import Optional
 
-# Import the new driver manager
-from .core.UnifiedDriverManager import UnifiedDriverManager
+# --- Import Memory Manager --- 
+# Assume memory_manager.py is accessible (e.g., in the same dir or python path)
+# This import might fail if structure is different
+try:
+    from memory_manager import UnifiedMemoryManager
+except ImportError:
+    UnifiedMemoryManager = None # Define as None if import fails
+# ---------------------------
 
-# Still need the scraper class
-from .chatgpt_scraper import ChatGPTScraper
+# --- Initialize logger for this module --- 
+logger = logging.getLogger(__name__)
+# ----------------------------------------
+
+# --- Imports moved inside generate_episode ---
+# from .core.UnifiedDriverManager import UnifiedDriverManager
+# from .chatgpt_scraper import ChatGPTScraper
+# --------------------------------------------
 
 # --------------------------------------------------------------------- #
-# 1. build_context – naive version (reads memory json if present)       #
+# 1. build_context – Now uses Memory Manager                          #
 # --------------------------------------------------------------------- #
-def build_context() -> dict:
-    mem_path = Path("memory/episode_memory.json")
-    if mem_path.exists():
-        rendered = mem_path.read_text()
+def build_context(prompt: str, reverse_flag: bool, mem_manager: Optional[UnifiedMemoryManager]) -> dict:
+    # Log received arguments 
+    logging.info(f"build_context called with prompt (len={len(prompt)}) and reverse_flag={reverse_flag}")
+    
+    memory_content = "### Dreamscape Episode ###\n(No prior memory found - Memory Manager unavailable or key missing)"
+    if mem_manager:
+        # --- Fetch context from Memory Manager --- 
+        # Example: Get the last saved episode from the 'context' segment
+        retrieved_memory = mem_manager.get(key="last_episode", segment="context", default=None)
+        if isinstance(retrieved_memory, str) and retrieved_memory:
+            memory_content = retrieved_memory
+            logging.info(f"Retrieved last episode context from memory ({len(memory_content)} chars).")
+        else:
+            logging.info("No 'last_episode' found in memory context segment, using default.")
+        # ---------------------------------------
     else:
-        rendered = "### Dreamscape Episode ###\n(No prior memory found.)"
+         logging.warning("Memory manager instance not provided to build_context.")
+
+    # --- Combine memory and user prompt --- 
+    # --- Try Instruction First Structure --- 
+    rendered = (
+        f"USER INSTRUCTION:\n{prompt}\n\n"
+        f"BACKGROUND CONTEXT (for reference):\n---\n{memory_content}\n---"
+    )
+    # -------------------------------------
+
     # Ensure the logs directory exists here too, in case build_context is called first
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
@@ -32,6 +65,16 @@ def build_context() -> dict:
 def generate_episode(prompt: str, model: str = "gpt-4o",
                      headless: bool = True, reverse: bool = False) -> str:
     logging.info("generate_episode() using model=%s headless=%s reverse=%s", model, headless, reverse)
+
+    # --- Lazy import Manager and Scraper --- 
+    try:
+        from .core.UnifiedDriverManager import UnifiedDriverManager
+        from .chatgpt_scraper import ChatGPTScraper
+        logging.debug("UnifiedDriverManager and ChatGPTScraper imported successfully.")
+    except ImportError as import_err:
+        logging.error(f"Failed to import backend components: {import_err}", exc_info=True)
+        return f"[ERROR] Failed backend import: {import_err}"
+    # ---------------------------------------
 
     # --- Get the singleton driver manager instance --- 
     # Pass headless setting during initialization (only matters first time)
@@ -71,6 +114,12 @@ def generate_episode(prompt: str, model: str = "gpt-4o",
          # We might not need explicit quit here if manager is used elsewhere or 
          # if the whole process exits. Let's leave it out for now unless needed.
          # manager.quit_driver() 
-         pass
+         # pass
+         # --- Explicitly quit the driver managed by the singleton --- 
+         if 'manager' in locals() and manager: # Check if manager was initialized
+             # Use logging module directly here to avoid potential NameError in child process scope
+             logging.info("Ensuring driver cleanup in generate_episode finally block...")
+             manager.quit_driver() 
+         # -------------------------------------------------------------
     
     return output 

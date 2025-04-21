@@ -16,7 +16,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException, TimeoutException
-from webdriver_manager.chrome import ChromeDriverManager
 
 # ---------------------------
 # Logger Setup
@@ -104,73 +103,9 @@ class UnifiedDriverManager:
         self.quit_driver()
         return False
 
-    # Driver cache path
-    def _get_cached_driver_path(self) -> str:
-        return os.path.join(self.driver_cache_dir, "chromedriver.exe")
-
-    # Delete bad cached driver
-    def _delete_cached_driver(self):
-        p = self._get_cached_driver_path()
-        if os.path.exists(p):
-            logger.warning(f"Deleting cached driver: {p}")
-            try:
-                os.remove(p)
-                logger.info("Deleted old driver cache")
-            except OSError as e:
-                logger.error(f"Error deleting driver cache: {e}")
-
-    # Download via webdriver‑manager
-    def _download_driver_if_needed(self) -> str:
-        """
-        Ensures driver is downloaded using webdriver-manager, returning its path.
-        Tries the default cache first, falling back to checking the manually
-        specified cache path if the primary download fails.
-        """
-        primary_download_error = None
-        driver_path = None
-
-        # --- Attempt 1: Use webdriver-manager standard install (no path arg) ---
-        try:
-            logger.info("Attempting to install/update ChromeDriver using webdriver-manager (default cache)...")
-            # Let webdriver-manager handle its own cache path
-            installed_path = ChromeDriverManager().install()
-            logger.info(f"webdriver-manager reported driver path: {installed_path}")
-
-            # Verify the executable exists (webdriver-manager path handling can vary)
-            if os.path.isfile(installed_path):
-                driver_path = installed_path
-            elif os.path.isdir(installed_path):
-                # Check common subdirectory structure if path is dir
-                potential_exe = os.path.join(installed_path, "chromedriver.exe") # Adjust for OS if needed
-                if os.path.isfile(potential_exe):
-                    driver_path = potential_exe
-                    logger.info(f"Adjusted path to executable: {driver_path}")
-
-            if driver_path and os.path.isfile(driver_path):
-                logger.info(f"Using ChromeDriver from: {driver_path}")
-                return driver_path # Success using primary method
-            else:
-                 # Path returned wasn't valid file or couldn't be resolved
-                 raise FileNotFoundError(f"ChromeDriver executable not found at expected path(s) after install: {installed_path}")
-
-        except Exception as e:
-            logger.error(f"Primary ChromeDriver download/install failed: {e}", exc_info=False) # Don't need full traceback usually
-            primary_download_error = e # Store error for later potential raise
-
-        # --- Attempt 2: Fallback to checking manually specified cache path ---
-        logger.warning("Primary driver download failed. Attempting fallback to manually specified cache path.")
-        fallback_path = self._get_cached_driver_path() # Gets path like drivers/chromedriver.exe
-        if os.path.isfile(fallback_path):
-            logger.warning(f"Found potentially usable driver in manual cache: {fallback_path}. Using this as fallback.")
-            return fallback_path
-        else:
-            logger.error(f"Fallback failed: Manually specified cached driver not found at {fallback_path}.")
-            # Raise the original error from the primary download attempt, or a new one
-            if primary_download_error:
-                 raise Exception("Primary ChromeDriver download failed, and fallback cache was empty.") from primary_download_error
-            else:
-                 # Should not happen unless primary try block had no exception but failed path check
-                 raise Exception("Failed to obtain a valid ChromeDriver executable via download or fallback cache.")
+    # ---------------------------
+    # Driver Initialization
+    # ---------------------------
     # Core: get or (re)create driver with retry
     def get_driver(self, force_new: bool = False):
         with self._lock:
@@ -212,10 +147,15 @@ class UnifiedDriverManager:
             last_exc = None
             for attempt in range(1, 3):
                 try:
-                    driver_path = self._download_driver_if_needed()
-                    logger.info(f"Launch attempt {attempt}")
-                    driver = uc.Chrome(driver_executable_path=driver_path, options=opts)
+                    logger.info(f"Launch attempt {attempt} using uc.Chrome internal driver handling")
+                    
+                    # ---> Specify main browser version explicitly <--- 
+                    # Ensure this matches your installed Chrome version!
+                    chrome_major_version = 135 
+                    driver = uc.Chrome(options=opts, version_main=chrome_major_version)
+                    
                     self.driver = driver
+                    logger.info(f"Successfully launched uc.Chrome (version_main={chrome_major_version})")
                     return driver
                 except SessionNotCreatedException as e:
                     logger.warning(f"SessionNotCreatedException: {e}")
@@ -230,7 +170,7 @@ class UnifiedDriverManager:
                     last_exc = e
                     break
 
-            raise last_exc or RuntimeError("Failed to initialize WebDriver")
+            raise last_exc or RuntimeError("Failed to initialize WebDriver after retries")
 
     # Quit + cleanup
     def quit_driver(self):
@@ -296,15 +236,20 @@ class UnifiedDriverManager:
 
     # Login check
     def is_logged_in(self, retries: int = 1) -> bool:
-        sel = 'textarea[id="prompt-textarea"]'
+        # ---> Use the more robust nav selector <--- 
+        # sel = 'textarea[id="prompt-textarea"]'
+        sel = 'nav[aria-label="Chat history"]' 
         for i in range(retries):
             try:
                 if not self.driver.current_url.startswith(self.CHATGPT_URL):
                     self.driver.get(self.CHATGPT_URL)
                     time.sleep(2)
+                # ---> Wait for visibility of the element <--- 
                 WebDriverWait(self.driver, self.wait_timeout).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, sel))
+                    # EC.presence_of_element_located((By.CSS_SELECTOR, sel))
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, sel))
                 )
+                logger.info("Login check successful (nav element found).") # Updated log
                 return True
             except TimeoutException:
                 logger.info(f"is_logged_in attempt {i+1} failed")
