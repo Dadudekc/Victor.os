@@ -6,6 +6,10 @@ import logging
 from pathlib import Path
 from utils import browser, html_parser, task_parser
 
+from dream_mode.azure_blob_channel import AzureBlobChannel
+import os
+from typing import Dict
+
 logger = logging.getLogger("ChatGPTWebAgent")
 logger.setLevel(logging.INFO)
 
@@ -22,6 +26,15 @@ class ChatGPTWebAgent:
         self.inbox_file = self.inbox_dir / "pending_responses.json"
         self.last_seen = None
         self.driver = None
+
+        # Initialize C2 channel for task dispatch
+        self.channel = AzureBlobChannel(
+            container_name=os.getenv("C2_CONTAINER", "dream-os-c2"),
+            connection_string=os.getenv("AZURE_STORAGE_CONNECTION_STRING"),
+            sas_token=os.getenv("AZURE_SAS_TOKEN")
+        )
+        # Track which results have been injected into ChatGPT UI
+        self.injected_result_ids = set()
 
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         if not self.inbox_file.exists():
@@ -55,6 +68,27 @@ class ChatGPTWebAgent:
             return False
 
         return True
+
+    def _is_result_injected(self, result: Dict) -> bool:
+        """Return True if this result (by task_id) was already injected."""
+        return result.get("task_id") in self.injected_result_ids
+
+    def _mark_result_injected(self, result: Dict) -> None:
+        """Mark this result as injected to avoid duplicates."""
+        task_id = result.get("task_id")
+        if task_id:
+            self.injected_result_ids.add(task_id)
+
+    def inject_response(self, message: str) -> None:
+        """Inject a response into the ChatGPT UI textarea and send it."""
+        from selenium.webdriver.common.by import By
+
+        input_box = self.driver.find_element(By.XPATH, "//textarea[contains(@placeholder, 'Send a message')]")
+        input_box.clear()
+        input_box.send_keys(message)
+        time.sleep(1)
+        input_box.send_keys("\n")
+        logger.info(f"[{self.agent_id}] 🛰️ Injected swarm response into ChatGPT UI.")
 
     def run_cycle(self):
         if not self.driver and not self._initialize_browser():
@@ -111,6 +145,12 @@ class ChatGPTWebAgent:
                     return # Skip saving
 
                 self._save_pending_responses(inbox)
+                # Push parsed task to C2 channel
+                try:
+                    self.channel.push_task(parsed)
+                    logger.info(f"[{self.agent_id}] Dispatched task to C2 channel: {parsed.get('task_id')}")
+                except Exception as e:
+                    logger.error(f"[{self.agent_id}] Failed to push task to channel: {e}", exc_info=True)
             else:
                 # Parsing failed (TaskParser already logged error)
                 logger.warning(f"[{self.agent_id}] Failed to parse structured metadata from the new response.")
@@ -118,6 +158,19 @@ class ChatGPTWebAgent:
 
         except Exception as e:
             logger.error(f"[{self.agent_id}] Error during agent cycle: {e}", exc_info=True)
+        # Pull and inject swarm results into ChatGPT UI
+        try:
+            results = self.channel.pull_results()
+            for res in results:
+                if not self._is_result_injected(res):
+                    content = res.get("raw_reply") or res.get("content") or json.dumps(res)
+                    try:
+                        self.inject_response(content)
+                        self._mark_result_injected(res)
+                    except Exception as ie:
+                        logger.error(f"[{self.agent_id}] ❌ Failed to inject result: {ie}", exc_info=True)
+        except Exception as ce:
+            logger.error(f"[{self.agent_id}] Error pulling/injecting results: {ce}", exc_info=True)
 
     def close(self):
         browser.close_browser()
