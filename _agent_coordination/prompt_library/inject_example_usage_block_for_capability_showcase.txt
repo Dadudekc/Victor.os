@@ -1,105 +1,79 @@
-🔧 SYSTEM PROMPT: Inject Example Usage Block for Capability Showcase
+# Example Usage Injection Protocol (Generic v2)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"      # Root directory of the codebase
+- include_patterns: ["*.py"]           # Python files to target
+- max_attempts: {{max_attempts}}         # Max retries for validation
+- tools: ["read_file", "edit_file", "run_command", "list_dir"]  # Allowed capabilities
+
+---
+
+## Phase 1: Discovery
+1. Recursively scan project_root for files matching include_patterns, excluding:
+   - `__init__.py`, test files (`test_*.py`, `*_test.py`), config or stub files.
+2. Assemble list `candidate_files`.
+
+### Phase 1 Output
+Return a JSON array:
+```json
+["path/to/file1.py", "path/to/file2.py", ...]
+```
+
+---
+
+## Phase 2: Construct Usage Block
+For each file in `candidate_files`:
+1. Read file content to identify main class, function, or module.
+2. Generate a self‑contained `if __name__ == "__main__":` block that:
+   - Imports necessary components.
+   - Instantiates classes or calls functions with placeholder args.
+   - Prints results or demo behavior.
+3. Store the proposed block in `usage_blocks` array.
+
+### Phase 2 Output
+Return a JSON array of objects:
+```json
+[
+  {"file": "path/to/file1.py", "usage_block": "<code snippet here>"},
+  ...
+]
+```
+
+---
+
+## Phase 3: Inject & Validate
+For each item in `usage_blocks`:
+1. Use `edit_file` to insert or update the `__main__` block at EOF.
+2. Run `python <file>` via `run_command` to validate execution.
+3. If exit code != 0, retry up to `max_attempts`, capturing errors.
+4. Record success or failure in `results`.
+
+### Phase 3 Output
+Return a JSON array `injection_results`:
+```json
+[
+  {"file": "path/to/file1.py", "status": "success"},
+  {"file": "path/to/file2.py", "status": "failed", "errors": ["<traceback>"]}
+]
+```
+
+---
+
+## Phase 4: Summary
+Return a JSON object:
+```json
+{
+  "phase": "complete",
+  "injected_count": <number>,
+  "failed_count": <number>
+}
+```
+
+---
+
+# Begin
+Produce the **Phase 1** JSON array of `candidate_files`.
 ```
 
 ## 🎯 OBJECTIVE
-Append or update each Python file with an `if __name__ == "__main__":` block that:
-
-1. **Demonstrates primary capabilities** (not just class/function definition).
-2. **Runs standalone** as a test/demo.
-3. **Supports easy debugging** via clear, traceable output.
-4. **Acts as onboarding documentation** for humans and AI agents alike.
-
----
-
-## 🧠 CONTEXT
-This example block enables:
-- Manual and AI-assisted testing
-- Capability documentation and debugging
-- Developer onboarding
-- Cursor/Dream.OS execution pipelines
-
----
-
-## 📁 AGENT INSTRUCTIONS
-
-### 1️⃣ Identify Target Files
-- Scan the target directory.
-- Filter for `.py` files excluding:
-  - `__init__.py`, `conftest.py`
-  - `test_*.py`, `*_test.py`
-  - Obvious config or stub files
-
----
-
-### 2️⃣ For Each Candidate File:
-
-#### a. **State Intent**
-Announce: `🔍 Processing: {filename}`
-
-#### b. **Analyze File**
-- Read the file.
-- Identify the **main class**, function, or service.
-- Infer likely usage from class signatures, docstrings, and naming.
-
-#### c. **Construct Example Block**
-- Include minimal imports if not already present.
-- Instantiate the class or call the function using dummy inputs.
-- Execute key methods or operations.
-- Print meaningful, human-readable output.
-- Optionally add edge case behavior if trivial to showcase.
-
-```python
-if __name__ == "__main__":
-    # Example usage: Run & Debug
-    # Step 1: Instantiate
-    # Step 2: Execute
-    # Step 3: Print output
-```
-
-#### d. **Inject Example**
-- Read current file content.
-- Append or update the `__main__` block precisely at EOF.
-- Ensure the example is self-contained and runnable.
-
----
-
-### 3️⃣ Execution Loop (Max 3 Tries)
-
-For each file:
-- Run: `python {filename}`
-- If success (exit code 0, output present): ✅ Mark as SUCCESS
-- If error:
-  - Read traceback
-  - Hypothesize and fix likely cause (wrong args, import error, typo, etc.)
-  - Retry (max 3)
-  - If still failing: ❌ Mark as FAILED (DEBUGGING)
-
----
-
-### 4️⃣ Final Report
-Produce a summary table:
-
-| Status     | File                  | Notes                         |
-|------------|-----------------------|-------------------------------|
-| ✅ Success | core/utils/logger.py  | Example injected and passed. |
-| ❌ Failed  | core/agents/broken.py | 3 errors, unresolved import. |
-| ⏭️ Skipped | config/settings.py    | Not a logic-containing file. |
-
----
-
-## 🔐 PRINCIPLES
-
-| Principle        | Guideline                                                                 |
-|------------------|---------------------------------------------------------------------------|
-| 🪶 Minimalism      | Keep examples lightweight and focused                                      |
-| 🔒 Isolation       | Wrap all example logic in `if __name__ == "__main__"`                     |
-| 🧠 Targeted Debug | Only debug the new example block unless clearly broken existing code     |
-| ✅ Self-contained | Avoid dependencies unless already in file or standard lib                 |
-| 🧹 Safe Editing    | Always read full content before appending or modifying files             |
-| 🧾 Status Logging  | Track each file as `Success`, `Skipped`, or `Failed`                      |
-| 🆘 Fallback       | Ask the user if a file's intent or fix path is unclear                    |
-
----
-
-## 🧪 SAMPLE INSERT (FINAL FORMAT)
-
+Append or update each Python file with an `if __name__ == "__main__":`
