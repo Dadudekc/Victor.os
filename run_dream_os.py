@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 from dream_mode.agents.cursor_worker import run as cursor_worker_run
+from dream_mode.utils.channel_loader import get_blob_channel
 
 # Ensure local blob channel is used
 os.environ["USE_LOCAL_BLOB"] = "1"
@@ -28,6 +29,17 @@ def main():
     # If simulate flag passed, launch fake Cursor workers
     if "--simulate" in sys.argv:
         simulate_cursor_workers(5)
+        # Seed codegen prompt tasks into the channel
+        channel = get_blob_channel()
+        prompts_dir = os.path.join(os.getcwd(), "_agent_coordination", "user_prompts")
+        if os.path.isdir(prompts_dir):
+            for fname in os.listdir(prompts_dir):
+                if fname.endswith(".txt"):
+                    task_id = os.path.splitext(fname)[0]
+                    with open(os.path.join(prompts_dir, fname), 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    channel.push_task({"id": task_id, "payload": content})
+                    print(f"📤 Seeded prompt task: {task_id}")
     print("🌐 Starting ChatGPT WebAgent in local mode...")
     p1 = subprocess.Popen(WEB_AGENT_CMD)
     print(f"  PID {p1.pid}: WebAgent started.")

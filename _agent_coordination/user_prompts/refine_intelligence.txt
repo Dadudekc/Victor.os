@@ -1,0 +1,24 @@
+Cursor Prompt 7 — Refine Intelligence: Classification, Dependencies & Heuristics
+
+Target Files:
+- (new) `dream_mode/utils/task_classifier.py`
+- `dream_mode/swarm_controller.py`
+- `dream_mode/agents/chatgpt_web_agent.py`
+
+```markdown
+You are upgrading Dream.OS's intelligence by adding task classification, dependency gating, and simple heuristics.
+
+🎯 Objectives:
+1. Create `task_classifier.py`:
+   - Define `classify(task: Dict) -> str` to return categories like "io-bound", "cpu-bound", "heuristic" based on payload patterns.
+   - Use basic keyword matching and allow future ML model integration.
+2. In `swarm_controller.py`, before dispatch:
+   - Call `classify(task)` and route high‑priority ("cpu-bound") tasks to dedicated "fast" workers.
+   - Implement dependency gating: if task has `depends_on`, delay dispatch until its predecessor's result appears in the blob channel.
+3. In `chatgpt_web_agent.py`, add a pre‑inject hook:
+   - If a result has `status: "error"`, automatically wrap into a corrective re‑ask prompt to the user.
+   - Use a simple template:  
+     `"I encountered an error processing task {task_id}: {error_detail}. Could you clarify?"`
+
+🔐 Ensure classifiers can be overridden via config, and fallback logic retains existing behavior if no category is matched.
+``` 
