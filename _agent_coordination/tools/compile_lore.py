@@ -16,12 +16,13 @@ DEFAULT_TRANSLATION = Path("dream_logs/config/dream_translation.yaml")
 DEFAULT_TASK_LIST = Path("runtime/task_list.json")
 DEFAULT_OUTPUT_DIR = Path("dream_logs/lore")
 
-# Simple Jinja2 template for lore
+# Default Jinja2 template for lore including channel and description
 LORE_TEMPLATE = """
 # Episode: {{ event_name }}
+**Channel:** {{ translation.get('AzureBlobChannel', 'AzureBlobChannel') }}
 
 {%- for t in tasks %}
-- On {{ t.get('timestamp_created', 'unknown time') }}, the {{ translation.get('agent', 'Agent') }} performed '{{ t.get('task_type', 'action') }}', described as "{{ translation.get(t.get('task_type'), t.get('task_type')) }}".
+- On {{ t.get('timestamp_created', 'unknown time') }}, the {{ translation.get('agent', 'Agent') }} performed '{{ t.get('task_type', 'action') }}', description: "{{ t.get('payload', {}).get('description', '') }}", narrative: "{{ translation.get(t.get('task_type'), t.get('task_type')) }}".
 {%- endfor %}
 """
 
