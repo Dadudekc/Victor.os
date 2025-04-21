@@ -29,3 +29,81 @@ root = .
 
 🏁 BEGIN.
 """
+
+# TODO Addressing Protocol (Generic)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"  # Root directory of the codebase
+- include_patterns: ["*.py", "*.ts", "*.js"]  # File patterns to scan
+- priority_threshold: "High"  # Only auto-fix TODOs at or above this priority
+
+---
+
+## Phase 1: TODO Discovery
+1. Recursively scan all files under project_root matching include_patterns for annotations: TODO, FIXME, HACK, XXX.
+2. For each match, extract:
+   - file path
+   - line number
+   - annotation tag (TODO, FIXME, etc.)
+   - comment text
+3. Classify each annotated item:
+   - priority: [High, Medium, Low] (map HACK/FIXME → High by default)
+   - type: [Bugfix, Refactor, Feature, Cleanup, Placeholder]
+
+### Phase 1 Output
+- Return a JSON array `todo_items`:
+```json
+[
+  {
+    "file": "path/to/file.py",
+    "line": 42,
+    "tag": "TODO",
+    "text": "Refactor this function",
+    "priority": "High",
+    "type": "Refactor"
+  },
+  ...
+]
+```
+
+---
+
+## Phase 2: Auto‑Fix & Commit
+For each item in `todo_items` with priority >= priority_threshold:
+1. Load the source code for the file and context (±3 lines).
+2. Draft a code modification or resolution based on the annotation.
+3. Validate syntax (e.g., via Python AST or TypeScript compiler) and run relevant tests.
+4. Prepare a patch diff and commit.
+   - commit_message: `fix(todo): <short description> in <file>:<line>`
+
+### Phase 2 Output
+- Return a JSON array `fix_plans`:
+```json
+[
+  {
+    "file": "path/to/file.py",
+    "line": 42,
+    "patch": "--- original\n+++ fixed\n... diff lines ...",
+    "commit_message": "fix(todo): Refactor this function in file.py:42"
+  },
+  ...
+]
+```
+
+---
+
+## Runtime Loop
+- After applying patches, update `todo_items` to remove fixed items.
+- Continue processing next batch until no items with priority >= threshold remain.
+
+---
+
+## Constraints
+- All outputs must be valid JSON (no free‑form text).
+- Do not ask the user for help unless a TODO is ambiguous; log ambiguous items separately under `ambiguous_items`.
+- Ensure commits are atomic and pass CI checks.
+
+---
+
+# Begin
+Produce the JSON `todo_items` list based on current TODO annotations.
