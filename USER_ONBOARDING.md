@@ -1,0 +1,102 @@
+# Dream.OS User Onboarding
+
+Welcome to the Dream.OS multi‑agent swarm control system! This guide will walk you through:
+
+1. Environment setup
+2. Configuration & credentials
+3. Running the ChatGPT WebAgent
+4. Running the SwarmController (Cursor fleet)
+5. Passing directives and commands
+
+---
+
+## 1. Prerequisites
+
+- Python 3.8+
+- Install dependencies:
+  ```bash
+  pip install -r requirements.txt
+  ```
+- A modern Chrome browser (for ChatGPT WebAgent)
+- Azure Storage account (optional for live C2)
+
+---
+
+## 2. Configuration & Credentials
+
+### ChatGPT WebAgent
+
+1. Create `dream_mode/config/dream_mode_config.json` with:
+   ```json
+   {
+     "agents": {
+       "agent1": {"conversation_url": "https://chat.openai.com/chat/..."}
+     }
+   }
+   ```
+2. Set environment variables for C2 channel:
+   ```bash
+   export AZURE_STORAGE_CONNECTION_STRING="<your-connection-string>"
+   export AZURE_SAS_TOKEN="<your-sas-token>"
+   export C2_CONTAINER="dream-os-c2"
+   ```
+3. (Optional) For local testing without Azure:
+   - The channel will use mocks if `azure-storage-blob` is not installed.
+
+---
+
+## 3. Running ChatGPT WebAgent
+
+This agent scrapes your ChatGPT conversation, parses tasks, and pushes them to the C2 channel.
+
+```bash
+python -m dream_mode.agents.chatgpt_web_agent
+```
+
+It will open a browser window, navigate to your ChatGPT conversation, and monitor for new replies.
+
+---
+
+## 4. Running SwarmController
+
+This controller launches a fleet of Cursor instances (visible UI) and headless workers.
+
+```bash
+python dream_mode/swarm_controller.py
+```
+
+Example with 5 agents:
+```bash
+python dream_mode/swarm_controller.py --fleet_size 5
+```
+
+It will tile visible Cursor windows, start background workers, and route tasks/results automatically.
+
+---
+
+## 5. Passing Directives
+
+1. **You**: Type a JSON‑structured prompt into ChatGPT, e.g.:
+   ```json
+   {
+     "task_id": "task-123",
+     "command": "analyze file core/gui/main_window.py and suggest improvements"
+   }
+   ```
+2. **WebAgent**: Scrapes new assistant replies, extracts `task_id` and `command`, and pushes them to Azure.
+3. **SwarmController**: Picks up tasks, fans out to Cursor agents, runs automation, and pushes results back.
+4. **WebAgent**: Pulls results and injects them back into ChatGPT as new messages.
+
+**Note**: Always include a unique `task_id` in your prompt JSON to track and avoid duplicates.
+
+---
+
+### Troubleshooting
+
+- Check logs in the console for errors.
+- Verify that `AZURE_STORAGE_*` env vars are set correctly.
+- Make sure your ChatGPT conversation URL is correct and that you are logged in.
+
+---
+
+Enjoy your autonomous Dream.OS swarm! 🚀 
