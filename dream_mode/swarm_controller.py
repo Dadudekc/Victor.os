@@ -34,6 +34,8 @@ class SwarmController:
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Stats logging hook for monitoring task metrics
         self.stats_hook = StatsLoggingHook(self.nexus)
+        # Start periodic stats auto-logging every 60 seconds
+        self._start_stats_autologger(interval=60)
         # Initialize C2 channel for results (Local only)
         self.channel = LocalBlobChannel()
         # Verify connectivity to Azure Blob channel
@@ -176,6 +178,19 @@ class SwarmController:
         logger.info("Shutting down SwarmController...")
         self._stop_event.set()
 
+    def _start_stats_autologger(self, interval: int = 60) -> None:
+        """Launch a background thread to log stats periodically."""
+        thread = threading.Thread(target=self._stats_loop, args=(interval,), daemon=True, name="StatsAutoLogger")
+        thread.start()
+
+    def _stats_loop(self, interval: int) -> None:
+        """Background loop that logs stats until stop event is set."""
+        while not self._stop_event.is_set():
+            try:
+                self.stats_hook.log_snapshot()
+            except Exception as e:
+                logger.error(f"Auto stats logging failed: {e}", exc_info=True)
+            time.sleep(interval)
 
 if __name__ == "__main__":
     # CLI: allow specifying Azure connection or SAS token
