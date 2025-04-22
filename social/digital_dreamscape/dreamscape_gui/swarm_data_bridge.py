@@ -1,6 +1,7 @@
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 from dream_mode.task_nexus.task_nexus import TaskNexus
 from dream_mode.local_blob_channel import LocalBlobChannel
+import time
 
 class SwarmDataBridge(QObject):
     # Signals to emit updated data
@@ -23,18 +24,29 @@ class SwarmDataBridge(QObject):
     @Slot()
     def _run(self):
         # Poll loop
-        import time
         while True:
             # Fetch and emit tasks
             tasks = self.nexus.get_all_tasks()
             self.tasks_updated.emit(tasks)
-            # TODO: implement agent status tracking
-            agents = []
-            self.agents_updated.emit(agents)
+            # Emit agent statuses based on heartbeats
+            raw_agents = self.nexus.get_all_registered_agents()
+            now = time.time()
+            agent_list = []
+            for name, last_hb in raw_agents.items():
+                delta = now - last_hb
+                if delta < 15:
+                    state = "active"
+                elif delta < 60:
+                    state = "idle"
+                else:
+                    state = "dead"
+                agent_list.append((name, state))
+            self.agents_updated.emit(agent_list)
             # Emit stats
             stats = dict(self.nexus.stats())
             self.stats_updated.emit(stats)
-            # TODO: collect new lore log entries
+            # Pull and emit recent lore entries (if any)
+            # For now, emit empty or placeholder
             lore = ""
             self.lore_updated.emit(lore)
             time.sleep(2)  # poll every 2s 

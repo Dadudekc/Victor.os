@@ -2,15 +2,22 @@ import os
 import json
 import threading
 from collections import Counter
+import time
+from typing import Dict
 
 class TaskNexus:
     def __init__(self, task_file="runtime/task_list.json"):
         # Path to the shared task list file
         self.task_file = task_file
-        # Lock to synchronize file writes
+        # Lock to synchronize file writes and agent registry
         self._lock = threading.Lock()
         # Load existing tasks or start with empty list
         self.tasks = self._load()
+        # Agent registry file
+        base_dir = os.path.dirname(self.task_file)
+        self.agent_file = os.path.join(base_dir, "agent_registry.json")
+        # Load existing agent heartbeats
+        self.agents: Dict[str, float] = self._load_agents()
 
     def _load(self):
         # Return list of tasks from file, or empty list if missing
@@ -27,6 +34,46 @@ class TaskNexus:
         # Write tasks to file
         with open(self.task_file, 'w', encoding='utf-8') as f:
             json.dump(self.tasks, f, indent=2)
+
+    def _load_agents(self) -> Dict[str, float]:
+        # Load agent heartbeat registry
+        if not os.path.exists(self.agent_file):
+            return {}
+        try:
+            with open(self.agent_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    def _save_agents(self) -> None:
+        # Ensure directory exists
+        dirpath = os.path.dirname(self.agent_file)
+        if dirpath and not os.path.exists(dirpath):
+            os.makedirs(dirpath, exist_ok=True)
+        # Write agent registry
+        with open(self.agent_file, 'w', encoding='utf-8') as f:
+            json.dump(self.agents, f, indent=2)
+
+    def record_heartbeat(self, agent_name: str, timestamp: float = None) -> None:
+        """
+        Record or update the heartbeat timestamp for the given agent.
+        """
+        if timestamp is None:
+            timestamp = time.time()
+        with self._lock:
+            # Reload agents to get latest state
+            self.agents = self._load_agents()
+            self.agents[agent_name] = timestamp
+            self._save_agents()
+
+    def get_all_registered_agents(self) -> Dict[str, float]:
+        """
+        Return a dict of agent names to last heartbeat timestamps.
+        """
+        with self._lock:
+            # Reload agents
+            self.agents = self._load_agents()
+            return dict(self.agents)
 
     def get_next_task(self, agent_id=None, type_filter=None):
         """
