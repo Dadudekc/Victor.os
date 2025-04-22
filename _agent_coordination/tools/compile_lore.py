@@ -54,6 +54,13 @@ def compile_lore(translation: dict, tasks: list, output_path: Path, template_tex
     # Build rendering context
     event_name = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     date_str = datetime.utcnow().strftime("%Y-%m-%d")
+    # Inject timestamp_created and result_summary for each task if absent
+    for task in tasks:
+        # Timestamp per task falls back to event time
+        task.setdefault('timestamp_created', event_name)
+        # Summary description if not provided
+        status = task.get('status', 'unknown')
+        task.setdefault('result_summary', f"Task processed with status: {status}")
     template = Template(template_text)
     content = template.render(
         event_name=event_name,

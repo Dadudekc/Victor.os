@@ -13,6 +13,7 @@ from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
 from dream_mode.task_nexus.task_nexus import TaskNexus
 from core.hooks.stats_logger import StatsLoggingHook
+from core.chat_engine.feedback_engine_v2 import FeedbackEngineV2
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s")
@@ -141,10 +142,28 @@ class SwarmController:
         Handle an incoming result from an agent.
         """
         logger.info(f"SwarmController received result: {result}")
+        # FeedbackEngineV2 analysis for archived failures
+        try:
+            fe = FeedbackEngineV2()
+            analyses = fe.analyze_failures()
+            # Save analysis per result id
+            feedback_dir = os.path.join("dream_logs", "feedback")
+            os.makedirs(feedback_dir, exist_ok=True)
+            output_file = os.path.join(feedback_dir, f"failure_analysis_{result.get('id','unknown')}.json")
+            fe.save_analysis(analyses, output_file=output_file)
+            logger.info(f"🔍 Feedback analysis saved for result: {result.get('id')}")
+        except Exception as e:
+            logger.error(f"Failed to run feedback analysis for result {result.get('id')}: {e}", exc_info=True)
         # Invoke lore compilation as a one-shot tool
         try:
+            # Auto-generate Devlog lore for the swarm
             script = os.path.join(os.getcwd(), "_agent_coordination/tools/compile_lore.py")
-            cmd = ["python", script, "--once", "--tasks", os.path.join(os.getcwd(), "runtime/task_list.json")]
+            cmd = [
+                "python", script,
+                "--style", "devlog",
+                "--translation", os.path.join(os.getcwd(), "dream_logs/config/dream_translation.yaml"),
+                "--tasks", os.path.join(os.getcwd(), "runtime/task_list.json")
+            ]
             subprocess.run(cmd, check=True)
             logger.info("Lore compiled successfully.")
         except Exception as e:
