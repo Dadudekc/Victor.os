@@ -1,0 +1,39 @@
+# dream_translation.yaml
+
+components:
+  AzureBlobChannel: Sky Archive
+  push_task: Cast into the Sky Archive
+  pull_tasks: Summon from the Sky Archive
+  push_result: Deliver an Echo Scroll
+  pull_results: Retrieve a Whispered Fragment
+  retries: Recursive Bladework
+  timeout: Echo Limit
+  healthcheck: Pulse of the Forge
+  blob: Fragment
+  task: Whispered Directive
+  test: Trial of Resonance
+  agent: Shadow Disciple
+  overmind: The Architect's Will
+  dispatcher: Herald of Fate
+  result: Echo Scroll
+
+states:
+  idle: Awaiting the Whisper
+  busy: Walking the Hollow Path
+  success: Resonated True
+  failure: Blade Rejected
+
+actions:
+  save_file: Seal into the Scroll Vault
+  execute_task: Fulfill the Directive
+  send_prompt: Deliver the Glyph
+
+locations:
+  agents/agent-001: Hollow Path — Disciple One
+  dream_mode/azure_blob_channel.py: Sky Archive Control Glyph
+  dream_logs/lore/: Lore Vault
+
+narrative_tone:
+  style: "mythic cyberpunk"
+  voice: "omniscient narrator"
+  cadence: "sparse, sharp, evocative" 
