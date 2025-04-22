@@ -6,6 +6,8 @@ import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+import json
+from pathlib import Path
 
 logger = logging.getLogger("BrowserUtils")
 _driver = None
@@ -35,6 +37,23 @@ def launch_browser(headless=False):
         logger.info("🚀 Launching new browser instance...")
         _driver = uc.Chrome(options=options)
         logger.info("✅ Browser launched.")
+        # Attempt to load ChatGPT cookies for automated login
+        try:
+            project_root = Path(__file__).parent.parent.parent
+            cookies_path = project_root / "chatgpt_cookies.json"
+            if cookies_path.exists():
+                _driver.get("https://chat.openai.com")
+                time.sleep(2)
+                cookies = json.loads(cookies_path.read_text(encoding='utf-8'))
+                for c in cookies:
+                    # Only include supported fields
+                    cookie_dict = {k: c[k] for k in ("name","value","domain","path") if k in c}
+                    _driver.add_cookie(cookie_dict)
+                logger.info("🔐 Loaded ChatGPT cookies for session.")
+            else:
+                logger.debug("No chatgpt_cookies.json found; skipping cookie injection.")
+        except Exception as ce:
+            logger.warning(f"Failed to load ChatGPT cookies: {ce}")
         return _driver
     except Exception as e:
         logger.error(f"❌ Failed to launch browser: {e}", exc_info=True)
