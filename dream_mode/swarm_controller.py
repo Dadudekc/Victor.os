@@ -5,6 +5,8 @@ import logging
 import subprocess
 import argparse
 from typing import Any, Dict, List
+from pathlib import Path
+import json
 
 # Azure C2 channel logic commented out - using LocalBlobChannel only
 AzureBlobChannel = None
@@ -156,6 +158,23 @@ class SwarmController:
             logger.info(f"🔍 Feedback analysis saved for result: {result.get('id')}")
         except Exception as e:
             logger.error(f"Failed to run feedback analysis for result {result.get('id')}: {e}", exc_info=True)
+        # Persist modified_files and log_tail into runtime/task_list.json for lore compilation
+        try:
+            task_list_path = Path('runtime/task_list.json')
+            tasks_data = json.loads(task_list_path.read_text(encoding='utf-8'))
+            for t in tasks_data:
+                if t.get('id') == result.get('id'):
+                    payload = t.setdefault('payload', {})
+                    # modified_files from result metadata
+                    payload['modified_files'] = result.get('modified_files', [])
+                    # log_tail from result stdout
+                    stdout = result.get('stdout', '')
+                    if isinstance(stdout, str):
+                        lines = stdout.strip().splitlines()
+                        payload['log_tail'] = '\n'.join(lines[-10:])
+            task_list_path.write_text(json.dumps(tasks_data, indent=2), encoding='utf-8')
+        except Exception:
+            pass
         # Invoke lore compilation as a one-shot tool
         try:
             # Auto-generate Devlog lore for the swarm
