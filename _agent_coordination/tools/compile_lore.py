@@ -22,7 +22,7 @@ LORE_TEMPLATE = """
 **Channel:** {{ translation.get('AzureBlobChannel', 'AzureBlobChannel') }}
 
 {%- for t in tasks %}
-- On {{ t.get('timestamp_created', 'unknown time') }}, the {{ translation.get('agent', 'Agent') }} performed '{{ t.get('task_type', 'action') }}', description: "{{ t.get('payload', {}).get('description', '') }}", narrative: "{{ translation.get(t.get('task_type'), t.get('task_type')) }}".
+- On {{ t.get('timestamp_created', 'unknown time') }}, the {{ translation.get('agent', 'Agent') }} performed '{{ t.get('task_type', 'task') }}', description: "{{ t.get('payload', {}).get('description', '') }}", narrative: "{{ translation.get(t.get('task_type', 'task'), translation.get('task', '')) }}".
 {%- endfor %}
 """
 
@@ -38,6 +38,11 @@ def load_tasks(path: Path) -> list:
 
 def compile_lore(translation: dict, tasks: list, output_path: Path, template_text: str, verbose: bool):
     """Render lore and write to output_path."""
+    # Normalize task payloads: wrap non-dict payloads into {'description': payload}
+    for task in tasks:
+        pl = task.get('payload')
+        if not isinstance(pl, dict):
+            task['payload'] = {'description': pl}
     event_name = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     template = Template(template_text)
     content = template.render(
