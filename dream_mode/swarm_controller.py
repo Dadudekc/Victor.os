@@ -7,6 +7,7 @@ import argparse
 from typing import Any, Dict, List
 from pathlib import Path
 import json
+from datetime import datetime  # for heartbeat timestamp
 
 # Azure C2 channel logic commented out - using LocalBlobChannel only
 AzureBlobChannel = None
@@ -30,14 +31,18 @@ class SwarmController:
         container_name: str = "dream-os-c2",
         sas_token: str = None,
         connection_string: str = None,
+        stats_interval: int = None,
     ):
         self.fleet_size = fleet_size
+        # Determine stats interval (CLI args override env)
+        if stats_interval is None:
+            stats_interval = int(os.getenv("STATS_INTERVAL", "60"))
         # Initialize TaskNexus for central task management
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Stats logging hook for monitoring task metrics
         self.stats_hook = StatsLoggingHook(self.nexus)
-        # Start periodic stats auto-logging every 60 seconds
-        self._start_stats_autologger(interval=60)
+        # Start periodic stats auto-logging
+        self._start_stats_autologger(interval=stats_interval)
         # Initialize C2 channel for results (Local only)
         self.channel = LocalBlobChannel()
         # Verify connectivity to Azure Blob channel
@@ -107,6 +112,11 @@ class SwarmController:
             logger.info("Proceeding without headless setup")
 
         while not self._stop_event.is_set():
+            # Record heartbeat for this worker agent
+            try:
+                self.nexus.record_heartbeat(threading.current_thread().name)
+            except Exception as e:
+                logger.warning(f"Failed to record heartbeat for {threading.current_thread().name}: {e}")
             # Claim the next pending task from TaskNexus
             task = self.nexus.get_next_task(agent_id=threading.current_thread().name)
             if task:
@@ -207,6 +217,8 @@ class SwarmController:
         while not self._stop_event.is_set():
             try:
                 self.stats_hook.log_snapshot()
+                # Console heartbeat for manual monitoring
+                print(f"📊 Stats snapshot at {datetime.utcnow().isoformat()} UTC")
             except Exception as e:
                 logger.error(f"Auto stats logging failed: {e}", exc_info=True)
             time.sleep(interval)
@@ -218,6 +230,7 @@ if __name__ == "__main__":
     parser.add_argument("--sas-token", dest="sas_token", help="Azure SAS token")
     parser.add_argument("--container-name", dest="container_name", default="dream-os-c2", help="Azure Blob container name")
     parser.add_argument("--fleet-size", dest="fleet_size", type=int, default=2, help="Number of Cursor agents in the swarm")
+    parser.add_argument("--stats-interval", dest="stats_interval", type=int, help="Seconds between automatic stats snapshots (overrides STATS_INTERVAL env)")
     args = parser.parse_args()
 
     # Resolve credentials: CLI flags or environment
@@ -232,7 +245,8 @@ if __name__ == "__main__":
         fleet_size=args.fleet_size,
         container_name=args.container_name,
         connection_string=conn_str,
-        sas_token=sas_tok
+        sas_token=sas_tok,
+        stats_interval=args.stats_interval
     )
     # Default demo task if none provided
     initial_tasks = [{"id": "demo-1", "payload": "hello swarm"}]

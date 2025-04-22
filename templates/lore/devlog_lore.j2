@@ -2,11 +2,12 @@
 
 {% for task in tasks %}
 ## 🧩 Task #{{ loop.index }} — {{ task.title or "Untitled Task" }}
-- 📅 Time: {{ task.timestamp_created or "unknown time" }}
-- ⚙️ Agent: {{ task.agent or "Unknown" }}
-- 📚 Directive: {{ task.description | default("No description provided.") }}
-- 🗂️ Target Files: {% if task.target_files %}{{ task.target_files | join(", ") }}{% else %}N/A{% endif %}
-- 🔄 Status: {{ task.status or "unknown" }}
+- 📅 Time: {{ task.timestamp_created }}
+- ⚙️ Agent: {{ task.agent }}
+- 📚 Directive: {{ task.description }}
+- 🗂️ Target Files: {{ task.target_files | join(", ") if task.target_files else "N/A" }}
+- 🔁 Commit: {{ task.commit_hash }}
+- 🔄 Status: {{ task.status }}
 
 {% if task.result_summary %}
 ### ✅ Result Summary
