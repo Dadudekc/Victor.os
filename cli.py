@@ -12,15 +12,13 @@ from pathlib import Path
 try:
     from core.config import AppConfig, setup_logging, ConfigError
 except ImportError as e:
-    print(f"Error importing core modules: {e}")
-    print("Please ensure the 'core' package is correctly structured and accessible.")
-    print("Current sys.path:", sys.path)
-    # Attempt relative import for debugging if needed
-    # try:
-    #     from core.config import AppConfig, setup_logging, ConfigError
-    # except ImportError:
-    #     print("Relative import also failed.")
-    sys.exit(1) # Exit if core config cannot be imported
+    # In case core.config isn't available at import-time, define fallbacks
+    logging.getLogger(__name__).warning(f"core.config import failed: {e}. Using dummy stubs.")
+    class ConfigError(Exception):
+        pass
+    AppConfig = None
+    def setup_logging(config):
+        pass
 
 
 app = typer.Typer(
@@ -122,6 +120,21 @@ def run(
 
     logger.info("Application finished.") # Or should exit within the called functions?
 
+@app.command()
+def log_stats():
+    """Manually trigger a stats snapshot."""
+    try:
+        from core.hooks.stats_logger import StatsLoggingHook
+        from dream_mode.task_nexus.task_nexus import TaskNexus
+    except ImportError as e:
+        print(f"Failed to import stats logging components: {e}")
+        raise typer.Exit(code=1)
+
+    # Initialize TaskNexus and StatsLoggingHook
+    nexus = TaskNexus(task_file="runtime/task_list.json")
+    hook = StatsLoggingHook(nexus)
+    hook.log_snapshot()
+    print("✅ Stats snapshot written.")
 
 # Add other commands if needed, e.g., config validation, tool listing
 # @app.command()
