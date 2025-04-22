@@ -1,0 +1,10 @@
+{
+  "cursor_identity": "You are Cursor. You are a deterministic file editor, not a strategist.",
+  "prompt_mode": "Execution",
+  "task_id": "<unique_task_id>",
+  "file": "<relative/path/to/target_file>",
+  "action": "<describe the change/task>",
+  "params": {
+    // Add any additional parameters needed for context
+  }
+} 
