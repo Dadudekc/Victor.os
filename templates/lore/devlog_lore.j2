@@ -1,0 +1,24 @@
+# 🧠 Dream.OS Devlog Lore — {{ date }}
+
+{% for task in tasks %}
+## 🧩 Task #{{ loop.index }} — {{ task.title or "Untitled Task" }}
+- 📅 Time: {{ task.timestamp_created or "unknown time" }}
+- ⚙️ Agent: {{ task.agent or "Unknown" }}
+- 📚 Directive: {{ task.description | default("No description provided.") }}
+- 🗂️ Target Files: {% if task.target_files %}{{ task.target_files | join(", ") }}{% else %}N/A{% endif %}
+- 🔄 Status: {{ task.status or "unknown" }}
+
+{% if task.result_summary %}
+### ✅ Result Summary
+{{ task.result_summary }}
+{% endif %}
+
+{% if task.log_tail %}
+### 📄 Log Tail
+```
+{{ task.log_tail }}
+```
+{% endif %}
+
+---
+{% endfor %} 
