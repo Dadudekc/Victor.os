@@ -37,16 +37,27 @@ def load_tasks(path: Path) -> list:
         return json.load(f)
 
 def compile_lore(translation: dict, tasks: list, output_path: Path, template_text: str, verbose: bool):
-    """Render lore and write to output_path."""
+    """Render lore with style template and write to output_path."""
     # Normalize task payloads: wrap non-dict payloads into {'description': payload}
     for task in tasks:
         pl = task.get('payload')
         if not isinstance(pl, dict):
             task['payload'] = {'description': pl}
+        # Extract description into top-level key for templates expecting task.description
+        desc = task['payload'].get('description')
+        task.setdefault('description', desc)
+        # Map agent identity
+        agent_id = task.get('payload', {}).get('agent_id') or task.get('claimed_by')
+        task.setdefault('agent', agent_id)
+        # Expose status
+        task.setdefault('status', task.get('status'))
+    # Build rendering context
     event_name = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    date_str = datetime.utcnow().strftime("%Y-%m-%d")
     template = Template(template_text)
     content = template.render(
         event_name=event_name,
+        date=date_str,
         tasks=tasks,
         translation=translation.get('components', {}),
     )
@@ -67,6 +78,7 @@ def main():
     parser.add_argument("--output", type=Path,
                         default=DEFAULT_OUTPUT_DIR / f"{datetime.utcnow():%Y-%m-%d_%H-%M-%S}_lore.md",
                         help="Destination markdown file for lore")
+    parser.add_argument("--style", type=str, default="default", help="Lore style to use (default or devlog)")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     # Allow legacy flags like --once to be ignored
     args, _ = parser.parse_known_args()
@@ -76,15 +88,23 @@ def main():
     # Load tasks
     tasks = load_tasks(args.tasks)
 
-    # Load template
+    # Load template (explicit template override > style > default)
     if args.template:
         if args.verbose:
-            print(f"Loading template from {args.template}")
+            print(f"Loading custom template from {args.template}")
         template_text = args.template.read_text(encoding='utf-8')
+    elif args.style and args.style != "default":
+        style_path = Path("templates/lore") / f"{args.style}_lore.j2"
+        if not style_path.exists():
+            raise FileNotFoundError(f"Lore template for style '{args.style}' not found at {style_path}")
+        if args.verbose:
+            print(f"Loading style template from {style_path}")
+        template_text = style_path.read_text(encoding='utf-8')
     else:
-        template_text = LORE_TEMPLATE
         if args.verbose:
             print("Using default lore template")
+        template_text = LORE_TEMPLATE
+
     # Compile lore
     compile_lore(translation, tasks, args.output, template_text, args.verbose)
 

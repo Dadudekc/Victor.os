@@ -12,6 +12,7 @@ from dream_mode.local_blob_channel import LocalBlobChannel
 from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_windows, assign_windows_to_monitors
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
 from dream_mode.task_nexus.task_nexus import TaskNexus
+from core.hooks.stats_logger import StatsLoggingHook
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s")
@@ -30,6 +31,8 @@ class SwarmController:
         self.fleet_size = fleet_size
         # Initialize TaskNexus for central task management
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
+        # Stats logging hook for monitoring task metrics
+        self.stats_hook = StatsLoggingHook(self.nexus)
         # Initialize C2 channel for results (Local only)
         self.channel = LocalBlobChannel()
         # Verify connectivity to Azure Blob channel
@@ -109,6 +112,11 @@ class SwarmController:
                 logger.info(f"Worker pushed result: {result}")
                 # Mark task as completed in TaskNexus
                 self.nexus.update_task_status(task.get("id"), "completed")
+                # Log stats snapshot after task completion
+                try:
+                    self.stats_hook.log_snapshot()
+                except Exception as se:
+                    logger.error(f"Failed to log stats snapshot: {se}", exc_info=True)
             else:
                 time.sleep(2)
 
