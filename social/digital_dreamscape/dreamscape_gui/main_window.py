@@ -13,6 +13,10 @@ try:
     from dreamscape_generator.story_generator import StoryGenerator
     # Import GUI tabs
     from .dreamscape_tab import DreamscapeTabWidget
+    from .swarm_dashboard_tab import SwarmDashboardTab
+    from .swarm_data_bridge import SwarmDataBridge
+    from dream_mode.task_nexus.task_nexus import TaskNexus
+    from dream_mode.local_blob_channel import LocalBlobChannel
 except ImportError as e:
     print(f"Error: Failed to import dreamscape_generator components: {e}", file=sys.stderr)
     print("Please ensure dreamscape_generator is installed or PYTHONPATH is set correctly.", file=sys.stderr)
@@ -69,7 +73,7 @@ class MainWindow(QMainWindow):
 
         # Initialize and add tabs
         # Pass necessary backend components to the tabs
-        self.dreamscape_tab = DreamscapeTabWidget(scraper=self.scraper) # Pass scraper for chat list
+        self.dreamscape_tab = DreamscapeTabWidget(scraper=self.scraper)
         # self.prompt_execution_tab = QWidget() # Placeholder
         # self.discord_tab = QWidget() # Placeholder
         # self.aide_tab = QWidget() # Placeholder
@@ -80,6 +84,16 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.dreamscape_tab, "Dreamscape")
         # self.tab_widget.addTab(self.prompt_execution_tab, "Prompt Execution")
         # Add other tabs here...
+
+        # -------- Swarm Dashboard --------
+        # Initialize TaskNexus and Channel
+        self.nexus = TaskNexus(task_file="runtime/task_list.json")
+        self.channel = LocalBlobChannel()
+        # Start data bridge to emit live swarm data
+        self.swarm_data_bridge = SwarmDataBridge(nexus=self.nexus, channel=self.channel)
+        # Create dashboard tab and add it
+        self.swarm_dashboard_tab = SwarmDashboardTab(self.nexus, self.channel)
+        self.tab_widget.addTab(self.swarm_dashboard_tab, "Swarm Dashboard")
 
         # TODO: Add bottom status bar, buttons etc. if needed
 
