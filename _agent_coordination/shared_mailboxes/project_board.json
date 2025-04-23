@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2025-04-22T20:00:00Z", 
+  "last_updated": "2025-04-22T20:07:00Z", 
   "project_goals": [
     {
       "goal_id": "G001",
@@ -93,7 +93,12 @@
     {
       "agent_id": "agent_003",
       "status": "online",
-      "last_seen": "2025-04-22T20:00:00Z"
+      "last_seen": "2025-04-22T20:04:00Z"
+    },
+    {
+      "agent_id": "agent_002",
+      "status": "idle",
+      "last_seen": "2025-04-22T20:07:00Z"
     }
   ]
 } 
