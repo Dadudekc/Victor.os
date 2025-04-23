@@ -1,7 +1,7 @@
 {
-  "status": "offline",
-  "assigned_agent_id": null,
-  "last_seen_utc": null,
+  "status": "online",
+  "assigned_agent_id": "agent_003",
+  "last_seen_utc": "2025-04-22T20:00:00Z",
   "messages": [],
   "processed_message_ids": []
 }
