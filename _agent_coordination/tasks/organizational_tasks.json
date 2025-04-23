@@ -1,0 +1,42 @@
+[
+  {
+    "task_id": "remove_archive_folder_001",
+    "status": "PENDING",
+    "task_type": "cleanup",
+    "action": "Remove the legacy `_archive` directory from the repository",
+    "params": { "path": "_archive" },
+    "priority": 1
+  },
+  {
+    "task_id": "remove_venv_dirs_002",
+    "status": "PENDING",
+    "task_type": "cleanup",
+    "action": "Delete embedded virtual environment directories (e.g., `venv_qt_test`)",
+    "params": { "paths": ["social/digital_dreamscape/venv_qt_test", "_agent_coordination/.venv"] },
+    "priority": 1
+  },
+  {
+    "task_id": "remove_empty_gitkeeps_003",
+    "status": "PENDING",
+    "task_type": "cleanup",
+    "action": "Remove unnecessary `.gitkeep` placeholder files unless needed for empty directories",
+    "params": { "pattern": ".gitkeep" },
+    "priority": 2
+  },
+  {
+    "task_id": "consolidate_docs_004",
+    "status": "PENDING",
+    "task_type": "refactor",
+    "action": "Move scattered documentation files into a central `docs/` folder",
+    "params": { "source_paths": ["project_board.md", "USER_ONBOARDING.md", "_agent_coordination/docs"], "target_dir": "docs" },
+    "priority": 2
+  },
+  {
+    "task_id": "flatten_tasks_dir_005",
+    "status": "PENDING",
+    "task_type": "refactor",
+    "action": "Consolidate all JSON task files in `_agent_coordination/tasks` into a single master task list",
+    "params": { "source_dir": "_agent_coordination/tasks", "output_file": "_agent_coordination/tasks/master_task_list.json" },
+    "priority": 1
+  }
+] 
