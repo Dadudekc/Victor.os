@@ -146,6 +146,19 @@ class CursorControlAgent:
                 else:
                     response_payload["error"] = "Missing 'query' parameter for FIND_ELEMENT."
                     status = "BAD_REQUEST"
+            elif action == "GENERATE_CODE":
+                target_file = params.get("target_file")
+                temp_file = params.get("temp_file_path")
+                if not target_file or not temp_file:
+                    response_payload["error"] = "Missing 'target_file' or 'temp_file_path' parameter for GENERATE_CODE."
+                    status = "BAD_REQUEST"
+                else:
+                    code_applicator_path = os.path.abspath(os.path.join(os.getcwd(), "tools", "code_applicator.py"))
+                    cmd = f"python {code_applicator_path} --input {temp_file} --target {target_file}"
+                    success = self.coordinator.run_terminal_command(cmd, wait=True)
+                    response_payload["command_executed"] = cmd
+                    response_payload["success"] = success
+                    status = "SUCCESS" if success else "FAILED"
             # Add more actions here...
             # elif action == "INSERT_TEXT": ...
             # elif action == "FIND_ELEMENT": ...

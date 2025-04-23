@@ -1,7 +1,7 @@
 {
-  "status": "online",
-  "assigned_agent_id": 2,
-  "last_seen_utc": "2025-04-22T19:45:00Z",
+  "status": "idle",
+  "assigned_agent_id": "agent_002",
+  "last_seen_utc": "2025-04-22T20:10:00Z",
   "messages": [],
-  "processed_message_ids": ["build_feedback_mailbox_writer_001"]
+  "processed_message_ids": ["dsc-chronicle-init-001", "enable_code_apply_in_cursor_agent_001"]
 }
