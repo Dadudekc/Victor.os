@@ -1,7 +1,14 @@
 {
-  "status": "offline",
-  "assigned_agent_id": null,
-  "last_seen_utc": null,
-  "messages": [],
+  "status": "online",
+  "assigned_agent_id": 4,
+  "last_seen_utc": "2025-04-22T19:45:00Z",
+  "messages": [
+    {
+      "type": "task_assignment",
+      "task_id": "infra_build_code_applicator_001",
+      "timestamp": "2025-04-22T19:45:00Z",
+      "content": "New task assigned: infra_build_code_applicator_001"
+    }
+  ],
   "processed_message_ids": []
 }

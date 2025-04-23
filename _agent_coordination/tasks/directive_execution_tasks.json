@@ -3,7 +3,9 @@
     "task_id": "core_loop_001",
     "phase": "Core Loop Autonomy",
     "task": "Create SupervisorOria agent to monitor agents, retry, and trigger idle recovery",
-    "agent": "Thea"
+    "agent": "Thea",
+    "status": "CLAIMED",
+    "claimed_by": "agent_004"
   },
   {
     "task_id": "core_loop_002",
