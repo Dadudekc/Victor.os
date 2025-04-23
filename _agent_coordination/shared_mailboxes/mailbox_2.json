@@ -1,7 +1,7 @@
 {
-  "status": "offline",
-  "assigned_agent_id": null,
-  "last_seen_utc": null,
+  "status": "online",
+  "assigned_agent_id": 2,
+  "last_seen_utc": "2025-04-22T19:45:00Z",
   "messages": [],
-  "processed_message_ids": []
+  "processed_message_ids": ["build_feedback_mailbox_writer_001"]
 }
