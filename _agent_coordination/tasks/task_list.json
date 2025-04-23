@@ -47,7 +47,8 @@
   },
   {
     "task_id": "infra_build_code_applicator_001",
-    "status": "PENDING",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
     "task_type": "develop_tool",
     "action": "Build tools/code_applicator.py tool.",
     "params": {
