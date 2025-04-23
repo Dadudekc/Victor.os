@@ -2,6 +2,11 @@ from PySide6.QtCore import QObject, QThread, Signal, Slot
 from dream_mode.task_nexus.task_nexus import TaskNexus
 from dream_mode.local_blob_channel import LocalBlobChannel
 import time
+import os
+import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SwarmDataBridge(QObject):
     # Signals to emit updated data
@@ -45,6 +50,14 @@ class SwarmDataBridge(QObject):
             # Emit stats
             stats = dict(self.nexus.stats())
             self.stats_updated.emit(stats)
+            # Write per-agent metrics to runtime/agent_stats.json
+            try:
+                stats_path = os.path.join(os.getcwd(), 'runtime', 'agent_stats.json')
+                os.makedirs(os.path.dirname(stats_path), exist_ok=True)
+                with open(stats_path, 'w', encoding='utf-8') as sf:
+                    json.dump(stats, sf, indent=2)
+            except Exception as e:
+                logger.error(f"Failed to write agent stats file: {e}")
             # Pull and emit recent lore entries (if any)
             # For now, emit empty or placeholder
             lore = ""

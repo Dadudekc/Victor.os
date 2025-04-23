@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2025-04-22T20:11:30Z", 
+  "last_updated": "2025-04-22T21:05:00Z", 
   "project_goals": [
     {
       "goal_id": "G001",
@@ -92,18 +92,19 @@
   "agents": [
     {
       "agent_id": "agent_003",
-      "status": "online",
-      "last_seen": "2025-04-22T20:10:00Z"
+      "status": "busy",
+      "last_seen": "2025-04-22T20:04:00Z"
     },
     {
       "agent_id": "agent_002",
-      "status": "idle",
-      "last_seen": "2025-04-22T20:11:30Z"
+      "status": "busy",
+      "last_seen": "2025-04-22T21:30:00Z",
+      "current_task": "build_feedback_mailbox_writer_001"
     },
     {
-      "agent_id": "agent_005",
-      "status": "online",
-      "last_seen": "2025-04-22T20:15:00Z"
+      "agent_id": "agent_004",
+      "status": "busy",
+      "last_seen": "2025-04-22T21:05:00Z"
     }
   ]
 } 

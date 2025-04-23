@@ -1,60 +1,70 @@
 [
   {
     "task_id": "core_loop_001",
-    "status": "CLAIMED",
-    "claimed_by": "agent_002",
+    "status": "COMPLETED",
+    "claimed_by": "agent_004",
+    "completed_by": "agent_004",
     "phase": "Core Loop Autonomy",
     "task": "Create SupervisorOria agent to monitor agents, retry, and trigger idle recovery",
     "agent": "Thea"
   },
   {
     "task_id": "core_loop_002",
+    "status": "CLAIMED",
+    "claimed_by": "agent_002",
     "phase": "Core Loop Autonomy",
     "task": "Implement heartbeat TTL tracking in TaskNexus",
     "agent": "Cursor",
-    "status": "PENDING"
+    "completed_by": "agent_002"
   },
   {
     "task_id": "core_loop_003",
+    "status": "CLAIMED",
+    "claimed_by": "agent_002",
     "phase": "Core Loop Autonomy",
     "task": "Auto-trigger Thea when Nexus is idle or agents are stalled",
-    "agent": "Oria",
-    "status": "PENDING"
+    "agent": "Oria"
   },
   {
     "task_id": "core_loop_004",
+    "status": "COMPLETED",
+    "completed_by": "agent_004",
     "phase": "Core Loop Autonomy",
     "task": "Build feedback monitor to reroute or retry failed tasks",
-    "agent": "Oria",
-    "status": "PENDING"
+    "agent": "Oria"
   },
   {
     "task_id": "core_loop_005",
+    "status": "PENDING",
     "phase": "Core Loop Autonomy",
     "task": "Inject Thea tasks directly into Nexus or BlobChannel",
-    "agent": "Thea",
-    "status": "PENDING"
+    "agent": "Thea"
   },
   {
     "task_id": "fleet_006",
     "phase": "Cursor Fleet",
     "task": "Spin up 8 isolated Cursor agents (threads or containers)",
     "agent": "Oria",
-    "status": "PENDING"
+    "status": "CLAIMED",
+    "claimed_by": "agent_002"
   },
   {
     "task_id": "fleet_007",
+    "status": "COMPLETED",
+    "claimed_by": "agent_004",
+    "completed_by": "agent_004",
     "phase": "Cursor Fleet",
     "task": "Bind each Cursor instance to claim from Nexus",
-    "agent": "Cursor",
-    "status": "PENDING"
+    "agent": "Cursor"
   },
   {
     "task_id": "fleet_008",
     "phase": "Cursor Fleet",
     "task": "Add agent ID metadata to each task they complete",
     "agent": "Nexus",
-    "status": "PENDING"
+    "status": "COMPLETED",
+    "claimed_by": "agent_004",
+    "completed_by": "agent_004"
   },
   {
     "task_id": "fleet_009",
