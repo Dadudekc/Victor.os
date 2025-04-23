@@ -92,12 +92,12 @@
   "agents": [
     {
       "agent_id": "agent_003",
-      "status": "online",
+      "status": "idle",
       "last_seen": "2025-04-22T20:04:00Z"
     },
     {
       "agent_id": "agent_002",
-      "status": "idle",
+      "status": "online",
       "last_seen": "2025-04-22T20:07:00Z"
     }
   ]

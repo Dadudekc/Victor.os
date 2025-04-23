@@ -86,9 +86,8 @@
   {
     "task_id": "dsc-chronicle-init-001",
     "title": "Create Dreamscape Chronicle System",
-    "description": "Design and implement the Dreamscape Chronicle system—a narrative overlay that translates real agent activity, task progression, and system events into a structured, lore-driven chronicle. The Chronicle will draw from agent logs, task metadata, and feedback loops to create dynamic Markdown-based entries or blog-like artifacts.",
+    "description": "Design and implement the Dreamscape Chronicle system—a narrative overlay that translates real agent activity, task progression, and system events into a structured, lore-driven chronicle.",
     "status": "IN_PROGRESS",
-    "claimed_by": "agent_002",
     "priority": "medium",
     "type": "artifact_creation",
     "realm": "Narrative Generation",
@@ -100,6 +99,7 @@
       "Generated output saved to `Dreamscape_Chronicle.md` or equivalent location.",
       "At least one test case where an agent completes a task and a chronicle entry is created from it."
     ],
-    "owner": "SystemOrchestrator"
+    "owner": "SystemOrchestrator",
+    "claimed_by": "agent_002"
   }
 ]
