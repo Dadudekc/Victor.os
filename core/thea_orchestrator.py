@@ -81,6 +81,29 @@ class TheaOrchestrator:
             print("[THEA] Failed to parse JSON.")
         self.driver.quit()
 
+    def run_loop(self, poll_interval: int = 60):
+        """
+        Continuously dispatch directives and add resulting tasks to Nexus at intervals.
+        """
+        try:
+            while True:
+                if not self.dispatch_directive():
+                    break
+                result = self.extract_json_from_response()
+                if result:
+                    parsed = json.loads(result)
+                    # Inject into TaskNexus for centralized tracking
+                    self.nexus.add_task(parsed)
+                    # Backup to file
+                    TASK_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+                    TASK_OUTPUT_PATH.write_text(json.dumps(parsed, indent=2))
+                    print(f"[THEA] Task written to {TASK_OUTPUT_PATH}")
+                else:
+                    print("[THEA] Failed to parse JSON.")
+                time.sleep(poll_interval)
+        finally:
+            self.driver.quit()
+
     def list_history(self) -> list[dict]:
         """
         Return all tasks from runtime TaskNexus.
@@ -89,6 +112,9 @@ class TheaOrchestrator:
 
 # 🔁 Entry point for standalone use
 if __name__ == "__main__":
-    directive = input("🧠 Enter your directive for Thea: ")
-    orchestrator = TheaOrchestrator(directive)
-    orchestrator.run() 
+    while True:
+        directive = input("🧠 Enter your directive for Thea (or 'exit' to quit): ")
+        if directive.lower() in ('exit', 'quit'):
+            break
+        orchestrator = TheaOrchestrator(directive)
+        orchestrator.run_loop() 

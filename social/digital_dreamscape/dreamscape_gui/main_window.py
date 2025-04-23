@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget, QMessageBox
 from PySide6.QtCore import QThread, Signal
 
 # Assuming dreamscape_generator is importable
@@ -11,6 +11,7 @@ try:
     from dreamscape_generator.core.MemoryManager import MemoryManager
     from dreamscape_generator.chatgpt_scraper import ChatGPTScraper # Needed for chat list
     from dreamscape_generator.story_generator import StoryGenerator
+    from dreamscape_generator.core.UnifiedDriverManager import UnifiedDriverManager
     # Import GUI tabs
     from .dreamscape_tab import DreamscapeTabWidget
     from .swarm_dashboard_tab import SwarmDashboardTab
@@ -33,19 +34,24 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800) # Adjust size as needed
 
         # --- Initialize Backend Components ---
-        # Handle potential errors during initialization
         try:
             logger.info("Initializing backend components...")
-            # Ensure necessary directories exist (config might do this, but double-check)
+            # Ensure necessary directories exist
             os.makedirs(project_config.EPISODE_DIR, exist_ok=True)
-            os.makedirs(project_config.MEMORY_DIR, exist_ok=True) # If MemoryManager uses it
+            os.makedirs(project_config.MEMORY_DIR, exist_ok=True)
 
-            # TODO: Add error handling for missing API keys or failed initializations
-            self.memory_manager = MemoryManager() # Uses default path from config
-            self.scraper = ChatGPTScraper(
-                profile_path=project_config.SELENIUM_PROFILE_PATH,
-                user_data_dir=project_config.SELENIUM_USER_DATA_DIR
-            )
+            # Error handling for missing API keys and initialization failures
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                logger.error('Missing OPENAI_API_KEY environment variable')
+                QMessageBox.warning(self, 'Missing API Key', 'OPENAI_API_KEY not set. Some features may not work.')
+            try:
+                self.memory_manager = MemoryManager()
+                manager = UnifiedDriverManager(headless=False)
+                self.scraper = ChatGPTScraper(manager)
+            except Exception as e:
+                logger.error(f'Failed to initialize backend components: {e}', exc_info=True)
+                QMessageBox.critical(self, 'Initialization Error', f'Failed to initialize backend components: {e}')
             # TODO: Initialize ContextManager, ExperienceParser, DiscordManager later
             # self.context_manager = ContextManager(...)
             # self.experience_parser = ExperienceParser()
@@ -92,7 +98,7 @@ class MainWindow(QMainWindow):
         # Start data bridge to emit live swarm data
         self.swarm_data_bridge = SwarmDataBridge(nexus=self.nexus, channel=self.channel)
         # Create dashboard tab and add it
-        self.swarm_dashboard_tab = SwarmDashboardTab(self.nexus, self.channel)
+        self.swarm_dashboard_tab = SwarmDashboardTab(self.nexus, self.channel, self.swarm_data_bridge)
         self.tab_widget.addTab(self.swarm_dashboard_tab, "Swarm Dashboard")
 
         # TODO: Add bottom status bar, buttons etc. if needed

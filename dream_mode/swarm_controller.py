@@ -122,7 +122,12 @@ class SwarmController:
             if task:
                 logger.info(f"Worker received task: {task}")
                 # Simulate work: echo back with a timestamp
-                result = {"echo": task, "processed_at": time.time()}
+                result = {
+                    "task_id": task.get("id"),
+                    "agent_id": threading.current_thread().name,
+                    "echo": task,
+                    "processed_at": time.time()
+                }
                 self.channel.push_result(result)
                 logger.info(f"Worker pushed result: {result}")
                 # Mark task as completed in TaskNexus

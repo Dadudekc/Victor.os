@@ -7,6 +7,8 @@ import tempfile
 import logging
 import threading
 from typing import Optional, Dict, Any, List
+import errno
+import stat
 
 import undetected_chromedriver as uc
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -288,7 +290,7 @@ class UnifiedDriverManager:
             if self.temp_profile and os.path.exists(self.temp_profile):
                 logger.info(f"Cleaning up temp profile: {self.temp_profile}")
                 try:
-                    shutil.rmtree(self.temp_profile)
+                    shutil.rmtree(self.temp_profile, onerror=_on_rm_error)
                     self.temp_profile = None
                 except Exception as e:
                      logger.error(f"Error removing temp profile directory: {e}", exc_info=True)
@@ -453,3 +455,15 @@ def main():
 
 if __name__ == "__main__":
     main() 
+
+def _on_rm_error(func, path, exc_info):
+    """Handle shutil.rmtree permission errors: retry or skip locked files."""
+    # Retry once by setting write permission
+    if not os.access(path, os.W_OK):
+        try:
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        except Exception:
+            logger.warning(f"Could not delete locked path: {path}")
+    else:
+        logger.warning(f"Skipping deletion error for path: {path}") 

@@ -1,0 +1,16 @@
+# agent_config.yaml for agent onboarding
+project_root: "D:\\Dream.os"
+agent_id: "agent_007"
+mailbox_dir: "D:\\Dream.os\\_agent_coordination\\shared_mailboxes"
+task_list_path: "D:\\Dream.os\\_agent_coordination\\tasks\\master_task_list.json"
+onboarding_doc: "D:\\Dream.os\\_agent_coordination\\onboarding\\agent_onboarding_prompt.md"
+directive: "placeholder_directive"
+specialization: "placeholder_specialization"
+tools:
+  - "read_file"
+  - "list_dir"
+  - "write_file"
+  - "modify_file"
+  - "run_terminal_cmd"
+tools_guide: "D:\\Dream.os\\_agent_coordination\\onboarding\\TOOLS_GUIDE.md"
+protocol_version: "v1.0.0" 

@@ -3,7 +3,7 @@ import os
 import logging
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QCheckBox, QComboBox,
-    QTextEdit, QTabWidget, QLabel, QSplitter, QSizePolicy, QGroupBox, QFormLayout
+    QTextEdit, QTabWidget, QLabel, QSplitter, QSizePolicy, QGroupBox, QFormLayout, QMessageBox
 )
 from PySide6.QtCore import Qt, QThread, Signal
 
@@ -163,6 +163,7 @@ class DreamscapeTabWidget(QWidget):
         self.target_chat_combo.currentIndexChanged.connect(self._on_target_chat_selected)
         # TODO: Connect Generate, Cancel, Share, etc.
         self.process_all_checkbox.stateChanged.connect(self._toggle_target_chat)
+        self.send_context_button.clicked.connect(self._on_send_context)
 
     def _toggle_target_chat(self, state):
         """Enable/disable target chat dropdown based on 'Process All' checkbox."""
@@ -310,6 +311,19 @@ class DreamscapeTabWidget(QWidget):
              can_generate = False
 
         self.generate_button.setEnabled(can_generate)
+
+    def _on_send_context(self):
+        """Navigate to the selected chat link in the browser using the scraper."""
+        current_index = self.target_chat_combo.currentIndex()
+        link = self.target_chat_combo.itemData(current_index)
+        if not link:
+            return
+        # Disable button while navigating
+        self.send_context_button.setEnabled(False)
+        success = self.scraper.safe_get(link)
+        self.send_context_button.setEnabled(True)
+        if not success:
+            QMessageBox.warning(self, "Navigation Failed", f"Failed to navigate to chat: {link}")
 
     # --- Placeholder methods for future connections ---
     # def _start_generation(self):

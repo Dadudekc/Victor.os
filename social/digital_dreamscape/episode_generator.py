@@ -53,7 +53,7 @@ from utils import (
     load_prompt_templates,
     post_to_discord,
 )
-from .saga_orchestrator import OrchestratedSagaRunner
+from dreamscape_generator.threads.saga_worker import SagaGenerationWorker
 
 # ────────────────────────── configuration ──────────────────────────
 @dataclass(slots=True)
@@ -308,10 +308,14 @@ class DreamscapeGenerator(QMainWindow):
         self.setWindowTitle("Dreamscape Episode Generator")
         self.resize(1080, 720)
 
-        # ---------- layout ----------
-        h_main = QHBoxLayout(self)
+        # ---------- central widget and layout ----------
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        # Create main horizontal layout on the central widget
+        h_main = QHBoxLayout(central_widget)
         v_left = QVBoxLayout()
         v_right = QVBoxLayout()
+        # Add side-by-side panels with stretch factors
         h_main.addLayout(v_left, 3)
         h_main.addLayout(v_right, 7)
 
@@ -379,6 +383,10 @@ class DreamscapeGenerator(QMainWindow):
             if widget == self.history_list_widget:
                 self.history_tab_index = i
         v_right.addWidget(self.tabs)
+
+        # Double-clicking the log tab clears its contents
+        # Connect the QTabBar's double-click signal
+        self.tabs.tabBar().tabBarDoubleClicked.connect(self._on_tab_double_click)
 
         # --- Add Control Buttons Below Tabs ---
         h_bottom_btns = QHBoxLayout()
@@ -455,31 +463,38 @@ class DreamscapeGenerator(QMainWindow):
              self._log("ERROR: Prompt text area is empty. Load or paste a saga prompt.")
              return
 
+        # 2b. Get selected model and log it
+        selected_model = self.model_cmb.currentText()
+        self._log(f"[SagaMode] Using model: {selected_model}")
         # 3. Check Reverse Order
         should_reverse = self.reverse_chk.isChecked()
         order_desc = "newest-to-oldest (reversed selection)" if should_reverse else "oldest-to-newest (selected order)"
         self._log(f"[SagaMode] Processing selected chats. Order: {order_desc}")
+        # Extract chat contexts from selected QListWidgetItems
+        chat_contexts = [item.data(Qt.ItemDataRole.UserRole) for item in selected_items]
+        # Optionally reverse contexts if needed
         if should_reverse:
-             selected_items.reverse()
+            chat_contexts.reverse()
 
-        self._log(f"[SagaMode] ▶️ Initializing Dreamscape chronicle for {len(selected_items)} selected chat(s) using current prompt...")
+        self._log(f"[SagaMode] ▶️ Initializing Dreamscape chronicle for {len(chat_contexts)} selected chat(s) using current prompt...")
         self.saga_chronicle_tab.clear()
 
-        # 4. Orchestrate Reflection + Saga generation using OrchestratedSagaRunner
-        self.saga_runner = OrchestratedSagaRunner(
-            log_q=self._log,
+        # 4. Instantiate and run the SagaGenerationWorker using the GUI prompt
+        self.saga_worker = SagaGenerationWorker(
             memory_manager=self.memory_manager,
-            chat_items=selected_items,
-            prompt_template_str=prompt_template_str,
-            saga_worker_signals={
-                'output_ready': self.on_saga_output_ready,
-                'progress': self._log,
-                'error': self._log,
-                'finished': self._saga_generation_finished
-            },
-            selected_model=self.model_cmb.currentText()
+            chat_items=chat_contexts,
+            selected_model=selected_model,
+            prompt_template_str=prompt_template_str
         )
-        self.saga_runner.run()
+        # Thread-safe logging from worker
+        self.saga_worker.log_signal.connect(self._log)
+        # Connect signals
+        self.saga_worker.saga_output_ready.connect(self.on_saga_output_ready)
+        self.saga_worker.progress_signal.connect(self._log)
+        self.saga_worker.error_signal.connect(self._log)
+        self.saga_worker.finished.connect(self._saga_generation_finished)
+        # Start worker
+        self.saga_worker.start()
 
         # Update UI state
         self.start_btn.setEnabled(False)
@@ -488,11 +503,8 @@ class DreamscapeGenerator(QMainWindow):
         # --- End of Updated Logic ---
 
     def _cancel(self) -> None:
-        # --- Modify Cancel to handle orchestrator ---
-        if hasattr(self, 'saga_runner') and self.saga_runner:
-            self.saga_runner.stop()
-            self._log("⚠️ Cancel requested for orchestration... ")
-        elif self.saga_worker and self.saga_worker.isRunning():
+        # Cancel SagaGenerationWorker specifically
+        if self.saga_worker and self.saga_worker.isRunning():
             self.saga_worker.stop()
             self._log("⚠️ Cancel requested for Saga Generation...")
         elif self.worker and self.worker.isRunning():
@@ -533,7 +545,8 @@ class DreamscapeGenerator(QMainWindow):
 
     # ───────────────────────── log helper ──────────────────────────
     def _log(self, msg: str) -> None:
-        self.log_tab.append(msg)
+        # Convert message to string (handles ints from progress_signal)
+        self.log_tab.append(str(msg))
         # auto-scroll
         self.log_tab.verticalScrollBar().setValue(
             self.log_tab.verticalScrollBar().maximum()
@@ -607,68 +620,6 @@ class DreamscapeGenerator(QMainWindow):
         self.history_fetch_worker = None # Clear worker reference
     # -----------------------------------------
 
-    # --- Add Saga Generation Trigger Slot ---
-    def on_generate_saga_clicked(self):
-        if self.saga_worker and self.saga_worker.isRunning():
-            self._log("[SagaMode] Saga generation is already running.")
-            return
-        if not self.memory_manager:
-            self._log("ERROR: Memory Manager not available. Cannot generate saga.")
-            return
-
-        chat_items = self.get_ordered_filtered_chats()
-        if not chat_items:
-            self._log("[SagaMode] No chat history items found to generate saga from.")
-            return
-
-        # --- Check Reverse Order Flag --- 
-        should_reverse = self.reverse_chk.isChecked()
-        order_desc = "newest-to-oldest (reversed)" if should_reverse else "oldest-to-newest (chronological)"
-        self._log(f"[SagaMode] Processing order: {order_desc}")
-        # --------------------------------
-
-        # Get the chat items in the desired order
-        chat_items = self.get_ordered_filtered_chats(reverse=should_reverse)
-
-        self._log(f"[SagaMode] 🔄 Initializing full Dreamscape saga generation for {len(chat_items)} chats...")
-        # Clear previous saga output
-        self.saga_chronicle_tab.clear()
-
-        # Orchestrate ReflectionAgent + SagaGenerationWorker
-        self.saga_runner = OrchestratedSagaRunner(
-            log_q=self._log,
-            memory_manager=self.memory_manager,
-            chat_items=chat_items,
-            prompt_template_str="",
-            saga_worker_signals={
-                'output_ready': self.on_saga_output_ready,
-                'progress': self._log,
-                'error': self._log,
-                'finished': self._saga_generation_finished
-            },
-            selected_model=self.model_cmb.currentText()
-        )
-        self.saga_runner.run()
-        # Disable button while running
-        self.generate_saga_btn.setEnabled(False)
-
-    def get_ordered_filtered_chats(self, reverse: bool = False) -> list[QListWidgetItem]:
-        """Helper to get all current items from the history list widget.
-        Optionally reverses the list before returning.
-        """
-        items = []
-        for i in range(self.history_list_widget.count()):
-            item = self.history_list_widget.item(i)
-            # Basic check to exclude placeholders like "No history found..."
-            if item and item.data(Qt.ItemDataRole.UserRole) is not None:
-                items.append(item)
-        
-        # Reverse the list if requested
-        if reverse:
-            items.reverse()
-            
-        return items
-
     # --- Add Saga Output Slot ---
     def on_saga_output_ready(self, text: str):
         self.saga_chronicle_tab.setPlainText(text)
@@ -728,12 +679,89 @@ class DreamscapeGenerator(QMainWindow):
                  self._log(f"Created default {ignore_file_path}")
             except Exception as e:
                  self._log(f"ERROR: Could not create default ignore file: {e}")
-            return [] # Return empty list if file couldn't be read/created
+            return []
         except Exception as e:
             self._log(f"ERROR reading ignore file {ignore_file_path}: {e}")
-            return [] # Return empty list on other errors
+            return []
         return ignored_list
 
+    # --- Generate Full Saga Slot ---
+    def on_generate_saga_clicked(self) -> None:
+        """Handler for the 'Generate Full Saga' button click."""
+        # 1. Prevent concurrent saga runs
+        if self.saga_worker and self.saga_worker.isRunning():
+            self._log("[SagaMode] Saga generation is already running.")
+            return
+        # 2. Ensure memory manager is available
+        if not self.memory_manager:
+            self._log("ERROR: Memory Manager not available. Cannot generate saga.")
+            return
+
+        # 3. Model selection
+        selected_model = self.model_cmb.currentText()
+        self._log(f"[SagaMode] Using model: {selected_model}")
+
+        # 4. Check reverse order flag and gather chats
+        should_reverse = self.reverse_chk.isChecked()
+        order_desc = "newest-to-oldest (reversed)" if should_reverse else "oldest-to-newest (chronological)"
+        self._log(f"[SagaMode] Processing order: {order_desc}")
+        # Gather selected chat items and extract their stored contexts
+        selected_items = self.get_ordered_filtered_chats(reverse=should_reverse)
+        # Extract chat context dictionaries from QListWidgetItems
+        chat_items = [item.data(Qt.ItemDataRole.UserRole) for item in selected_items]
+        if not chat_items:
+            self._log("[SagaMode] No chat history items found to generate saga from.")
+            return
+
+        # 5. Prepare the prompt template string
+        prompt_template_str = self.prompt_te.toPlainText().strip()
+        if not prompt_template_str:
+            self._log("ERROR: Saga prompt text area is empty.")
+            return
+
+        # 6. Clear previous saga output
+        self.saga_chronicle_tab.clear()
+
+        # 7. Instantiate and connect the worker
+        self.saga_worker = SagaGenerationWorker(
+            memory_manager=self.memory_manager,
+            chat_items=chat_items,
+            selected_model=selected_model,
+            prompt_template_str=prompt_template_str
+        )
+        self.saga_worker.log_signal.connect(self._log)
+        self.saga_worker.saga_output_ready.connect(self.on_saga_output_ready)
+        self.saga_worker.progress_signal.connect(self._log)
+        self.saga_worker.error_signal.connect(self._log)
+        self.saga_worker.finished.connect(self._saga_generation_finished)
+
+        # 8. Start the worker thread
+        self.saga_worker.start()
+
+        # 9. Lock the UI
+        self.generate_saga_btn.setEnabled(False)
+        self.cancel_btn.setEnabled(True)
+
+    def get_ordered_filtered_chats(self, reverse: bool = False) -> list[QListWidgetItem]:
+        """Helper to get all current items from the history list widget.
+        Optionally reverses the list before returning.
+        """
+        items = []
+        for i in range(self.history_list_widget.count()):
+            item = self.history_list_widget.item(i)
+            # Basic check to exclude placeholders like "No history found..."
+            if item and item.data(Qt.ItemDataRole.UserRole) is not None:
+                items.append(item)
+        
+        # Reverse the list if requested
+        if reverse:
+            items.reverse()
+            
+        return items
+
+    def _on_tab_double_click(self, index: int):
+        if index == self.log_tab_index:
+            self.log_tab.clear()
 
 # ────────────────────────── bootstrap ──────────────────────────────
 if __name__ == "__main__":
@@ -772,190 +800,8 @@ class GenerationWorker(QThread):
 
 
 # --- Saga Generation Worker Thread (Refined as per User Spec) ---
-# Replace the previous SagaGenerationWorker with this one
-class SagaGenerationWorker(QThread):
-    # Signals
-    saga_output_ready = pyqtSignal(str)  # Emits the full saga text when done
-    # Adding progress and error signals for better feedback
-    progress_signal = pyqtSignal(str)
-    error_signal = pyqtSignal(str)
-
-    # Updated __init__ to accept prompt_template_str
-    def __init__(self, log_q, memory_manager, chat_items: list, selected_model: str, prompt_template_str: str, current_emotion: str = "neutral"):
-        super().__init__()
-        self.log_method = log_q
-        self.memory_manager = memory_manager
-        self.chat_items = chat_items 
-        self.selected_model = selected_model 
-        self.prompt_template_str = prompt_template_str # Store the prompt string
-        self.current_emotion = current_emotion # Store the current emotion
-        self.saga_blocks = []
-        self.is_running = True
-
-        # --- Remove Jinja2 setup from init, will create Template object in run ---
-        try:
-            # Import the actual generate_episode function
-            from dreamscape_generator.src import generate_episode
-            self.generate_episode_func = generate_episode
-            # We need Jinja2's Template class for creating from string
-            from jinja2 import Template
-            self.Template = Template # Store the class itself
-        except ImportError as e:
-             self.log_method(f"[SagaMode] ERROR: Missing dependency for worker (jinja2 or generate_episode): {e}")
-             self.is_running = False
-        # ---------------------------------------------------------------------
-
-    def stop(self):
-        """Allows the saga generation to be stopped externally."""
-        self.log_method("[SagaMode] Received stop signal.")
-        self.is_running = False
-
-    def run(self):
-        if not self.is_running:
-             self.log_method("[SagaMode] Worker not started due to initialization error.")
-             return
-
-        self.log_method("[SagaMode] Saga Generation Worker Started (using GUI prompt)." )
-        memory_state = self.memory_manager.get("full_memory_state", default={})
-
-        # --- Create Jinja2 Template from string --- 
-        try:
-             template = self.Template(self.prompt_template_str)
-        except Exception as e: # Catch Jinja2 template syntax errors
-            error_msg = f"[SagaMode] ERROR: Invalid prompt template syntax: {e}"
-            self.log_method(error_msg)
-            self.error_signal.emit(error_msg)
-            return # Stop worker if template is invalid
-        # -------------------------------------------
-
-        for idx, chat_item in enumerate(self.chat_items):
-            if not self.is_running:
-                self.log_method("[SagaMode] Saga generation cancelled.")
-                break
-            chat_data = chat_item.data(Qt.ItemDataRole.UserRole)
-            chat_title = chat_item.text()
-            progress_msg = f"[SagaMode] 🧠 Processing chat {idx+1}/{len(self.chat_items)}: '{chat_title}'"
-            self.log_method(progress_msg)
-            self.progress_signal.emit(progress_msg)
-            
-            raw_chat_excerpt = self.format_raw_excerpt(chat_data, chat_title)
-            memory_state_str = json.dumps(memory_state, indent=2)
-
-            # Render the prompt using the template object created from the string
-            try:
-                rendered_prompt = template.render(
-                    current_memory_state=memory_state_str,
-                    raw_chat_excerpt=raw_chat_excerpt,
-                    current_emotion=self.current_emotion # Pass emotion to template
-                )
-            except Exception as e:
-                error_msg = f"[SagaMode] ERROR rendering prompt for '{chat_title}': {e}"
-                self.log_method(error_msg)
-                self.error_signal.emit(error_msg)
-                continue # Skip this chat
-
-            if not rendered_prompt: # Should not happen if template.render succeeded, but check anyway
-                self.log_method(f"[SagaMode] Skipping chat '{chat_title}' due to empty rendered prompt.")
-                continue
-
-            # Call generate_episode (existing logic)
-            try:
-                self.log_method(f"[SagaMode] Calling generate_episode for '{chat_title}'...")
-                raw_llm_response = self.generate_episode_func(
-                    model=self.selected_model,
-                    prompt=rendered_prompt,
-                    memory_manager=self.memory_manager 
-                )
-                if not raw_llm_response:
-                     raise ValueError("generate_episode returned empty response")
-                self.log_method(f"[SagaMode] Received response for '{chat_title}'")
-            except Exception as e:
-                 error_msg = f"[SagaMode] ERROR calling generate_episode for '{chat_title}': {e}"
-                 self.log_method(error_msg)
-                 self.error_signal.emit(error_msg)
-                 continue 
-
-            # Parse result (existing logic)
-            narrative, memory_update_dict = self.parse_result(raw_llm_response)
-
-            # Update Memory State (existing logic with skill_levels handling)
-            if memory_update_dict:
-                current_state = self.memory_manager.get("full_memory_state", default={})
-                if "skill_levels" in memory_update_dict and isinstance(memory_update_dict["skill_levels"], dict):
-                    current_state["skill_levels"] = memory_update_dict["skill_levels"]
-                    self.log_method(f"[SagaMode] Updated skill levels: {memory_update_dict['skill_levels']}")
-                elif "skill_levels" not in current_state:
-                     current_state["skill_levels"] = {}
-                for key, value in memory_update_dict.items():
-                    if key == "skill_levels": 
-                        continue
-                    if isinstance(value, list) and key in current_state and isinstance(current_state.get(key), list):
-                        current_state[key] = list(set(current_state.get(key, []) + value))
-                    else:
-                        current_state[key] = value
-                self.memory_manager.set("full_memory_state", current_state)
-                memory_state = current_state 
-                self.log_method("[SagaMode] Memory state updated.")
-            else:
-                 self.log_method(f"[SagaMode] Skipping memory update for chat '{chat_title}' due to parsing error.")
-
-            self.saga_blocks.append(narrative)
-
-        # Finish run (existing logic)
-        if self.is_running:
-            full_saga_text = "\n\n---\n\n".join(self.saga_blocks)
-            full_saga_text = "# The Dreamscape Saga\n\n" + full_saga_text
-            self.saga_output_ready.emit(full_saga_text)
-            self.log_method("[SagaMode] Saga generation complete.")
-        else:
-            self.log_method("[SagaMode] Saga generation stopped prematurely.")
-
-    def format_raw_excerpt(self, chat_data, chat_title) -> str:
-        """Formats the available chat data as a 'raw excerpt' for the prompt.
-        Currently uses only title and ID as full content isn't fetched.
-        """
-        excerpt = f"Chat Title: {chat_title}\n"
-        if isinstance(chat_data, dict):
-            excerpt += f"Chat ID: {chat_data.get('id', 'N/A')}\n"
-            # --- IMPORTANT --- 
-            # This is where we would add actual message content if we had fetched it.
-            # For now, it will be very minimal.
-            excerpt += "(Placeholder: Full chat content not available)"
-            # --- IMPORTANT --- 
-        else:
-            excerpt += "(No detailed data available)"
-        # Add markers to clearly delineate this section in the prompt
-        return f"--- START RAW EXCERPT ---\n{excerpt}\n--- END RAW EXCERPT ---"
-
-    def parse_result(self, result: str) -> tuple[str, dict]:
-        """Extracts narrative text + JSON block using parsing rules."""
-        narrative = result # Default to full result if parsing fails
-        memory_update = {}
-        try:
-            # Split based on the start of the JSON code block marker
-            parts = result.split("```json")
-            if len(parts) > 1:
-                narrative = parts[0].strip()
-                # Find the end of the JSON block
-                json_block_raw = parts[1].split("```")[0]
-                json_clean = json_block_raw.strip()
-                memory_update = json.loads(json_clean)
-                if not isinstance(memory_update, dict):
-                     raise ValueError("Parsed JSON is not an object/dict.")
-            else:
-                 # No JSON block found
-                 self.log_method("[SagaMode] WARNING: No ```json block found in LLM response.")
-                 narrative = result.strip() # Assume the whole response is narrative
-
-        except json.JSONDecodeError as e:
-            self.log_method(f"[SagaMode] ⚠️ Failed to decode MEMORY_UPDATE JSON: {e}")
-        except ValueError as e:
-             self.log_method(f"[SagaMode] ⚠️ Invalid MEMORY_UPDATE content: {e}")
-        except Exception as e:
-            # Catch other potential splitting/indexing errors
-            self.log_method(f"[SagaMode] ⚠️ Failed to parse result structure: {e}")
-
-        return narrative, memory_update
+# Override inline SagaGenerationWorker with external implementation
+from dreamscape_generator.threads.saga_worker import SagaGenerationWorker
 
 # --- Final Imports Check ---
 # Ensure these are present at the top of the file:

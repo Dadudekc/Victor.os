@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 
 # import openai # Old import
-from openai import OpenAI, AuthenticationError, RateLimitError, BadRequestError, APIError # New imports
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 # Use project config
@@ -27,20 +26,6 @@ from .external_stubs import StubDiscordManager # Keep for notifications if neede
 # Configure logging
 logger = logging.getLogger("StoryGenerator")
 logger.setLevel(project_config.LOG_LEVEL)
-
-# --- OpenAI Client Initialization ---
-# Initialize client once
-client: Optional[OpenAI] = None
-if not project_config.OPENAI_API_KEY or project_config.OPENAI_API_KEY == "YOUR_OPENAI_API_KEY_HERE":
-    logger.warning("OpenAI API Key not set in config.py or environment variables. Story generation will fail.")
-elif project_config.OPENAI_API_KEY:
-    try:
-        client = OpenAI(api_key=project_config.OPENAI_API_KEY)
-        logger.info("OpenAI client initialized for StoryGenerator.")
-    except Exception as e:
-        logger.error(f"Failed to initialize OpenAI client: {e}", exc_info=True)
-else:
-     logger.warning("OpenAI API Key is present but empty. Story generation will fail.")
 
 # --- Removed Placeholder Functions ---
 # def load_history_snippets(...)
@@ -113,47 +98,17 @@ class StoryGenerator:
             raise
 
     def _call_llm(self, prompt: str, model: str, temperature: float, max_tokens: int) -> str:
-        """Calls the specified OpenAI model with the given prompt using the v1.x client."""
-        global client # Use the globally initialized client
-        if not client:
-             logger.error("OpenAI client not initialized. Cannot call LLM.")
-             raise ValueError("OpenAI client is not available. Check API Key configuration.")
-
-        logger.info(f"Calling LLM ({model}) - Temp: {temperature}, Max Tokens: {max_tokens}")
+        # Use ChatGPTScraper for web UI-based LLM calls
+        if not self.chat_scraper:
+            logger.error("ChatGPTScraper not provided. Cannot call LLM.")
+            raise ValueError("ChatGPTScraper is not available.")
+        logger.info(f"Calling web-scraped LLM ({model}) - Temp: {temperature}, Max Tokens: {max_tokens}")
         try:
-            # New syntax using the client
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            # Add more robust checking for the new response structure
-            if not response or not response.choices or not response.choices[0].message or not response.choices[0].message.content:
-                 logger.error(f"Invalid or empty response received from OpenAI API: {response}")
-                 raise ValueError("Received invalid or empty response from OpenAI.")
-
-            content = response.choices[0].message.content.strip()
-            logger.info(f"LLM ({model}) response received.")
-            logger.debug(f"LLM Response (preview): {content[:150]}...")
+            content = self.chat_scraper.send_prompt(prompt, model=model)
+            logger.info("Web-scraped LLM response received.")
             return content
-        # Updated exception handling for v1.x
-        except AuthenticationError as e:
-             logger.error(f"OpenAI Authentication Error: {e}. Check API Key.")
-             raise
-        except RateLimitError as e:
-             logger.error(f"OpenAI Rate Limit Error: {e}.")
-             raise
-        except BadRequestError as e:
-            logger.error(f"OpenAI Invalid Request Error (BadRequest): {e}. Check prompt/parameters.")
-            log_prompt = (prompt[:150] + '...') if len(prompt) > 150 else prompt
-            logger.debug(f"Prompt Start: {log_prompt}")
-            raise
-        except APIError as e:
-            logger.error(f"OpenAI API Error: {e}", exc_info=True)
-            raise
         except Exception as e:
-            logger.error(f"OpenAI API call failed unexpectedly: {e}", exc_info=True)
+            logger.error(f"Error during web-scraped LLM call: {e}", exc_info=True)
             raise
 
     def generate_episodes_from_web(self, model_override: Optional[str] = None) -> None:
@@ -303,13 +258,6 @@ class StoryGenerator:
                 msg = f"Successfully generated episode '{episode_filename}' from chat '{chat_title}' in {elapsed:.2f}s. Memory updated: {memory_updated}."
                 self.discord_manager.send_notification(msg)
 
-
-        except (AuthenticationError, RateLimitError, BadRequestError, APIError) as e:
-            logger.error(f"{log_prefix} OpenAI API error prevented episode generation: {e}")
-            # (Optional) Discord Notification for API failure
-            if self.discord_manager:
-                self.discord_manager.send_notification(f"ERROR: OpenAI API failure for chat '{chat_title}': {e}")
-            return None # Abort for this chat on API errors
         except Exception as e:
             logger.error(f"{log_prefix} Failed to generate episode: {e}", exc_info=True)
              # (Optional) Discord Notification for general failure

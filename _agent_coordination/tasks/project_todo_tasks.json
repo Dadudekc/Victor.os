@@ -1,0 +1,68 @@
+[
+  {
+    "task_id": "context_planner_nlp_001",
+    "status": "PENDING",
+    "task_type": "improve_tool",
+    "action": "Enhance context_planner.py's basic keyword matching to use robust NLP for complex cases.",
+    "params": {
+      "file": "_agent_coordination/tools/context_planner.py",
+      "line": 44
+    },
+    "priority": 2
+  },
+  {
+    "task_id": "fragment_forge_ui_feedback_001",
+    "status": "PENDING",
+    "task_type": "ui_improvement",
+    "action": "Implement QMessageBox warnings/status dialogs in FragmentForgeTab.",
+    "params": {
+      "file": "ui/fragment_forge_tab.py",
+      "lines": [369, 393, 396, 399, 406, 412, 421, 424, 427]
+    },
+    "priority": 2
+  },
+  {
+    "task_id": "test_apply_proposals_001",
+    "status": "PENDING",
+    "task_type": "add_tests",
+    "action": "Add missing tests for apply proposals logic in test_apply_proposals.py.",
+    "params": {
+      "file": "_agent_coordination/tests/test_apply_proposals.py",
+      "line": 225
+    },
+    "priority": 3
+  },
+  {
+    "task_id": "test_run_qa_output_format_001",
+    "status": "PENDING",
+    "task_type": "add_tests",
+    "action": "Add tests for list_items output formatting and update_item_status logic in test_run_qa.py.",
+    "params": {
+      "file": "tests/scripts/test_run_qa.py",
+      "lines": [115, 118]
+    },
+    "priority": 3
+  },
+  {
+    "task_id": "test_tab_system_shutdown_001",
+    "status": "PENDING",
+    "task_type": "add_tests",
+    "action": "Add tests for _handle_shutdown_error logging and missing get_state/prepare_for_shutdown cases.",
+    "params": {
+      "file": "tests/core/gui/test_tab_system_shutdown.py",
+      "lines": [199, 200]
+    },
+    "priority": 3
+  },
+  {
+    "task_id": "test_main_window_state_001",
+    "status": "PENDING",
+    "task_type": "add_tests",
+    "action": "Add tests for manual_save_state and auto_save_state, and shutdown sequence in main window.",
+    "params": {
+      "file": "tests/core/gui/test_main_window_state.py",
+      "lines": [204, 205]
+    },
+    "priority": 3
+  }
+] 

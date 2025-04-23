@@ -385,8 +385,62 @@ class ChatGPTScraper:
         return chat_list_temp # Return the scraped list
 
     def scrape_current_chat_messages(self) -> List[Dict[str, str]]:
-        logger.warning("scrape_current_chat_messages NEEDS rewrite for Selenium/UC!")
-        # TODO: Implement using locators from ChatGPTLocators (e.g., MESSAGE_TURN_SELECTOR)
-        return []
+        """Scrape the current chat messages after navigation via safe_get."""
+        messages: List[Dict[str, str]] = []
+        driver = self._get_driver()
+        if not driver:
+            logger.error("Driver not available for scraping messages.")
+            return messages
+        try:
+            # Wait for at least one message turn to appear
+            WebDriverWait(driver, self.manager.wait_timeout).until(
+                EC.presence_of_element_located(ChatGPTLocators.MESSAGE_TURN_SELECTOR)
+            )
+            turn_elements = driver.find_elements(*ChatGPTLocators.MESSAGE_TURN_SELECTOR)
+            for turn in turn_elements:
+                # Extract user message if present
+                try:
+                    user_elem = turn.find_element(*ChatGPTLocators.USER_MESSAGE_SELECTOR)
+                    text = user_elem.text.strip()
+                    if text:
+                        messages.append({"role": "user", "content": text})
+                except NoSuchElementException:
+                    pass
+                # Extract assistant message if present
+                try:
+                    assistant_elem = turn.find_element(*ChatGPTLocators.ASSISTANT_MESSAGE_SELECTOR)
+                    text = assistant_elem.text.strip()
+                    if text:
+                        messages.append({"role": "assistant", "content": text})
+                except NoSuchElementException:
+                    pass
+            return messages
+        except TimeoutException as te:
+            logger.error(f"Timeout waiting for chat messages to appear: {te}")
+            return messages
+        except Exception as e:
+            logger.error(f"Error scraping messages: {e}", exc_info=True)
+            return messages
+
+    def safe_get(self, url: str) -> bool:
+        """Navigate safely to a chat URL and wait for chat messages to load."""
+        logger.info(f"Navigating to chat URL: {url}")
+        driver = self._get_driver()
+        if not driver:
+            logger.error("Failed to get WebDriver instance for safe_get.")
+            return False
+        try:
+            driver.get(url)
+            WebDriverWait(driver, self.manager.wait_timeout).until(
+                EC.presence_of_all_elements_located(ChatGPTLocators.MESSAGE_TURN_SELECTOR)
+            )
+            logger.info("Navigation successful.")
+            return True
+        except TimeoutException as te:
+            logger.error(f"Timeout waiting for chat messages on page {url}: {te}")
+            return False
+        except Exception as e:
+            logger.error(f"Error during safe_get to {url}: {e}", exc_info=True)
+            return False
 
 __all__ = ["ChatGPTScraper"] 

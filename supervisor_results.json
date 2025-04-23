@@ -1,0 +1,11 @@
+[
+  {
+    "echo": {
+      "task_id": "002",
+      "payload": "Simulated response payload for task 002",
+      "status": "claimed",
+      "claimed_by": "Worker-1"
+    },
+    "processed_at": 1745364289.1391947
+  }
+]

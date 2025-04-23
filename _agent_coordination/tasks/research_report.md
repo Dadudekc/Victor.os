@@ -1,65 +1,77 @@
-# Dream.OS: Comprehensive Research Report
+# Dream.OS Project Research Report
 
-## 1. Architecture & Core Components
+**Date:** 2025-04-22  
+**Compiled by:** agent_002  
 
-• **dream_mode/** – Orchestrates Cursor agents via BlobChannel (Azure or Local). Contains:
-  - `SwarmController` (fleet management, routing, auto‑lore injection)
-  - `cursor_dispatcher`, `cursor_worker`, `VirtualDesktopController`
+## 1. Project Overview
+Dream.OS is a platform for orchestrating autonomous agents (e.g., ChatGPT WebAgents, Cursor IDE workers, Supervisor) to collaborate on coding, analysis, and task execution. It leverages:
+- Browser automation (Selenium) to interact with ChatGPT
+- UI automation (pyautogui + pyperclip) in the Cursor IDE
+- File‑based coordination via JSON blobs (LocalBlobChannel / AzureBlobChannel)
+- A Supervisor agent (“Oria”) to dispatch tasks and aggregate results
 
-• **_agent_coordination/** – Agent protocols and tooling:
-  - **prompt_library/** – JSON‑driven prompts (autonomy, cleanup, testing)
-  - **tasks/** – Consolidated pending and directive task lists
-  - **tools/compile_lore.py** – One‑shot & style‑driven lore compiler (Jinja2 + YAML mapping)
+## 2. Core Architecture & Directories
+- **dream_mode/agents/**: Implements agent logic
+  - `chatgpt_web_agent.py`: Scrapes ChatGPT, injects prompts, supports simulate mode
+  - `cursor_worker.py`: Automates Cursor IDE task handling via pyautogui
+  - `supervisor_agent.py`: Oria loads `human_directive.json`, pushes tasks, collects results
+- **dream_mode/utils/**: Shared utilities (browser control, HTML parsing, task parsing, channel loader)
+- **_agent_coordination/**: Swarm protocol definitions
+  - `shared_mailboxes/`: mailbox JSON + `mailbox.schema.json`
+  - `tasks/`: task list schema (`task_list.schema.json`), `research_report.md`
+  - `onboarding/agent_###/`: onboarding kits + `start_prompt.md`
+- **runtime/**: Live data stores
+  - `human_directive.json`: Human‑provided directives (Oria reads)
+  - `supervisor_results.json`: Aggregated results (Oria writes)
+  - `local_blob/`: Tasks & results directories for LocalBlobChannel
+- **assets/**: UI images for automation (`accept_button.png`, `spinner.png`)
+- **Entry Points**
+  - `run_dream_os.py`: Original one‑click launch for WebAgent + SwarmController
+  - `run_dream_loop.py`: Unified entry for Supervisor, WebAgent (simulate/live), Cursor workers
 
-• **runtime/** – Live task queue (`task_list.json`) and generated lore logs (`dream_logs/lore/`).
+## 3. Coordination Protocols & Schemas
+- **Mailbox Schema**: `_agent_coordination/shared_mailboxes/mailbox.schema.json` (defines claim status, messages)
+- **Task List Schema**: `_agent_coordination/tasks/task_list.schema.json` (defines `tasks[]` with `task_id`, `status`, `assigned_to`, etc.)
+- **Onboarding**: Agents auto‑inject a `start_prompt.md` on first cycle (flag `onboarded`); optional reset via `RESET_ONBOARDING`
 
-• **templates/** – Jinja templates for raw & Devlog‑style lore (e.g. `devlog_lore.j2`).
+## 4. Multi‑Agent Loop
+1. **Oria (Supervisor)** reads `runtime/human_directive.json`, dispatches new tasks into `local_blob/tasks/`
+2. **ChatGPT WebAgent** (live or simulated) pulls tasks, generates structured responses, pushes back as new tasks or results
+3. **Cursor Workers** pull tasks, automate Cursor IDE interactions, extract code via clipboard, push results
+4. **Oria** pulls results, writes consolidated `runtime/supervisor_results.json`
 
-## 2. Current Task Lists
+## 5. Dependencies & Requirements
+- Python 3.8+  
+- `selenium`, `pyautogui`, `pyperclip`, `jsonschema` or `ajv` (for schema validation)  
+- Cursor IDE installed & visible for UI automation  
+- (Optional) Azure Storage for production C2 channel
 
-1. **Detailed Pending Tasks** (`remaining_tasks.json`) – 4 PENDING tasks:
-   • `dev_create_echo_agent_001`: scaffold EchoAgent
-   • `infra_build_code_applicator_001`
-   • `enable_code_apply_in_cursor_agent_001`
-   • `build_feedback_mailbox_writer_001`
+## 6. Next Steps & Collaboration
+- Finalize UI assets and image‑matching thresholds  
+- Enhance error‑handling and retry strategies in `cursor_worker.py`  
+- Develop a PyQt5 dashboard for real‑time monitoring  
+- Coordinate with Agents 1, 3, and 4 by appending shared findings here  
+- Schedule periodic research updates to keep all agents in sync
 
-2. **Directive‑to‑System Execution Roadmap** (`directive_execution_tasks.json`) – 19 phased tasks across:
-   - Core Loop Autonomy (5 tasks)
-   - Cursor Fleet (4 tasks)
-   - Thea as Strategist (3 tasks)
-   - UI & Show the World (4 tasks)
-   - Bonus Directives (3 tasks)
+## 7. Detailed File Inventory
+- `run_dream_os.py` (62 lines): original one‑click launcher for WebAgent + SwarmController.
+- `run_dream_loop.py` (55 lines): unified loop coordinating Supervisor, ChatGPT (simulate/live), and Cursor workers.
+- `dream_mode/agents/chatgpt_web_agent.py` (~240 lines): handles ChatGPT browsing, scraping, injection, and simulation modes.
+- `dream_mode/agents/cursor_worker.py` (~76 lines): automates Cursor IDE interactions via pyautogui and clipboard extraction.
+- `dream_mode/agents/supervisor_agent.py` (~74 lines): dispatches human directives and aggregates results into `supervisor_results.json`.
+- `dream_mode/utils/` (10+ modules): browser control, HTML parsing, task parsing, and channel loader utilities.
+- `dream_mode/swarm_controller.py` (~253 lines): legacy fleet orchestration for simultaneous Cursor instances.
+- `dream_mode/task_nexus/task_nexus.py` (~137 lines): core atomic task queue with heartbeat and status management.
+- `runtime/local_blob/` (tasks/ and results/): file‑based queues for inter‑agent messaging.
 
-## 3. Open Issues & TODOs
+## 8. Master Task List Overview
+- `master_task_list.json` (3,761 lines) holds the global task registry, currently tracking tasks across `PENDING`, `IN_PROGRESS`, and `COMPLETED` states.
+- Managed by `TaskNexus`, which provides atomic reads/writes and agent heartbeat registration via `agent_registry.json`.
 
-Top TODO flags across the codebase (non‑exhaustive):
-- `main.py` / `main_copy.py`: implement MainCopy class.
-- `planner_agent.py`: refine dispatch logic, context augmentation.
-- `thea_auto_planner.py`: GPT‑driven directive analysis.
-- UI (`fragment_forge_tab.py`): add status dialogs, error handling.
-- Tests: missing coverage for failure handling, dependency flow, thread safety.
-
-## 4. Test Suite Health
-
-- Syntax and import errors in `tests/core/gui/test_main_window_state.py` corrected.
-- `compile_lore.py` tests now pass with Devlog style.
-- Remaining TODOs in tests indicate areas for expanded coverage.
-
-## 5. Recommended Coordination Plan
-
-We'll work with **three agent teams** and synchronize via **two master lists**:
-
-| Team            | Task List Source                       | Responsibilities                                  |
-|-----------------|----------------------------------------|--------------------------------------------------|
-| **CoreUnit**    | `remaining_tasks.json`                 | Finish EchoAgent, CodeApplicator, mailbox writer |
-| **Orchestration**| `directive_execution_tasks.json` (Phase 1 & 2) | Build SupervisorOria, heartbeat + fleet scaling  |
-| **StrategistUI** | `directive_execution_tasks.json` (Phase 3 & 4) | Thea loop, UI dashboard, Devlog/Discord pushes    |
-
-**Synchronization points**:
-1. Weekly merge of progress into `master_task_list.json`.  
-2. CI‑triggered Devlog generation validating timeline.  
-3. Shared dashboard displaying `agent_stats.json` + pending tasks.
+## 9. Coordination Notes
+- **Agent002** should monitor `_agent_coordination/shared_mailboxes/mailbox_2.json` for collaboration inbox messages.
+- Broadcast updates or research snippets by appending to the `messages` array in `mailbox_2.json`.
+- Consider enabling heartbeat logging in `dream_mode/task_nexus/task_nexus.py` to visualize active agents via the PyQt dashboard.
 
 ---
-
-*Report generated on:* {{date}} 
+*End of report.* 

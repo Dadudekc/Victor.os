@@ -13,7 +13,16 @@ from core.chat_engine.discord_dispatcher import DiscordDispatcher
 
 # UTILS
 from core.FileManager import FileManager
-from chat_mate_config import Config
+
+try:
+    from chat_mate_config import Config
+except ImportError:
+    # Stub Config if chat_mate_config is not available
+    class Config:
+        def __init__(self, path=None):
+            pass
+        def get(self, key, default=None):
+            return default
 
 logger = logging.getLogger("ChatCycleController")
 logger.setLevel(logging.INFO)

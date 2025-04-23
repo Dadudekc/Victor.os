@@ -114,11 +114,31 @@ def main():
         logger.info(f"Calling run() on {agent_instance}...")
         result = agent_instance.run(*run_args, **run_kwargs)
         logger.info(f"Agent run finished. Result:")
-        # Pretty print result if it's complex
-        if isinstance(result, (dict, list)):
-            print(json.dumps(result, indent=2))
+        # If the agent returned generated code, apply it to the target file
+        if isinstance(result, dict) and 'generated_code' in result and 'target_file' in result:
+            import subprocess, tempfile
+            # Write generated code to a temporary file
+            with tempfile.NamedTemporaryFile('w+', delete=False, suffix='.txt') as tmp_file:
+                tmp_file.write(result['generated_code'])
+                tmp_file.flush()
+                tmp_path = tmp_file.name
+
+            # Invoke the code_applicator tool
+            cmd = [
+                sys.executable,
+                os.path.join(os.path.dirname(__file__), 'code_applicator.py'),
+                '--target', result['target_file'],
+                '--source', tmp_path,
+                '--backup'
+            ]
+            subprocess.run(cmd, check=True)
+            print(f"Applied generated code to {result['target_file']}")
         else:
-            print(result)
+            # Pretty print result if it's complex
+            if isinstance(result, (dict, list)):
+                print(json.dumps(result, indent=2))
+            else:
+                print(result)
 
         logger.info("run_agent.py finished successfully.")
         sys.exit(0)

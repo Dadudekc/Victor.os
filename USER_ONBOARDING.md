@@ -44,6 +44,29 @@ Welcome to the Dream.OS multi‑agent swarm control system! This guide will walk
 3. (Optional) For local testing without Azure:
    - The channel will use mocks if `azure-storage-blob` is not installed.
 
+### JSON Schemas & Examples
+
+Dream.OS defines JSON schemas to validate core coordination files:
+
+- Mailbox schema: `_agent_coordination/shared_mailboxes/mailbox.schema.json`
+- Task list schema: `_agent_coordination/tasks/task_list.schema.json`
+
+Example payloads for Phase 1 onboarding are available under `_agent_coordination/onboarding/agent_002/`:
+
+- `mailbox_example.json`
+- `task_list_example.json`
+- `phase_1_output.json`
+
+Validate via `ajv` or Python's `jsonschema` package:
+
+```bash
+ajv validate -s _agent_coordination/shared_mailboxes/mailbox.schema.json \
+  -d _agent_coordination/onboarding/agent_002/mailbox_example.json
+
+ajv validate -s _agent_coordination/tasks/task_list.schema.json \
+  -d _agent_coordination/onboarding/agent_002/task_list_example.json
+```
+
 ---
 
 ## 2.5 One‑Click Launch Script

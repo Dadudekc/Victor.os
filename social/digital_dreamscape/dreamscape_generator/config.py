@@ -2,7 +2,7 @@ import os
 
 # --- OpenAI Configuration ---
 # API Key - Recommended to set via environment variable OPENAI_API_KEY
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]  # Fail if not set
 # Model Selection - Default model to use for episode generation
 # Can be overridden, e.g., via CLI. Use valid OpenAI API model IDs.
 OPENAI_MODEL = "gpt-4o" # Example: gpt-4o, gpt-4-turbo, gpt-4o-mini, etc.

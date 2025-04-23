@@ -7,19 +7,11 @@ import os
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-
-# --- Add project root to sys.path ---
-# Assuming this test file is in tests/core/gui
-script_dir = Path(__file__).parent
-project_root = script_dir.parent.parent.parent # Adjust based on actual structure
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-# ------------------------------------
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QLabel, QStatusBar
+import importlib.util
+from tests.core.gui.main_window import DreamOSMainWindow
 
 # Mock PyQt classes before importing the main window
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QLabel, QStatusBar
-
-# Define dummy classes for components that MainWindow depends on
 class MockTaskManager:
     def get_tasks(self): return []
 
@@ -66,9 +58,6 @@ class MockTab:
         print(f"Preparing {self.name} for shutdown")
         return True # Simulate successful preparation
 
-# Now import the class to be tested
-from core.gui.main_window import DreamOSMainWindow
-
 # Mock the QTimer class to prevent timers from actually running during tests
 @patch('PyQt5.QtCore.QTimer', MagicMock())
 class TestMainWindowState(unittest.TestCase):
@@ -87,9 +76,9 @@ class TestMainWindowState(unittest.TestCase):
         self.state_file_path = self.test_dir / "tab_states.json"
 
         # Patch dependencies directly before creating the instance
-        with patch('core.gui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM,
-             patch('core.gui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE,
-             patch('core.gui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM,
+        with patch('core.gui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM, \
+             patch('core.gui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE, \
+             patch('core.gui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM, \
              patch('core.gui.main_window.TabSystemShutdownManager') as MockShutdownMgr: # Keep shutdown manager mocked
 
             # Create the main window instance

@@ -5,7 +5,7 @@ import pytest
 import threading
 from pathlib import Path
 from unittest.mock import MagicMock
-from mailbox_utils import process_directory_loop
+from _agent_coordination.utils.mailbox_utils import process_directory_loop
 
 def log_event(event_type, agent_id, data):
     """Mock log_event function for test coverage reporting."""
@@ -158,6 +158,13 @@ def test_process_func_exception(test_dirs):
     assert not test_file.exists()  # Original file should be moved
     assert not (success_dir / test_file.name).exists()  # File should not be in success dir
     assert (error_dir / test_file.name).exists()  # File should be in error dir
+    # Verify augmented error context in the error file
+    error_file = error_dir / test_file.name
+    data = json.loads(error_file.read_text())
+    assert 'error_context' in data
+    assert 'timestamp_failed' in data['error_context']
+    assert 'error_message' in data['error_context']
+    assert 'Test exception' in data['error_context']['error_message']
     log_event("TEST_PASSED", "CoverageAgent", {"test": "test_process_func_exception"})
 
 def test_wrong_file_suffix(test_dirs):

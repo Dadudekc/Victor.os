@@ -35,7 +35,8 @@
   },
   {
     "task_id": "core_loop_005",
-    "status": "PENDING",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
     "phase": "Core Loop Autonomy",
     "task": "Inject Thea tasks directly into Nexus or BlobChannel",
     "agent": "Thea"
@@ -59,40 +60,46 @@
   },
   {
     "task_id": "fleet_008",
+    "status": "COMPLETED",
+    "claimed_by": "agent_002",
+    "completed_by": "agent_002",
     "phase": "Cursor Fleet",
     "task": "Add agent ID metadata to each task they complete",
-    "agent": "Nexus",
-    "status": "COMPLETED",
-    "claimed_by": "agent_004",
-    "completed_by": "agent_004"
+    "agent": "Nexus"
   },
   {
     "task_id": "fleet_009",
     "phase": "Cursor Fleet",
     "task": "Log per-agent metrics into agent_stats.json",
     "agent": "StatsLogger",
-    "status": "PENDING"
+    "status": "COMPLETED",
+    "claimed_by": "agent_004",
+    "completed_by": "agent_004"
   },
   {
     "task_id": "strategist_010",
     "phase": "Thea as Strategist",
     "task": "Upgrade TheaOrchestrator to run in a loop (auto-suggests directives)",
     "agent": "Thea",
-    "status": "PENDING"
+    "status": "CLAIMED",
+    "claimed_by": "agent_002"
   },
   {
     "task_id": "strategist_011",
     "phase": "Thea as Strategist",
     "task": "Parse feedback logs + stats into next action selection",
     "agent": "Thea",
-    "status": "PENDING"
+    "status": "COMPLETED",
+    "claimed_by": "agent_002",
+    "completed_by": "agent_002"
   },
   {
     "task_id": "strategist_012",
     "phase": "Thea as Strategist",
     "task": "Support set_project(\"DreamCloud\") to refocus entire swarm",
     "agent": "Thea",
-    "status": "PENDING"
+    "status": "CLAIMED",
+    "claimed_by": "agent_002"
   },
   {
     "task_id": "ui_013",

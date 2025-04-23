@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Master Task List Schema",
+  "description": "Schema for the master task list JSON file.",
+  "type": "object",
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED"] },
+          "assigned_to": { "oneOf": [ { "type": "string" }, { "type": "null" } ] },
+          "directive": { "type": "string" },
+          "specialization": { "type": "string" }
+        },
+        "required": ["task_id", "status", "assigned_to", "directive", "specialization"]
+      }
+    }
+  },
+  "required": ["tasks"]
+} 

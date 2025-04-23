@@ -6,13 +6,35 @@ within the Dream.OS system.
 """
 
 import logging
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, 
-    QPushButton, QComboBox, QFormLayout, QSizePolicy, QFileDialog,
-    QCompleter, QGroupBox, QSpinBox, QListWidget, QListWidgetItem
-)
-from PyQt5.QtCore import Qt, QStringListModel
-from PyQt5.QtGui import QFont
+try:
+    from PyQt5.QtWidgets import (
+        QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit,
+        QPushButton, QComboBox, QFormLayout, QSizePolicy, QFileDialog,
+        QCompleter, QGroupBox, QSpinBox, QListWidget, QListWidgetItem
+    )
+    from PyQt5.QtCore import Qt, QStringListModel
+    from PyQt5.QtGui import QFont
+except ImportError:
+    logging.getLogger(__name__).warning("PyQt5 not available; using dummy UI stubs for testing.")
+    class QWidget: pass
+    class QVBoxLayout: pass
+    class QHBoxLayout: pass
+    class QLabel: pass
+    class QLineEdit: pass
+    class QTextEdit: pass
+    class QPushButton: pass
+    class QComboBox: pass
+    class QFormLayout: pass
+    class QSizePolicy: pass
+    class QFileDialog: pass
+    class QCompleter: pass
+    class QGroupBox: pass
+    class QSpinBox: pass
+    class QListWidget: pass
+    class QListWidgetItem: pass
+    class QStringListModel: pass
+    class Qt: pass
+    class QFont: pass
 from datetime import datetime # Import datetime for save ID
 import os # Import os for basename
 from typing import TYPE_CHECKING, Optional

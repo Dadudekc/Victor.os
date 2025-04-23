@@ -1,0 +1,58 @@
+# Agent context variables with types, requirement levels, and examples
+
+project_root:
+  type: string
+  required: true
+  example_windows: "D:\\Dream.os"
+  example_posix: "/home/user/Dream.os"
+
+agent_id:
+  type: string
+  required: true
+  example: "agent_002"
+
+mailbox_dir:
+  type: string
+  required: true
+  example_windows: "D:\\Dream.os\\_agent_coordination\\shared_mailboxes"
+
+task_list_path:
+  type: string
+  required: true
+  example_windows: "D:\\Dream.os\\_agent_coordination\\tasks\\master_task_list.json"
+  example_posix: "/home/user/Dream.os/_agent_coordination/tasks/master_task_list.json"
+
+onboarding_doc:
+  type: string
+  required: true
+  example_windows: "D:\\Dream.os\\_agent_coordination\\onboarding\\agent_onboarding_prompt.md"
+
+directive:
+  type: string
+  required: true
+  example: "refactoring"
+
+specialization:
+  type: string
+  required: true
+  example: "refactoring"
+
+tools:
+  type: list
+  required: true
+  description: "List of enabled tools for this agent"
+  example:
+    - "read_file"
+    - "list_dir"
+    - "run_terminal_cmd"
+
+tools_guide:
+  type: string
+  required: true
+  example_windows: "D:\\Dream.os\\_agent_coordination\\onboarding\\TOOLS_GUIDE.md"
+
+protocol_version:
+  type: string
+  required: true
+  default: "v1.0.0"
+  example: "v1.0.0" 

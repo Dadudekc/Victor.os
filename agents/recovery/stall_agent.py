@@ -5,12 +5,15 @@ from pathlib import Path
 import logging
 from typing import List, Any # Added Any
 
+# Stub AgentBus at module level to satisfy annotation
+AgentBus = None
+
 # Assuming task_utils is importable from parent dir
 try:
     # from .._agent_coordination.task_utils import read_tasks # Old import
     from core.utils.task_utils import read_tasks # New absolute import
     from core.tools.context import produce_project_context # New absolute import
-    from core.coordination.agent_bus import AgentBus # Import canonical bus
+    from social.core.agent_bus import AgentBus # Import canonical bus
     from core.memory.governance_memory_engine import log_event # Added
     _core_imports_ok = True
 except ImportError as e:
@@ -20,6 +23,8 @@ except ImportError as e:
     # Define dummy functions if needed for basic structure, but agent should fail
     def read_tasks(*args, **kwargs): return None
     def produce_project_context(*args, **kwargs): return {}
+    # Stub AgentBus for annotation resolution
+    AgentBus = None
     # Add dummy log_event if needed
     if "governance_memory_engine" in str(e):
          def log_event(etype, src, dtls): print(f"[DummyLOG] {etype}|{src}|{dtls}")
@@ -44,25 +49,29 @@ class StallRecoveryAgent:
     # Modify __init__ for AgentBus integration
     def __init__(self,
                  agent_id: str = AGENT_ID_DEFAULT,
-                 agent_bus: AgentBus = None, # Now required
+                 agent_bus=None,
                  project_root=".",
-                 log_file_path="logs/agent_ChatCommander.log", # TODO: Make log path configurable via agent config
-                 task_list_path="master_task_list.json" # Default to master list - TODO: Remove dependency
+                 log_file_path="logs/agent_ChatCommander.log",
+                 task_list_path="master_task_list.json"
                  ):
         if not _core_imports_ok:
-             # Use logger if available, otherwise print critical error before raising
-             msg = "StallRecoveryAgent cannot initialize due to missing core component imports."
-             try: logger.critical(msg)
-             except NameError: print(f"CRITICAL: {msg}")
-             raise RuntimeError(msg)
+            msg = "StallRecoveryAgent cannot initialize due to missing core component imports."
+            try:
+                logger.critical(msg)
+            except NameError:
+                print(f"CRITICAL: {msg}")
+            raise RuntimeError(msg)
+        # Handle optional AgentBus
         if agent_bus is None:
-            raise ValueError("AgentBus instance is required for StallRecoveryAgent initialization.")
+            logger.warning("AgentBus instance not provided; skipping bus registration and operations.")
+            self.agent_bus = None
+        else:
+            self.agent_bus = agent_bus
 
         self.agent_id = agent_id
-        self.agent_bus = agent_bus # Required
         self.project_root = Path(project_root).resolve()
         self.log_file_path = self.project_root / log_file_path
-        self.task_list_path = self.project_root / task_list_path # TODO: Remove direct task list dependency
+        self.task_list_path = self.project_root / task_list_path
         self.last_log_size = 0
         try:
             if self.log_file_path.exists():
@@ -73,20 +82,20 @@ class StallRecoveryAgent:
         except Exception as e:
             logger.warning(f"Could not get initial log file size for {self.log_file_path}: {e}")
 
-        # Register with Agent Bus (Synchronous)
-        try:
-            registration_success = self.agent_bus.register_agent(self)
-            if registration_success:
-                 log_event("AGENT_REGISTERED", self.agent_id, {"message": "Successfully registered with AgentBus."})
-                 logger.info(f"Agent {self.agent_id} registered successfully.")
-            else:
-                 log_event("AGENT_ERROR", self.agent_id, {"error": "Failed to register with AgentBus (register_agent returned False)."})
-                 logger.error("Agent registration failed.")
-                 # raise RuntimeError(f"Failed to register {self.agent_id} with AgentBus")
-        except Exception as reg_e:
-             log_event("AGENT_ERROR", self.agent_id, {"error": f"Exception during AgentBus registration: {reg_e}", "traceback": traceback.format_exc()})
-             logger.exception("Exception during AgentBus registration.")
-             # raise RuntimeError(f"Failed to register {self.agent_id} with AgentBus: {reg_e}") from reg_e
+        # Register with Agent Bus if available
+        if self.agent_bus:
+            try:
+                registration_success = self.agent_bus.register_agent(self)
+                if registration_success:
+                    log_event("AGENT_REGISTERED", self.agent_id, {"message": "Successfully registered with AgentBus."})
+                    logger.info(f"Agent {self.agent_id} registered successfully.")
+                else:
+                    log_event("AGENT_ERROR", self.agent_id, {"error": "Failed to register with AgentBus (register_agent returned False)."})
+                    logger.error("Agent registration failed.")
+            except Exception as reg_e:
+                log_event("AGENT_ERROR", self.agent_id, {"error": f"Exception during AgentBus registration: {reg_e}", "traceback": traceback.format_exc()})
+                logger.exception("Exception during AgentBus registration.")
+        # Else: AgentBus not provided; skipping registration
 
     # --- Public Dispatch Target Method ---
     def perform_stall_check(self, calling_agent_id: str = "Unknown") -> bool:

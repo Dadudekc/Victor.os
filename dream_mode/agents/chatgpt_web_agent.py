@@ -22,9 +22,10 @@ CONFIG_PATH = AGENT_SCRIPT_DIR.parent / "config" / "dream_mode_config.json"
 INBOX_ROOT = AGENT_SCRIPT_DIR.parent / "inbox"
 
 class ChatGPTWebAgent:
-    def __init__(self, agent_id: str, conversation_url: str):
+    def __init__(self, agent_id: str, conversation_url: str, simulate: bool = False):
         self.agent_id = agent_id
         self.conversation_url = conversation_url
+        self.simulate = simulate
         self.inbox_dir = INBOX_ROOT / agent_id
         self.inbox_file = self.inbox_dir / "pending_responses.json"
         self.last_seen = None
@@ -32,10 +33,13 @@ class ChatGPTWebAgent:
 
         # Initialize C2 channel (Local only)
         self.channel = LocalBlobChannel()
-        # Initialize central TaskNexus for coordinating tasks
+        # Initialize TaskNexus for coordinating tasks
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Track which results have been injected into ChatGPT UI
         self.injected_result_ids = set()
+
+        # Flag to ensure onboarding prompt is only sent once
+        self.onboarded = False
 
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         if not self.inbox_file.exists():
@@ -92,8 +96,37 @@ class ChatGPTWebAgent:
         logger.info(f"[{self.agent_id}] 🛰️ Injected swarm response into ChatGPT UI.")
 
     def run_cycle(self):
+        # Simulation mode: auto-generate tasks without browser interaction
+        if getattr(self, 'simulate', False):
+            tasks = self.channel.pull_tasks()
+            for task in tasks:
+                task_id = task.get("task_id") or task.get("id")
+                logger.info(f"[{self.agent_id}] 🛠️ Simulating response for {task_id}")
+                sim_payload = f"Simulated response payload for task {task_id}"
+                # Push simulation result back to LocalBlobChannel
+                self.channel.push_result({"id": task_id, "content": sim_payload})
+                # Also push to TaskNexus for Cursor workers
+                self.nexus.add_task({"task_id": task_id, "payload": sim_payload})
+            return
+
         if not self.driver and not self._initialize_browser():
             return
+
+        # Allow reset of onboarding prompt on each cycle if env var is set
+        if os.getenv("RESET_ONBOARDING") == "1":
+            self.onboarded = False
+
+        # Send onboarding start prompt on first cycle if available
+        if not self.onboarded:
+            prompt_path = Path(os.getcwd()) / "_agent_coordination" / "onboarding" / self.agent_id / "start_prompt.md"
+            if prompt_path.exists():
+                try:
+                    start_prompt = prompt_path.read_text(encoding="utf-8")
+                    self.inject_response(start_prompt)
+                    logger.info(f"[{self.agent_id}] Sent onboarding start prompt.")
+                except Exception as e:
+                    logger.error(f"[{self.agent_id}] Failed to inject start prompt: {e}", exc_info=True)
+            self.onboarded = True
 
         logger.info(f"[{self.agent_id}] 🔍 Checking for ChatGPT reply...")
         try:

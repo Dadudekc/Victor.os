@@ -1,0 +1,1 @@
+# Stub PyQt5 package for testing purposes 

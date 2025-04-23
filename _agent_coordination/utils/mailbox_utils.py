@@ -7,6 +7,7 @@ import threading # Import threading for Event
 import asyncio  # Import asyncio for Event
 from pathlib import Path
 from typing import Callable, Optional, Union
+import json
 
 logger = logging.getLogger("MailboxUtils")
 
@@ -58,21 +59,31 @@ def process_directory_loop(
                             success = process_func(item)
                             logger.debug(f"[{log_prefix}] Processing function returned {success} for {item.name}")
                         except Exception as processing_e:
-                            logger.error(f"[{log_prefix}] Unhandled exception in process_func for {item.name}: {processing_e}", exc_info=True)
-                            success = False # Ensure it moves to error dir
-                            
-                        target_dir = success_dir if success else error_dir
-                        try:
-                            move_target = target_dir / item.name
-                            # Basic check to prevent overwriting? Less likely with UUIDs
-                            # if move_target.exists(): 
-                            #    logger.warning(f"[{log_prefix}] Target exists, not moving: {move_target}")
-                            # else:    
-                            shutil.move(str(item), str(move_target))
-                            logger.debug(f"[{log_prefix}] Moved {item.name} to {target_dir.name}")
+                            logger.error(f"[{log_prefix}] Error processing {item.name}: {processing_e}", exc_info=True)
+                            # Augment the error file with structured context
+                            try:
+                                data = json.loads(item.read_text(encoding='utf-8'))
+                            except Exception:
+                                data = {}
+                            data['error_context'] = {
+                                'timestamp_failed': time.time(),
+                                'error_message': str(processing_e)
+                            }
+                            # Write augmented file to error_dir and remove original
+                            target = error_dir / item.name
+                            with open(target, 'w', encoding='utf-8') as ef:
+                                json.dump(data, ef, indent=2)
+                            item.unlink()
                             processed_count += 1
-                        except Exception as move_e:
-                            logger.error(f"[{log_prefix}] Failed to move file {item.name} to {target_dir.name}: {move_e}")
+                            continue
+                        # Move file based on process_func success status
+                        if success:
+                            target = success_dir / item.name
+                            shutil.move(str(item), str(target))
+                        else:
+                            target = error_dir / item.name
+                            shutil.move(str(item), str(target))
+                        processed_count += 1
                     elif item.name != ".placeholder": # Ignore placeholders
                         logger.warning(f"[{log_prefix}] Found file with unexpected suffix in {watch_dir}: {item.name}. Ignoring.")
                         # Optionally move ignored files elsewhere?

@@ -7,6 +7,7 @@ from queue import Queue
 from dreamforge.core.enums.task_types import TaskType
 from dreamforge.core.agent_bus import AgentBus
 from dreamforge.core.prompt_staging_service import stage_and_execute_prompt
+from core.monitoring.prompt_execution_monitor import PromptExecutionMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,8 @@ class CursorDispatcher:
         self.task_queue = Queue()
         self.is_running = False
         self.current_task: Optional[Dict] = None
+        # Initialize prompt execution monitor
+        self.monitor = PromptExecutionMonitor(memory=None, dispatcher=self)
         
     def execute_cursor_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -192,8 +195,21 @@ class CursorDispatcher:
                 task = self.agent_bus.claim_task(agent_id="Cursor")
                 
                 if task:
+                    # Monitor execution
+                    prompt_id = task.get("id")
                     self.current_task = task
+                    self.monitor.start_monitoring(prompt_id)
+                    # Execute the task
                     result = self.execute_cursor_task(task)
+                    # Report success or failure
+                    if result.get("success"):
+                        # Convert response data to string if needed
+                        resp = result.get("data")
+                        resp_str = resp if isinstance(resp, str) else str(resp)
+                        self.monitor.report_success(prompt_id, resp_str)
+                    else:
+                        err = result.get("error", "unknown")
+                        self.monitor.report_failure(prompt_id, reason=err)
                     
                     # Send result back through agent bus
                     self.agent_bus.complete_task(

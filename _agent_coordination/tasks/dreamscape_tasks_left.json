@@ -1,0 +1,59 @@
+[
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/main_window.py",
+    "line": 43,
+    "todo": "Add error handling for missing API keys or failed initializations",
+    "status": "IN_PROGRESS",
+    "claimed_by": "agent_001",
+    "completed_by": "agent_003"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/main_window.py",
+    "line": 47,
+    "todo": "Initialize ContextManager, ExperienceParser, DiscordManager later",
+    "status": "CLAIMED",
+    "claimed_by": "agent_003"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/main_window.py",
+    "line": 96,
+    "todo": "Add bottom status bar, buttons etc. if needed",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/dreamscape_tab.py",
+    "line": 81,
+    "todo": "Populate model combo from config",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/dreamscape_tab.py",
+    "line": 142,
+    "todo": "Add template loading/editing",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/dreamscape_tab.py",
+    "line": 163,
+    "todo": "Connect Generate, Cancel, Share buttons and their handlers",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_gui/dreamscape_tab.py",
+    "line": 230,
+    "todo": "Populate Context, Log, and Templates tabs",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_generator/src/chatgpt_scraper.py",
+    "line": 270,
+    "todo": "Implement get_all_chat_titles using locators from ChatGPTLocators",
+    "status": "PENDING"
+  },
+  {
+    "file": "social/digital_dreamscape/dreamscape_generator/src/history_manager.py",
+    "line": 61,
+    "todo": "Implement query-based filtering logic here",
+    "status": "PENDING"
+  }
+]

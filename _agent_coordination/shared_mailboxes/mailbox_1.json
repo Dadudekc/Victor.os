@@ -2,6 +2,40 @@
   "status": "online",
   "assigned_agent_id": 1,
   "last_seen_utc": "2025-04-22T19:25:00Z",
-  "messages": [],
-  "processed_message_ids": ["enable_code_apply_in_cursor_agent_001"]
+  "messages": [
+    {
+      "task_id": "enable_code_apply_in_cursor_agent_001",
+      "status": "PENDING",
+      "task_type": "refactor_agent",
+      "action": "Enhance CursorControlAgent._handle_generate_code to use CodeApplicator.",
+      "params": {
+        "target_agent_file": "agents/cursor_control_agent.py",
+        "target_method": "_handle_generate_code",
+        "tool_to_use": "tools/code_applicator.py",
+        "description": "Modify the _handle_generate_code handler. After successfully sending a prompt via CursorPromptController, it needs a mechanism to retrieve the generated code (Assumption: For now, assume code is manually copied to clipboard or a known temp file). Then, invoke tools/code_applicator.py via CursorTerminalController to apply the retrieved code to the target file. The handler should only return True (leading to task COMPLETED status) if BOTH prompt sending AND code application succeed.",
+        "requirements": [
+          "Modify handler logic.",
+          "Add step to retrieve generated code (placeholder needed for retrieval method).",
+          "Call code_applicator.py tool via run_command.",
+          "Update success/failure logic based on application result."
+        ]
+      },
+      "target_agent": "CursorControlAgent",
+      "priority": 2,
+      "timestamp_created": "2024-07-26T12:00:01Z",
+      "depends_on": [
+        "infra_build_code_applicator_001"
+      ]
+    },
+    {
+      "type": "task_assignment",
+      "task_id": "pyqt5_browser_001",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-04-22T20:40:00Z",
+      "content": "Task pyqt5_browser_001 assigned to agent_001"
+    }
+  ],
+  "processed_message_ids": [
+    "enable_code_apply_in_cursor_agent_001"
+  ]
 }

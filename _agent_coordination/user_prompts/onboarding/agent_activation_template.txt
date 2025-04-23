@@ -1,0 +1,88 @@
+# Agent Activation Protocol (Generic v3)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{D:\Dream.os}}"         # Root directory of the codebase
+- agent_id: "{{you must set your own agent id}}"                 # Unique identifier for this agent
+- mailbox_dir: "{{D:\Dream.os\_agent_coordination\shared_mailboxes}}"           # Path to the agent's mailbox directory
+- task_list_path: "{{D:\Dream.os\_agent_coordination\tasks}}"     # Path to the master task list JSON
+- onboarding_doc: "{{D:\Dream.os\_agent_coordination\onboarding\agent_onboarding_prompt.md}}"     # Path to the onboarding prompt document
+- directive: "{{directive}}"               # High‑level directive to execute
+- specialization: "{{specialization}}"     # Agent's domain of expertise (e.g., refactoring)
+- tools: ["read_file", "list_dir", "write_file", "modify_file", "run_terminal_cmd"]  # Allowed agent capabilities
+- tools_guide: "{{D:\Dream.os\_agent_coordination\onboarding\TOOLS_GUIDE.md}}"     # Path to the tools guide document
+---
+
+## Phase 1: Read Charter & Claim Mailbox
+1. Load and validate `onboarding_doc` under `project_root`:
+   - If file not found, list its parent directory and retry.
+2. Parse onboarding rules to extract mailbox naming and shared mailbox protocol.
+3. Scan `mailbox_dir` for available mailboxes (`mailbox_1.json` ... `mailbox_N.json`).
+4. If an available mailbox exists, claim the first one; otherwise, return a JSON error.
+
+### Phase 1 Output
+Return a single JSON object (no free-form text):
+```json
+{
+  "phase": "claim_mailbox",
+  "agent_id": "{{agent_id}}",
+  "claimed_mailbox": "mailbox_1.json",
+  "status": "success"
+}
+```
+If no mailbox found:
+```json
+{
+  "phase": "claim_mailbox",
+  "agent_id": "{{agent_id}}",
+  "error": "no_mailbox_available",
+  "available": []
+}
+```
+
+---
+
+## Phase 2: Register & Sync Task List
+1. Read and parse `task_list_path` (master_task_list.json).
+2. Identify next actionable task for this agent using `directive` and `specialization`:
+   a. `status == "PENDING"` AND `assigned_to == agent_id`
+   b. `status == "PENDING"` AND `assigned_to` is null AND directive relates to specialization
+3. If found, update task:
+   - Set `status` to "IN_PROGRESS"
+   - Set `assigned_to` to agent_id
+4. Atomically write back the full task list.
+
+### Phase 2 Output
+Return a single JSON object (no free-form text):
+```json
+{
+  "phase": "register_task",
+  "agent_id": "{{agent_id}}",
+  "directive": "{{directive}}",
+  "claimed_task_id": "task_12345",
+  "status": "in_progress"
+}
+```
+
+---
+
+## Phase 3: Begin Operations Loop
+- Monitor `mailbox_dir` inbox for messages:
+  1. If new JSON message arrives, parse `action` and `params`.
+  2. Execute the specified task.
+  3. On completion or error, write a JSON response to the `outbox`:
+```json
+{
+  "agent_id": "{{agent_id}}",
+  "task_id": "task_12345",
+  "status": "completed",
+  "result": { ... }
+}
+```
+  4. Continue processing until shutdown.
+
+### Loop Constraints
+- All responses MUST be valid JSON objects or arrays (no free-form text).
+
+---
+
+# Begin Initialization

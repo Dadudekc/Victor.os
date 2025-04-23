@@ -183,4 +183,22 @@ rules:
       - syntax error
       - logical error
     applies_to: all_agents
+```
+
+### Rule 9: Automated Test Coverage
+- **ID:** GEN-009
+- **Description:** "Agents MUST write and maintain automated tests for any new or modified code, ensuring essential pathways are covered and key functionality is validated. Aim to keep test coverage above an agreed threshold and address critical gaps promptly."
+- **Keywords:** `testing`, `coverage`, `automated tests`, `quality assurance`
+- **Applies To:** `all_agents`
+
+```yaml
+rules:
+  - id: GEN-009
+    description: "Agents MUST write and maintain automated tests for any new or modified code, ensuring essential pathways are covered and key functionality is validated. Aim to keep test coverage above an agreed threshold and address critical gaps promptly."
+    keywords:
+      - testing
+      - coverage
+      - automated tests
+      - quality assurance
+    applies_to: all_agents
 ``` 

@@ -1,0 +1,24 @@
+[
+  {
+    "task_id": "context_planner_nlp_001",
+    "status": "PENDING",
+    "task_type": "improve_tool",
+    "action": "Enhance context_planner.py keyword matching to use robust NLP for complex cases.",
+    "params": {
+      "file": "_agent_coordination/tools/context_planner.py",
+      "line": 44
+    },
+    "priority": 2
+  },
+  {
+    "task_id": "fragment_forge_ui_feedback_001",
+    "status": "PENDING",
+    "task_type": "ui_improvement",
+    "action": "Implement QMessageBox warnings and status messages in FragmentForgeTab.",
+    "params": {
+      "file": "ui/fragment_forge_tab.py",
+      "lines": [369, 393, 396, 399, 406, 412, 421, 424, 427]
+    },
+    "priority": 2
+  }
+] 

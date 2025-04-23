@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mailbox",
+  "type": "object",
+  "required": ["mailbox_id", "status", "owner", "messages"],
+  "properties": {
+    "mailbox_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["UNCLAIMED", "CLAIMED"] },
+    "owner": { "type": ["string", "null"] },
+    "messages": { "type": "array", "items": { "type": "object" } }
+  }
+} 

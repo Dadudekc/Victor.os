@@ -98,3 +98,13 @@ drivers/
 
 # Ignore specific coordination module outputs
 _agent_coordination/chatgpt_output/
+
+# Ignore archived prompts in prompt_library
+_agent_coordination/prompt_library/archive/
+
+# Virtual environment directories
+venv/
+.venv/
+env/
+ENV/
+**/venv*/

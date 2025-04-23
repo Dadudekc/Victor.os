@@ -154,11 +154,13 @@ class CursorControlAgent:
                     status = "BAD_REQUEST"
                 else:
                     code_applicator_path = os.path.abspath(os.path.join(os.getcwd(), "tools", "code_applicator.py"))
-                    cmd = f"python {code_applicator_path} --input {temp_file} --target {target_file}"
+                    # Use correct CLI flags: --input-file for tool, and positional target_file
+                    cmd = f"python \"{code_applicator_path}\" --input-file \"{temp_file}\" \"{target_file}\""
                     success = self.coordinator.run_terminal_command(cmd, wait=True)
                     response_payload["command_executed"] = cmd
                     response_payload["success"] = success
-                    status = "SUCCESS" if success else "FAILED"
+                    # Consider the task completed if the tool succeeds
+                    status = "COMPLETED" if success else "FAILED"
             # Add more actions here...
             # elif action == "INSERT_TEXT": ...
             # elif action == "FIND_ELEMENT": ...

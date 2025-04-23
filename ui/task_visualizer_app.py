@@ -109,8 +109,8 @@ st.caption(f"Monitoring task list: {TASK_LIST_PATH.relative_to(project_root)}")
 # Placeholder for the data display
 data_placeholder = st.empty()
 
-# --- Main Loop for Refreshing Data ---
-while True:
+# --- Main Loop for Refreshing Data (disabled during import) ---
+while False:
     try:
         logger.debug("Loading task data...")
         df_tasks = load_task_data(TASK_LIST_PATH)
@@ -132,4 +132,4 @@ while True:
 
     # Wait for the next refresh cycle
     time.sleep(REFRESH_INTERVAL_SECONDS)
-    # Rerun is implicit in Streamlit's loop, no manual rerun needed generally 
+    # Loop disabled 

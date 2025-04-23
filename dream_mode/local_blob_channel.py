@@ -27,8 +27,12 @@ class LocalBlobChannel:
                     tasks.append(task)
             except Exception:
                 continue
-            # move processed file
-            shutil.move(full_path, os.path.join(self.processed_dir, filename))
+            # Attempt to move processed file, ignore on failure
+            try:
+                shutil.move(full_path, os.path.join(self.processed_dir, filename))
+            except Exception:
+                # Could be locked or already moved; skip
+                pass
         return tasks
 
     def push_result(self, result: Dict) -> None:
@@ -47,6 +51,14 @@ class LocalBlobChannel:
                     results.append(result)
             except Exception:
                 continue
-            # move processed file
-            shutil.move(full_path, os.path.join(self.processed_dir, filename))
-        return results 
+            # Attempt to move processed file, ignore on failure
+            try:
+                shutil.move(full_path, os.path.join(self.processed_dir, filename))
+            except Exception:
+                # Could be locked or already moved; skip
+                pass
+        return results
+
+    def healthcheck(self) -> bool:
+        """Local mode healthcheck always returns True."""
+        return True 

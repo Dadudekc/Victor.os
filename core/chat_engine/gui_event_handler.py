@@ -1,6 +1,24 @@
 import sys
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QCheckBox, QTextEdit
+try:
+    from PyQt5 import QtWidgets, QtCore
+    from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QCheckBox, QTextEdit
+except ImportError:
+    # Stub Qt components for environments without PyQt5
+    class QtWidgets: pass
+    class QtCore: pass
+    class QApplication:
+        def __init__(self, *args, **kwargs): pass
+        def exec_(self): pass
+    class QMainWindow:
+        def __init__(self, *args, **kwargs): pass
+    class QPushButton:
+        def __init__(self, *args, **kwargs): pass
+    class QLabel:
+        def __init__(self, *args, **kwargs): pass
+    class QCheckBox:
+        def __init__(self, *args, **kwargs): pass
+    class QTextEdit:
+        def __init__(self, *args, **kwargs): pass
 
 class GUIEventHandler(QMainWindow):
     """

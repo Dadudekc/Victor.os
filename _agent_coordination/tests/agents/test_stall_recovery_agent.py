@@ -1,12 +1,15 @@
+# Add project root to sys.path for imports
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+
 import pytest
 import json
 import time
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open, call
 
-# Assuming the agent is importable from the project structure
-# Adjust the import path if necessary based on your project layout
-from agents.stall_recovery_agent import StallRecoveryAgent
+# Import the StallRecoveryAgent from the correct module path
+from agents.recovery.stall_agent import StallRecoveryAgent
 
 # --- Fixtures ---
 
@@ -83,10 +86,10 @@ STALL_CONTEXT_MAP = {
 
 # --- Test Cases ---
 
-@patch('agents.stall_recovery_agent.produce_project_context')
+@patch('agents.recovery.stall_agent.produce_project_context')
 @patch('pathlib.Path.stat')
 @patch('builtins.open', new_callable=mock_open)
-@patch('agents.stall_recovery_agent.StallRecoveryAgent.dispatch_recovery_task') # Mock dispatch to isolate checks
+@patch('agents.recovery.stall_agent.StallRecoveryAgent.dispatch_recovery_task') # Mock dispatch to isolate checks
 def test_stall_detection_and_context(mock_dispatch, mock_file_open, mock_stat, mock_produce_context, recovery_agent, temp_project):
     """T3.2.1 - T3.2.5 (Combined): Test stall detection and context analysis trigger."""
     # Setup mock stat to simulate unchanged log file size > 0
@@ -180,10 +183,10 @@ def test_task_fields_populated():
     pass 
 
 # Example of testing a specific category trigger (complementary to combined test)
-@patch('agents.stall_recovery_agent.produce_project_context')
+@patch('agents.recovery.stall_agent.produce_project_context')
 @patch('pathlib.Path.stat')
 @patch('builtins.open', new_callable=mock_open)
-@patch('agents.stall_recovery_agent.StallRecoveryAgent.dispatch_recovery_task')
+@patch('agents.recovery.stall_agent.StallRecoveryAgent.dispatch_recovery_task')
 def test_specific_stall_category_no_input(mock_dispatch, mock_file_open, mock_stat, mock_produce_context, recovery_agent):
     """Verify NO_INPUT category triggers correct task type via dispatch call."""
     mock_stat.return_value.st_size = 500

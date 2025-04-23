@@ -11,8 +11,8 @@ def split_onboarding(input_file: str, output_base: str, agents: list, sections: 
     # Read full onboarding file
     with open(input_file, 'r') as f:
         content = f.read()
-    # Find all headings and their positions
-    pattern = re.compile(r'(?m)^(#\s+(?P<title>.+))')
+    # Find all Markdown headings (any level) and their positions
+    pattern = re.compile(r'(?m)^(?P<header>#+)\s*(?P<title>.+)$')
     matches = list(pattern.finditer(content))
     # Iterate through matches and extract section content
     for i, m in enumerate(matches):

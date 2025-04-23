@@ -7,6 +7,7 @@ import argparse
 import json
 from pathlib import Path
 from datetime import datetime
+import subprocess
 
 import yaml
 from jinja2 import Template
@@ -54,13 +55,26 @@ def compile_lore(translation: dict, tasks: list, output_path: Path, template_tex
     # Build rendering context
     event_name = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     date_str = datetime.utcnow().strftime("%Y-%m-%d")
-    # Inject timestamp_created and result_summary for each task if absent
+    # Inject timestamp_created, result_summary, commit_hash, target_files, and log_tail for each task
+    # Determine current commit hash for traceability
+    try:
+        commit_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        commit_hash = ""
     for task in tasks:
         # Timestamp per task falls back to event time
         task.setdefault('timestamp_created', event_name)
         # Summary description if not provided
         status = task.get('status', 'unknown')
         task.setdefault('result_summary', f"Task processed with status: {status}")
+        # Commit hash
+        task.setdefault('commit_hash', commit_hash)
+        # Target files list
+        tf = task.get('payload', {}).get('modified_files')
+        task.setdefault('target_files', tf if isinstance(tf, list) else [])
+        # Log tail
+        lt = task.get('payload', {}).get('log_tail')
+        task.setdefault('log_tail', lt if isinstance(lt, str) else "")
     template = Template(template_text)
     content = template.render(
         event_name=event_name,
