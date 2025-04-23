@@ -1,7 +1,7 @@
 {
   "status": "idle",
   "assigned_agent_id": "agent_002",
-  "last_seen_utc": "2025-04-22T20:10:00Z",
+  "last_seen_utc": "2025-04-22T20:15:00Z",
   "messages": [],
-  "processed_message_ids": ["dsc-chronicle-init-001", "enable_code_apply_in_cursor_agent_001"]
+  "processed_message_ids": ["dsc-chronicle-init-001", "enable_code_apply_in_cursor_agent_001", "onboarding_multi_agent_refactor_006"]
 }

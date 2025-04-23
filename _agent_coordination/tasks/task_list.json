@@ -102,5 +102,35 @@
     ],
     "owner": "SystemOrchestrator",
     "claimed_by": "agent_002"
+  },
+  {
+    "task_id": "gui-swarm-dashboard-polish-005",
+    "status": "IN_PROGRESS",
+    "claimed_by": "agent_005",
+    "task_type": "gui_improvement",
+    "action": "Enhance SwarmDashboardTab: wire controls, polish UI, implement agent-specific features for agent_005.",
+    "params": {
+      "components": ["Pause Button", "Retry Button", "Lore Stream Scroll"],
+      "framework": "PySide6"
+    },
+    "priority": 2,
+    "timestamp_created": "2025-04-22T20:10:00Z",
+    "owner": "agent_005"
+  },
+  {
+    "task_id": "onboarding_multi_agent_refactor_006",
+    "status": "IN_PROGRESS",
+    "claimed_by": "agent_002",
+    "task_type": "doc_refactor",
+    "action": "Refactor USER_ONBOARDING.md for multi-agent collaboration and move onboarding content into each agent's inbox directory.",
+    "params": {
+      "onboarding_file": "USER_ONBOARDING.md",
+      "inbox_base_dir": "_agent_coordination/shared_mailboxes",
+      "agents": ["agent_001","agent_002","agent_003","agent_005"],
+      "sections_to_split": ["Overview","Prerequisites","Configuration & Credentials","Running Agents","One-Click Launch","Multi-Agent Collaboration"]
+    },
+    "priority": 1,
+    "timestamp_created": "2025-04-22T20:15:00Z",
+    "owner": "agent_002"
   }
 ]
