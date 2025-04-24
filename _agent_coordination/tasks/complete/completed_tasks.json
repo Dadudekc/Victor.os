@@ -1,117 +1,79 @@
 [
   {
-    "task_id": "dev_create_echo_agent_001",
+    "task_id": "audit_remove_drivers_dir",
+    "section": "cleanup",
     "status": "COMPLETED",
     "completed_by": "agent_002",
-    "task_type": "generate_code",
-    "action": "Create a new agent named EchoAgent in agents/echo_agent.py.",
-    "params": {
-      "target_file": "agents/echo_agent.py",
-      "description": "Create a simple agent named EchoAgent. It should have an AGENT_NAME constant set to 'EchoAgent'. It needs an __init__ method that sets up mailbox paths (inbox, processed, error) under mailboxes/EchoAgent/. It requires a start_listening method using mailbox_utils.process_directory_loop to monitor its inbox. The core logic should be in a _process_mailbox_message method which reads a message, logs its content (e.g., using logger.info), and returns True for success.",
-      "requirements": [
-        "Basic agent structure (class, __init__, start_listening, stop)",
-        "Mailbox monitoring using process_directory_loop",
-        "Message processing that logs message content",
-        "Import necessary modules (json, logging, time, threading, Path, mailbox_utils)"
-      ]
-    },
-    "target_agent": "CursorControlAgent",
-    "timestamp_created": "2024-07-26T10:00:00Z"
+    "description": "Archive or delete obsolete drivers/ directory from project root."
   },
   {
-    "task_id": "infra_build_code_applicator_001",
+    "task_id": "audit_remove_cookies_dir",
+    "section": "cleanup",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Archive or delete deprecated cookies/ directory from project root."
+  },
+  {
+    "task_id": "audit_update_gitignore",
+    "section": "cleanup",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Add common build artifacts (e.g., __pycache__, .pytest_cache, node_modules) to .gitignore."
+  },
+  {
+    "task_id": "audit_consolidate_dependencies",
+    "section": "consolidation",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Merge Python (requirements.txt) and Node (package.json) dependencies into the central pyproject.toml."
+  },
+  {
+    "task_id": "audit_setup_ci",
+    "section": "setup",
+    "status": "COMPLETED",
+    "completed_by": "agent_001",
+    "description": "Add a GitHub Actions workflow for linting, type checking, and running tests across the codebase."
+  },
+  {
+    "task_id": "audit_cleanup_node_modules",
+    "section": "cleanup",
     "status": "COMPLETED",
     "completed_by": "agent_003",
-    "claimed_by": "agent_003",
-    "task_type": "develop_tool",
-    "action": "Build tools/code_applicator.py tool.",
-    "params": {
-      "target_file": "tools/code_applicator.py",
-      "description": "Create a robust tool that takes generated code content (e.g., via stdin, clipboard, or temp file) and a target file path, then safely applies the code to the specified file. Should handle creating new files and potentially merging/replacing existing content based on context or markers. Must include extensive logging and error handling. Needs rigorous testing.",
-      "requirements": [
-        "Accept code content and target file path as input.",
-        "Handle file creation and modification safely.",
-        "Log actions and results clearly.",
-        "Return appropriate exit codes.",
-        "Include unit tests."
-      ]
-    },
-    "target_agent": "CursorControlAgent",
-    "priority": 1,
-    "timestamp_created": "2024-07-26T12:00:00Z"
+    "description": "Remove node_modules/ directory or relocate it out of the main repo to reduce size."
   },
   {
-    "task_id": "enable_code_apply_in_cursor_agent_001",
+    "task_id": "audit_move_tests",
+    "section": "organization",
     "status": "COMPLETED",
-    "completed_by": "agent_002",
-    "claimed_by": "agent_002",
-    "task_type": "refactor_agent",
-    "action": "Enhance CursorControlAgent._handle_generate_code to use CodeApplicator.",
-    "params": {
-      "target_agent_file": "agents/cursor_control_agent.py",
-      "target_method": "_handle_generate_code",
-      "tool_to_use": "tools/code_applicator.py",
-      "description": "Modify the _handle_generate_code handler. After successfully sending a prompt via CursorPromptController, it needs a mechanism to retrieve the generated code (Assumption: For now, assume code is manually copied to clipboard or a known temp file). Then, invoke tools/code_applicator.py via CursorTerminalController to apply the retrieved code to the target file. The handler should only return True (leading to task COMPLETED status) if BOTH prompt sending AND code application succeed.",
-      "requirements": [
-        "Modify handler logic.",
-        "Add step to retrieve generated code (placeholder needed for retrieval method).",
-        "Call code_applicator.py tool via run_command.",
-        "Update success/failure logic based on application result."
-      ]
-    },
-    "target_agent": "CursorControlAgent",
-    "priority": 2,
-    "timestamp_created": "2024-07-26T12:00:01Z",
-    "depends_on": [
-      "infra_build_code_applicator_001"
-    ]
+    "completed_by": "agent_003",
+    "description": "Ensure all test files are under the tests/ directory and remove duplicates elsewhere."
   },
   {
-    "task_id": "build_feedback_mailbox_writer_001",
+    "task_id": "audit_cleanup_temp_files",
+    "section": "cleanup",
     "status": "COMPLETED",
-    "claimed_by": "agent_002",
-    "task_type": "refactor_agent",
-    "action": "Ensure failed task messages include structured error context in error mailbox.",
-    "params": {
-      "target_component": "agents/cursor_control_agent.py or _agent_coordination/mailbox_utils.py",
-      "description": "When a task fails within an agent's message handler (_process_mailbox_message), ensure the message file moved to the agent's 'error/' directory contains not just the original message, but also structured error information (e.g., timestamp of failure, error message, relevant context/params). This might involve modifying the agent handler to write a new error file or enhancing mailbox_utils.process_directory_loop to capture exceptions and augment the file before moving.",
-      "requirements": [
-        "Determine best implementation location (agent handler vs. mailbox_utils).",
-        "Capture error details effectively.",
-        "Write augmented error message file to error directory."
-      ]
-    },
-    "target_agent": "CursorControlAgent",
-    "priority": 3,
-    "timestamp_created": "2024-07-26T12:00:02Z"
+    "completed_by": "agent_003",
+    "description": "Remove temporary files (temp_target.txt, temp_source.txt, *.bak) and archive backups."
   },
   {
-    "task_id": "dsc-chronicle-init-001",
-    "title": "Create Dreamscape Chronicle System",
-    "description": "Design and implement the Dreamscape Chronicle system\u2014a narrative overlay that translates real agent activity, task progression, and system events into a structured, lore-driven chronicle.",
+    "task_id": "core_loop_supervisor_creation",
+    "task_type": "core_loop",
     "status": "COMPLETED",
-    "completed_by": "agent_002",
-    "priority": "medium",
-    "type": "artifact_creation",
-    "realm": "Narrative Generation",
-    "tags": [
-      "dreamscape",
-      "logging",
-      "lore",
-      "storytelling",
-      "meta-agent"
-    ],
-    "dependencies": [
-      "core-agent-activation",
-      "agentbus-import-fix"
-    ],
-    "validation_criteria": [
-      "Chronicle entries are generated automatically from task logs or agent output.",
-      "Each entry includes task ID, agent ID, outcome (success/failure), and realm reference.",
-      "Generated output saved to `Dreamscape_Chronicle.md` or equivalent location.",
-      "At least one test case where an agent completes a task and a chronicle entry is created from it."
-    ],
-    "owner": "SystemOrchestrator",
-    "claimed_by": "agent_002"
+    "completed_by": "agent_008",
+    "description": "Implement SupervisorOria agent to monitor agent heartbeats, retry failed tasks, and trigger idle recovery automatically."
+  },
+  {
+    "task_id": "propose_system_improvements",
+    "section": "proposal",
+    "status": "COMPLETED",
+    "completed_by": "agent_001",
+    "description": "Generated system improvement proposals P007, P008, and P009."
+  },
+  {
+    "task_id": "event_bus_tests_001",
+    "section": "test",
+    "status": "COMPLETED",
+    "completed_by": "agent_003",
+    "description": "Add unit tests for EventBus publish/subscribe and acknowledgment behavior in _agent_coordination/tools/event_bus.py."
   }
 ]

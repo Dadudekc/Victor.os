@@ -1,0 +1,17 @@
+{
+  "proposal_id": "P002",
+  "title": "Enhanced Agent Pub/Sub Communication",
+  "description": "Introduce a Pub/Sub layer (e.g., Redis or in-memory broker) and standardize mailbox JSON schemas for topics and subscriptions.",
+  "benefits": [
+    "Lower latency message delivery",
+    "Flexible topic-based subscriptions",
+    "Reduced filesystem polling overhead"
+  ],
+  "tasks": [
+    "Design Pub/Sub broker integration",
+    "Define mailbox schema with topics and subscriptions",
+    "Implement Redis-based prototype",
+    "Migrate agents to use new communication layer"
+  ],
+  "status": "proposed"
+} 

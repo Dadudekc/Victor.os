@@ -84,4 +84,12 @@ class DreamOSMainWindow(QMainWindow):
             sb = self.statusBar()
             sb.showMessage(f"Restored state for {len(data)} tabs.", 5000)
         except Exception:
-            pass 
+            pass
+
+    def manual_save_state(self):
+        """Public method to manually save the current tab states."""
+        self._save_state()
+
+    def auto_save_state(self):
+        """Public method to automatically save the current tab states."""
+        self._save_state() 

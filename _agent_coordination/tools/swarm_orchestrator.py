@@ -9,6 +9,7 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime
+from _agent_coordination.tools.file_lock_manager import read_json, write_json
 
 # Paths
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,13 +30,17 @@ if not COMPLETED.exists():
 
 def load_json(path: Path):
     try:
-        return json.loads(path.read_text(encoding='utf-8'))
+        data = read_json(path)
+        return data if data else []
     except Exception:
         return []
 
 
 def save_json(path: Path, data):
-    path.write_text(json.dumps(data, indent=2), encoding='utf-8')
+    try:
+        write_json(path, data)
+    except Exception as e:
+        logger.error(f"Failed to write JSON at {path} with lock: {e}")
 
 
 def log_to_mailboxes(message: str):

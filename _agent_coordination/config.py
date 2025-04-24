@@ -6,12 +6,12 @@ from pathlib import Path
 WORKSPACE_ROOT = Path(__file__).parent.parent.resolve()
 
 # --- Key Directories --- #
-PROPOSALS_DIR = Path(__file__).parent / "proposals"
+PROPOSALS_DIR = Path(__file__).parent / "tasks" / "proposals"
 LOG_DIR = WORKSPACE_ROOT / "logs"
 TOOLS_DIR = Path(__file__).parent / "tools"
 
 # --- Key File Paths --- #
-RULEBOOK_PATH = Path(__file__).parent / "rulebook.md"
+RULEBOOK_PATH = Path(__file__).parent / "protocols" / "rulebook.md"
 PROPOSALS_FILE_PATH = PROPOSALS_DIR / "rulebook_update_proposals.md"
 PROJECT_BOARD_PATH = WORKSPACE_ROOT / "project_board.md"
 

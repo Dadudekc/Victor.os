@@ -75,10 +75,14 @@ class CursorControlAgent:
         # Example: payload = {"action": "ACTION_NAME", "params": {...}}
         payload = message.payload
         response_payload: Dict[str, Any] = {}
-        status = "ERROR" # Default to error unless successful
-
-        action = payload.get("action")
-        params = payload.get("params", {})
+        status = "ERROR"
+        # Handle generic TASK event payload as incoming task
+        if message.type == "TASK" or payload.get("event_type") == "TASK":
+            action = payload.get("task_type")
+            params = payload.get("params", {})
+        else:
+            action = payload.get("action")
+            params = payload.get("params", {})
 
         try:
             if action == "GET_EDITOR_CONTENT":

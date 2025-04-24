@@ -202,8 +202,45 @@ class TestMainWindowState(unittest.TestCase):
         self.assertTrue("Invalid format" in self.MockMessageBox.warning.call_args[0][1])
         print("Load state (corrupt file) test passed.")
 
-    # TODO: Add tests for manual_save_state and auto_save_state (might need timer mocking)
-    # TODO: Add tests for shutdown sequence integration if possible
+    def test_05_manual_save_state(self):
+        """Test that manual_save_state correctly writes state file."""
+        # Prepare some state on mock tabs
+        self.tab1.state = {"filter": "test", "count": 1}
+        self.tab2.state = {"filter": "check", "count": 2}
+
+        # Trigger manual save
+        self.window.manual_save_state()
+
+        # Assertions
+        self.assertTrue(self.state_file_path.exists(), "State file was not created by manual_save_state.")
+        with open(self.state_file_path, 'r') as f:
+            saved_data = json.load(f)
+        expected_data = {
+            "task_monitor": self.tab1.state,
+            "cycle_execution": self.tab2.state
+        }
+        self.assertEqual(saved_data, expected_data, "Manual save state content does not match expected.")
+        print("Manual save state test passed.")
+
+    def test_06_auto_save_state(self):
+        """Test that auto_save_state behaves like manual_save_state."""
+        # Prepare some state on mock tabs
+        self.tab1.state = {"foo": "bar"}
+        self.tab2.state = {"baz": "qux"}
+
+        # Trigger auto save
+        self.window.auto_save_state()
+
+        # Assertions
+        self.assertTrue(self.state_file_path.exists(), "State file was not created by auto_save_state.")
+        with open(self.state_file_path, 'r') as f:
+            saved_data = json.load(f)
+        expected_data = {
+            "task_monitor": self.tab1.state,
+            "cycle_execution": self.tab2.state
+        }
+        self.assertEqual(saved_data, expected_data, "Auto save state content does not match expected.")
+        print("Auto save state test passed.")
 
 if __name__ == '__main__':
     unittest.main() 

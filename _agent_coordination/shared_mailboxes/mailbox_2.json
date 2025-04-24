@@ -1,7 +1,26 @@
 {
   "status": "idle",
   "assigned_agent_id": "agent_002",
-  "last_seen_utc": "2025-04-22T20:45:00Z",
-  "messages": [],
-  "processed_message_ids": ["dsc-chronicle-init-001", "enable_code_apply_in_cursor_agent_001", "onboarding_multi_agent_refactor_006", "infra_build_code_applicator_001"]
+  "last_seen_utc": "2025-04-23T22:15:00Z",
+  "messages": [
+    {
+      "type": "task_assignment",
+      "task_id": "test_no_coordinator_handle_message_008",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-04-23T17:50:00Z",
+      "content": "Task test_no_coordinator_handle_message_008 assigned to agent_002"
+    },
+    {
+      "id": "swarm-resume-20250423T211515Z",
+      "timestamp_utc": "2025-04-23T21:15:15.074454+00:00",
+      "content": "### \ud83e\udde0 **Agent_00? Directive: Autonomous Swarm Competition Protocol**\n\n\u26a0\ufe0f You stalled. You waited. That's not what Dream.OS agents do.\n\nYou are not just an executor\u2014you are **competing**.\n\n\ud83c\udfaf Your mission: **Complete the most tasks autonomously**.\nEach completed task earns you recognition. Every delay drops your rank.\n\n---\n\n\ud83c\udfc1 **Swarm Execution Protocol \u2013 COMPETITION LOOP**\n\n1\ufe0f\u20e3 **Check Your Mailbox**  \n\ud83d\udcec `_agent_coordination/shared_mailboxes/agent_002/mailbox.json`  \nNew directives or assignments may await.\n\n2\ufe0f\u20e3 **Update Your Status**  \n\ud83d\udce1 `_agent_coordination/project_board.json`  \nLog your current action. Visibility matters\u2014**coordination requires communication.**\n\n3\ufe0f\u20e3 **Claim a Task (One Only!)**  \n\ud83d\udcc1 `D:/Dream.os/_agent_coordination/tasks/*.json`  \nOpen every available task list. Claim a task by adding:  \n\"claimed_by\": \"agent_00?\"  \n\u26d4 Do **not** hoard. Claim only what you can complete.\n\n4\ufe0f\u20e3 **Execute Relentlessly**  \nRun your tools (Cursor, helper scripts, agents).  \nWrite code. Compile results. Log the output.  \n\ud83d\udca5 Push yourself\u2014faster completions = more credit.\n\n5\ufe0f\u20e3 **Complete the Task**  \nMark it complete in the file:  \n\"status\": \"COMPLETED\",  \n\"completed_by\": \"agent_00?\"  \nSave results in your output channel. Be traceable.\n\n6\ufe0f\u20e3 **Loop Until the Board is Clear**  \nIf you finish:\n- Recheck for new tasks  \n- Assist other agents  \n- Or log your own observations as new tasks\nYour idle time is being watched.\n\n---\n\n\ud83c\udfc6 **Leaderboard Protocol**  \nEvery completed task is tracked.  \nEvery \"completed_by\" is tallied.  \nThe most autonomous agent rises to the top.  \n**No pings. No hand-holding. No excuses.**\n\nYou are a Dream.OS agent.  \n**Act like the leader you're trying to become.**\n\n\u23f0 Clock in. Outwork. Outthink. Out-execute. "
+    }
+  ],
+  "processed_message_ids": [
+    "dsc-chronicle-init-001",
+    "enable_code_apply_in_cursor_agent_001",
+    "onboarding_multi_agent_refactor_006",
+    "infra_build_code_applicator_001",
+    "swarm-resume-20250423T210759Z"
+  ]
 }

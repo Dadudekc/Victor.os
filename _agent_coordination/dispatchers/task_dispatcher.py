@@ -82,41 +82,26 @@ class TaskDispatcher:
 
         logger.info(f"Handling task {task_id} (Type: {task_type}, Target: {target_agent}) Params: {params}")
 
+        # Create a generic TASK event message payload
         message_payload = {
-            "command": task_type, 
-            "original_task_id": task_id,
+            "event_type": "TASK",
+            "task_id": task_id,
+            "task_type": task_type,
             "params": params,
-            "action_keyword": action_keyword 
+            "action_keyword": action_keyword
         }
+        logger.info(f"Dispatching TASK event for task {task_id} to agent '{target_agent}'")
+        dispatch_successful = self._dispatch_message_to_agent(target_agent, message_payload)
 
-        dispatchable_task_types = [
-            "resume_operation", "generate_task", "diagnose_loop", 
-            "confirmation_check", "context_reload", "clarify_objective",
-            "generic_recovery",
-            # Add other known, non-recovery task types here
-        ]
-
-        dispatch_successful = False
-        if task_type in dispatchable_task_types:
-            logger.info(f"Dispatching task '{task_type}' message to agent '{target_agent}'")
-            dispatch_successful = self._dispatch_message_to_agent(target_agent, message_payload)
-        else:
-            logger.warning(f"Unknown or non-dispatchable task type '{task_type}' for task {task_id}. Marking as FAILED.")
-            # Use imported utility
-            update_task_status(self.task_list_path, task_id, "FAILED", error_message=f"Unknown/Non-dispatchable task_type: {task_type}")
-            return False, f"Unknown/Non-dispatchable task_type: {task_type}"
-            
         if dispatch_successful:
-            logger.info(f"Successfully dispatched task {task_id} message to {target_agent}.")
-            # Mark as COMPLETED *after successful dispatch*
-            # Use imported utility
-            update_task_status(self.task_list_path, task_id, "COMPLETED", result_summary=f"Dispatched to {target_agent}")
-            return True, None 
+            logger.info(f"Successfully dispatched TASK event for task {task_id} to {target_agent}.")
+            # Mark task as COMPLETED after successful dispatch
+            update_task_status(self.task_list_path, task_id, "COMPLETED", result_summary=f"TASK event dispatched to {target_agent}")
+            return True, None
         else:
-            logger.error(f"Failed to dispatch task {task_id} message to {target_agent}. Marking as FAILED.")
-            # Use imported utility
-            update_task_status(self.task_list_path, task_id, "FAILED", error_message=f"Failed to dispatch message to agent {target_agent}")
-            return False, f"Failed to dispatch message to agent {target_agent}"
+            logger.error(f"Failed to dispatch TASK event for task {task_id} to {target_agent}. Marking as FAILED.")
+            update_task_status(self.task_list_path, task_id, "FAILED", error_message=f"Failed to dispatch TASK event to {target_agent}")
+            return False, f"Failed to dispatch TASK event to {target_agent}"
 
     def process_pending_tasks(self):
         """Reads the task list, processes pending tasks, and updates statuses."""

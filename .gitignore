@@ -55,6 +55,7 @@ secrets/
 .Trashes
 ehthumbs.db
 Thumbs.db
+node_modules/
 
 # Temporary / Output Files
 *.log

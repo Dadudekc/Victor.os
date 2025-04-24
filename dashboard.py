@@ -124,6 +124,13 @@ class DashboardWindow(QMainWindow):
         actions_layout.addWidget(reject_btn)
         tabs.addTab(actions_widget, "Actions")
 
+        # Inter-Agent Communication tab
+        comm_widget = QWidget()
+        comm_layout = QVBoxLayout(comm_widget)
+        self.comm_table = QTableWidget()
+        comm_layout.addWidget(self.comm_table)
+        tabs.addTab(comm_widget, "Inter-Agent Comm")
+
         self.load_data()
         self.load_templates()
         # Auto-refresh data every 5 seconds
@@ -146,6 +153,8 @@ class DashboardWindow(QMainWindow):
         # After load_data, populate agent_table
         self.load_agent_coords()
         self.populate_agent_table()
+        # Refresh inter-agent communication panel
+        self.load_comm_data()
 
     def load_data(self):
         base_dir = os.path.dirname(os.path.realpath(__file__))
@@ -235,6 +244,8 @@ class DashboardWindow(QMainWindow):
         # After load_data, populate agent_table
         self.load_agent_coords()
         self.populate_agent_table()
+        # Refresh inter-agent communication panel
+        self.load_comm_data()
 
     def send_message(self):
         mb_id = self.mailbox_selector.currentText()
@@ -278,30 +289,39 @@ class DashboardWindow(QMainWindow):
             print(f"Failed to send message to {mb_id}: {e}")
 
     def claim_task(self):
-        # Update all task list files
-        tasks_dir=os.path.join(os.path.dirname(os.path.realpath(__file__)), "_agent_coordination", "tasks")
+        # Claim the first unclaimed pending task for this agent
+        agent_id = 'agent_001'
+        tasks_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "_agent_coordination", "tasks")
+        claimed = False
         for fname in os.listdir(tasks_dir):
-            if not fname.endswith('.json') or fname.endswith('.schema.json'): continue
-            fpath=os.path.join(tasks_dir,fname)
+            if not fname.endswith('.json') or fname.endswith('.schema.json'):
+                continue
+            file_path = os.path.join(tasks_dir, fname)
             try:
-                with open(fpath,'r') as f: obj=json.load(f)
-                changed=False
-                # list
-                if isinstance(obj,list):
-                    for t in obj:
-                        if t.get('task_id')==t.get('task_id') and t.get('status')!='CLAIMED':
-                            t['status']='CLAIMED'; t['claimed_by']='agent_005'; changed=True
-                # dict with tasks key
-                elif isinstance(obj,dict):
-                    arr=obj.get('tasks',[])
-                    for t in arr:
-                        if t.get('task_id')==t.get('task_id') and t.get('status')!='CLAIMED':
-                            t['status']='CLAIMED'; t['claimed_by']='agent_005'; changed=True
-                    if changed: obj['tasks']=arr
-                if changed:
-                    with open(fpath,'w') as wf: json.dump(obj,wf,indent=2)
+                with open(file_path, 'r', encoding='utf-8') as rf:
+                    content = json.load(rf)
+                tasks_list = content if isinstance(content, list) else content.get('tasks', [])
+                for task in tasks_list:
+                    # Skip if already claimed or completed
+                    if task.get('status') in ('CLAIMED', 'COMPLETED') or task.get('claimed_by'):
+                        continue
+                    # Claim it
+                    task['status'] = 'CLAIMED'
+                    task['claimed_by'] = agent_id
+                    claimed = True
+                    break
+                if claimed:
+                    # Write back
+                    to_write = tasks_list if isinstance(content, list) else {**content, 'tasks': tasks_list}
+                    with open(file_path, 'w', encoding='utf-8') as wf:
+                        json.dump(to_write, wf, indent=2)
+                    break
             except Exception as e:
-                print(f"Error updating {fname}: {e}")
+                print(f"Error claiming task in {fname}: {e}")
+        if claimed:
+            print(f"Agent {agent_id} claimed a new task.")
+        else:
+            print(f"No unclaimed tasks available for Agent {agent_id}.")
         self.load_data()
 
     def load_templates(self):
@@ -417,6 +437,29 @@ class DashboardWindow(QMainWindow):
             self.msg_input.setPlainText(content)
         except Exception as e:
             print(f"Failed to load prompt {fname}: {e}")
+
+    def load_comm_data(self):
+        # Load agent statuses from project_board.json
+        base_dir = os.path.dirname(os.path.realpath(__file__))
+        shared_dir = os.path.join(base_dir, "_agent_coordination", "shared_mailboxes")
+        pb_file = os.path.join(shared_dir, "project_board.json")
+        try:
+            with open(pb_file, 'r') as f:
+                data = json.load(f)
+                agents = data.get('agents', [])
+        except Exception:
+            agents = []
+        # Populate communication table
+        headers = ['Agent ID', 'Status', 'Last Seen', 'Current Task']
+        self.comm_table.setColumnCount(len(headers))
+        self.comm_table.setHorizontalHeaderLabels(headers)
+        self.comm_table.setRowCount(len(agents))
+        for row, ag in enumerate(agents):
+            self.comm_table.setItem(row, 0, QTableWidgetItem(ag.get('agent_id', '')))
+            self.comm_table.setItem(row, 1, QTableWidgetItem(ag.get('status', '')))
+            self.comm_table.setItem(row, 2, QTableWidgetItem(ag.get('last_seen', '')))
+            self.comm_table.setItem(row, 3, QTableWidgetItem(ag.get('current_task', '')))
+        self.comm_table.resizeColumnsToContents()
 
     def capture_spot(self):
         row = self.agent_table.currentRow()

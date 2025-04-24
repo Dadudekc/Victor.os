@@ -38,7 +38,7 @@ def run(
         help="Specify the task description to run in non-GUI mode. Overrides config mode."
     ),
     config_file: Path = typer.Option(
-        "config.yaml", 
+        "config/config.yaml", 
         "--config", 
         "-c", 
         help="Path to the configuration YAML file.",

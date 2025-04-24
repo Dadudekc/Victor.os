@@ -380,7 +380,6 @@ class TestCursorControlAgent(unittest.TestCase):
         self.assertIn("Coordinator unavailable", call_args['payload']['error'])
         self.assertEqual(call_args['request_id'], "req-no-coord")
 
-    # TODO: Test handle_message when coordinator is None
     @patch('core.agents.cursor_control_agent.CursorCoordinator')
     def test_shutdown_closes_launched_coordinator(self, mock_coordinator_class):
         """Test shutdown calls close_cursor if coordinator was launched."""

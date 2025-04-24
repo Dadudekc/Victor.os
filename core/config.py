@@ -73,7 +73,7 @@ class AppConfig(BaseModel):
     task_details: Optional[TaskDetailsConfig] = None
 
     @classmethod
-    def load(cls, config_path: str | Path = "config.yaml") -> 'AppConfig':
+    def load(cls, config_path: str | Path = "config/config.yaml") -> 'AppConfig':
         """Loads configuration from a YAML file and validates it."""
         config_path = Path(config_path)
         if not config_path.is_absolute():

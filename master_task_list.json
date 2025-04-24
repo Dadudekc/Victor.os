@@ -45,6 +45,7 @@
   },
   {
     "task_id": "a7510711-9785-4e3e-b3d5-fcccf79adf31",
+    "claimed_by": "agent_002",
     "description": "**Task Reception (`EventType.TASK`):**",
     "status": "PENDING",
     "source_file": "agents/task_list.md",

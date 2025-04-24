@@ -1,0 +1,72 @@
+[
+  {
+    "task_id": "audit_cleanup_node_modules",
+    "section": "cleanup",
+    "status": "COMPLETED",
+    "completed_by": "agent_003",
+    "description": "Remove node_modules/ directory or relocate it out of the main repo to reduce size."
+  },
+  {
+    "task_id": "audit_update_gitignore",
+    "section": "cleanup",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Add common build artifacts (e.g., __pycache__, .pytest_cache, node_modules) to .gitignore."
+  },
+  {
+    "task_id": "audit_consolidate_dependencies",
+    "section": "consolidation",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Merge Python (requirements.txt) and Node (package.json) dependencies into the central pyproject.toml."
+  },
+  {
+    "task_id": "audit_relocate_config",
+    "section": "organization",
+    "status": "COMPLETED",
+    "completed_by": "agent_003",
+    "description": "Move all configuration files (config.yaml, .env) into a dedicated config/ directory and update references."
+  },
+  {
+    "task_id": "audit_move_docs",
+    "section": "organization",
+    "status": "COMPLETED",
+    "completed_by": "agent_002",
+    "description": "Consolidate all markdown docs (README.md, USER_ONBOARDING.md, project_board.md) into the docs/ directory and update links."
+  },
+  {
+    "task_id": "audit_setup_ci",
+    "section": "setup",
+    "status": "CLAIMED",
+    "claimed_by": "agent_002",
+    "description": "Add a GitHub Actions workflow for linting, type checking, and running tests across the codebase."
+  },
+  {
+    "task_id": "audit_move_tests",
+    "section": "organization",
+    "status": "COMPLETED",
+    "completed_by": "agent_003",
+    "description": "Ensure all test files are under the tests/ directory and remove duplicates elsewhere."
+  },
+  {
+    "task_id": "audit_cleanup_temp_files",
+    "section": "cleanup",
+    "status": "COMPLETED",
+    "completed_by": "agent_003",
+    "description": "Remove temporary files (temp_target.txt, temp_source.txt, *.bak) and archive backups."
+  },
+  {
+    "task_id": "event_bus_tests_001",
+    "section": "test",
+    "status": "CLAIMED",
+    "claimed_by": "agent_003",
+    "description": "Add unit tests for EventBus publish/subscribe and acknowledgment behavior in _agent_coordination/tools/event_bus.py."
+  },
+  {
+    "task_id": "config_code_references_update_002",
+    "section": "refactor",
+    "status": "CLAIMED",
+    "claimed_by": "agent_003",
+    "description": "Update code references and documentation to use the new config directory structure (config/config.yaml and .env)."
+  }
+]

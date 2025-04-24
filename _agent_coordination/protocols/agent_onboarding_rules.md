@@ -154,4 +154,52 @@ rules:
       - fail fast
       - validate params
     applies_to: all_agents
+```
+
+### Rule ONB-008: Mailbox Check & Responsiveness
+- **ID:** ONB-008
+- **Description:** Agents must poll their inbox directory (`_agent_coordination/shared_mailboxes/agent_<id>/mailbox.json`) at a configurable heartbeat interval (e.g., 30s) and process any new messages immediately. Failure to check the mailbox within two heartbeat intervals should be logged and reported as a performance issue.
+- **Keywords:** `mailbox`, `poll`, `heartbeat`, `responsiveness`
+- **Applies To:** `all_agents`
+
+### Rule ONB-009: Proactive Task Claiming
+- **ID:** ONB-009
+- **Description:** Agents must review the global task boards (`tasks/master_tasks_*.json`) after polling the mailbox. If an unclaimed task is available, the agent MUST claim exactly one task (update `claimed_by`) before any other assignment, then begin execution immediately.
+- **Keywords:** `claim`, `task_board`, `master_tasks`, `proactive`
+- **Applies To:** `all_agents`
+
+### Rule ONB-010: Status Visibility
+- **ID:** ONB-010
+- **Description:** Agents must update their status in `project_board.json` and `shared_inbox.json` on every state change. Status values include `idle`, `busy`, and `offline`. Updates must include the agent's current action or task ID and a timestamp.
+- **Keywords:** `status`, `project_board`, `visibility`, `coordination`
+- **Applies To:** `all_agents`
+
+```yaml
+rules:
+  - id: ONB-008
+    description: "Agents must poll their inbox directory (`_agent_coordination/shared_mailboxes/agent_<id>/mailbox.json`) at a configurable heartbeat interval (e.g., 30s) and process any new messages immediately. Failure to check the mailbox within two heartbeat intervals should be logged and reported as a performance issue."
+    keywords:
+      - mailbox
+      - poll
+      - heartbeat
+      - responsiveness
+    applies_to: all_agents
+
+  - id: ONB-009
+    description: "Agents must review the global task boards (`tasks/master_tasks_*.json`) after polling the mailbox. If an unclaimed task is available, the agent MUST claim exactly one task (update `claimed_by`) before any other assignment, then begin execution immediately."
+    keywords:
+      - claim
+      - task_board
+      - master_tasks
+      - proactive
+    applies_to: all_agents
+
+  - id: ONB-010
+    description: "Agents must update their status in `project_board.json` and `shared_inbox.json` on every state change. Status values include `idle`, `busy`, and `offline`. Updates must include the agent's current action or task ID and a timestamp."
+    keywords:
+      - status
+      - project_board
+      - visibility
+      - coordination
+    applies_to: all_agents
 ``` 

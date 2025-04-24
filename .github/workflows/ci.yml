@@ -26,4 +26,13 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest --maxfail=1 --disable-warnings 
+          pytest --maxfail=1 --disable-warnings
+      - name: Install dev dependencies
+        run: |
+          pip install black flake8 mypy isort
+      - name: Lint with Flake8
+        run: flake8 .
+      - name: Format check with Black
+        run: black --check .
+      - name: Type check with mypy
+        run: mypy . 

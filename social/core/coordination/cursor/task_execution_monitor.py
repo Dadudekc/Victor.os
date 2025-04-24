@@ -49,6 +49,8 @@ class TaskExecutionMonitor:
             "max_cpu_percent": 90.0,
             "max_memory_mb": 1024
         }
+        # Heartbeat TTL for detecting stalled tasks
+        self.heartbeat_ttl_seconds = int(os.getenv("HEARTBEAT_TTL_SECONDS", "60"))
         self._lock = threading.Lock()
         self._monitor_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -97,6 +99,15 @@ class TaskExecutionMonitor:
             for task_id, data in list(self.monitored_tasks.items()): # Iterate over copy for potential deletion
                 if data["status"] not in ["RUNNING", "STARTED"]:
                     continue # Skip completed/failed tasks for health checks
+                # Check Heartbeat TTL (mark stalled tasks)
+                hb_age = (now - data["last_heartbeat"]).total_seconds()
+                if hb_age > self.heartbeat_ttl_seconds:
+                    stalled_msg = f"Task {task_id} missed heartbeat TTL ({hb_age:.0f}s > {self.heartbeat_ttl_seconds}s); marking as STALLED"
+                    if stalled_msg not in data["alerts"]:
+                        logger.warning(stalled_msg)
+                        data["alerts"].append(stalled_msg)
+                        self.update_task_status(task_id, "STALLED")
+                    continue
 
                 duration = (now - data["start_time"]).total_seconds()
                 # Check Duration

@@ -1,0 +1,17 @@
+{
+  "proposal_id": "P006",
+  "title": "Inter-Agent Dashboard Visualization",
+  "description": "Enhance the PyQt5 dashboard with a dedicated panel showing real-time mailbox activity, task assignments, heartbeats, and agent communication logs.",
+  "benefits": [
+    "Immediate insight into agent statuses and message flows",
+    "Reduce need for manual log inspection",
+    "Centralize monitoring and improve decision-making"
+  ],
+  "tasks": [
+    "Design interactive table and charts for mailbox and task metrics",
+    "Implement real-time refresh and alerts for missed heartbeats",
+    "Add message flow viewer with filtering by agent or topic",
+    "Write tests for UI components and performance under load"
+  ],
+  "status": "proposed"
+} 

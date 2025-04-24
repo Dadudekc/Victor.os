@@ -12,6 +12,7 @@ from dream_mode.local_blob_channel import LocalBlobChannel
 from dream_mode.task_nexus.task_nexus import TaskNexus
 import os  # for environment variables
 from typing import Dict
+from _agent_coordination.tools.file_lock_manager import read_json, write_json
 
 logger = logging.getLogger("ChatGPTWebAgent")
 logger.setLevel(logging.INFO)
@@ -37,6 +38,8 @@ class ChatGPTWebAgent:
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Track which results have been injected into ChatGPT UI
         self.injected_result_ids = set()
+        # Cache to store previously pulled results for batching
+        self._cached_results = []
 
         # Flag to ensure onboarding prompt is only sent once
         self.onboarded = False
@@ -47,19 +50,17 @@ class ChatGPTWebAgent:
 
     def _load_pending_responses(self):
         try:
-            with open(self.inbox_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-                return json.loads(content) if content.strip() else []
+            data = read_json(self.inbox_file)
+            return data if data else []
         except Exception as e:
-            logger.warning(f"[{self.agent_id}] Failed to load inbox: {e}")
+            logger.warning(f"[{self.agent_id}] Failed to load inbox with lock: {e}")
             return []
 
     def _save_pending_responses(self, responses):
         try:
-            with open(self.inbox_file, 'w', encoding='utf-8') as f:
-                json.dump(responses, f, indent=2)
+            write_json(self.inbox_file, responses)
         except Exception as e:
-            logger.error(f"[{self.agent_id}] Failed to write inbox file: {e}")
+            logger.error(f"[{self.agent_id}] Failed to write inbox with lock: {e}")
 
     def _initialize_browser(self):
         self.driver = launch_browser()
@@ -94,6 +95,14 @@ class ChatGPTWebAgent:
         time.sleep(1)
         input_box.send_keys("\n")
         logger.info(f"[{self.agent_id}] 🛰️ Injected swarm response into ChatGPT UI.")
+
+    def _get_and_cache_results(self) -> list:
+        """Fetch and cache results to avoid redundant pull_results calls."""
+        results = self.channel.pull_results()
+        previous = getattr(self, '_results_cache', [])
+        new_results = [r for r in results if r not in previous]
+        self._results_cache = results
+        return new_results
 
     def run_cycle(self):
         # Simulation mode: auto-generate tasks without browser interaction
@@ -192,9 +201,9 @@ class ChatGPTWebAgent:
 
         except Exception as e:
             logger.error(f"[{self.agent_id}] Error during agent cycle: {e}", exc_info=True)
-        # Pull and inject swarm results into ChatGPT UI
+        # Pull all results once and filter new ones not yet injected
         try:
-            results = self.channel.pull_results()
+            results = self._get_and_cache_results()
             for res in results:
                 if not self._is_result_injected(res):
                     content = res.get("raw_reply") or res.get("content") or json.dumps(res)
@@ -203,6 +212,8 @@ class ChatGPTWebAgent:
                         self._mark_result_injected(res)
                     except Exception as ie:
                         logger.error(f"[{self.agent_id}] ❌ Failed to inject result: {ie}", exc_info=True)
+            # Update cache (if needed for future logic)
+            self._cached_results = results
         except Exception as ce:
             logger.error(f"[{self.agent_id}] Error pulling/injecting results: {ce}", exc_info=True)
 

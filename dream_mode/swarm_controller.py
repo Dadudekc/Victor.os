@@ -2,29 +2,55 @@ import os
 import threading
 import time
 import logging
+from typing import Any, Dict, List, Tuple, Optional
 import subprocess
-import argparse
-from typing import Any, Dict, List
-from pathlib import Path
-import json
-from datetime import datetime  # for heartbeat timestamp
 
-# Azure C2 channel logic commented out - using LocalBlobChannel only
-AzureBlobChannel = None
 from dream_mode.local_blob_channel import LocalBlobChannel
 from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_windows, assign_windows_to_monitors
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
 from dream_mode.task_nexus.task_nexus import TaskNexus
 from core.hooks.stats_logger import StatsLoggingHook
 from core.chat_engine.feedback_engine_v2 import FeedbackEngineV2
+from _agent_coordination.tools.event_bus import EventBus
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s")
 
 class SwarmController:
     """
-    Controls a fleet of Cursor agents using AzureBlobChannel for task/result exchange.
+    Controls a fleet of Cursor agents using LocalBlobChannel for task/result exchange.
     """
+    @staticmethod
+    def _resolve_config_args(fleet_size, container_name, sas_token, connection_string, stats_interval):
+        """Resolve configuration from CLI args or environment variables."""
+        # Fleet size
+        fleet_size = fleet_size or int(os.getenv("FLEET_SIZE", "3"))
+        # Container name
+        container_name = container_name or os.getenv("CONTAINER_NAME", "dream-os-c2")
+        # Azure credentials
+        connection_string = connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        sas_token = sas_token or os.getenv("AZURE_STORAGE_SAS_TOKEN")
+        # Stats interval
+        stats_interval = stats_interval or int(os.getenv("STATS_INTERVAL", "60"))
+        return fleet_size, container_name, sas_token, connection_string, stats_interval
+
+    @staticmethod
+    def _resolve_config(connection_string: Optional[str], sas_token: Optional[str], container_name: str) -> Tuple[Optional[str], Optional[str], str, bool]:
+        """Resolve Azure credentials and mode from arguments or environment variables."""
+        conn_str = connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        sas_tok = sas_token or os.getenv("AZURE_STORAGE_SAS_TOKEN")
+        use_local = os.getenv("USE_LOCAL_BLOB", "0") == "1"
+        if not use_local and not conn_str and not sas_tok:
+            raise RuntimeError("Either connection_string, sas_token, or USE_LOCAL_BLOB=1 must be provided")
+        return conn_str, sas_tok, container_name, use_local
+
+    @staticmethod
+    def _resolve_stats_interval(stats_interval: Optional[int]) -> int:
+        """Resolve stats interval from arguments or environment."""
+        if stats_interval is None:
+            return int(os.getenv("STATS_INTERVAL", "60"))
+        return stats_interval
+
     def __init__(
         self,
         fleet_size: int = 3,
@@ -33,21 +59,29 @@ class SwarmController:
         connection_string: str = None,
         stats_interval: int = None,
     ):
-        self.fleet_size = fleet_size
-        # Determine stats interval (CLI args override env)
-        if stats_interval is None:
-            stats_interval = int(os.getenv("STATS_INTERVAL", "60"))
+        # Resolve all configuration from CLI args or environment variables
+        self.fleet_size, self.container_name, self.sas_token, self.connection_string, stats_interval = self._resolve_config_args(
+            fleet_size, container_name, sas_token, connection_string, stats_interval
+        )
+        # Determine Azure connection mode (local vs cloud)
+        _, _, _, self.use_local = self._resolve_config(
+            self.connection_string, self.sas_token, self.container_name
+        )
         # Initialize TaskNexus for central task management
         self.nexus = TaskNexus(task_file="runtime/task_list.json")
         # Stats logging hook for monitoring task metrics
         self.stats_hook = StatsLoggingHook(self.nexus)
         # Start periodic stats auto-logging
         self._start_stats_autologger(interval=stats_interval)
+        # Initialize EventBus for pub/sub events
+        self.event_bus = EventBus()
+        # Subscribe to task results from workers
+        self.event_bus.subscribe('TASK_RESULT', self._handle_result)
         # Initialize C2 channel for results (Local only)
         self.channel = LocalBlobChannel()
-        # Verify connectivity to Azure Blob channel
+        # Verify connectivity to LocalBlobChannel
         if not self.channel.healthcheck():
-            logger.error("AzureBlobChannel healthcheck failed, aborting SwarmController initialization.")
+            logger.error("LocalBlobChannel healthcheck failed, aborting SwarmController initialization.")
             raise RuntimeError("Channel healthcheck failed")
         self.workers: List[threading.Thread] = []
         self._stop_event = threading.Event()
@@ -128,8 +162,9 @@ class SwarmController:
                     "echo": task,
                     "processed_at": time.time()
                 }
-                self.channel.push_result(result)
-                logger.info(f"Worker pushed result: {result}")
+                # Publish result event to EventBus instead of blob channel
+                self.event_bus.publish('TASK_RESULT', result, ack_required=False)
+                logger.info(f"Worker published result via EventBus: {result}")
                 # Mark task as completed in TaskNexus
                 self.nexus.update_task_status(task.get("id"), "completed")
                 # Log stats snapshot after task completion
@@ -147,9 +182,10 @@ class SwarmController:
         logger.info("Entering routing loop...")
         try:
             while not self._stop_event.is_set():
-                results = self.channel.pull_results()
-                for res in results:
-                    self._handle_result(res)
+                # Deprecated: channel.poll disabled in favor of EventBus
+                # results = self.channel.pull_results()
+                # for res in results:
+                #     self._handle_result(res)
                 time.sleep(5)
         except KeyboardInterrupt:
             logger.info("SwarmController interrupted, shutting down...")
@@ -228,31 +264,4 @@ class SwarmController:
                 logger.error(f"Auto stats logging failed: {e}", exc_info=True)
             time.sleep(interval)
 
-if __name__ == "__main__":
-    # CLI: allow specifying Azure connection or SAS token
-    parser = argparse.ArgumentParser(description="Run SwarmController with Azure C2 channel")
-    parser.add_argument("--connection-string", dest="connection_string", help="Azure storage connection string")
-    parser.add_argument("--sas-token", dest="sas_token", help="Azure SAS token")
-    parser.add_argument("--container-name", dest="container_name", default="dream-os-c2", help="Azure Blob container name")
-    parser.add_argument("--fleet-size", dest="fleet_size", type=int, default=2, help="Number of Cursor agents in the swarm")
-    parser.add_argument("--stats-interval", dest="stats_interval", type=int, help="Seconds between automatic stats snapshots (overrides STATS_INTERVAL env)")
-    args = parser.parse_args()
-
-    # Resolve credentials: CLI flags or environment
-    conn_str = args.connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-    sas_tok = args.sas_token or os.getenv("AZURE_STORAGE_SAS_TOKEN")
-    # Allow local mode fallback without Azure credentials
-    use_local = os.getenv("USE_LOCAL_BLOB", "0") == "1"
-    if not use_local and not conn_str and not sas_tok:
-        parser.error("Either --connection-string or --sas-token must be provided or set in environment variables (or enable USE_LOCAL_BLOB=1 for local mode).")
-
-    controller = SwarmController(
-        fleet_size=args.fleet_size,
-        container_name=args.container_name,
-        connection_string=conn_str,
-        sas_token=sas_tok,
-        stats_interval=args.stats_interval
-    )
-    # Default demo task if none provided
-    initial_tasks = [{"id": "demo-1", "payload": "hello swarm"}]
-    controller.start(initial_tasks=initial_tasks) 
+# ... existing code ... 

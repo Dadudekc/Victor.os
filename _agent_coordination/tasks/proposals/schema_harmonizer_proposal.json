@@ -1,0 +1,18 @@
+{
+  "proposal_id": "P005",
+  "title": "Task Schema Harmonizer CLI",
+  "description": "Automatically validate, normalize, and migrate any task-list JSON (master, runtime, discovered, etc.) to a canonical schema, detecting drift and patching malformed entries.",
+  "benefits": [
+    "Ensures consistent task schema across all files",
+    "Reduces manual fixes due to schema drift",
+    "Simplifies agent parsing and reduces errors",
+    "Provides diff and dry-run modes for safe migrations"
+  ],
+  "tasks": [
+    "Extract canonical schema definitions from existing JSON files",
+    "Implement CLI tool 'harmonize-schema' with dry-run and apply modes",
+    "Include watch mode for real-time schema validation",
+    "Write unit tests for schema enforcement and migrations"
+  ],
+  "status": "proposed"
+} 

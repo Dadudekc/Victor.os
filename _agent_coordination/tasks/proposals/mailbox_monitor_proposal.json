@@ -1,0 +1,18 @@
+{
+  "proposal_id": "P004",
+  "title": "Mailbox Monitor Agent",
+  "description": "Implement a background service (MailboxMonitorAgent) to scan shared mailbox JSON files, acquire locks, and convert messages into tasks in the master task lists automatically.",
+  "benefits": [
+    "Automated ingestion of mailbox messages into tasks",
+    "Centralized, atomic mailbox processing",
+    "Eliminates redundant polling code in individual agents",
+    "Improves consistency and reduces message loss"
+  ],
+  "tasks": [
+    "Design and implement MailboxMonitorAgent script",
+    "Integrate file_lock_manager for safe mailbox access",
+    "Update TaskNexus to accept mailbox-derived tasks",
+    "Write unit and integration tests for mailbox processing"
+  ],
+  "status": "proposed"
+} 

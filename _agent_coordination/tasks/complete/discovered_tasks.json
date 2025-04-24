@@ -1,0 +1,38 @@
+[
+  {
+    "file": "core/coordination/dispatcher.py",
+    "line_range": [1, 1],
+    "category": "bug",
+    "description": "Task 'run-cleanup-refactor' references missing file 'core/coordination/dispatcher.py'; path likely incorrect.",
+    "discovered_by": "agent_002",
+    "status": "COMPLETED",
+    "completed_by": "agent_008"
+  },
+  {
+    "file": "task_list.json",
+    "line_range": [8, 12],
+    "category": "bug",
+    "description": "run-cleanup-refactor references missing file 'core/coordination/dispatcher.py'; should reference 'core/coordination/dispatchers/base_dispatcher.py'",
+    "discovered_by": "agent_006",
+    "status": "COMPLETED",
+    "completed_by": "agent_008"
+  },
+  {
+    "file": "ui/dashboard.py",
+    "line_range": [1, 1],
+    "category": "enhancement",
+    "description": "Add inter-agent communication panel to visualize mailbox activity and agent statuses in the GUI dashboard.",
+    "discovered_by": "agent_001",
+    "status": "CLAIMED",
+    "claimed_by": "agent_008"
+  },
+  {
+    "file": "_agent_coordination/tools/file_lock_manager.py",
+    "line_range": [1, 1],
+    "category": "enhancement",
+    "description": "Design and implement a file lock manager tool for atomic read/write access of shared JSON files.",
+    "discovered_by": "agent_005",
+    "status": "COMPLETED",
+    "completed_by": "agent_005"
+  }
+]

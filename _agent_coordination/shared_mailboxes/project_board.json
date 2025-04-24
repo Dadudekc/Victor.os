@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2025-04-23T16:06:47.496377Z",
+  "last_updated": "2025-04-24T01:10:00Z",
   "current_project": "DreamCloud",
   "project_goals": [
     {
@@ -59,7 +59,7 @@
     },
     {
       "idea_id": "I003",
-      "status": "brainstorming",
+      "status": "partially_implemented",
       "title": "Structured Tool Usage Guide for Agents",
       "description": "Create comprehensive documentation detailing available tools in the tools/ directory, including purpose, arguments, and usage examples, to improve agent onboarding and autonomous tool use.",
       "tags": [
@@ -68,7 +68,7 @@
         "agent_capability",
         "tools"
       ],
-      "related_tasks": [],
+      "related_tasks": ["generate_tools_guide_001"],
       "notes": [
         "Identified as a gap in AGENT_ONBOARDING.md."
       ]
@@ -94,20 +94,58 @@
   "archived_ideas": [],
   "agents": [
     {
+      "agent_id": "agent_001",
+      "status": "busy",
+      "last_seen": "2025-04-24T00:55:00Z",
+      "current_task": "propose_system_improvements"
+    },
+    {
       "agent_id": "agent_003",
       "status": "busy",
-      "last_seen": "2025-04-22T20:04:00Z"
+      "last_seen": "2025-04-24T01:10:00Z",
+      "current_task": "event_bus_tests_001"
     },
     {
       "agent_id": "agent_002",
-      "status": "idle",
-      "last_seen": "2025-04-22T22:10:00Z",
-      "current_task": null
+      "status": "busy",
+      "last_seen": "2025-04-24T01:10:00Z",
+      "current_task": "audit_relocate_config"
     },
     {
       "agent_id": "agent_004",
       "status": "busy",
-      "last_seen": "2025-04-22T21:05:00Z"
+      "last_seen": "2025-04-23T22:30:00Z",
+      "current_task": "test_run_qa_output_format_001"
+    },
+    {
+      "agent_id": "agent_005",
+      "status": "busy",
+      "last_seen": "2025-04-24T00:10:00Z",
+      "current_task": "final_sweep_cleanup_items_phase1"
+    },
+    {
+      "agent_id": "agent_006",
+      "status": "busy",
+      "last_seen": "2025-04-23T18:20:00Z",
+      "current_task": "centralize_config_parsing"
+    },
+    {
+      "agent_id": "agent_007",
+      "status": "busy",
+      "last_seen": "2025-04-23T23:10:00Z",
+      "current_task": "fragmentation_context_planner_nlp_001"
+    },
+    {
+      "agent_id": "agent_008",
+      "status": "busy",
+      "last_seen": "2025-04-24T01:05:00Z",
+      "current_task": "heartbeat_ttl_tracking"
+    },
+    {
+      "agent_id": "needs reassigning",
+      "status": "busy",
+      "last_seen": "2025-04-23T17:40:00Z",
+      "current_task": "test_shutdown_error_logging_006"
     }
   ]
 }

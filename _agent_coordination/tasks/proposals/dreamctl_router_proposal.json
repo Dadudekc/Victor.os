@@ -1,0 +1,17 @@
+{
+  "proposal_id": "P004",
+  "title": "DreamCTL Task Router Plugin",
+  "description": "Implement a router plugin for the dreamctl CLI to claim, complete, and release tasks interactively via subcommands with JSON output support.",
+  "benefits": [
+    "Eliminate manual JSON file editing for task management",
+    "Enable scriptable and automatable workflows",
+    "Provide immediate CLI feedback on task actions"
+  ],
+  "tasks": [
+    "Design plugin command architecture and usage patterns",
+    "Implement `router` subcommands: claim, complete, release, list",
+    "Add JSON and human-readable output modes",
+    "Write unit tests and update CLI documentation"
+  ],
+  "status": "proposed"
+} 

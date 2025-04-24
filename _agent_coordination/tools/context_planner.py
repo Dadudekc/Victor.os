@@ -40,63 +40,14 @@ CODEBASE_SEARCH = "codebase_search"
 
 # --- Helper Functions ---
 
-def assign_roles(task_description: str, entities: Dict[str, List[str]]) -> Dict[str, List[Tuple[str, Optional[str]]]]:
-    """Attempts basic role assignment for symbols and files based on keywords."""
-    # TODO: This is very basic keyword matching, needs more robust NLP for complex cases.
-    assigned_entities = {
-        "files": [(f, None) for f in entities["files"]], # List of (name, role)
-        "symbols": [(s, None) for s in entities["symbols"]]
+def parse_context(task_description: str) -> Dict[str, Any]:
+    """Extracts entities, roles and actions in one unified pass (stubbed)."""
+    # Placeholder implementation without spaCy
+    return {
+        "files_with_roles": [],
+        "symbols_with_roles": [],
+        "actions": []
     }
-
-    # Rough sentence segmentation (split by '.')
-    sentences = [s.strip() for s in task_description.split('.') if s.strip()]
-
-    # Assign roles based on keywords near the entity within sentences
-    for entity_type in ["files", "symbols"]:
-        updated_list = []
-        for entity_name, _ in assigned_entities[entity_type]:
-            assigned_role = None
-            for sentence in sentences:
-                if entity_name not in sentence: continue
-
-                # Find keyword context around the entity
-                try:
-                    entity_index = sentence.index(entity_name)
-                    # Look for keywords immediately before the entity
-                    # Limit window size to avoid grabbing keywords from unrelated clauses
-                    window_size = 15
-                    start_idx = max(0, entity_index - window_size)
-                    prefix = sentence[start_idx:entity_index].lower()
-
-                    found_role = None
-                    for role, keywords in ROLE_KEYWORDS.items():
-                        for kw in keywords:
-                            # Check for keyword with space before/after to avoid partial matches
-                            if f' {kw} ' in prefix or prefix.endswith(f' {kw}'):
-                                # Simple role mapping
-                                if entity_type == 'files' and role == 'location':
-                                    found_role = 'target_file' # File mentioned with 'in', 'on' etc.
-                                elif entity_type == 'symbols' and role == 'source':
-                                    found_role = 'source_symbol'
-                                elif entity_type == 'symbols' and role == 'target':
-                                    found_role = 'target_symbol'
-                                elif entity_type == 'symbols' and role == 'dependency':
-                                    found_role = 'dependency_symbol'
-                                break
-                        if found_role: break
-                    if found_role:
-                        assigned_role = found_role
-                        break # Stop checking sentences once a role is found for this entity
-
-                except ValueError:
-                    continue # Entity name not found exactly (e.g. substring)
-
-            # If no role found via keywords, assign default based on action?
-            # (Could be added later)
-            updated_list.append((entity_name, assigned_role))
-        assigned_entities[entity_type] = updated_list
-
-    return assigned_entities
 
 def extract_entities_v3(task_description: str) -> Dict:
     """Extracts entities and attempts role assignment."""
@@ -117,11 +68,11 @@ def extract_entities_v3(task_description: str) -> Dict:
     entities["actions"] = sorted(list(detected_actions))
 
     # 2. Role Assignment
-    assigned_entities = assign_roles(task_description, entities)
+    assigned_entities = parse_context(task_description)
 
     # Combine results
-    entities["files_with_roles"] = assigned_entities["files"]
-    entities["symbols_with_roles"] = assigned_entities["symbols"]
+    entities["files_with_roles"] = assigned_entities["files_with_roles"]
+    entities["symbols_with_roles"] = assigned_entities["symbols_with_roles"]
 
     return entities
 

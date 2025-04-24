@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
-import os, json
+import os
 from pathlib import Path
+from _agent_coordination.tools.file_lock_manager import read_json, write_json
 
 def main():
     base = Path(os.getcwd()) / '_agent_coordination' / 'tasks'
     complete_dir = base / 'complete'
     complete_file = complete_dir / 'completed_tasks.json'
 
-    # Load existing completed tasks
-    completed = []
-    if complete_file.exists():
-        try:
-            completed = json.loads(complete_file.read_text(encoding='utf-8'))
-        except:
-            completed = []
+    # Load existing completed tasks atomically
+    completed = read_json(complete_file) or []
 
     # Iterate over task list files
     for file in base.glob('*.json'):
         # Skip schema and completed/pending files
         if file.name in ['task_list.schema.json', 'completed_tasks.json', 'pending_tasks.json']:
             continue
+        # Load tasks atomically
         try:
-            tasks = json.loads(file.read_text(encoding='utf-8'))
+            tasks = read_json(file) or []
         except Exception as e:
             print(f"Skipping {file.name}: invalid JSON ({e})")
             continue
         new_tasks = []
         for task in tasks:
+            # Skip entries that are not task objects
+            if not isinstance(task, dict):
+                continue
             if task.get('status') == 'COMPLETED':
                 completed.append(task)
             else:
@@ -35,13 +35,13 @@ def main():
                 task.pop('claimed_by', None)
                 task.pop('completed_by', None)
                 new_tasks.append(task)
-        # Write reset tasks back
-        file.write_text(json.dumps(new_tasks, indent=2), encoding='utf-8')
+        # Write reset tasks atomically
+        write_json(file, new_tasks)
         print(f"Reset tasks in {file.name}: {len(new_tasks)} tasks remain pending.")
     # Ensure complete directory exists
     complete_dir.mkdir(parents=True, exist_ok=True)
-    # Write aggregated completed tasks
-    complete_file.write_text(json.dumps(completed, indent=2), encoding='utf-8')
+    # Write aggregated completed tasks atomically
+    write_json(complete_file, completed)
     print(f"Aggregated {len(completed)} completed tasks.")
 
 if __name__ == '__main__':

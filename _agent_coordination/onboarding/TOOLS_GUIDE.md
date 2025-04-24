@@ -1,3 +1,30 @@
+# Tools Usage Guide
+
+This guide provides an overview of all available tools in the `_agent_coordination/tools` directory, including their purpose and usage.
+
+| Tool File | Description |
+|-----------|-------------|
+| context_planner.py | Consolidates keyword-matching logic into a single NLP-driven parser. |
+| autonomy_swarm_reminder.txt | Reference document for reminding agents of autonomy protocols. |
+| competition_protocol.txt | Details the Competitor Loop execution protocol for swarm competition. |
+| broadcast_directive.py | Broadcasts directives to all agent mailboxes. |
+| swarm_resume_directive.txt | Example directive for resuming the swarm. |
+| supervisor_task_consolidator.py | Aggregates and deduplicates tasks from multiple agents. |
+| set_project.py | CLI tool to switch the active project context for all agents. |
+| parse_feedback_stats.py | Parses feedback logs and usage stats into structured format. |
+| run_agent.py | Entrypoint script to launch individual agents with proper context. |
+| code_applicator.py | Applies generated code diffs back into the codebase automatically. |
+| reset_tasks.py | Clears and reinitializes the task list for a fresh run. |
+| swarm_orchestrator.py | Orchestrates complex multi-agent workflows from directives. |
+| compile_lore.py | Generates Devlog and lore documentation from task history. |
+| monitor_console.py | Provides a console-based dashboard for real-time metrics. |
+| demo_local_channel.py | Demonstration script for the LocalBlobChannel C2 transport. |
+| find_potential_scripts.py | Searches codebase for candidate script files based on tasks. |
+| run_qa.py | Tool for running QA checks and formatting on generated output. |
+| log_analyzer.py | Analyzes log files to surface errors and performance metrics. |
+
+For usage examples, see individual tool headers or run with `--help`.
+
 # Dream.OS Tools Guide
 
 This document provides guidance on the available tools within the `_agent_coordination/tools/` directory, intended for use by autonomous agents or developers.

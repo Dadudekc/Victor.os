@@ -197,7 +197,18 @@ class TestTabSystemShutdown(unittest.TestCase):
             )
             print("Shutdown with persistence error test passed.")
 
-    # TODO: Add test for _handle_shutdown_error logging
+    def test_04_handle_shutdown_error_logging(self):
+        """Test that _handle_shutdown_error logs the error correctly."""
+        # Call the handler with a sample exception
+        sample_error = RuntimeError("Test error")
+        self.manager._handle_shutdown_error(sample_error)
+        # Assert logger.error was called with correct message and exc_info=True
+        self.mock_logger.error.assert_called_once_with(
+            f"CRITICAL: Error persisting tab states to file: {sample_error}",
+            exc_info=True
+        )
+        print("Handle shutdown error logging test passed.")
+
     # TODO: Add test for cases where tabs lack get_state or prepare_for_shutdown
 
 if __name__ == '__main__':
