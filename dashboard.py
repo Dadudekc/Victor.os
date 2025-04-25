@@ -41,7 +41,7 @@ try:
 except ImportError:
     ChatGPTResponder = None
 
-from core.agent_utils import save_agent_spot, _load_coords
+from core.agent_utils import save_agent_spot, _load_coords, click_agent_spot
 
 
 class DashboardWindow(QMainWindow):
@@ -74,6 +74,8 @@ class DashboardWindow(QMainWindow):
         # Auto-response mode using ChatGPTResponder hook
         self.auto_mode_enabled = True
         self.responder = ChatGPTResponder(dev_mode=True)
+        # Auto-click UI spot upon task claim
+        self.auto_click_on_claim = True
 
         # Auto-refresh
         self.timer = QTimer(self)
@@ -199,8 +201,18 @@ class DashboardWindow(QMainWindow):
         self._load_tasks()
 
     def claim_next_task(self):
-        ok = claim_task(agent_id="agent_001")
-        print("✅ Claimed" if ok else "❌ No tasks to claim")
+        agent_id = "agent_001"
+        ok = claim_task(agent_id=agent_id)
+        if ok:
+            print("✅ Claimed")
+            if self.auto_click_on_claim:
+                try:
+                    click_agent_spot(agent_id)
+                except Exception as e:
+                    print(f"⚠ Failed to click spot for {agent_id}: {e}")
+        else:
+            print("❌ No tasks to claim")
+        # Refresh task list view
         self._load_tasks()
 
     def update_messages(self):
