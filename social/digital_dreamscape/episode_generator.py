@@ -65,7 +65,7 @@ class Config:
     DEFAULT_HEADLESS: bool = True
     LOG_LEVEL: int = logging.INFO
     LOG_FORMAT: str = "%(asctime)s | %(levelname)-7s | %(message)s"
-    DOTENV_PATH: Path = Path(".env")
+    DOTENV_PATH: Path = Path("config/.env")
     HISTORY_CACHE_FILE: Path = Path(".history_cache.json")
 
 

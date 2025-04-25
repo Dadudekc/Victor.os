@@ -1,0 +1,1418 @@
+{
+    "governance_scraper.py": {
+        "hash": "bb1e784186a2a6424aefe99da8aa65b4"
+    },
+    "check_import.py": {
+        "hash": "a65e6287924b98bf3ef6d9b72062c04f"
+    },
+    "conftest.py": {
+        "hash": "14aca3721e4314e2623c5f90f45aa1a1"
+    },
+    "cli.py": {
+        "hash": "9450ff60d2fee89032962b242307faab"
+    },
+    "apply_proposals.py": {
+        "hash": "94fc498266210f03dceb63e152f3274f"
+    },
+    "setup.py": {
+        "hash": "6a19b6a8dfa48d6ee39ba2abb016272d"
+    },
+    "main.py": {
+        "hash": "7628ab0c8d858003ff3a3d3c9b46659d"
+    },
+    "e2e_smoke.py": {
+        "hash": "855530908de8a5e542d747fbe14e02c2"
+    },
+    "run_dream_loop.py": {
+        "hash": "dead3a9f286850431cabf7053ece0f10"
+    },
+    "run_dream_os.py": {
+        "hash": "de32ec511b5f21c819122900d44a977a"
+    },
+    "streamlit.py": {
+        "hash": "f58a3ba5935baeecdb302a6981b09faa"
+    },
+    "test_pyqt.py": {
+        "hash": "17eba72f8d07020e135cbfd5a1ffb353"
+    },
+    "chat_mate_config.py": {
+        "hash": "86a2fb53293eae99ee86805dac8bd49e"
+    },
+    "monitor_analyzer_agent.py": {
+        "hash": "f4fc78d5d9895464558f96c4c8847e3e"
+    },
+    "dashboard.py": {
+        "hash": "0fa868b19dd0884c1fa6888197cfe3dd"
+    },
+    "main_copy.py": {
+        "hash": "3e0ff39ccdd72d727d4aefc39682698e"
+    },
+    "_internal_test_loop.py": {
+        "hash": "b1a196960dd46988af00d99decbf7b34"
+    },
+    "test_scraper.py": {
+        "hash": "356fbd39080699621617ef5bd502d602"
+    },
+    "agents\\AletheiaContentDispatcher.py": {
+        "hash": "9ce322954e09957fcf56ae9b738e7b96"
+    },
+    "agents\\base_agent.py": {
+        "hash": "47344ac9e4482ca1491222d9276b8845"
+    },
+    "agents\\cursor_integration_agent.py": {
+        "hash": "ef1a42ac0dadddc7fdf658e88113f5a3"
+    },
+    "agents\\echo_agent.py": {
+        "hash": "a60a8982aa8c12fb7e648684c63940b6"
+    },
+    "agents\\planner_agent.py": {
+        "hash": "b46fd63d3500b78bc5e967e79ceab886"
+    },
+    "agents\\reflection_agent.py": {
+        "hash": "606503a0309a2dc588aba25d4b21dbad"
+    },
+    "agents\\prompt_feedback_loop_agent.py": {
+        "hash": "84144cee41246f29376544a4eb35b8f3"
+    },
+    "agents\\setup.py": {
+        "hash": "96bb1c41a21085d0a9dae2d8828dc292"
+    },
+    "agents\\sim_cursor_chat_coordinator.py": {
+        "hash": "88fcb87528ec1db6107a5ba1cf079e93"
+    },
+    "agents\\thea_auto_planner.py": {
+        "hash": "d4fa48f4c5cdb498d4a85992473ee9c5"
+    },
+    "agents\\social_task_orchestrator.py": {
+        "hash": "1dcbb15e0f5c06bc3d36eec6d5fd9383"
+    },
+    "agents\\task_orchestrator_agent.py": {
+        "hash": "0eabeb1b8863a9b02af81fca22a2b127"
+    },
+    "agents\\workflow_agent.py": {
+        "hash": "00ae7293c44c66f0ed7a5cefb51f4508"
+    },
+    "agents\\__init__.py": {
+        "hash": "cb5b8051de27599be013617da7a4341d"
+    },
+    "agents\\calendar\\agent.py": {
+        "hash": "e7ec709c2d524e0facc22a10c9a7085a"
+    },
+    "agents\\calendar\\calendar_agent.py": {
+        "hash": "e8c9f593d20d7204ad14a5b92b07ab48"
+    },
+    "agents\\cursor\\control_agent.py": {
+        "hash": "a1bf13a5dbec6b000226fd3b4d2388b4"
+    },
+    "agents\\cursor\\cursor_dispatcher.py": {
+        "hash": "7cdc28b52b0b9b27765560ca6870d2d5"
+    },
+    "agents\\dreamforge\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\agents\\agent_monitor_agent.py": {
+        "hash": "6240f14513aa860451940729ba73a29d"
+    },
+    "agents\\dreamforge\\agents\\planner_agent.py": {
+        "hash": "9d3613f8aceaed2ff599f9f0b665f290"
+    },
+    "agents\\dreamforge\\agents\\workflow_agent.py": {
+        "hash": "703c1f371e3be8562287b4c1d34f85f0"
+    },
+    "agents\\dreamforge\\core\\agent_protocols.py": {
+        "hash": "f5cf70f72b63139b231b25cd7cf6294f"
+    },
+    "agents\\dreamforge\\core\\chatgpt_commander_agent.py": {
+        "hash": "50ecd814960c3acf23cd217dfe150b00"
+    },
+    "agents\\dreamforge\\agents\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\core\\config.py": {
+        "hash": "be05220d1e6533efbcf1c228a86a2724"
+    },
+    "agents\\dreamforge\\core\\cursor_dispatcher.py": {
+        "hash": "66ea62e456f6e87a064159e2ee75ec0e"
+    },
+    "agents\\dreamforge\\core\\feedback_consumer.py": {
+        "hash": "d171f8e8e5f1ef99a969d3709a27a4cb"
+    },
+    "agents\\dreamforge\\core\\llm_parser.py": {
+        "hash": "99a4c8fcf1e3fd23171d12b84ba086bd"
+    },
+    "agents\\dreamforge\\core\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\core\\coordination\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\core\\prompt_staging_service.py": {
+        "hash": "6a940f98f57ee0a42ab8a9588a311562"
+    },
+    "agents\\dreamforge\\core\\feedback\\consumer.py": {
+        "hash": "4ba64545d3fb02524c53000487fdfb5e"
+    },
+    "agents\\dreamforge\\core\\feedback\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\core\\memory\\governance_memory_engine.py": {
+        "hash": "91ee40da1d7b9cb84389d1b69daff667"
+    },
+    "agents\\dreamforge\\core\\memory\\memory_manager.py": {
+        "hash": "e0dfefb021dec4a2c72a8a81aeac59c1"
+    },
+    "agents\\dreamforge\\core\\tests\\test_governance_memory_engine.py": {
+        "hash": "08240007ceee636e9efb696a39009b75"
+    },
+    "agents\\dreamforge\\core\\models\\workflow.py": {
+        "hash": "62728bbbc6908287f594f5c0f3d5ed3a"
+    },
+    "agents\\dreamforge\\core\\tests\\test_template_engine.py": {
+        "hash": "bc4f767a60401fafe19dced9be3f037e"
+    },
+    "agents\\dreamforge\\tests\\conftest.py": {
+        "hash": "1a09996bd6877b784e9f05ef27943619"
+    },
+    "agents\\dreamforge\\tests\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\tests\\agents\\test_planner_agent.py": {
+        "hash": "cc2b5087e398cd7bbcb65a63bc8d6116"
+    },
+    "agents\\dreamforge\\tests\\agents\\test_utils.py": {
+        "hash": "04f61d1312a861e01b43ecbe9c2b6018"
+    },
+    "agents\\dreamforge\\tests\\agents\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\tests\\agents\\test_workflow_agent.py": {
+        "hash": "73e00b00af90bc0fb6758eb18a6410ef"
+    },
+    "agents\\dreamforge\\tests\\core\\test_cursor_dispatcher.py": {
+        "hash": "0f0b976eec9e801ab5b703a35ddb5fd9"
+    },
+    "agents\\dreamforge\\tests\\core\\test_agent_bus.py": {
+        "hash": "df694c8be3530fe7524d0529ccf6d869"
+    },
+    "agents\\dreamforge\\tests\\core\\test_cursor_listener.py": {
+        "hash": "b58300bdaf24ee47156f156ebef14100"
+    },
+    "agents\\dreamforge\\tests\\core\\test_llm_parser.py": {
+        "hash": "edc6d9581f1e4e10d8fed7935e5dae10"
+    },
+    "agents\\dreamforge\\tests\\core\\test_feedback_consumer.py": {
+        "hash": "9e7f4fe859d8c4cd931d7a1cc6742b16"
+    },
+    "agents\\dreamforge\\tests\\core\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "agents\\dreamforge\\tests\\core\\test_workflow_models.py": {
+        "hash": "21cddac88b596811c3970f7538fca2ba"
+    },
+    "agents\\dreamforge\\tests\\core\\test_template_engine.py": {
+        "hash": "5649c55f3ac3f14ad7743430c916ff85"
+    },
+    "agents\\dreamforge\\tests\\core\\test_prompt_staging_service.py": {
+        "hash": "470f2659280b4804cbe0585b029136b5"
+    },
+    "agents\\dreamforge\\tests\\core\\coordination\\test_base_agent.py": {
+        "hash": "3eac624d133e04cde1a16d365e24b0f0"
+    },
+    "agents\\dreamforge\\tests\\core\\utils\\llm_test_utils.py": {
+        "hash": "f09710fcaf0b984b4fbbd9314485f068"
+    },
+    "agents\\dreamforge\\tests\\core\\utils\\test_data.py": {
+        "hash": "ca7514071f726f9c553aaa6c30d3df62"
+    },
+    "agents\\dreamforge\\tests\\core\\utils\\test_agent_utils.py": {
+        "hash": "8d22f4abb2882e389de72bcb2d7aa160"
+    },
+    "agents\\dreamforge\\tests\\core\\utils\\test_utils.py": {
+        "hash": "e3bfc0afa1aabad7f115648b251d4a18"
+    },
+    "agents\\integrations\\chatgpt_commander.py": {
+        "hash": "b23ad9de701eec0fff8098b9408e8e05"
+    },
+    "agents\\meta\\architects_edge.py": {
+        "hash": "231e6119585a2edb98c787c9c1349802"
+    },
+    "agents\\meta_architect\\__init__.py": {
+        "hash": "7215ee9c7d9dc229d2921a40e899ec5f"
+    },
+    "agents\\recovery\\stall_agent.py": {
+        "hash": "79cadf92cd8fbe67fe28f72f75184f8c"
+    },
+    "agents\\social\\cursor_control_agent.py": {
+        "hash": "044b3078184853f7d44a7bb6ff21738a"
+    },
+    "agents\\social\\agent_monitor_agent.py": {
+        "hash": "e721d8a61d741f35f288d6eeb2f6aba5"
+    },
+    "agents\\recovery\\__init__.py": {
+        "hash": "e6a384fa58922a77126e2fe6f1e9dd5a"
+    },
+    "agents\\reflection\\agent.py": {
+        "hash": "1be1589a206dae6eb6e8e0397203daae"
+    },
+    "agents\\recovery\\supervisor_oria_agent.py": {
+        "hash": "855be460bb9a52232350a5735db5b37b"
+    },
+    "agents\\social\\meredith_resonance_scanner.py": {
+        "hash": "94cff804b08c71243f28ee380d87d7df"
+    },
+    "agents\\reflection_agent\\reflection_agent.py": {
+        "hash": "6a2ea586a71871be8d72a80cfdb332ef"
+    },
+    "agents\\social\\task_executor_agent.py": {
+        "hash": "1104e50edcaf6ad5a09ae0c3f62f1ae5"
+    },
+    "agents\\social\\social_media_agent.py": {
+        "hash": "525e033646b63d5b3f12cfa4fe34772c"
+    },
+    "agents\\social\\prompt_feedback_loop_agent.py": {
+        "hash": "225e44a962c7d3f82cfb527659529b23"
+    },
+    "agents\\social\\task_injector.py": {
+        "hash": "0350d9f1a5fbfb47a7622410838cfbfb"
+    },
+    "agents\\social\\strategies\\__init__.py": {
+        "hash": "6cbf8e9d17b4bfa9708cb7a770f8eec3"
+    },
+    "agents\\social\\strategies\\instagram_strategy.py": {
+        "hash": "9a144365dde10c1daf79e249a0c39217"
+    },
+    "agents\\social\\strategies\\facebook_strategy.py": {
+        "hash": "960958b43a6c03a81d687ac82c184529"
+    },
+    "agents\\tests\\test_calendar_agent.py": {
+        "hash": "7d55e0d492b104b3713fce4ba1620bfe"
+    },
+    "agents\\social\\strategies\\twitter_strategy.py": {
+        "hash": "4ce415976041ef25b7d061846033331a"
+    },
+    "agents\\tests\\test_architects_edge_agent.py": {
+        "hash": "336eafbb10b4a13029bce3a7e9fe5a89"
+    },
+    "agents\\tests\\tests\\test_workflow_agent.py": {
+        "hash": "d70b69241e94b971f5e819659240e7dc"
+    },
+    "agents\\social\\strategies\\linkedin_strategy.py": {
+        "hash": "c9b571372ae1634e181c7522b2f96c54"
+    },
+    "agents\\tests\\tests\\test_reflection_agent.py": {
+        "hash": "e9de11da90c0523f3b0df4c99bf2d8fe"
+    },
+    "apps\\browser\\main.py": {
+        "hash": "8c69dc556b13ef28b29173a19287a817"
+    },
+    "core\\config.py": {
+        "hash": "a200e23848242a9ef6f47ca4c1ef91c3"
+    },
+    "core\\FileManager.py": {
+        "hash": "33acaa657f9dfcae914e2d1fdc4ec05e"
+    },
+    "core\\thea_orchestrator.py": {
+        "hash": "aa802be0e855acf2069feaaeba18d2b3"
+    },
+    "core\\login_utils.py": {
+        "hash": "ade6e6108d862ed1950ee55aa6cfb880"
+    },
+    "core\\voice_engine.py": {
+        "hash": "76655deb8a77d98fbd2f91088d183175"
+    },
+    "core\\__init__.py": {
+        "hash": "3aeccdb1a611936461cd52bd23f20698"
+    },
+    "core\\agents\\__init__.py": {
+        "hash": "3c674c7e408842d11493e25c372bc636"
+    },
+    "core\\agents\\task_executor_agent.py": {
+        "hash": "e06782dc27c7e7bdd089996d30fc0dae"
+    },
+    "core\\agents\\tool_executor_agent.py": {
+        "hash": "817654fc8dc31aa1d35e5ac3ed5fea6c"
+    },
+    "core\\chat_engine\\chat_cycle_controller.py": {
+        "hash": "52962f190d0250158bee98deb5b8defb"
+    },
+    "core\\chat_engine\\feedback_engine_v2.py": {
+        "hash": "4b2ba959183fdb79222b2f2a162552e7"
+    },
+    "core\\chat_engine\\discord_dispatcher.py": {
+        "hash": "fa81f862979ec2f15ca2466a718f96a3"
+    },
+    "core\\chat_engine\\chat_scraper_service.py": {
+        "hash": "cad5cbd0a22041ad66964ba51754b594"
+    },
+    "core\\chat_engine\\driver_manager.py": {
+        "hash": "d2a3f5b59227639ef0e1dc89c103d62f"
+    },
+    "core\\chat_engine\\feedback_engine.py": {
+        "hash": "6299a4245e6a72eca0659d6bc748252e"
+    },
+    "core\\chat_engine\\prompt_execution_service.py": {
+        "hash": "dba70877c7e3be0a0b9fa3d20485b64b"
+    },
+    "core\\chat_engine\\gui_event_handler.py": {
+        "hash": "c89cd2f55a252d644ad7f05fb51fbe48"
+    },
+    "core\\chat_engine\\__init__.py": {
+        "hash": "48628d8fec5646d9b5597fd96af2603a"
+    },
+    "core\\coordination\\__init__.py": {
+        "hash": "dfe6d8085008904451b60ddf79a9ade8"
+    },
+    "core\\coordination\\dispatchers\\base_dispatcher.py": {
+        "hash": "e1b652fdf39891db536d2f37699eaf6b"
+    },
+    "core\\coordination\\dispatchers\\__init__.py": {
+        "hash": "475fe8a0f556d51a8dda20210a9a6aa6"
+    },
+    "core\\gui\\main_window.py": {
+        "hash": "c950c00cfcb021ec2ca60567892aee62"
+    },
+    "core\\gui\\tab_system_shutdown.py": {
+        "hash": "cf7671eb34b4e620c974276fac71d3c8"
+    },
+    "core\\gui\\__init__.py": {
+        "hash": "8ac2ecfed26ab7a36dacee2719f17280"
+    },
+    "core\\hooks\\stats_logger.py": {
+        "hash": "b33d69b9d7f87e50389d1c8ac97629bd"
+    },
+    "core\\llm_bridge\\bridge_adapters\\base_adapter.py": {
+        "hash": "9254a055adc87fc09138355fc51d58cf"
+    },
+    "core\\llm_bridge\\bridge_adapters\\fancy_adapter.py": {
+        "hash": "2955892c4254884c5eb08190bfef4a83"
+    },
+    "core\\llm_bridge\\bridge_adapters\\another_fancy_adapter.py": {
+        "hash": "c9013e3a8f40f3fd4d0aa5810900626b"
+    },
+    "core\\memory\\memory_manager.py": {
+        "hash": "b3428278095e56471b46045a144146f6"
+    },
+    "core\\memory\\__init__.py": {
+        "hash": "7307ce13c0eca5eaa58c4a65d27be49b"
+    },
+    "core\\monitoring\\prompt_execution_monitor.py": {
+        "hash": "b81bace53fe151e936110ce17f8778eb"
+    },
+    "core\\services\\failed_prompt_archive.py": {
+        "hash": "d8bcefaa14743feedd60e19e213d5149"
+    },
+    "core\\rendering\\__init__.py": {
+        "hash": "10b4686388f1a30a7065b3f146171bab"
+    },
+    "core\\rendering\\template_engine.py": {
+        "hash": "8c30c5a23194efbb3b7423109d8462a0"
+    },
+    "core\\tools\\base.py": {
+        "hash": "6d26469f0f168ce356a97bd0ec208190"
+    },
+    "core\\services\\__init__.py": {
+        "hash": "317031b1ea433b3e82d1cde52396052f"
+    },
+    "core\\tools\\registry.py": {
+        "hash": "a0b2acc4f7f3bfa81cc71b65695adf9f"
+    },
+    "core\\tools\\__init__.py": {
+        "hash": "442a397d0370ede4529b51569244e305"
+    },
+    "core\\tools\\functional\\context_planner_tool.py": {
+        "hash": "ffb9ad86649604a2f1100a3df2e08536"
+    },
+    "core\\tools\\functional\\file_tools.py": {
+        "hash": "e1cd1e2648276b47eac4c083c5a9c0a2"
+    },
+    "core\\tools\\functional\\utils_tools.py": {
+        "hash": "9475ed9667f1fb29aa87a2e071ea9047"
+    },
+    "core\\tools\\functional\\__init__.py": {
+        "hash": "08281f6bc73856edd2913c32c5cc4d9c"
+    },
+    "core\\utils\\json_io.py": {
+        "hash": "3ea4ff0de68f9b460c9d0b03303d1932"
+    },
+    "core\\tools\\functional\\search_tools.py": {
+        "hash": "22538062fefe6832f4a77636aadb8a8e"
+    },
+    "dreamforge\\__init__.py": {
+        "hash": "e6830e0efa9a6b97cf569aee20cd3727"
+    },
+    "dreamforge\\services\\discord_service.py": {
+        "hash": "d285b4feefddc6c2d70d4fa8f27f346b"
+    },
+    "dreamforge\\main.py": {
+        "hash": "74a4e9a9ee27a63fafa51c9a48d71435"
+    },
+    "dreamforge\\services\\__init__.py": {
+        "hash": "b7c9e5f56ce2c8f83f2e4135e5627f3a"
+    },
+    "dreamforge\\tests\\conftest.py": {
+        "hash": "5cd422182d169f02f48e0b3b73ce587e"
+    },
+    "dreamforge\\tests\\agents\\test_calendar_agent.py": {
+        "hash": "4ae77ec535e2118abdf3b861de50cee3"
+    },
+    "dreamforge\\tests\\agents\\test_cursor_dispatcher.py": {
+        "hash": "d89de46bb583a395468ceb9a4f1f9520"
+    },
+    "dreamforge\\tests\\agents\\test_chatgpt_commander.py": {
+        "hash": "7ff45f907e4f45f567b38bb449ca6deb"
+    },
+    "dreamforge\\tests\\agents\\test_planner_agent.py": {
+        "hash": "d931d5c725653081d6e9717d6bc02366"
+    },
+    "dreamforge\\tests\\coordination\\test_agent_bus.py": {
+        "hash": "68ac6a426ac5ee99646ce0bde1188e14"
+    },
+    "dreamforge\\tests\\agents\\test_workflow_agent.py": {
+        "hash": "f31a3f406cd3d01d333727b80c4077de"
+    },
+    "dreamforge\\tests\\core\\test_feedback_engine.py": {
+        "hash": "6f21542ee2d5033c3ae107c318485da7"
+    },
+    "dreamforge\\tests\\core\\test_governance_memory_engine.py": {
+        "hash": "79916e51e812fc53c5852fb17a7c2ba9"
+    },
+    "dreamforge\\tests\\core\\test_llm_bridge.py": {
+        "hash": "a94011926a9865493c2f7476bb4c32a4"
+    },
+    "dreamforge\\tests\\core\\test_prompt_staging_service.py": {
+        "hash": "5007bfc1a06d3b0a776650fc8c2a3e3c"
+    },
+    "dreamforge\\tests\\core\\test_template_engine.py": {
+        "hash": "0a4f57f4ad0a6acdb94fb7d8d66ea41a"
+    },
+    "dreamforge\\tests\\services\\test_discord_service.py": {
+        "hash": "95343bf3cadbee5ab514515a688e240a"
+    },
+    "dreamforge\\utils\\common_utils.py": {
+        "hash": "0e63c868de578db8a2a4006e76a6e295"
+    },
+    "dreamforge\\utils\\text_utils.py": {
+        "hash": "593700dd3397ad57c2c899277e3403a3"
+    },
+    "dreamforge\\utils\\image_utils.py": {
+        "hash": "1f04fbedea1df69a9fc20462c2f5f8b5"
+    },
+    "dream_mode\\azure_blob_channel.py": {
+        "hash": "d4d53b448eb57bf17d2c3322174bd361"
+    },
+    "dream_mode\\config.py": {
+        "hash": "a0c6bb84536e89196f79e8f579357753"
+    },
+    "dream_mode\\cursor_fleet_launcher.py": {
+        "hash": "2ce0482031914767d94cc718d5066d99"
+    },
+    "dream_mode\\DreamModeSleep.py": {
+        "hash": "dec4519d9733fe0655c289c186ffb84b"
+    },
+    "dream_mode\\local_blob_channel.py": {
+        "hash": "da4bb548fb221746b1cab5ed76211e6f"
+    },
+    "dream_mode\\swarm_controller.py": {
+        "hash": "2097a40f1270ebff1d47173b528b4f2e"
+    },
+    "dream_mode\\thea_feedback_ingestor.py": {
+        "hash": "70982797f7fd1470af23c643ae3c7e5d"
+    },
+    "dream_mode\\agents\\supervisor_agent.py": {
+        "hash": "f1372cc9fd690a279b11b2c298bf3bb3"
+    },
+    "dream_mode\\agents\\cursor_dispatcher.py": {
+        "hash": "81b2ce3e7d3c759c1be5f4dbe2c538bc"
+    },
+    "dream_mode\\__init__.py": {
+        "hash": "12652e5c316a4d7d22125abfa477805a"
+    },
+    "dream_mode\\virtual_desktop_runner.py": {
+        "hash": "c886a949722ac5baacd95d56de9667fe"
+    },
+    "dream_mode\\agents\\__init__.py": {
+        "hash": "64cd2451615ffcc712b841fe9a40536c"
+    },
+    "dream_mode\\agents\\task_feedback_router.py": {
+        "hash": "35f94a8068f3e843ac620582ceaa5966"
+    },
+    "dream_mode\\task_nexus\\task_nexus.py": {
+        "hash": "8823d28d14beba517f98ef67bc912dd2"
+    },
+    "dream_mode\\agents\\chatgpt_web_agent.py": {
+        "hash": "562ee9c971f8e68e75e5f4073cb56b5f"
+    },
+    "dream_mode\\agents\\cursor_worker.py": {
+        "hash": "b6e135a11aefe9da5323e68cbcf3e81c"
+    },
+    "dream_mode\\tests\\test_azure_blob_channel.py": {
+        "hash": "f4c4af0b03985df886eb504bb551ba9a"
+    },
+    "dream_mode\\utils\\browser.py": {
+        "hash": "62cd8c5a060e12241af280c80cef1d9a"
+    },
+    "dream_mode\\utils\\channel_loader.py": {
+        "hash": "1ba38d6d957cb8bb62db29258ddec824"
+    },
+    "dream_mode\\utils\\cursor_session_manager.py": {
+        "hash": "e776bc2501ed224fdad3283a0a04c4df"
+    },
+    "dream_mode\\utils\\html_parser.py": {
+        "hash": "99c4771e890b23616062d7e4f50dca2e"
+    },
+    "dream_mode\\utils\\prompt_renderer.py": {
+        "hash": "a7b4657e91c4d7bdafd8112d42a5cfcf"
+    },
+    "dream_mode\\utils\\task_parser.py": {
+        "hash": "5b24a4e6f1b7cc5ae3c951b635980291"
+    },
+    "dream_mode\\utils\\__init__.py": {
+        "hash": "ee656add8480dbf90e9dd2dc2f9893a0"
+    },
+    "dream_os\\__init__.py": {
+        "hash": "c2e2f3316e1e186e7df0623c600c1704"
+    },
+    "dream_os\\adapters\\base_adapter.py": {
+        "hash": "e71f22d2cc5654f72c7621003615d734"
+    },
+    "dream_os\\adapters\\discord_adapter.py": {
+        "hash": "4e0a87e850ae49467ae483657bb20ed4"
+    },
+    "dream_os\\adapters\\cursor_rpc_adapter.py": {
+        "hash": "8a4b30217aa58189f26c3492c83eeb4d"
+    },
+    "dream_os\\adapters\\openai_adapter.py": {
+        "hash": "520e977f19d18b5ff61925f812efe218"
+    },
+    "dream_os\\cli\\run_thea_loop.py": {
+        "hash": "67965656ac690ab9c7d554e4470e018d"
+    },
+    "dream_os\\cli\\__init__.py": {
+        "hash": "69e9913087b41108779a647d23bba58f"
+    },
+    "dream_os\\core\\crew_agent_base.py": {
+        "hash": "2c13f825c9a49b48b92ced887f3687ca"
+    },
+    "dream_os\\core\\crew_roles.py": {
+        "hash": "8c210206d3b5d9b306d052fb572a4594"
+    },
+    "dream_os\\services\\prompt_router_service.py": {
+        "hash": "1062c8b87019cd8905178bda26aa8eb1"
+    },
+    "dream_os\\services\\task_nexus.py": {
+        "hash": "7792a89872fe9632d7950d4ae00f070b"
+    },
+    "dream_os\\services\\__init__.py": {
+        "hash": "3aceed5c3ea62c6a40b9f65426a8d683"
+    },
+    "dream_os\\ui\\__init__.py": {
+        "hash": "5abb0c204b24cb9eec8b1920f4b529ea"
+    },
+    "dream_os\\ui\\main_window.py": {
+        "hash": "a3e33bd73c0a85fe6ac20bbac4512b5f"
+    },
+    "integrations\\cursor\\window_controller.py": {
+        "hash": "bce244c125172fa17dae62d5819e173b"
+    },
+    "integrations\\agent_services\\cursor_shadow_controller.py": {
+        "hash": "c36b25500b89738da67e3e9f156046bf"
+    },
+    "integrations\\cursor\\cursor_prompt_controller.py": {
+        "hash": "350babd87d428f21c91351771d506472"
+    },
+    "PyQt5_local_backup\\QtCore\\__init__.py": {
+        "hash": "66e1e49a06d2748a2047e0f5a7ff7917"
+    },
+    "PyQt5_local_backup\\__init__.py": {
+        "hash": "b58f2804a48bef491837e00ee7c375f5"
+    },
+    "PyQt5_local_backup\\QtWidgets\\__init__.py": {
+        "hash": "f3d751db302239b6aba56443b04453ce"
+    },
+    "scripts\\auto_claim_tasks_agent_002.py": {
+        "hash": "ff5af2f2120f71caaef2a913e0881011"
+    },
+    "scripts\\claim_one_task_agent_002.py": {
+        "hash": "07051225fa4a54f0c0e953acba8c04b3"
+    },
+    "scripts\\convert_task_lists_to_json.py": {
+        "hash": "41ac0487f4ea64df52cfd7e417d02576"
+    },
+    "scripts\\find_duplicate_tasks.py": {
+        "hash": "2c80a8bdf1caff23983d43dadca13c77"
+    },
+    "scripts\\run_qa.py": {
+        "hash": "c2f1b98ae493c67298ddcdc11fd8236e"
+    },
+    "sky_viewer\\sky_viewer.py": {
+        "hash": "2c3f12d842b6eca088d07d3971ddf6d7"
+    },
+    "social\\setup.py": {
+        "hash": "66409d2a1c74fcc913fdcdde66da7367"
+    },
+    "social\\__init__.py": {
+        "hash": "eeb4455df8f36728444ae32ac87fce05"
+    },
+    "social\\config\\settings.py": {
+        "hash": "9f52e75d397c3d0a4a901c2fcb0f59d6"
+    },
+    "social\\core\\agent_bus.py": {
+        "hash": "82755ccae443340e0173ba2126b7fae8"
+    },
+    "social\\core\\constants.py": {
+        "hash": "d1a973e271430fa40f5961053db661b4"
+    },
+    "social\\core\\mailbox.py": {
+        "hash": "385d55d20f96e0dbb66444ebfd570148"
+    },
+    "social\\core\\__init__.py": {
+        "hash": "b71bb65ab734eadd4aa149d5a9350f16"
+    },
+    "social\\core\\main.py": {
+        "hash": "9abd5fc7e36b779393d05a7016d30951"
+    },
+    "social\\core\\coordination\\cursor\\cursor_editor_controller.py": {
+        "hash": "de705ea49f95c51cc4731100a57f3ce7"
+    },
+    "social\\core\\coordination\\cursor\\cursor_instance_controller.py": {
+        "hash": "ca097927aa47542a0252bcf155da4b70"
+    },
+    "social\\core\\coordination\\cursor\\cursor_terminal_controller.py": {
+        "hash": "8ca31cc413a6e332183907c7395d6879"
+    },
+    "social\\core\\coordination\\cursor\\editor_service.py": {
+        "hash": "4dce584367b6b4d93fc2133a6ba7707a"
+    },
+    "social\\core\\coordination\\cursor\\cursor_ui_trainer.py": {
+        "hash": "6f9fa5f10223504a1215b6c43e6078f7"
+    },
+    "social\\core\\coordination\\cursor\\cursor_window_controller.py": {
+        "hash": "879bbaf7c1e97cbc7d374037e66f4a48"
+    },
+    "social\\core\\coordination\\cursor\\locator_service.py": {
+        "hash": "af0181f0202b731092dcd73c738c917c"
+    },
+    "social\\core\\coordination\\cursor\\window_service.py": {
+        "hash": "4bdc53645409e5caa617c3a300028d86"
+    },
+    "social\\core\\coordination\\cursor\\task_execution_monitor.py": {
+        "hash": "0baf117345688578891fed641bb4c8ad"
+    },
+    "social\\core\\coordination\\cursor\\terminal_service.py": {
+        "hash": "3755fac6f714621b1927e4083dd28c30"
+    },
+    "social\\core\\coordination\\cursor\\task_execution_state_machine.py": {
+        "hash": "aa46e83707aae05950a3ed0aec88e05e"
+    },
+    "social\\core\\exceptions\\strategy_exceptions.py": {
+        "hash": "bb9a57d1253d2f3d85c18c0d90f7d44f"
+    },
+    "social\\core\\exceptions\\__init__.py": {
+        "hash": "e99c99ec3468fb11a8fc1e0c39672203"
+    },
+    "social\\core\\strategies\\base_strategy.py": {
+        "hash": "e578a26a5a4d4180f876d9732848d75d"
+    },
+    "social\\digital_dreamscape\\app.py": {
+        "hash": "c65b4b4b36dab6cb617b42e0f70f2764"
+    },
+    "social\\core\\strategies\\facebook_strategy.py": {
+        "hash": "f3e9b22974a3330530a2e46abbb17367"
+    },
+    "social\\core\\strategies\\__init__.py": {
+        "hash": "7590a0114d92617af458e49db0776ca2"
+    },
+    "social\\core\\strategies\\twitter_strategy.py": {
+        "hash": "3ada0dbdf5a16d88c6bb0b8a27ce4abb"
+    },
+    "social\\digital_dreamscape\\chat_scraper.py": {
+        "hash": "8e7b20a4092cb9bfb074013b067fa76d"
+    },
+    "social\\core\\strategies\\linkedin_strategy.py": {
+        "hash": "ee661f25aa16998958c12fbcb939c05c"
+    },
+    "social\\digital_dreamscape\\assistant_worker.py": {
+        "hash": "7b483e57adb59db80bac1051a5f1a1a4"
+    },
+    "social\\digital_dreamscape\\episode_generator.py": {
+        "hash": "f396d6f435022a3104dbabd8ac3f0c17"
+    },
+    "social\\digital_dreamscape\\memory_manager.py": {
+        "hash": "28546831e1c8f6632659790ddd74934c"
+    },
+    "social\\digital_dreamscape\\saga_orchestrator.py": {
+        "hash": "b11dfb0d4ab91548a471b50fc731ddc3"
+    },
+    "social\\digital_dreamscape\\utils.py": {
+        "hash": "6fc1c1d8dc03aa39cfa8886e36dcc67e"
+    },
+    "social\\digital_dreamscape\\vector_db.py": {
+        "hash": "a66cbc04287e86d193e62330e7693f36"
+    },
+    "social\\digital_dreamscape\\__init__.py": {
+        "hash": "f6ec82f4c31071eab2804a417435942b"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\config.py": {
+        "hash": "b6b07e379532f0748f7c858df43bbfab"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\main.py": {
+        "hash": "84e3fd03c245b739d33ca9e386ef14c5"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\chatgpt_locators.py": {
+        "hash": "68167b3310eff8ae89d800057ef965b4"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\__init__.py": {
+        "hash": "fdc0ba704e06e76eb5821ae8002162ad"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\chatgpt_scraper.py": {
+        "hash": "f9c53b33c36f9f7ac002477780fcac6c"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\cli.py": {
+        "hash": "28cbe2bbc84d77faa0712f72e5524dec"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\external_stubs.py": {
+        "hash": "07a0c00f135c2b0fa1e31cc51bd1e393"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\experience_parser.py": {
+        "hash": "7b0a74acac201b3552286f8d08b8f7cc"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\context_manager.py": {
+        "hash": "9005959ffe4d0fcb687ad9dbbc7f1976"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\generation_engine.py": {
+        "hash": "18f30af8cd3552ad9f831d052e4d15d7"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\history_manager.py": {
+        "hash": "083654d3e1b38d374d23a50a6f5a5d01"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\unified_chrome_driver.py": {
+        "hash": "d3625251cbb35ecc6e102e8dfe85a1ba"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\story_generator.py": {
+        "hash": "5408b60f3823442268080e16a49aec83"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\utils.py": {
+        "hash": "f0aa36742e0f8d2888d755cfaea9d4bc"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\__init__.py": {
+        "hash": "34a609b377a892f4cc29958374ccb9ad"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\DiscordManager.py": {
+        "hash": "dc9fe130104ba9593cab2cae98bc5a1e"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\MemoryManager.py": {
+        "hash": "66ce0e589c65a76ec82ce96aa8bc5cf3"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\monitoring\\__init__.py": {
+        "hash": "92c36a73fd8a6c208448ca39ca500c37"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\UnifiedDriverManager.py": {
+        "hash": "6d5587892b03df4af02ae3a7e8c853a0"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\__init__.py": {
+        "hash": "dc29388b648b5d5f6435e70f78c89c99"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\monitoring\\prompt_execution_monitor.py": {
+        "hash": "23bf4cf18102024a63fbf78928f191a8"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\threads\\saga_worker.py": {
+        "hash": "2ceb71837570ba956233c96e96e2593c"
+    },
+    "social\\digital_dreamscape\\dreamscape_generator\\threads\\__init__.py": {
+        "hash": "1b89c3d25aa4e48ee4245addf868a78d"
+    },
+    "social\\digital_dreamscape\\dreamscape_gui\\dreamscape_tab.py": {
+        "hash": "bd12786eacd9912a8c781e08866d3cae"
+    },
+    "social\\digital_dreamscape\\dreamscape_gui\\main_window.py": {
+        "hash": "f7667d10c139b4d42a01f38ffc1f40e8"
+    },
+    "social\\digital_dreamscape\\dreamscape_gui\\swarm_dashboard_tab.py": {
+        "hash": "c1906b1a29a7b40037609c4a5f7bb5de"
+    },
+    "social\\digital_dreamscape\\scripts\\dreamscape_cli.py": {
+        "hash": "af3b2d8805f0385f6eb922a092be8fe2"
+    },
+    "social\\digital_dreamscape\\tests\\test_saga_monitor_integration.py": {
+        "hash": "dafb771d1a705823631bf7940a25247d"
+    },
+    "social\\digital_dreamscape\\tests\\test_saga_generation_worker.py": {
+        "hash": "e199e0d725881471846b18a2a2cbb10a"
+    },
+    "social\\digital_dreamscape\\dreamscape_gui\\swarm_data_bridge.py": {
+        "hash": "156f25bf0685b140f942ffccc42ae45b"
+    },
+    "social\\scripts\\debug_imports.py": {
+        "hash": "009f1ed5e0bbf18af51260b06b22e92b"
+    },
+    "social\\scripts\\engagement_dashboard.py": {
+        "hash": "79f8f47a0a635185952b0d590d22f122"
+    },
+    "social\\scripts\\inject_task.py": {
+        "hash": "5fc678bff0379ad4553c9ccb4e02151e"
+    },
+    "social\\tests\\conftest.py": {
+        "hash": "1c08bd8d94fe6e480f6d924ee2a694c9"
+    },
+    "social\\tests\\test_agent_load.py": {
+        "hash": "8b059e7bff392899d82b5ead6345d9e7"
+    },
+    "social\\tests\\test_devlog_analyzer.py": {
+        "hash": "55e68e579e1cb886f044d1f6b69b6e97"
+    },
+    "social\\tests\\test_devlog_dispatcher.py": {
+        "hash": "e23aec0c8e4ea329611e0f62d2c05f5c"
+    },
+    "social\\tests\\test_devlog_generator.py": {
+        "hash": "1b6547835ac4b1b43804f3488cf1797d"
+    },
+    "social\\tests\\test_linkedin_strategy.py": {
+        "hash": "35eef03f7094d5fd3e4308a76c663263"
+    },
+    "social\\tests\\test_reddit_strategy.py": {
+        "hash": "8e2ca3a2c8acff58659a00a738e67120"
+    },
+    "social\\tests\\test_social_agent_e2e.py": {
+        "hash": "30fb7d3d386c10ea622fb0ccf5bb3504"
+    },
+    "social\\tests\\test_social_media_agent.py": {
+        "hash": "e2d51cf9f1a1f0a3fb05fbcc2ed48f3b"
+    },
+    "social\\tests\\test_twitter_strategy.py": {
+        "hash": "8a94bb2e768c0c7d55d39a5b62f3d194"
+    },
+    "social\\tests\\__init__.py": {
+        "hash": "77b0b8ceaa026c7a22321ad12bcadf18"
+    },
+    "social\\tests\\core\\test_cursor_control_agent.py": {
+        "hash": "b265c240a360d5eba7ccc9ce7c68b221"
+    },
+    "social\\tests\\core\\test_meredith_resonance_scanner.py": {
+        "hash": "b3dab0c914a2e89aa76e89991d1f6d6f"
+    },
+    "social\\tests\\core\\test_agent_monitor_agent.py": {
+        "hash": "3918f250895d5fdcc924c0dad46a9977"
+    },
+    "social\\tests\\core\\test_prompt_feedback_loop_agent.py": {
+        "hash": "3d60c15e81365b94d217b56e883400f4"
+    },
+    "social\\tests\\core\\test_task_executor_agent.py": {
+        "hash": "0bd00523cb9c22fd04313557ff59921a"
+    },
+    "social\\tests\\core\\test_task_injector.py": {
+        "hash": "5595f146d36472fb62f5a19c3c5477f7"
+    },
+    "social\\tests\\core\\test_prompt_staging_service.py": {
+        "hash": "d160e3e6e65900a00be834e85e289ba9"
+    },
+    "social\\tests\\core\\test_template_engine.py": {
+        "hash": "5f87ef8e6bc75b81ca9fc807683fa3bd"
+    },
+    "social\\tests\\core\\__init__.py": {
+        "hash": "a2e8f62dac332ba5b5214c10d1de3152"
+    },
+    "social\\tests\\core\\memory\\test_governance_memory_engine.py": {
+        "hash": "ae4bb89a5594b415223b9a16d607de7c"
+    },
+    "social\\tests\\integration\\test_core_task_execution.py": {
+        "hash": "b21f887ce49cfe9679cce9a55a8cda92"
+    },
+    "social\\tests\\integration\\test_full_prompt_cycle.py": {
+        "hash": "4b9426ae0333c5598bf85e3fe64ba147"
+    },
+    "social\\tests\\integration\\test_error_recovery.py": {
+        "hash": "056edc86a499f2dda814d892f52670d8"
+    },
+    "social\\tests\\integration\\__init__.py": {
+        "hash": "1e3cc1990b646cbe4b7aa194971d4d4a"
+    },
+    "social\\tests\\integration\\test_posting_workflow.py": {
+        "hash": "d1239ad24c67df20790d7fd128c5a864"
+    },
+    "social\\tests\\integration\\test_social_agent_loop.py": {
+        "hash": "f4027a2f1c012288458e2f16b798aadd"
+    },
+    "social\\tests\\social\\test_facebook_strategy.py": {
+        "hash": "55b0649fb34efd6a28ab658d2eea9a40"
+    },
+    "social\\tests\\social\\test_linkedin_strategy.py": {
+        "hash": "74b4f88045c0687691387e8c653e5a26"
+    },
+    "social\\tests\\social\\test_twitter_strategy.py": {
+        "hash": "90f3a4f3a92661300eaf06df6747ccff"
+    },
+    "social\\tests\\social\\__init__.py": {
+        "hash": "7215ee9c7d9dc229d2921a40e899ec5f"
+    },
+    "social\\tests\\social\\strategies\\base_strategy_test.py": {
+        "hash": "860f84641b1969a8f5d9eafd05103bd4"
+    },
+    "social\\tests\\social\\strategies\\test_twitter_strategy.py": {
+        "hash": "08ad607388feaf91ab489eaebbe1ab8d"
+    },
+    "social\\tests\\strategies\\base_strategy_test.py": {
+        "hash": "72319fe8ad2193f314f309c486774ada"
+    },
+    "social\\tests\\strategies\\test_sentiment_analysis.py": {
+        "hash": "aeaf54c6a6920ea93cd25713576ece9b"
+    },
+    "social\\tests\\strategies\\test_facebook_strategy.py": {
+        "hash": "5fb569120f429cd1439562577cdc1f30"
+    },
+    "social\\tests\\strategies\\test_linkedin_strategy.py": {
+        "hash": "e2c7dd7687be55d40f1026f46801df0a"
+    },
+    "social\\tests\\strategies\\base_test.py": {
+        "hash": "89c3d4ba05425ce96e94a40c30eb1cf7"
+    },
+    "social\\tests\\strategies\\__init__.py": {
+        "hash": "2b86e6f717b9e27200f94eccb3881560"
+    },
+    "social\\tests\\tools\\test_chat_cursor_bridge.py": {
+        "hash": "acb01333b81eed6fc3174f660fb25525"
+    },
+    "social\\tests\\strategies\\test_twitter_strategy.py": {
+        "hash": "05083b6c017c713a0d57d345285a6c11"
+    },
+    "social\\tests\\tools\\__init__.py": {
+        "hash": "b0176d8e78ef8b26f7615ebab5004c0b"
+    },
+    "social\\tests\\utils\\test_chatgpt_scraper.py": {
+        "hash": "3d6803aa5c82619f9640cd05b288a20d"
+    },
+    "social\\tests\\utils\\test_browser_utils.py": {
+        "hash": "be2a59c594dd152e7d74f08650bae720"
+    },
+    "social\\tests\\utils\\test_cursor_utils.py": {
+        "hash": "80ea1cc285324e5f1b38191f117b1716"
+    },
+    "social\\tests\\utils\\test_devlog_analyzer.py": {
+        "hash": "8e6ee1894803932f397efe15416f8a14"
+    },
+    "social\\tests\\utils\\test_mailbox_handler.py": {
+        "hash": "e7cfa1ca784f3b5762922bca889183bf"
+    },
+    "social\\tests\\utils\\test_performance_logger.py": {
+        "hash": "d7e67fe4a82204081f0f2a747bb7584d"
+    },
+    "social\\tests\\utils\\test_retry_utils.py": {
+        "hash": "4e05479dffeaff085148e5428af6810f"
+    },
+    "social\\tests\\utils\\test_utils.py": {
+        "hash": "c828dba0eb276309d7f04448d7f21805"
+    },
+    "social\\tests\\utils\\__init__.py": {
+        "hash": "e26522e5978b53d042b7a22bd0320e51"
+    },
+    "social\\utils\\cursor.py": {
+        "hash": "86b13683c985ff9a64aadb7e5a5e00cd"
+    },
+    "social\\utils\\chatgpt_scraper.py": {
+        "hash": "1790e9b3386024869f1db38b825f069c"
+    },
+    "social\\utils\\devlog_dispatcher.py": {
+        "hash": "9adc7773bb6c28edf40b18190bfdd1fb"
+    },
+    "social\\utils\\common.py": {
+        "hash": "61530d8bf71dfe823251f111e84286b0"
+    },
+    "social\\utils\\devlog_analyzer.py": {
+        "hash": "b57c180baae76d40ec13ad2cd166300d"
+    },
+    "social\\utils\\logging_utils.py": {
+        "hash": "08c022e46f19cfb37e9826d4b951730f"
+    },
+    "social\\utils\\devlog_generator.py": {
+        "hash": "01ac652ea2ca1871377b4de615070b67"
+    },
+    "social\\utils\\feedback_processor.py": {
+        "hash": "b25751593a74c11259a7092a611d7f8e"
+    },
+    "social\\utils\\selenium_utils.py": {
+        "hash": "9cefc1f2292c58e1f8fab854f4f2245b"
+    },
+    "social\\utils\\__init__.py": {
+        "hash": "f2f365359dfd54c1031df06a3f9caebb"
+    },
+    "tests\\conftest.py": {
+        "hash": "b81899a6739b56c8cfff783ee4ffd219"
+    },
+    "social\\utils\\content\\post_context_generator.py": {
+        "hash": "8fb67d9ba56d56e01f39d421eed15ef9"
+    },
+    "tests\\test_apply_proposals.py": {
+        "hash": "b683bac16b9d8e0ad6ffcff4b156179b"
+    },
+    "tests\\test_cli.py": {
+        "hash": "ee9b1f1132fe6bfb6bb363aef709aade"
+    },
+    "tests\\test_context_planner.py": {
+        "hash": "57157f00eb254b57a6245916217de427"
+    },
+    "tests\\test_emotion_detector.py": {
+        "hash": "0c71d60e5c225b25f5e4c41587ce0c3a"
+    },
+    "tests\\test_fragment_forge_tab.py": {
+        "hash": "e200c34a9898b5a04aa9d355c84433f5"
+    },
+    "tests\\test_governance_memory_engine.py": {
+        "hash": "25be32fc0f1d41dcd1490e60a1405545"
+    },
+    "tests\\test_governance_scraper.py": {
+        "hash": "4ca01d0a334370f4e69a2f97d838fc6c"
+    },
+    "tests\\test_monitor_analyzer.py": {
+        "hash": "c6fa49fc76ccccc0446ee6c1acedb81e"
+    },
+    "tests\\test_gpt_command_router.py": {
+        "hash": "cd33d089ceca280a29a530e4db90a21b"
+    },
+    "tests\\test_prompt_router.py": {
+        "hash": "74979fe09453b396cf71794c4c7a3337"
+    },
+    "tests\\test_reflection_agent.py": {
+        "hash": "03c303d49a2e6c421ebc9fef75376407"
+    },
+    "tests\\test_task_visualizer_app.py": {
+        "hash": "9945f4f3103ca0802f90002677b2a07d"
+    },
+    "tests\\test_saga_orchestrator.py": {
+        "hash": "e19138b9a67222f9d3226323bd4e5029"
+    },
+    "tests\\test_template_engine.py": {
+        "hash": "aace857b3daafd1ba2e9f56ed7213c9c"
+    },
+    "tests\\__init__.py": {
+        "hash": "822208de45ceb530a3af6fa7ac17bd69"
+    },
+    "tests\\coordination\\cursor\\test_cursor_chat_coordinator.py": {
+        "hash": "47496083554309a481e853becd0ce44a"
+    },
+    "tests\\adapters\\test_registry.py": {
+        "hash": "7ab59e598dd74b608f1eb3811ae8ddc6"
+    },
+    "tests\\core\\__init__.py": {
+        "hash": "b65119d7760f0eba9680b7d7b6493512"
+    },
+    "tests\\core\\chat_engine\\test_feedback_engine_v2.py": {
+        "hash": "855a63aba5022871a215c2a366cdacef"
+    },
+    "tests\\core\\coordination\\test_base_dispatcher.py": {
+        "hash": "9a0948e93267b4a4182f9af692cf4c4e"
+    },
+    "tests\\core\\gui\\main_window.py": {
+        "hash": "d78cdedf18ddd29c55ac3ce4944adb2e"
+    },
+    "tests\\core\\gui\\test_main_window_state.py": {
+        "hash": "55f33b866c3ee792020a314891141340"
+    },
+    "tests\\core\\gui\\test_tab_system_shutdown.py": {
+        "hash": "c46c04ed26b99f692932d9dfce718d14"
+    },
+    "tests\\core\\monitoring\\test_prompt_execution_monitor.py": {
+        "hash": "a82a42d7b9e2521333e9926276e1fa71"
+    },
+    "tests\\monitors\\test_mailbox_monitor_agent.py": {
+        "hash": "c7f281fb583533d2473f264351261b39"
+    },
+    "tests\\scripts\\test_run_qa.py": {
+        "hash": "1be0b803ed70fc9a4f56d754f28043da"
+    },
+    "tests\\task_nexus\\test_task_nexus.py": {
+        "hash": "37ac57343ad15747daa28342f18daacc"
+    },
+    "tests\\tools\\test_code_applicator.py": {
+        "hash": "ac916f3468fed5f071a2195c625ec83e"
+    },
+    "tests\\tools\\test_compile_lore.py": {
+        "hash": "22e1714c29313f69db402ffc977125e6"
+    },
+    "tools\\dreamscape_chronicle.py": {
+        "hash": "c46ed05acb129a04631d5d6dc55317e6"
+    },
+    "tests\\tools\\test_compile_lore_cli.py": {
+        "hash": "6c92f7f433862c3ed6d5c5e603a14930"
+    },
+    "tools\\code_applicator.py": {
+        "hash": "2890de584e3c5f590f23f19620d2d394"
+    },
+    "tools\\onboarding_splitter.py": {
+        "hash": "6ae6054aa285a870a5aff30853d2c37f"
+    },
+    "typer\\testing.py": {
+        "hash": "ba171557f3423067e9ad3081b4ea6561"
+    },
+    "tools\\thea_strategist.py": {
+        "hash": "62c8b5f077dee94a47a49482fc6fbca6"
+    },
+    "typer\\__init__.py": {
+        "hash": "19494340694a55dce92addfbbd285a87"
+    },
+    "ui\\fragment_forge_tab.py": {
+        "hash": "905284b7c4afb4f57646a5832d1bd5ad"
+    },
+    "ui\\main_window.py": {
+        "hash": "88130e4b313e728893a7715ef9412bc1"
+    },
+    "ui\\task_visualizer_app.py": {
+        "hash": "3ddc956ecf59a961a6e9ed71f7aef945"
+    },
+    "_agent_coordination\\config.py": {
+        "hash": "065ebcc6f52f5a6b32a31035d89f19e0"
+    },
+    "ui\\__init__.py": {
+        "hash": "75ce9d7c7efe6f248d25889a12e84bcc"
+    },
+    "_agent_coordination\\quorum_web_simulation.py": {
+        "hash": "a6706926697f4f7a5b1e89b22e331c93"
+    },
+    "_agent_coordination\\__init__.py": {
+        "hash": "70467390cc49401f4aaf5007a4ecee96"
+    },
+    "_agent_coordination\\agents\\feedback_monitor_agent.py": {
+        "hash": "ad36dd68288d009eec07fa55e8e7ae0d"
+    },
+    "_agent_coordination\\archive\\temp_test_registry.py": {
+        "hash": "dd3917c0bc03fa39ea8f7909c2e89fb2"
+    },
+    "_agent_coordination\\examples\\onboarding_message_injector.py": {
+        "hash": "67e828ea207bfa69a315d90e830fa7d6"
+    },
+    "_agent_coordination\\monitors\\mailbox_monitor_agent.py": {
+        "hash": "d34221538c0700e24127e9f819af8061"
+    },
+    "_agent_coordination\\dispatchers\\task_dispatcher.py": {
+        "hash": "a2e21945eb7bac4bcf22b50be5371fb2"
+    },
+    "_agent_coordination\\examples\\reflection_agent.py": {
+        "hash": "850a98b8d390b2cccbff84cf52f3f232"
+    },
+    "_agent_coordination\\examples\\stubs\\agent_1_stub.py": {
+        "hash": "aff8b3ddc6c286f19e8f5f3732277d07"
+    },
+    "_agent_coordination\\coordinators\\cursor_chat_coordinator.py": {
+        "hash": "60a9fe85f812698f23521f7a89cd91dc"
+    },
+    "_agent_coordination\\runtime\\agent_entrypoint.py": {
+        "hash": "1cc617786f6d0ef5e651245442e033bd"
+    },
+    "_agent_coordination\\state_machines\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "_agent_coordination\\state_machines\\task_execution_state_machine.py": {
+        "hash": "7e10218e4a955fa13a79d17b45d7a327"
+    },
+    "_agent_coordination\\supervisor_tools\\apply_proposals.py": {
+        "hash": "015047657a5d96df374e051e32208e6c"
+    },
+    "_agent_coordination\\supervisor_tools\\send_shared_mailbox_message.py": {
+        "hash": "a3137056185bebfbe49f35f1a68d1bcb"
+    },
+    "_agent_coordination\\supervisor_tools\\project_scanner\\cli\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "_agent_coordination\\tasks\\consolidate_tasks.py": {
+        "hash": "66b7e7c3e2da398b4863ca8aa852064f"
+    },
+    "_agent_coordination\\supervisor_tools\\project_scanner\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "_agent_coordination\\tasks\\organize_task_pool_v1.py": {
+        "hash": "a2bb3f290aac2028fa2d2aec5eeb933d"
+    },
+    "_agent_coordination\\tests\\test_agent_registry.py": {
+        "hash": "833a26e95bd4cb3e28d52ea6e63c4b00"
+    },
+    "_agent_coordination\\supervisor_tools\\project_scanner\\project_scanner.py": {
+        "hash": "9b7392f702aa3ada2a885157cc0a8b1d"
+    },
+    "_agent_coordination\\tests\\test_apply_proposals.py": {
+        "hash": "700e4ef3dd146ae6257990fe31d60277"
+    },
+    "_agent_coordination\\tests\\test_common_utils.py": {
+        "hash": "e6f157871ce7cb8a119fb9483d4754d3"
+    },
+    "_agent_coordination\\tests\\test_config.py": {
+        "hash": "38f357a935a127f14faf68b553b4a196"
+    },
+    "_agent_coordination\\tests\\test_cursor_dispatcher.py": {
+        "hash": "60eff58304bcbc6b240e0ccb08016e4a"
+    },
+    "_agent_coordination\\tests\\test_cursor_sync_loop.py": {
+        "hash": "a97b87feef109e02bf8add46f87593b9"
+    },
+    "_agent_coordination\\tests\\test_mailbox_utils.py": {
+        "hash": "04a4a04863fec3f2c1ae4d8ea3507ace"
+    },
+    "_agent_coordination\\tests\\test_reflection_agent.py": {
+        "hash": "f0a60eafd7fae65f2bbc8b73fb27cd8f"
+    },
+    "_agent_coordination\\tests\\agents\\test_stall_recovery_agent.py": {
+        "hash": "49f568e6f6e2e1fac0cfa6a36a4b0cd3"
+    },
+    "_agent_coordination\\tests\\core\\test_agent_bus.py": {
+        "hash": "0011bcfc0de760160f3312070e234100"
+    },
+    "_agent_coordination\\tests\\test_template_engine.py": {
+        "hash": "dcdb16260d364ec720a09d9c3071273e"
+    },
+    "_agent_coordination\\tests\\core\\test_base_utils.py": {
+        "hash": "c8a8ec059695ddaf0ba200638c7b4697"
+    },
+    "_agent_coordination\\tests\\core\\test_config_service.py": {
+        "hash": "e442b7fd0884d43418d3796bbd2d2807"
+    },
+    "_agent_coordination\\tests\\core\\test_dispatcher.py": {
+        "hash": "2c47491a25094ad385e09f56a6732255"
+    },
+    "_agent_coordination\\tests\\core\\test_logging.py": {
+        "hash": "f3056940cb6a8fac8321b8be16de17bf"
+    },
+    "_agent_coordination\\tests\\core\\test_metrics.py": {
+        "hash": "77636efa4adb0174d1fcda4704584445"
+    },
+    "_agent_coordination\\tests\\core\\test_path_manager.py": {
+        "hash": "4445db57054d97e6fd60a8f93dccfe73"
+    },
+    "_agent_coordination\\tests\\core\\test_system.py": {
+        "hash": "0c28a8283d775e035b7cfc8a6820db52"
+    },
+    "_agent_coordination\\tests\\tools\\test_cursor_metrics.py": {
+        "hash": "b5b738e039af71753f4541ee673b012c"
+    },
+    "_agent_coordination\\tests\\social\\utils\\test_chatgpt_templating.py": {
+        "hash": "173f67fd3f1ecdc6596724e151c42615"
+    },
+    "_agent_coordination\\tests\\tools\\test_cursor_result_listener.py": {
+        "hash": "e4a17a96ffda83e47a80a76841f137c2"
+    },
+    "_agent_coordination\\tests\\social\\utils\\test_chatgpt_scraper.py": {
+        "hash": "fb4081bc84a5e41abd29b7f7ecbbd456"
+    },
+    "_agent_coordination\\tests\\tools\\test_event_bus.py": {
+        "hash": "57694aa70c95e6b612603ed5ca073ed9"
+    },
+    "_agent_coordination\\tests\\tools\\test_monitoring_stack.py": {
+        "hash": "1670361111a93d8815434761772e490a"
+    },
+    "_agent_coordination\\tests\\unit\\test_agent_command_handler.py": {
+        "hash": "ddaff6adf4cefac00d036ce7eaf3509d"
+    },
+    "_agent_coordination\\tools\\auto_task_claimer.py": {
+        "hash": "4183d7801fc7ebcefbca4c2869cf6990"
+    },
+    "_agent_coordination\\tools\\brainstorm_tank.py": {
+        "hash": "eb06f0e6ec3f2440027e31296ce3975f"
+    },
+    "_agent_coordination\\tools\\broadcast_directive.py": {
+        "hash": "039a68122aeb8b8e08f099bb38675446"
+    },
+    "_agent_coordination\\tools\\check_confirmation_state.py": {
+        "hash": "c5192b3599e4aa3b9bd9be5b0c3d7106"
+    },
+    "_agent_coordination\\tools\\code_applicator.py": {
+        "hash": "d198b6d94908e24402219926edb55304"
+    },
+    "_agent_coordination\\tools\\compile_lore.py": {
+        "hash": "7de003984161d38f4fe23d457175b8fd"
+    },
+    "_agent_coordination\\tools\\consolidate_master_tasks.py": {
+        "hash": "5676c811f4e0cdeff96aa42792ec772e"
+    },
+    "_agent_coordination\\tools\\context_planner.py": {
+        "hash": "0d014998a6b57192b99db0311b28e018"
+    },
+    "_agent_coordination\\tools\\demo_local_channel.py": {
+        "hash": "61048cfff2024767195abc8cf91ee25a"
+    },
+    "_agent_coordination\\tools\\dreamctl.py": {
+        "hash": "8ecabd2b4584cbdffe3a19facbb5aeae"
+    },
+    "_agent_coordination\\tools\\diagnostics.py": {
+        "hash": "1eb58cf110f1c96a8925c6a28979ff10"
+    },
+    "_agent_coordination\\tools\\event_bus.py": {
+        "hash": "de46bc50765b7183a37099008448a0cb"
+    },
+    "_agent_coordination\\tools\\file_lock_manager.py": {
+        "hash": "b90728be9e1aa93c6b0fc391fa75afbc"
+    },
+    "_agent_coordination\\tools\\find_potential_scripts.py": {
+        "hash": "00d9e9a651aa8d6b98f05d0f3c44cd5c"
+    },
+    "_agent_coordination\\tools\\monitor_console.py": {
+        "hash": "da36e6592a2d74e8e7cfd64bec5c23a9"
+    },
+    "_agent_coordination\\tools\\log_analyzer.py": {
+        "hash": "89b3420e5591e6abf11310cd2518ffc5"
+    },
+    "_agent_coordination\\tools\\parse_feedback_stats.py": {
+        "hash": "baf91cee5ca459d68e0ee188558c3d4b"
+    },
+    "_agent_coordination\\tools\\run_agent.py": {
+        "hash": "62fee7ec4d175330a00e387832eef287"
+    },
+    "_agent_coordination\\tools\\proposal_security_scanner.py": {
+        "hash": "936e48ba81890e228189675045a841c0"
+    },
+    "_agent_coordination\\tools\\project_context_producer.py": {
+        "hash": "a8a66e0a55b09b8ee6e524c2ef266971"
+    },
+    "_agent_coordination\\tools\\reload_agent_context.py": {
+        "hash": "3d02ce8c4846716693d98bfea130a3f5"
+    },
+    "_agent_coordination\\tools\\reset_tasks.py": {
+        "hash": "4eb187dfbbb276f7a6abaafb53263857"
+    },
+    "_agent_coordination\\tools\\set_project.py": {
+        "hash": "38cf9b9bdee275b0a41f2d82ef466484"
+    },
+    "_agent_coordination\\tools\\supervisor_task_consolidator.py": {
+        "hash": "0cd8287336abcf3e18c4327f03b11b07"
+    },
+    "_agent_coordination\\utils\\agent_registry.py": {
+        "hash": "3550be232ac2c6cfe17aabede7f6ace4"
+    },
+    "_agent_coordination\\tools\\swarm_orchestrator.py": {
+        "hash": "750b925bc1440cc5c863c10df880d6f1"
+    },
+    "_agent_coordination\\utils\\emotion_detector.py": {
+        "hash": "d663b0fb68676b88ff72f269706f0fd8"
+    },
+    "_agent_coordination\\utils\\common_utils.py": {
+        "hash": "2b26186f2d7c11e95f32fd9420f261a4"
+    },
+    "_agent_coordination\\utils\\mailbox_utils.py": {
+        "hash": "632b8143660f8af58ecc85393e2161b3"
+    },
+    "_agent_coordination\\tools\\run_qa.py": {
+        "hash": "b191a6f077591a1881d543e536a8db1e"
+    },
+    "_agent_coordination\\utils\\task_utils.py": {
+        "hash": "df816b0fca11505c3edc49e1b73651ed"
+    },
+    "_archive\\visual_cursor_control\\coordination\\cursor\\bridge_adapter.py": {
+        "hash": "4d071ee354795bb5e31ec1b4b2be50b5"
+    },
+    "_agent_coordination\\utils\\__init__.py": {
+        "hash": "70467390cc49401f4aaf5007a4ecee96"
+    },
+    "_archive\\visual_cursor_control\\coordination\\cursor\\cursor_instance_controller.py": {
+        "hash": "02dc880b3d33f6d43aabf4b93bb3b3cf"
+    },
+    "_core\\__init__.py": {
+        "hash": "f35576150d6bdb0e7bc85610ab16f637"
+    },
+    "_archive\\visual_cursor_control\\coordination\\cursor\\task_execution_state_machine.py": {
+        "hash": "a97e9e0ef68da828050bbad193d8c179"
+    },
+    "_core\\coordination\\__init__.py": {
+        "hash": "5499170204bf83e267f8d8207faf2310"
+    },
+    "_core\\coordination\\cursor\\cursor_chat_coordinator.py": {
+        "hash": "d342a469ba34a0ec09426fc5c73a7a29"
+    },
+    "_core\\coordination\\cursor\\__init__.py": {
+        "hash": "86959b4da4328bf7f3c863f02a6ff408"
+    }
+}

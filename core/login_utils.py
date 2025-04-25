@@ -9,11 +9,11 @@ await ensure_login(page, service="chatgpt")   # or "deepseek"
 import asyncio, os, logging
 from typing import Literal
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from .env file
-# This will search for a .env file in the current directory or parent directories
-# and load its key-value pairs into os.environ
-load_dotenv()
+# Load environment variables from config/.env file
+dotenv_path = Path(__file__).resolve().parents[1] / "config" / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
 # Attempt to import Playwright, handle gracefully if not installed
 try:

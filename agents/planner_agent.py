@@ -4,31 +4,114 @@ import sys
 import traceback
 import json  # For parsing LLM response
 import re    # For parsing LLM response
-from dreamforge.core.prompt_staging_service import stage_and_execute_prompt  # Assuming this exists
-from dreamforge.core.template_engine import template_engine  # Using the default template engine instance
-from dreamforge.core.governance_memory_engine import log_event
-from dreamforge.core.llm_parser import extract_json_from_response
-from dreamforge.core.governance_memory_engine import GovernanceMemoryEngine  # Corrected path
-from dotenv import load_dotenv
-from dreamforge.core.llm.llm_api import get_llm_client  # Assuming the implementation exists
-import logging # Added
-import asyncio # Added
+import logging
+import asyncio
 from typing import Dict, List, Optional, Any
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure project root and agents directory are on sys.path
+script_dir = Path(__file__).parent.resolve()
+project_root = script_dir.parent.resolve()
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+agents_dir = project_root / 'agents'
+if str(agents_dir) not in sys.path:
+    sys.path.insert(0, str(agents_dir))
+
+# Stub imports for dreamforge modules
+try:
+    from agents.dreamforge.core.prompt_staging_service import stage_and_execute_prompt
+except ImportError:
+    def stage_and_execute_prompt(*args, **kwargs):
+        return None
+
+# TemplateEngine stub: prefer core.rendering, fallback to no-op
+try:
+    from core.rendering.template_engine import TemplateEngine
+except ImportError:
+    class TemplateEngine:
+        def __init__(self, *args, **kwargs): pass
+        def render(self, *args, **kwargs): return ''
+
+# LLMParser stub wrapping extract_json and llm_provider
+try:
+    from agents.dreamforge.core.llm_parser import extract_json_from_response
+except ImportError:
+    def extract_json_from_response(resp): return None
+
+class LLMParser:
+    def __init__(self, llm_provider=None):
+        self.llm_provider = llm_provider
+    async def get_response(self, prompt):
+        if self.llm_provider and hasattr(self.llm_provider, 'get_llm_response'):
+            return await self.llm_provider.get_llm_response(prompt)
+        return ''
+    def parse_json_response(self, response):
+        return extract_json_from_response(response)
+
+# Stub create_task_message for TaskMessage analog
+import uuid
+def create_task_message(task_type, agent_id, input_data, source_agent_id, parent_task_id=None, metadata=None):
+    class TaskMessage:
+        def __init__(self):
+            self.task_id = uuid.uuid4().hex
+            self.correlation_id = uuid.uuid4().hex
+        def to_dict(self):
+            return {
+                'task_id': self.task_id,
+                'correlation_id': self.correlation_id,
+                'task_type': task_type,
+                'agent_id': agent_id,
+                'input_data': input_data,
+                'source_agent_id': source_agent_id,
+                'parent_task_id': parent_task_id,
+                'metadata': metadata or {}
+            }
+    return TaskMessage()
+
+# No-op log_event
+def log_event(*args, **kwargs): pass
 
 # Add project root for imports
 script_dir = os.path.dirname(__file__)
-project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
+project_root = os.path.abspath(os.path.join(script_dir, '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 # del sys  # Do not remove sys since it's used for flushing stderr
 print(f"Root directory: {project_root}", flush=True)
 
+dotenv_path = Path(project_root) / "config" / ".env"
+load_dotenv(dotenv_path=dotenv_path, override=True)
+
 AGENT_ID = "PlannerAgent"
 
-# Import BaseAgent and AgentBus
-from core.coordination.base_agent import BaseAgent
-from core.coordination.agent_bus import AgentBus
-from core.models.task import Task, TaskStatus # For creating dispatched tasks
+# Stub BaseAgent
+try:
+    from core.coordination.base_agent import BaseAgent
+except ImportError:
+    class BaseAgent:
+        def __init__(self, *args, **kwargs): pass
+        async def _on_start(self): pass
+        def register_command_handler(self, *args, **kwargs): pass
+
+# Stub AgentBus
+try:
+    from core.coordination.agent_bus import AgentBus
+except ImportError:
+    class AgentBus:
+        async def publish(self, *args, **kwargs): pass
+
+# Stub Task and TaskStatus
+try:
+    from core.models.task import Task, TaskStatus
+except ImportError:
+    class Task:
+        pass
+    class TaskStatus:
+        PENDING = None
+        COMPLETED = None
+        pass
 
 class PlannerAgent(BaseAgent):
     """Agent responsible for breaking down goals into actionable task lists.

@@ -10,7 +10,7 @@ class TaskNexus:
         # Path to the shared task list file
         self.task_file = task_file
         # Lock to synchronize file writes and agent registry
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         # Load existing tasks or start with empty list
         self.tasks = self._load()
         # Agent registry file
@@ -129,7 +129,8 @@ class TaskNexus:
         with self._lock:
             self.tasks = self._load()
             for task in self.tasks:
-                if task.get("task_id") == task_id:
+                # match by 'id' or 'task_id'
+                if task.get("id") == task_id or task.get("task_id") == task_id:
                     task["status"] = status
                     # Record which agent completed the task if provided
                     if agent_id is not None and status.lower() == "completed":

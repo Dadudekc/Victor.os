@@ -1,0 +1,27 @@
+{
+  "meta": { "project": "Dream.OS", "batch": "2025-04-24_adapter_followup" },
+  "tasks": [
+    {
+      "id": "T-004",
+      "title": "End-to-End Smoke Script",
+      "description": "Create e2e_smoke.py that spins PromptRouterService in a thread, injects three sample tasks (plan, code, social), waits for completion, prints summary timings, exits 0.",
+      "acceptance_criteria": [
+        "`python e2e_smoke.py` exits 0, prints ≥3 executed tasks with adapter names + latency.",
+        "Works headless; no GUI required."
+      ],
+      "commit_message": "test(e2e): add end-to-end smoke test covering adapters + router",
+      "model_recommendation": "gpt-4 (concise orchestration script)"
+    },
+    {
+      "id": "T-003",
+      "title": "PyQt Monitoring GUI",
+      "description": "Create dream_os/gui/monitor.py + widgets.py and cli entry dream_os/cli/gui_monitor.py showing live TaskNexus queue/log and agent stats with add-task form. Dark theme, 1-s refresh.",
+      "acceptance_criteria": [
+        "Launching `python -m dream_os.cli.gui_monitor` opens window, tables auto-refresh.",
+        "Submitting task via GUI appears in queue and is processed by running router loop."
+      ],
+      "commit_message": "feat(gui): real-time PyQt5 monitoring dashboard for TaskNexus & agents",
+      "model_recommendation": "gpt-4o-mini-high (UI scaffolding + signals/slots)"
+    }
+  ]
+} 

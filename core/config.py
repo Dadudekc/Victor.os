@@ -128,4 +128,26 @@ class AppConfig(BaseModel):
 
         for dir_path in dirs_to_check:
             if dir_path:
-                os.makedirs(dir_path, exist_ok=True) 
+                os.makedirs(dir_path, exist_ok=True)
+
+# Add logging setup and custom exception for CLI compatibility
+class ConfigError(Exception):
+    """Exception raised for errors in the configuration process."""
+    pass
+
+
+def setup_logging(config: 'AppConfig') -> None:
+    """Configures Python logging based on AppConfig settings."""
+    # Determine log level
+    level_name = config.logging.level.upper() if hasattr(config.logging, 'level') else 'INFO'
+    level = getattr(logging, level_name, logging.INFO)
+    # Basic format
+    log_format = '%(asctime)s - [%(levelname)s] - %(name)s - %(message)s'
+    # Configure root logger
+    logging.basicConfig(level=level, format=log_format)
+    # Optional file handler
+    if config.logging.log_file:
+        fh = logging.FileHandler(config.logging.log_file)
+        fh.setLevel(level)
+        fh.setFormatter(logging.Formatter(log_format))
+        logging.getLogger().addHandler(fh) 
