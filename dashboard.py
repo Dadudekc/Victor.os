@@ -1,72 +1,70 @@
-# dashboard.py  – Dream.OS UI  v3
+# dashboard.py  – Dream.OS UI  v5 (Mailbox upgrade)
+# -------------------------------------------------
+# Highlights:
+#     • Avatars + markdown bubbles
+#     • Mailbox create / assign
+#     • Live JSON-file refresh (watchdog) – no simulated messages
 from __future__ import annotations
 
-import json
-import logging
-import sys
-import uuid
+import json, logging, sys, uuid, time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
-from datetime import datetime
 
 import pyautogui
 from PyQt5.QtCore import (
-    Qt,
-    QAbstractTableModel,
-    QModelIndex,
-    QVariant,
-    QTimer,
-    QSortFilterProxyModel,
+    Qt, QAbstractTableModel, QModelIndex, QVariant, QTimer, QSortFilterProxyModel
 )
-from PyQt5.QtGui import QKeySequence, QColor, QIcon, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import (
+    QColor, QIcon, QKeySequence, QPixmap
+)
 from PyQt5.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QTableView,
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QSplitter,
-    QTabWidget,
-    QComboBox,
-    QTextEdit,
-    QToolBar,
-    QAction,
-    QMessageBox,
-    QInputDialog,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit,
+    QPushButton, QSplitter, QTabWidget, QComboBox, QTextBrowser,
+    QToolBar, QAction, QMessageBox, QInputDialog, QTableView
 )
 
-# ───────────────────────── Back-end stubs (if missing) ─────────────────────
+# ───────────────────────── Backend shims ──────────────────────────
 try:
     from dream_os.services.task_nexus import add_task, claim_task, get_all_tasks
-except Exception:  # pragma: no cover
+except Exception:
     add_task = lambda task_type, content: uuid.uuid4().hex
     claim_task = lambda agent_id: False
     get_all_tasks = lambda: []
 
 try:
     from core.hooks.chatgpt_responder import ChatGPTResponder
-except Exception:  # pragma: no cover
+except Exception:
     ChatGPTResponder = None
 
 try:
     from core.agent_utils import save_agent_spot, click_agent_spot, _load_coords
-except Exception as e:  # pragma: no cover
-    print(f"Critical import miss: {e}")
+except Exception as e:
+    print("agent_utils missing:", e)
     sys.exit(1)
 
-# ───────────────────────── configuration + logging ─────────────────────────
+try:
+    import markdown  # optional, for nicer bubbles
+except ImportError:
+    markdown = None
+
+# ───────────────────────── Config & logging ──────────────────────
 @dataclass
 class Config:
-    refresh_ms: int = 5000
+    refresh_ms: int = 4000
     mailbox_root: Path = Path(__file__).parent / "_agent_coordination" / "shared_mailboxes"
+    avatar_dir: Path = Path(__file__).parent / "assets" / "avatars"
     logs_dir: Path = Path("logs")
     ui_log: str = "ui.log"
     default_agent: str = "agent_001"
-
+    bubble_css: str = (
+        "body{font-family:'Segoe UI';font-size:10pt}"  
+        ".bubble{padding:6px;border-radius:8px;margin:4px 0;max-width:95%;}"  
+        ".left{background:#f1f1f1;text-align:left}"  
+        ".right{background:#d2eaff;text-align:right;margin-left:auto}"  
+        ".meta{font-size:8pt;color:#666}"  
+    )
 
 CFG = Config()
 CFG.logs_dir.mkdir(exist_ok=True)
@@ -76,7 +74,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
 )
 
-# ───────────────────────── helpers ─────────────────────────
+# ───────────────────────── helpers ───────────────────────────────
 def _safe_json(path: Path) -> Dict | None:
     try:
         return json.loads(path.read_text())
@@ -88,251 +86,236 @@ def _qcolor(r: int, g: int, b: int) -> QColor:
     return QColor(r, g, b)
 
 
-# ───────────────────────── Table models─────────────────────
-class TaskModel(QAbstractTableModel):
-    HEADERS = ["ID", "Type", "Status", "Content"]
+def _avatar(agent_id: str) -> QPixmap | None:
+    p = CFG.avatar_dir / f"{agent_id}.png"
+    if p.exists():
+        return QPixmap(str(p)).scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    return None
 
-    def __init__(self) -> None:
+
+def _md(text: str) -> str:
+    if markdown:
+        return markdown.markdown(text, extensions=["fenced_code"])
+    return text.replace("\n", "<br>")
+
+# ───────────────────────── Table models ──────────────────────────
+class MailboxTable(QAbstractTableModel):
+    HEAD = ["Mailbox", "Status", "Owner", "#Msgs"]
+
+    def __init__(self):
         super().__init__()
-        self.tasks: List[Dict] = []
-        self._index: Dict[str, Dict] = {}
+        self.rows: List[Dict] = []
 
-    # Qt model overrides
-    def rowCount(self, *_):  # noqa: N802
-        return len(self.tasks)
+    def rowCount(self, *_) -> int:
+        return len(self.rows)
 
-    def columnCount(self, *_):  # noqa: N802
-        return len(self.HEADERS)
+    def columnCount(self, *_) -> int:
+        return len(self.HEAD)
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):  # noqa: N802
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            return self.HEADERS[section]
+            return self.HEAD[section]
         return QVariant()
 
-    def data(self, index: QModelIndex, role=Qt.DisplayRole):  # noqa: N802
-        if not index.isValid():
+    def data(self, idx: QModelIndex, role=Qt.DisplayRole):
+        if not idx.isValid():
             return QVariant()
-        task = self.tasks[index.row()]
-        col = index.column()
+        row = self.rows[idx.row()]
+        col = idx.column()
         if role == Qt.DisplayRole:
             if col == 0:
-                return task["id"][:8]
+                return row["name"]
             if col == 1:
-                return task["type"]
+                return row["status"]
             if col == 2:
-                return task["status"]
+                return row["owner"]
             if col == 3:
-                return task["content"]
-        if role == Qt.BackgroundRole and col == 2:
-            status = task["status"]
-            if status == "failed":
-                return _qcolor(255, 128, 128)
-            if status == "completed":
-                return _qcolor(128, 255, 128)
+                return str(len(row["messages"]))
+        if role == Qt.BackgroundRole and col == 1:
+            st = row["status"]
+            if st == "CLAIMED":
+                return _qcolor(255, 255, 180)
+            if st == "online":
+                return _qcolor(200, 255, 200)
+            if st == "idle":
+                return _qcolor(230, 230, 230)
         return QVariant()
 
-    # incremental update
-    def refresh(self, new_tasks: List[Dict]) -> None:
-        new_index = {t["id"]: t for t in new_tasks}
-        # detect modifications
-        changed_rows = []
-        if len(new_tasks) != len(self.tasks):
-            self.beginResetModel()
-            self.tasks = new_tasks
-            self._index = new_index
-            self.endResetModel()
-            return
-        for row, task in enumerate(self.tasks):
-            incoming = new_index.get(task["id"])
-            if not incoming:
-                continue
-            if incoming != task:
-                self.tasks[row] = incoming
-                changed_rows.append(row)
-        for r in changed_rows:
-            top_left = self.index(r, 0)
-            bottom_right = self.index(r, self.columnCount() - 1)
-            self.dataChanged.emit(top_left, bottom_right, [])  # type: ignore[arg-type]
+    def refresh(self, rows: List[Dict]) -> None:
+        self.beginResetModel()
+        self.rows = rows
+        self.endResetModel()
 
 
-# ───────────────────────── MailboxModelV4 ─────────────────────────
-class MailboxModelV4(QAbstractTableModel):
-    HEADERS = ["Mailbox", "Status", "Owner", "#Msgs"]
-    def __init__(self) -> None:
+class TaskTable(QAbstractTableModel):
+    HEAD = ["ID", "Type", "Status", "Content"]
+
+    def __init__(self):
         super().__init__()
-        self.entries: List[Dict] = []
-    def rowCount(self, *_): return len(self.entries)
-    def columnCount(self, *_): return len(self.HEADERS)
+        self.rows: List[Dict] = []
+
+    def rowCount(self, *_) -> int:
+        return len(self.rows)
+
+    def columnCount(self, *_) -> int:
+        return len(self.HEAD)
+
     def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role==Qt.DisplayRole and orientation==Qt.Horizontal:
-            return self.HEADERS[section]
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.HEAD[section]
         return QVariant()
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid(): return QVariant()
-        row = self.entries[index.row()]
-        col = index.column()
-        if role==Qt.DisplayRole:
-            if col==0: return row["name"]
-            if col==1: return row.get("status", "")
-            if col==2: return row.get("owner", "")
-            if col==3: return str(len(row.get("messages", [])))
-        if role==Qt.BackgroundRole and col==1:
-            status = row.get("status", "")
-            if status=="CLAIMED": return _qcolor(255,255,180)
-            if status=="online": return _qcolor(180,255,180)
-            if status=="idle": return _qcolor(220,220,220)
+
+    def data(self, idx: QModelIndex, role=Qt.DisplayRole):
+        if not idx.isValid():
+            return QVariant()
+        r = self.rows[idx.row()]
+        c = idx.column()
+        if role == Qt.DisplayRole:
+            return [r["id"][:8], r["type"], r["status"], r["content"]][c]
+        if role == Qt.BackgroundRole and c == 2:
+            return (
+                _qcolor(255, 128, 128)
+                if r["status"] == "failed"
+                else _qcolor(180, 255, 180)
+                if r["status"] == "completed"
+                else None
+            )
         return QVariant()
-    def refresh(self, raw_mailboxes: List[Dict]) -> None:
-        self.beginResetModel(); self.entries = raw_mailboxes; self.endResetModel()
+
+    def refresh(self, rows: List[Dict]) -> None:
+        self.beginResetModel()
+        self.rows = rows
+        self.endResetModel()
 
 
-# ───────────────────────── Main Window ─────────────────────────
-class DashboardWindow(QMainWindow):
+# ──────────────────────── Main Dashboard ────────────────────────
+class Dashboard(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Dream.OS Dashboard")
-        self.resize(1280, 820)
-
-        # state switches
-        self.auto_click = True
-        self.dev_mode = True
+        self.resize(1350, 840)
         self.responder = ChatGPTResponder(dev_mode=True) if ChatGPTResponder else None
+        self.dev_mode = True
 
-        # build UI
-        self.tabs = QTabWidget()
-        self.setCentralWidget(self.tabs)
-        self._init_toolbar()
-        self._init_tasks_tab()
-        self._init_mailboxes_tab()
-        self._init_agents_tab()
-        self._init_comm_tab()
-
-        # data models
-        self.task_model = TaskModel()
-        self.task_proxy = QSortFilterProxyModel()
-        self.task_proxy.setSourceModel(self.task_model)
-        self.task_view.setModel(self.task_proxy)
-        self.mail_model = MailboxModelV4()
-        self.mail_proxy = QSortFilterProxyModel()
-        self.mail_proxy.setSourceModel(self.mail_model)
-        self.mail_view = QTableView()
-        self.mail_view.setModel(self.mail_proxy)
-
-        # refresh driver (watchdog optional)
-        self._init_refresh_strategy()
-
-    # ───────────────── toolbar / toggles ─────────────────
-    def _init_toolbar(self):
+        # toolbar
         tb = QToolBar("Main")
         self.addToolBar(tb)
+        self.auto_click = True
+        act_click = QAction("Auto-Click", self, checkable=True, checked=True)
+        act_click.triggered.connect(lambda v: setattr(self, "auto_click", v))
+        tb.addAction(act_click)
+        act_mode = QAction("Dev Mode", self, checkable=True, checked=True)
+        act_mode.triggered.connect(self._flip_mode)
+        tb.addAction(act_mode)
+        new_box = QAction("➕ New Mailbox", self, triggered=self._create_mailbox)
+        tb.addAction(new_box)
 
-        self.auto_click_act = QAction("Auto-Click", self, checkable=True, checked=True)
-        self.auto_click_act.triggered.connect(lambda v: setattr(self, "auto_click", v))
-        tb.addAction(self.auto_click_act)
+        # tabs
+        self.tabs = QTabWidget()
+        self.setCentralWidget(self.tabs)
+        self._init_tasks_tab()
+        self._init_mailbox_tab()
+        self._init_agents_tab()
 
-        self.mode_act = QAction(QIcon(), "Dev Mode", self, checkable=True, checked=True)
-        self.mode_act.toggled.connect(self._flip_mode)
-        tb.addAction(self.mode_act)
+        # models
+        self.task_model = TaskTable()
+        tproxy = QSortFilterProxyModel()
+        tproxy.setSourceModel(self.task_model)
+        self.task_view.setModel(tproxy)
 
-    def _flip_mode(self, checked: bool):
-        self.dev_mode = checked
-        if self.responder:
-            self.responder.dev_mode = checked
-        self.mode_act.setText("Dev Mode" if checked else "Prod Mode")
-        logging.info("Responder mode set to %s", self.mode_act.text())
+        self.box_model = MailboxTable()
+        bproxy = QSortFilterProxyModel()
+        bproxy.setSourceModel(self.box_model)
+        self.box_tbl.setModel(bproxy)
 
-    # ───────────────── build tabs ─────────────────
+        # timers / watchdog
+        self._init_refresh()
+
+    # ───────── tabs ─────────
     def _init_tasks_tab(self):
-        w = QWidget(); lay = QVBoxLayout(w)
+        w = QWidget()
+        lay = QVBoxLayout(w)
         self.task_view = QTableView()
         self.task_view.setSortingEnabled(True)
-        lay.addWidget(QLabel("Live Task Queue")); lay.addWidget(self.task_view)
-
-        row = QWidget(); row_lay = QSplitter(Qt.Horizontal); row.setLayout(QVBoxLayout()); row.layout().addWidget(row_lay)
-        self.task_type_cb = QComboBox(); self.task_type_cb.addItems(["plan", "code", "social"])
-        self.task_input = QLineEdit(placeholderText="Task description…")
-        add_btn = QPushButton("Inject", clicked=self._inject_task)
-        row_lay.addWidget(self.task_type_cb); row_lay.addWidget(self.task_input); row_lay.addWidget(add_btn)
-        lay.addWidget(row)
-
-        claim_btn = QPushButton("Claim next", clicked=self._claim_next)
-        lay.addWidget(claim_btn)
+        lay.addWidget(QLabel("Tasks"))
+        lay.addWidget(self.task_view)
+        inject_row = QSplitter(Qt.Horizontal)
+        self.task_type = QComboBox()
+        self.task_type.addItems(["plan", "code", "social"])
+        self.task_in = QLineEdit(placeholderText="Task description…")
+        btn = QPushButton("Inject", clicked=self._inject_task)
+        inject_row.addWidget(self.task_type)
+        inject_row.addWidget(self.task_in)
+        inject_row.addWidget(btn)
+        lay.addWidget(inject_row)
+        claim = QPushButton("Claim Next", clicked=self._claim_next)
+        lay.addWidget(claim)
         self.tabs.addTab(w, "Tasks")
 
-    def _init_mailboxes_tab(self):
-        w, lay = QWidget(), QVBoxLayout(w)
-        self.mail_model = MailboxModelV4()
-        self.mail_proxy = QSortFilterProxyModel()
-        self.mail_proxy.setSourceModel(self.mail_model)
-        self.mail_table = QTableView()
-        self.mail_table.setModel(self.mail_proxy)
-        self.mail_table.setSortingEnabled(True)
-        self.mail_table.clicked.connect(self._load_mailbox_view)
-        self.msg_view = QTextEdit(readOnly=True)
-        self.msg_reply = QLineEdit(placeholderText="Reply to this mailbox...")
-        send_btn = QPushButton("Send ➤", clicked=self._send_reply)
-        auto_btn = QPushButton("💡 Respond via ChatGPT", clicked=self._auto_respond)
-        lay.addWidget(QLabel("Shared Mailboxes")); lay.addWidget(self.mail_table)
-        lay.addWidget(QLabel("Messages")); lay.addWidget(self.msg_view)
-        lay.addWidget(self.msg_reply); lay.addWidget(send_btn); lay.addWidget(auto_btn)
+    def _init_mailbox_tab(self):
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        self.box_tbl = QTableView()
+        self.box_tbl.setSortingEnabled(True)
+        self.box_tbl.clicked.connect(self._load_box)
+        self.msg_view = QTextBrowser()
+        self.msg_view.document().setDefaultStyleSheet(CFG.bubble_css)
+        reply_row = QSplitter(Qt.Horizontal)
+        self.reply_in = QLineEdit(placeholderText="Reply…")
+        send = QPushButton("Send ➤", clicked=self._send_reply)
+        ai_btn = QPushButton("💡 Ask ChatGPT", clicked=self._ai_reply)
+        reply_row.addWidget(self.reply_in)
+        reply_row.addWidget(send)
+        reply_row.addWidget(ai_btn)
+        lay.addWidget(QLabel("Mailboxes"))
+        lay.addWidget(self.box_tbl)
+        lay.addWidget(QLabel("Conversation"))
+        lay.addWidget(self.msg_view)
+        lay.addWidget(reply_row)
         self.tabs.addTab(w, "Mailboxes")
 
     def _init_agents_tab(self):
-        w = QWidget(); lay = QVBoxLayout(w)
-        self.agent_view = QTableView()
-        lay.addWidget(QLabel("Agent Spots")); lay.addWidget(self.agent_view)
-        cap_btn = QPushButton("Capture Spot", clicked=self._capture_spot)
-        lay.addWidget(cap_btn)
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        self.agent_tbl = QTableView()
+        lay.addWidget(self.agent_tbl)
+        cap = QPushButton("Capture Spot", clicked=self._capture_spot)
+        lay.addWidget(cap)
         self.tabs.addTab(w, "Agents")
 
-    def _init_comm_tab(self):
-        w = QWidget(); lay = QVBoxLayout(w)
-        self.comm_edit = QTextEdit(readOnly=True)
-        lay.addWidget(self.comm_edit)
-        self.tabs.addTab(w, "Comm")
-
-    # ───────────────── refresh strategy ─────────────────
-    def _init_refresh_strategy(self):
+    # ───────── refresh ─────────
+    def _init_refresh(self):
         try:
-            from watchdog.observers import Observer  # type: ignore
-            from watchdog.events import FileSystemEventHandler  # type: ignore
+            from watchdog.observers import Observer
+            from watchdog.events import FileSystemEventHandler
 
-            class _Handler(FileSystemEventHandler):
-                def __init__(self, parent: "DashboardWindow"):
-                    self.parent = parent
-
+            class H(FileSystemEventHandler):
+                def __init__(self, parent):
+                    self.p = parent
                 def on_any_event(self, *_):
-                    # Schedule refresh on the main Qt thread
-                    QTimer.singleShot(0, self.parent.refresh_all)
+                    QTimer.singleShot(0, self.p.refresh)
 
             self.observer = Observer()
-            self.observer.schedule(_Handler(self), CFG.mailbox_root, recursive=False)
+            self.observer.schedule(H(self), CFG.mailbox_root, recursive=False)
             self.observer.start()
-            # task nexus polling still via timer
-        except ImportError:
-            logging.info("watchdog not installed – falling back to timer.")
+        except Exception:
             self.observer = None
-
-        self.timer = QTimer(self, interval=CFG.refresh_ms, timeout=self.refresh_all)
+        self.timer = QTimer(interval=CFG.refresh_ms, timeout=self.refresh)
         self.timer.start()
+        self.refresh()
 
-    # ───────────────── data refreshers ─────────────────
-    def refresh_all(self):
-        self._refresh_tasks()
-        self._refresh_mailboxes()
-        self._refresh_agents()
-
-    def _refresh_tasks(self):
-        tasks = get_all_tasks()
-        self.task_model.refresh(tasks)
-
-    def _refresh_mailboxes(self):
-        boxes: List[Dict] = []
+    def refresh(self) -> None:
+        # tasks
+        self.task_model.refresh(get_all_tasks())
+        # boxes
+        rows: List[Dict] = []
         CFG.mailbox_root.mkdir(parents=True, exist_ok=True)
         for p in CFG.mailbox_root.glob("mailbox_*.json"):
             data = _safe_json(p)
-            if not data: continue
-            boxes.append({
+            if not data:
+                continue
+            # no simulation: let live agents respond
+            rows.append({
                 "name": p.name,
                 "path": p,
                 "status": data.get("status", ""),
@@ -340,87 +323,124 @@ class DashboardWindow(QMainWindow):
                 "messages": data.get("messages", []),
                 "data": data,
             })
-        self.mail_model.refresh(boxes)
-
-    def _refresh_agents(self):
+        self.box_model.refresh(rows)
+        # agents
         coords = _load_coords()
-        # Build plain rows list
-        rows = [[aid, f"({c['x']},{c['y']})"] for aid, c in coords.items()]
-        # Use QStandardItemModel for simplicity
-        model = QStandardItemModel(len(rows), 2, self)
-        model.setHorizontalHeaderLabels(["Agent ID", "Coordinates"])
-        for r, (agent_id, coord) in enumerate(rows):
-            model.setItem(r, 0, QStandardItem(agent_id))
-            model.setItem(r, 1, QStandardItem(coord))
-        self.agent_view.setModel(model)
+        agents = [[aid, f"({c['x']},{c['y']})"] for aid, c in coords.items()]
+        from PyQt5.QtGui import QStandardItemModel, QStandardItem
+        mdl = QStandardItemModel(len(agents), 2, self)
+        mdl.setHorizontalHeaderLabels(["Agent", "XY"])
+        for r, (aid, xy) in enumerate(agents):
+            mdl.setItem(r, 0, QStandardItem(aid))
+            mdl.setItem(r, 1, QStandardItem(xy))
+        self.agent_tbl.setModel(mdl)
 
-    # ───────────────── actions ─────────────────
-    def _inject_task(self):
-        text = self.task_input.text().strip()
-        if not text:
+    # ───────── mailbox helpers ─────────
+    def _load_box(self, idx: QModelIndex) -> None:
+        self.cur_box = self.box_model.rows[self.box_tbl.model().mapToSource(idx).row()]
+        self._render_messages()
+
+    def _render_messages(self) -> None:
+        if not hasattr(self, "cur_box"):
             return
-        tid = add_task(self.task_type_cb.currentText(), text)
-        logging.info("Task injected %s", tid)
-        self.task_input.clear()
-        self._refresh_tasks()
-
-    def _claim_next(self):
-        if claim_task(CFG.default_agent):
-            if self.auto_click:
-                try:
-                    click_agent_spot(CFG.default_agent)
-                except Exception as e:
-                    logging.warning("Spot click failed: %s", e)
-        self._refresh_tasks()
-
-    def _load_mailbox_view(self, idx: QModelIndex) -> None:
-        box = self.mail_model.entries[self.mail_proxy.mapToSource(idx).row()]
-        self._active_mailbox = box
-        lines = [f"[{m['timestamp']}] {m['sender']}:\n{m['content']}\n" for m in box.get("messages", [])]
-        self.msg_view.setPlainText("\n".join(lines))
+        html: List[str] = []
+        for m in self.cur_box["messages"]:
+            sender = m.get("sender", "?")
+            ts = m.get("timestamp", "")
+            content = _md(m.get("content", ""))
+            # determine bubble side
+            side = "left" if sender != CFG.default_agent and sender != "Dream.OS" else "right"
+            # avatar or emoji fallback
+            av = _avatar(sender)
+            if av:
+                avatar_html = f'<img src="{CFG.avatar_dir / f"{sender}.png"}" width="24"/>'
+            else:
+                avatar_html = "🐺" if side == "right" else "👤"
+            html.append(
+                f'<div class="bubble {side}">{avatar_html} ' +
+                f'<span class="meta">{sender} {ts}</span><br>{content}</div>'
+            )
+        self.msg_view.setHtml("<br>".join(html))
 
     def _send_reply(self) -> None:
-        text = self.msg_reply.text().strip()
-        if not text or not hasattr(self, "_active_mailbox"): return
-        box = self._active_mailbox
-        new_msg = {"timestamp": datetime.now().strftime("%H:%M:%S"), "sender": "Dream.OS", "content": text}
-        box["messages"].append(new_msg)
-        box["data"]["messages"] = box["messages"]
-        box["path"].write_text(json.dumps(box["data"], indent=2))
-        self.msg_reply.clear(); self._refresh_mailboxes()
-        self._load_mailbox_view(self.mail_table.currentIndex())
+        if not hasattr(self, "cur_box") or not self.reply_in.text().strip():
+            return
+        msg = {
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "sender": "Dream.OS",
+            "content": self.reply_in.text().strip(),
+        }
+        self.cur_box["messages"].append(msg)
+        self.cur_box["data"]["messages"] = self.cur_box["messages"]
+        self.cur_box["path"].write_text(json.dumps(self.cur_box["data"], indent=2))
+        self.reply_in.clear()
+        self.refresh()
+        self._render_messages()
 
-    def _auto_respond(self) -> None:
-        if not hasattr(self, "_active_mailbox") or not self.responder: return
-        box = self._active_mailbox
-        new_data = self.responder.respond_to_mailbox(box["data"])
-        box["data"] = new_data; box["messages"] = new_data.get("messages", [])
-        box["path"].write_text(json.dumps(new_data, indent=2))
-        self._refresh_mailboxes(); self._load_mailbox_view(self.mail_table.currentIndex())
+    def _ai_reply(self) -> None:
+        if not hasattr(self, "cur_box") or not self.responder:
+            return
+        data = self.responder.respond_to_mailbox(self.cur_box["data"])
+        self.cur_box["data"] = data
+        self.cur_box["messages"] = data.get("messages", [])
+        self.cur_box["path"].write_text(json.dumps(data, indent=2))
+        self.refresh()
+        self._render_messages()
 
-    def _capture_spot(self):
+    def _create_mailbox(self) -> None:
+        name, ok = QInputDialog.getText(self, "New Mailbox", "Mailbox name?")
+        if not ok or not name.strip():
+            return
+        owner, ok2 = QInputDialog.getText(self, "Owner", "Assign to agent (ID)?")
+        mbx = {"status": "idle", "owner": owner.strip(), "messages": []}
+        fpath = CFG.mailbox_root / f"mailbox_{name.strip()}.json"
+        fpath.write_text(json.dumps(mbx, indent=2))
+        self.refresh()
+
+    # ───────── tasks / agents helpers ─────────
+    def _inject_task(self) -> None:
+        txt = self.task_in.text().strip()
+        self.task_in.clear()
+        if not txt:
+            return
+        add_task(self.task_type.currentText(), txt)
+        self.refresh()
+
+    def _claim_next(self) -> None:
+        if claim_task(CFG.default_agent) and self.auto_click:
+            try:
+                click_agent_spot(CFG.default_agent)
+            except Exception as e:
+                logging.warning("click failure %s", e)
+        self.refresh()
+
+    def _capture_spot(self) -> None:
         QApplication.setOverrideCursor(Qt.CrossCursor)
-        QMessageBox.information(self, "Capture", "Position mouse & press OK.")
+        QMessageBox.information(self, "Capture", "Place cursor, press OK")
         x, y = pyautogui.position()
         QApplication.restoreOverrideCursor()
         aid, ok = QInputDialog.getText(self, "Agent ID", "Enter ID:")
         if ok and aid.strip():
             save_agent_spot(aid.strip(), (x, y))
-            logging.info("Spot saved %s → (%d,%d)", aid, x, y)
-            self._refresh_agents()
+            self.refresh()
 
-    # global hot keys
-    def keyPressEvent(self, ev):  # noqa: N802
-        if ev.matches(QKeySequence.InsertParagraphSeparator):  # Ctrl + Enter
+    # ───────── dev / prod toggle ─────────
+    def _flip_mode(self, checked: bool) -> None:
+        self.dev_mode = checked
+        if self.responder:
+            self.responder.dev_mode = checked
+
+    # hotkey passthrough
+    def keyPressEvent(self, e) -> None:
+        if e.matches(QKeySequence.InsertParagraphSeparator):
             pyautogui.hotkey("ctrl", "enter")
-        elif ev.matches(QKeySequence.DeleteStartOfWord):  # Ctrl + Backspace
+        elif e.matches(QKeySequence.DeleteStartOfWord):
             pyautogui.hotkey("ctrl", "backspace")
-        super().keyPressEvent(ev)
+        super().keyPressEvent(e)
 
-
-# ───────────────────────── bootstrap ────────────────────────
+# ───────────────────────── bootstrap ───────────────────────
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win = DashboardWindow()
+    win = Dashboard()
     win.show()
     sys.exit(app.exec_())
