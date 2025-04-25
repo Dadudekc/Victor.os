@@ -1,19 +1,24 @@
 {
     "project_root": "D:\\Dream.os",
-    "num_files_analyzed": 472,
+    "num_files_analyzed": 481,
     "analysis_details": {
-        "governance_scraper.py": {
+        "chunk_tasks.py": {
             "language": ".py",
             "functions": [
-                "load_recent_governance_events",
-                "load_recent_reflections",
-                "load_proposals",
-                "get_rulebook_summary",
-                "generate_governance_data"
+                "dedupe_and_chunk"
             ],
             "classes": {},
             "routes": [],
-            "complexity": 5
+            "complexity": 1
+        },
+        "main.py": {
+            "language": ".py",
+            "functions": [
+                "setup_logging"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
         },
         "check_import.py": {
             "language": ".py",
@@ -21,6 +26,38 @@
             "classes": {},
             "routes": [],
             "complexity": 0
+        },
+        "apply_proposals.py": {
+            "language": ".py",
+            "functions": [
+                "get_existing_rule_ids",
+                "parse_proposal",
+                "update_proposal_block_status",
+                "append_rule_to_rulebook"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 4
+        },
+        "e2e_smoke.py": {
+            "language": ".py",
+            "functions": [
+                "main",
+                "__init__",
+                "execute"
+            ],
+            "classes": {
+                "DummyAdapter": {
+                    "methods": [
+                        "__init__",
+                        "execute"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 5
         },
         "conftest.py": {
             "language": ".py",
@@ -58,53 +95,27 @@
             "routes": [],
             "complexity": 5
         },
-        "apply_proposals.py": {
+        "governance_scraper.py": {
             "language": ".py",
             "functions": [
-                "get_existing_rule_ids",
-                "parse_proposal",
-                "update_proposal_block_status",
-                "append_rule_to_rulebook"
+                "load_recent_governance_events",
+                "load_recent_reflections",
+                "load_proposals",
+                "get_rulebook_summary",
+                "generate_governance_data"
             ],
             "classes": {},
             "routes": [],
-            "complexity": 4
+            "complexity": 5
         },
-        "setup.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "main.py": {
+        "move_uncomplete_tasks.py": {
             "language": ".py",
             "functions": [
-                "setup_logging"
+                "main"
             ],
             "classes": {},
             "routes": [],
             "complexity": 1
-        },
-        "e2e_smoke.py": {
-            "language": ".py",
-            "functions": [
-                "main",
-                "__init__",
-                "execute"
-            ],
-            "classes": {
-                "DummyAdapter": {
-                    "methods": [
-                        "__init__",
-                        "execute"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 5
         },
         "run_dream_loop.py": {
             "language": ".py",
@@ -125,6 +136,13 @@
             "classes": {},
             "routes": [],
             "complexity": 2
+        },
+        "setup.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "streamlit.py": {
             "language": ".py",
@@ -164,24 +182,53 @@
             "routes": [],
             "complexity": 0
         },
-        "chat_mate_config.py": {
+        "_internal_test_loop.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "test_scraper.py": {
+            "language": ".py",
+            "functions": [
+                "run_scraper_test"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "agents\\AletheiaContentDispatcher.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "get"
+                "execute_full_dispatch"
             ],
             "classes": {
-                "Config": {
+                "AletheiaContentDispatcher": {
                     "methods": [
                         "__init__",
-                        "get"
+                        "execute_full_dispatch"
                     ],
-                    "docstring": "Stub Config for chat_cycle_controller dependencies",
+                    "docstring": null,
                     "base_classes": []
                 }
             },
             "routes": [],
             "complexity": 4
+        },
+        "main_copy.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {
+                "MainCopy": {
+                    "methods": [],
+                    "docstring": "Placeholder for MainCopy.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 0
         },
         "monitor_analyzer_agent.py": {
             "language": ".py",
@@ -223,6 +270,7 @@
                 "claim_next_task",
                 "update_messages",
                 "capture_spot",
+                "refresh_agents_table",
                 "_on_accept",
                 "_on_reject",
                 "add_task",
@@ -244,6 +292,7 @@
                         "claim_next_task",
                         "update_messages",
                         "capture_spot",
+                        "refresh_agents_table",
                         "_on_accept",
                         "_on_reject"
                     ],
@@ -254,80 +303,26 @@
                 }
             },
             "routes": [],
-            "complexity": 31
+            "complexity": 33
         },
-        "main_copy.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {
-                "MainCopy": {
-                    "methods": [],
-                    "docstring": "Placeholder for MainCopy.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 0
-        },
-        "_internal_test_loop.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "test_scraper.py": {
-            "language": ".py",
-            "functions": [
-                "run_scraper_test"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "agents\\AletheiaContentDispatcher.py": {
+        "chat_mate_config.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "execute_full_dispatch"
+                "get"
             ],
             "classes": {
-                "AletheiaContentDispatcher": {
+                "Config": {
                     "methods": [
                         "__init__",
-                        "execute_full_dispatch"
+                        "get"
                     ],
-                    "docstring": null,
+                    "docstring": "Stub Config for chat_cycle_controller dependencies",
                     "base_classes": []
                 }
             },
             "routes": [],
             "complexity": 4
-        },
-        "agents\\base_agent.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "run",
-                "get_id",
-                "__str__",
-                "__repr__"
-            ],
-            "classes": {
-                "BaseAgent": {
-                    "methods": [
-                        "__init__",
-                        "run",
-                        "get_id",
-                        "__str__",
-                        "__repr__"
-                    ],
-                    "docstring": "Abstract base class for all autonomous agents in the Dream.OS agent swarm.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 10
         },
         "agents\\cursor_integration_agent.py": {
             "language": ".py",
@@ -368,6 +363,31 @@
             },
             "routes": [],
             "complexity": 9
+        },
+        "agents\\base_agent.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "run",
+                "get_id",
+                "__str__",
+                "__repr__"
+            ],
+            "classes": {
+                "BaseAgent": {
+                    "methods": [
+                        "__init__",
+                        "run",
+                        "get_id",
+                        "__str__",
+                        "__repr__"
+                    ],
+                    "docstring": "Abstract base class for all autonomous agents in the Dream.OS agent swarm.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 10
         },
         "agents\\echo_agent.py": {
             "language": ".py",
@@ -485,27 +505,6 @@
             "routes": [],
             "complexity": 26
         },
-        "agents\\reflection_agent.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "run"
-            ],
-            "classes": {
-                "ReflectionAgent": {
-                    "methods": [
-                        "__init__",
-                        "run"
-                    ],
-                    "docstring": "A concrete agent implementation focusing on reflection, using VictorVoiceEngine.",
-                    "base_classes": [
-                        "BaseAgent"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 4
-        },
         "agents\\prompt_feedback_loop_agent.py": {
             "language": ".py",
             "functions": [
@@ -542,6 +541,27 @@
             },
             "routes": [],
             "complexity": 6
+        },
+        "agents\\reflection_agent.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "run"
+            ],
+            "classes": {
+                "ReflectionAgent": {
+                    "methods": [
+                        "__init__",
+                        "run"
+                    ],
+                    "docstring": "A concrete agent implementation focusing on reflection, using VictorVoiceEngine.",
+                    "base_classes": [
+                        "BaseAgent"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 4
         },
         "agents\\setup.py": {
             "language": ".py",
@@ -581,27 +601,6 @@
                         "is_running"
                     ],
                     "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 6
-        },
-        "agents\\thea_auto_planner.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "analyze_feedback_and_generate_next",
-                "inject_task"
-            ],
-            "classes": {
-                "TheaAutoPlanner": {
-                    "methods": [
-                        "__init__",
-                        "analyze_feedback_and_generate_next",
-                        "inject_task"
-                    ],
-                    "docstring": "TheaAutoPlanner ingests failure feedback and generates new directives\nto improve system stability.",
                     "base_classes": []
                 }
             },
@@ -727,6 +726,27 @@
             "routes": [],
             "complexity": 54
         },
+        "agents\\thea_auto_planner.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "analyze_feedback_and_generate_next",
+                "inject_task"
+            ],
+            "classes": {
+                "TheaAutoPlanner": {
+                    "methods": [
+                        "__init__",
+                        "analyze_feedback_and_generate_next",
+                        "inject_task"
+                    ],
+                    "docstring": "TheaAutoPlanner ingests failure feedback and generates new directives\nto improve system stability.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 6
+        },
         "agents\\workflow_agent.py": {
             "language": ".py",
             "functions": [
@@ -761,6 +781,34 @@
             "routes": [],
             "complexity": 0
         },
+        "agents\\calendar\\calendar_agent.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "_parse_llm_schedule_response",
+                "schedule_tasks",
+                "add_event",
+                "get_availability",
+                "render_template",
+                "stage_and_execute_prompt",
+                "log_event"
+            ],
+            "classes": {
+                "CalendarAgent": {
+                    "methods": [
+                        "__init__",
+                        "_parse_llm_schedule_response",
+                        "schedule_tasks",
+                        "add_event",
+                        "get_availability"
+                    ],
+                    "docstring": "Responsible for scheduling tasks onto a calendar, considering dependencies,\ndurations, and existing commitments.\nCommunicates with the LLM via the Prompt Staging Service for complex scheduling logic.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 13
+        },
         "agents\\calendar\\agent.py": {
             "language": ".py",
             "functions": [
@@ -789,34 +837,6 @@
             },
             "routes": [],
             "complexity": 14
-        },
-        "agents\\calendar\\calendar_agent.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "_parse_llm_schedule_response",
-                "schedule_tasks",
-                "add_event",
-                "get_availability",
-                "render_template",
-                "stage_and_execute_prompt",
-                "log_event"
-            ],
-            "classes": {
-                "CalendarAgent": {
-                    "methods": [
-                        "__init__",
-                        "_parse_llm_schedule_response",
-                        "schedule_tasks",
-                        "add_event",
-                        "get_availability"
-                    ],
-                    "docstring": "Responsible for scheduling tasks onto a calendar, considering dependencies,\ndurations, and existing commitments.\nCommunicates with the LLM via the Prompt Staging Service for complex scheduling logic.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 13
         },
         "agents\\cursor\\control_agent.py": {
             "language": ".py",
@@ -876,6 +896,13 @@
             "routes": [],
             "complexity": 31
         },
+        "agents\\dreamforge\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "agents\\cursor\\cursor_dispatcher.py": {
             "language": ".py",
             "functions": [
@@ -904,13 +931,6 @@
             },
             "routes": [],
             "complexity": 14
-        },
-        "agents\\dreamforge\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "agents\\dreamforge\\agents\\agent_monitor_agent.py": {
             "language": ".py",
@@ -988,6 +1008,13 @@
             "routes": [],
             "complexity": 4
         },
+        "agents\\dreamforge\\agents\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "agents\\dreamforge\\agents\\workflow_agent.py": {
             "language": ".py",
             "functions": [
@@ -1063,38 +1090,12 @@
             "routes": [],
             "complexity": 4
         },
-        "agents\\dreamforge\\agents\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "agents\\dreamforge\\core\\config.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
             "routes": [],
             "complexity": 0
-        },
-        "agents\\dreamforge\\core\\cursor_dispatcher.py": {
-            "language": ".py",
-            "functions": [
-                "__init__"
-            ],
-            "classes": {
-                "CursorDispatcher": {
-                    "methods": [
-                        "__init__"
-                    ],
-                    "docstring": "Cursor dispatcher agent for handling cursor-related tasks.",
-                    "base_classes": [
-                        "BaseAgent"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 2
         },
         "agents\\dreamforge\\core\\feedback_consumer.py": {
             "language": ".py",
@@ -1130,30 +1131,24 @@
             "routes": [],
             "complexity": 6
         },
-        "agents\\dreamforge\\core\\llm_parser.py": {
+        "agents\\dreamforge\\core\\cursor_dispatcher.py": {
             "language": ".py",
             "functions": [
-                "extract_json_from_response",
-                "extract_code_from_response",
-                "extract_list_from_response"
+                "__init__"
             ],
-            "classes": {},
+            "classes": {
+                "CursorDispatcher": {
+                    "methods": [
+                        "__init__"
+                    ],
+                    "docstring": "Cursor dispatcher agent for handling cursor-related tasks.",
+                    "base_classes": [
+                        "BaseAgent"
+                    ]
+                }
+            },
             "routes": [],
-            "complexity": 3
-        },
-        "agents\\dreamforge\\core\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "agents\\dreamforge\\core\\coordination\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
+            "complexity": 2
         },
         "agents\\dreamforge\\core\\prompt_staging_service.py": {
             "language": ".py",
@@ -1166,6 +1161,31 @@
             "classes": {},
             "routes": [],
             "complexity": 4
+        },
+        "agents\\dreamforge\\core\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "agents\\dreamforge\\core\\llm_parser.py": {
+            "language": ".py",
+            "functions": [
+                "extract_json_from_response",
+                "extract_code_from_response",
+                "extract_list_from_response"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
+        "agents\\dreamforge\\core\\coordination\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "agents\\dreamforge\\core\\feedback\\consumer.py": {
             "language": ".py",
@@ -1241,6 +1261,53 @@
             "routes": [],
             "complexity": 14
         },
+        "agents\\dreamforge\\core\\models\\workflow.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "to_dict",
+                "from_dict",
+                "start",
+                "complete",
+                "fail",
+                "__init__",
+                "add_step",
+                "get_step",
+                "update_step",
+                "_update",
+                "to_dict",
+                "from_dict"
+            ],
+            "classes": {
+                "WorkflowStep": {
+                    "methods": [
+                        "__init__",
+                        "to_dict",
+                        "from_dict",
+                        "start",
+                        "complete",
+                        "fail"
+                    ],
+                    "docstring": "A single step in a workflow.",
+                    "base_classes": []
+                },
+                "WorkflowDefinition": {
+                    "methods": [
+                        "__init__",
+                        "add_step",
+                        "get_step",
+                        "update_step",
+                        "_update",
+                        "to_dict",
+                        "from_dict"
+                    ],
+                    "docstring": "A complete workflow definition.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 26
+        },
         "agents\\dreamforge\\core\\tests\\test_governance_memory_engine.py": {
             "language": ".py",
             "functions": [
@@ -1290,53 +1357,6 @@
             },
             "routes": [],
             "complexity": 33
-        },
-        "agents\\dreamforge\\core\\models\\workflow.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "to_dict",
-                "from_dict",
-                "start",
-                "complete",
-                "fail",
-                "__init__",
-                "add_step",
-                "get_step",
-                "update_step",
-                "_update",
-                "to_dict",
-                "from_dict"
-            ],
-            "classes": {
-                "WorkflowStep": {
-                    "methods": [
-                        "__init__",
-                        "to_dict",
-                        "from_dict",
-                        "start",
-                        "complete",
-                        "fail"
-                    ],
-                    "docstring": "A single step in a workflow.",
-                    "base_classes": []
-                },
-                "WorkflowDefinition": {
-                    "methods": [
-                        "__init__",
-                        "add_step",
-                        "get_step",
-                        "update_step",
-                        "_update",
-                        "to_dict",
-                        "from_dict"
-                    ],
-                    "docstring": "A complete workflow definition.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 26
         },
         "agents\\dreamforge\\core\\tests\\test_template_engine.py": {
             "language": ".py",
@@ -1400,6 +1420,20 @@
             "routes": [],
             "complexity": 0
         },
+        "agents\\dreamforge\\tests\\agents\\test_utils.py": {
+            "language": ".py",
+            "functions": [
+                "create_llm_response",
+                "create_mock_llm_chain",
+                "validate_plan",
+                "validate_plan_refinement",
+                "validate_llm_call",
+                "setup_mock_llm_chain"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 6
+        },
         "agents\\dreamforge\\tests\\agents\\test_planner_agent.py": {
             "language": ".py",
             "functions": [
@@ -1419,20 +1453,6 @@
             "classes": {},
             "routes": [],
             "complexity": 12
-        },
-        "agents\\dreamforge\\tests\\agents\\test_utils.py": {
-            "language": ".py",
-            "functions": [
-                "create_llm_response",
-                "create_mock_llm_chain",
-                "validate_plan",
-                "validate_plan_refinement",
-                "validate_llm_call",
-                "setup_mock_llm_chain"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 6
         },
         "agents\\dreamforge\\tests\\agents\\__init__.py": {
             "language": ".py",
@@ -1490,6 +1510,15 @@
             "routes": [],
             "complexity": 22
         },
+        "agents\\dreamforge\\tests\\core\\test_agent_bus.py": {
+            "language": ".py",
+            "functions": [
+                "error_logger"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
         "agents\\dreamforge\\tests\\core\\test_cursor_dispatcher.py": {
             "language": ".py",
             "functions": [
@@ -1503,20 +1532,21 @@
             "routes": [],
             "complexity": 5
         },
-        "agents\\dreamforge\\tests\\core\\test_agent_bus.py": {
-            "language": ".py",
-            "functions": [
-                "error_logger"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
         "agents\\dreamforge\\tests\\core\\test_cursor_listener.py": {
             "language": ".py",
             "functions": [
                 "cursor_listener",
                 "mock_message_queue"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 2
+        },
+        "agents\\dreamforge\\tests\\core\\test_feedback_consumer.py": {
+            "language": ".py",
+            "functions": [
+                "memory_manager",
+                "feedback_consumer"
             ],
             "classes": {},
             "routes": [],
@@ -1582,37 +1612,25 @@
             "routes": [],
             "complexity": 33
         },
-        "agents\\dreamforge\\tests\\core\\test_feedback_consumer.py": {
+        "agents\\dreamforge\\tests\\core\\test_prompt_staging_service.py": {
             "language": ".py",
             "functions": [
-                "memory_manager",
-                "feedback_consumer"
+                "mock_template_engine",
+                "mock_config",
+                "test_render_prompt_success",
+                "test_render_prompt_failure",
+                "test_stage_prompt_for_cursor_success",
+                "test_stage_prompt_for_cursor_render_failure",
+                "test_write_to_cursor_input_success",
+                "test_write_to_cursor_input_failure",
+                "test_read_from_cursor_output_success",
+                "test_read_from_cursor_output_file_not_exists",
+                "test_read_from_cursor_output_empty_file",
+                "test_read_from_cursor_output_invalid_json"
             ],
             "classes": {},
             "routes": [],
-            "complexity": 2
-        },
-        "agents\\dreamforge\\tests\\core\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "agents\\dreamforge\\tests\\core\\test_workflow_models.py": {
-            "language": ".py",
-            "functions": [
-                "test_workflow_step_initialization",
-                "test_workflow_step_lifecycle",
-                "test_workflow_step_serialization",
-                "test_workflow_definition_initialization",
-                "test_workflow_definition_step_management",
-                "test_workflow_definition_status_updates",
-                "test_workflow_definition_serialization"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 7
+            "complexity": 12
         },
         "agents\\dreamforge\\tests\\core\\test_template_engine.py": {
             "language": ".py",
@@ -1636,25 +1654,27 @@
             "routes": [],
             "complexity": 14
         },
-        "agents\\dreamforge\\tests\\core\\test_prompt_staging_service.py": {
+        "agents\\dreamforge\\tests\\core\\test_workflow_models.py": {
             "language": ".py",
             "functions": [
-                "mock_template_engine",
-                "mock_config",
-                "test_render_prompt_success",
-                "test_render_prompt_failure",
-                "test_stage_prompt_for_cursor_success",
-                "test_stage_prompt_for_cursor_render_failure",
-                "test_write_to_cursor_input_success",
-                "test_write_to_cursor_input_failure",
-                "test_read_from_cursor_output_success",
-                "test_read_from_cursor_output_file_not_exists",
-                "test_read_from_cursor_output_empty_file",
-                "test_read_from_cursor_output_invalid_json"
+                "test_workflow_step_initialization",
+                "test_workflow_step_lifecycle",
+                "test_workflow_step_serialization",
+                "test_workflow_definition_initialization",
+                "test_workflow_definition_step_management",
+                "test_workflow_definition_status_updates",
+                "test_workflow_definition_serialization"
             ],
             "classes": {},
             "routes": [],
-            "complexity": 12
+            "complexity": 7
+        },
+        "agents\\dreamforge\\tests\\core\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "agents\\dreamforge\\tests\\core\\coordination\\test_base_agent.py": {
             "language": ".py",
@@ -1717,18 +1737,6 @@
             "routes": [],
             "complexity": 19
         },
-        "agents\\dreamforge\\tests\\core\\utils\\test_data.py": {
-            "language": ".py",
-            "functions": [
-                "create_test_response",
-                "validate_json_response",
-                "validate_code_response",
-                "validate_list_response"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 4
-        },
         "agents\\dreamforge\\tests\\core\\utils\\test_agent_utils.py": {
             "language": ".py",
             "functions": [
@@ -1748,6 +1756,18 @@
             },
             "routes": [],
             "complexity": 5
+        },
+        "agents\\dreamforge\\tests\\core\\utils\\test_data.py": {
+            "language": ".py",
+            "functions": [
+                "create_test_response",
+                "validate_json_response",
+                "validate_code_response",
+                "validate_list_response"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 4
         },
         "agents\\dreamforge\\tests\\core\\utils\\test_utils.py": {
             "language": ".py",
@@ -1844,57 +1864,6 @@
             "routes": [],
             "complexity": 17
         },
-        "agents\\social\\cursor_control_agent.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "handle_message",
-                "shutdown"
-            ],
-            "classes": {
-                "CursorControlAgent": {
-                    "methods": [
-                        "__init__",
-                        "handle_message",
-                        "shutdown"
-                    ],
-                    "docstring": "Agent that controls Cursor UI interactions based on bus messages.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 6
-        },
-        "agents\\social\\agent_monitor_agent.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "_log_event",
-                "handle_event",
-                "shutdown"
-            ],
-            "classes": {
-                "AgentMonitorAgent": {
-                    "methods": [
-                        "__init__",
-                        "_log_event",
-                        "handle_event",
-                        "shutdown"
-                    ],
-                    "docstring": "Listens to the AgentBus and logs significant events based on EventType.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 8
-        },
-        "agents\\recovery\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "agents\\recovery\\supervisor_oria_agent.py": {
             "language": ".py",
             "functions": [
@@ -1919,6 +1888,13 @@
             },
             "routes": [],
             "complexity": 10
+        },
+        "agents\\recovery\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "agents\\reflection\\agent.py": {
             "language": ".py",
@@ -1947,31 +1923,6 @@
             },
             "routes": [],
             "complexity": 13
-        },
-        "agents\\social\\meredith_resonance_scanner.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "start",
-                "stop",
-                "handle_event",
-                "_perform_scan"
-            ],
-            "classes": {
-                "MeredithResonanceScanner": {
-                    "methods": [
-                        "__init__",
-                        "start",
-                        "stop",
-                        "handle_event",
-                        "_perform_scan"
-                    ],
-                    "docstring": "Agent responsible for scanning social media platforms for mentions\nrelated to 'Meredith' and analyzing their resonance or sentiment.\n(Refactored to use Event protocol)",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 10
         },
         "agents\\reflection_agent\\reflection_agent.py": {
             "language": ".py",
@@ -2002,51 +1953,108 @@
             "routes": [],
             "complexity": 6
         },
-        "agents\\social\\task_executor_agent.py": {
+        "agents\\social\\agent_monitor_agent.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "_normalize_status",
+                "_log_event",
                 "handle_event",
-                "_dispatch_task",
-                "_process_task_update",
-                "_run_loop",
-                "start",
-                "stop",
-                "__init__",
-                "update_task_status"
+                "shutdown"
             ],
             "classes": {
-                "TaskExecutorAgent": {
+                "AgentMonitorAgent": {
                     "methods": [
                         "__init__",
-                        "_normalize_status",
+                        "_log_event",
                         "handle_event",
-                        "_dispatch_task",
-                        "_process_task_update",
-                        "_run_loop",
-                        "start",
-                        "stop"
+                        "shutdown"
                     ],
-                    "docstring": "Receives TASK_QUEUED events and orchestrates task execution via other agents.",
+                    "docstring": "Listens to the AgentBus and logs significant events based on EventType.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 8
+        },
+        "agents\\social\\cursor_control_agent.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "handle_message",
+                "shutdown"
+            ],
+            "classes": {
+                "CursorControlAgent": {
+                    "methods": [
+                        "__init__",
+                        "handle_message",
+                        "shutdown"
+                    ],
+                    "docstring": "Agent that controls Cursor UI interactions based on bus messages.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 6
+        },
+        "agents\\social\\meredith_resonance_scanner.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "start",
+                "stop",
+                "handle_event",
+                "_perform_scan"
+            ],
+            "classes": {
+                "MeredithResonanceScanner": {
+                    "methods": [
+                        "__init__",
+                        "start",
+                        "stop",
+                        "handle_event",
+                        "_perform_scan"
+                    ],
+                    "docstring": "Agent responsible for scanning social media platforms for mentions\nrelated to 'Meredith' and analyzing their resonance or sentiment.\n(Refactored to use Event protocol)",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 10
+        },
+        "agents\\social\\prompt_feedback_loop_agent.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "_check_and_increment_repair_attempts",
+                "_create_diagnostic_task_data",
+                "_dispatch_diagnostic_task",
+                "_log_injection_event",
+                "handle_event",
+                "shutdown"
+            ],
+            "classes": {
+                "PromptFeedbackLoopAgent": {
+                    "methods": [
+                        "__init__",
+                        "_check_and_increment_repair_attempts",
+                        "_create_diagnostic_task_data",
+                        "_dispatch_diagnostic_task",
+                        "_log_injection_event",
+                        "handle_event",
+                        "shutdown"
+                    ],
+                    "docstring": "Monitors for TASK_FAILED events via AgentBus and injects diagnostic tasks.",
                     "base_classes": []
                 },
                 "TaskStatus": {
                     "methods": [],
                     "docstring": null,
                     "base_classes": []
-                },
-                "TaskStatusUpdater": {
-                    "methods": [
-                        "__init__",
-                        "update_task_status"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 20
+            "complexity": 14
         },
         "agents\\social\\social_media_agent.py": {
             "language": ".py",
@@ -2112,39 +2120,80 @@
             "routes": [],
             "complexity": 49
         },
-        "agents\\social\\prompt_feedback_loop_agent.py": {
+        "agents\\social\\task_executor_agent.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "_check_and_increment_repair_attempts",
-                "_create_diagnostic_task_data",
-                "_dispatch_diagnostic_task",
-                "_log_injection_event",
+                "_normalize_status",
                 "handle_event",
-                "shutdown"
+                "_dispatch_task",
+                "_process_task_update",
+                "_run_loop",
+                "start",
+                "stop",
+                "__init__",
+                "update_task_status"
             ],
             "classes": {
-                "PromptFeedbackLoopAgent": {
+                "TaskExecutorAgent": {
                     "methods": [
                         "__init__",
-                        "_check_and_increment_repair_attempts",
-                        "_create_diagnostic_task_data",
-                        "_dispatch_diagnostic_task",
-                        "_log_injection_event",
+                        "_normalize_status",
                         "handle_event",
-                        "shutdown"
+                        "_dispatch_task",
+                        "_process_task_update",
+                        "_run_loop",
+                        "start",
+                        "stop"
                     ],
-                    "docstring": "Monitors for TASK_FAILED events via AgentBus and injects diagnostic tasks.",
+                    "docstring": "Receives TASK_QUEUED events and orchestrates task execution via other agents.",
                     "base_classes": []
                 },
                 "TaskStatus": {
                     "methods": [],
                     "docstring": null,
                     "base_classes": []
+                },
+                "TaskStatusUpdater": {
+                    "methods": [
+                        "__init__",
+                        "update_task_status"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 14
+            "complexity": 20
+        },
+        "agents\\social\\strategies\\facebook_strategy.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "generate_content",
+                "dispatch_content",
+                "post_update",
+                "post_comment",
+                "_extract_post_id"
+            ],
+            "classes": {
+                "FacebookStrategy": {
+                    "methods": [
+                        "__init__",
+                        "generate_content",
+                        "dispatch_content",
+                        "post_update",
+                        "post_comment",
+                        "_extract_post_id"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "SocialStrategy"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 12
         },
         "agents\\social\\task_injector.py": {
             "language": ".py",
@@ -2190,29 +2239,6 @@
             "routes": [],
             "complexity": 18
         },
-        "agents\\social\\strategies\\__init__.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "generate_content",
-                "dispatch_content"
-            ],
-            "classes": {
-                "SocialStrategy": {
-                    "methods": [
-                        "__init__",
-                        "generate_content",
-                        "dispatch_content"
-                    ],
-                    "docstring": "Base class for all social media platform strategies.",
-                    "base_classes": [
-                        "ABC"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 6
-        },
         "agents\\social\\strategies\\instagram_strategy.py": {
             "language": ".py",
             "functions": [
@@ -2242,25 +2268,23 @@
             "routes": [],
             "complexity": 12
         },
-        "agents\\social\\strategies\\facebook_strategy.py": {
+        "agents\\social\\strategies\\linkedin_strategy.py": {
             "language": ".py",
             "functions": [
                 "__init__",
                 "generate_content",
                 "dispatch_content",
                 "post_update",
-                "post_comment",
-                "_extract_post_id"
+                "post_comment"
             ],
             "classes": {
-                "FacebookStrategy": {
+                "LinkedInStrategy": {
                     "methods": [
                         "__init__",
                         "generate_content",
                         "dispatch_content",
                         "post_update",
-                        "post_comment",
-                        "_extract_post_id"
+                        "post_comment"
                     ],
                     "docstring": null,
                     "base_classes": [
@@ -2269,29 +2293,7 @@
                 }
             },
             "routes": [],
-            "complexity": 12
-        },
-        "agents\\tests\\test_calendar_agent.py": {
-            "language": ".py",
-            "functions": [
-                "sample_tasks_input",
-                "mock_llm_schedule_response",
-                "mock_llm_slots_response",
-                "calendar_agent_instance",
-                "test_schedule_tasks_success",
-                "test_schedule_tasks_missing_in_response",
-                "test_schedule_tasks_render_fails",
-                "test_schedule_tasks_llm_fails",
-                "test_schedule_tasks_parsing_fails",
-                "test_find_available_slots_success",
-                "test_find_available_slots_render_fails",
-                "test_find_available_slots_llm_fails",
-                "test_find_available_slots_parsing_fails",
-                "test_find_available_slots_complex_constraints"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 14
+            "complexity": 10
         },
         "agents\\social\\strategies\\twitter_strategy.py": {
             "language": ".py",
@@ -2320,6 +2322,29 @@
             "routes": [],
             "complexity": 10
         },
+        "agents\\social\\strategies\\__init__.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "generate_content",
+                "dispatch_content"
+            ],
+            "classes": {
+                "SocialStrategy": {
+                    "methods": [
+                        "__init__",
+                        "generate_content",
+                        "dispatch_content"
+                    ],
+                    "docstring": "Base class for all social media platform strategies.",
+                    "base_classes": [
+                        "ABC"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 6
+        },
         "agents\\tests\\test_architects_edge_agent.py": {
             "language": ".py",
             "functions": [
@@ -2338,6 +2363,63 @@
                 "test_dispatch_to_dreamforge_invalid_params"
             ],
             "classes": {},
+            "routes": [],
+            "complexity": 13
+        },
+        "agents\\tests\\test_calendar_agent.py": {
+            "language": ".py",
+            "functions": [
+                "sample_tasks_input",
+                "mock_llm_schedule_response",
+                "mock_llm_slots_response",
+                "calendar_agent_instance",
+                "test_schedule_tasks_success",
+                "test_schedule_tasks_missing_in_response",
+                "test_schedule_tasks_render_fails",
+                "test_schedule_tasks_llm_fails",
+                "test_schedule_tasks_parsing_fails",
+                "test_find_available_slots_success",
+                "test_find_available_slots_render_fails",
+                "test_find_available_slots_llm_fails",
+                "test_find_available_slots_parsing_fails",
+                "test_find_available_slots_complex_constraints"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 14
+        },
+        "agents\\tests\\tests\\test_reflection_agent.py": {
+            "language": ".py",
+            "functions": [
+                "agent",
+                "test_message_factory",
+                "create_message",
+                "setUp",
+                "tearDown",
+                "test_analyze_logs_with_date_range",
+                "test_analyze_logs_invalid_date_range",
+                "test_analyze_logs_corrupted_data"
+            ],
+            "classes": {
+                "TestReflectionAgent": {
+                    "methods": [
+                        "setUp",
+                        "tearDown",
+                        "test_analyze_logs_with_date_range",
+                        "test_analyze_logs_invalid_date_range",
+                        "test_analyze_logs_corrupted_data"
+                    ],
+                    "docstring": "Unit tests for ReflectionAgent.",
+                    "base_classes": [
+                        "unittest.TestCase"
+                    ]
+                },
+                "TestReflectionAgentAsync": {
+                    "methods": [],
+                    "docstring": "Async tests for ReflectionAgent.",
+                    "base_classes": []
+                }
+            },
             "routes": [],
             "complexity": 13
         },
@@ -2415,68 +2497,6 @@
             "routes": [],
             "complexity": 57
         },
-        "agents\\social\\strategies\\linkedin_strategy.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "generate_content",
-                "dispatch_content",
-                "post_update",
-                "post_comment"
-            ],
-            "classes": {
-                "LinkedInStrategy": {
-                    "methods": [
-                        "__init__",
-                        "generate_content",
-                        "dispatch_content",
-                        "post_update",
-                        "post_comment"
-                    ],
-                    "docstring": null,
-                    "base_classes": [
-                        "SocialStrategy"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 10
-        },
-        "agents\\tests\\tests\\test_reflection_agent.py": {
-            "language": ".py",
-            "functions": [
-                "agent",
-                "test_message_factory",
-                "create_message",
-                "setUp",
-                "tearDown",
-                "test_analyze_logs_with_date_range",
-                "test_analyze_logs_invalid_date_range",
-                "test_analyze_logs_corrupted_data"
-            ],
-            "classes": {
-                "TestReflectionAgent": {
-                    "methods": [
-                        "setUp",
-                        "tearDown",
-                        "test_analyze_logs_with_date_range",
-                        "test_analyze_logs_invalid_date_range",
-                        "test_analyze_logs_corrupted_data"
-                    ],
-                    "docstring": "Unit tests for ReflectionAgent.",
-                    "base_classes": [
-                        "unittest.TestCase"
-                    ]
-                },
-                "TestReflectionAgentAsync": {
-                    "methods": [],
-                    "docstring": "Async tests for ReflectionAgent.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 13
-        },
         "apps\\browser\\main.py": {
             "language": ".py",
             "functions": [
@@ -2497,6 +2517,19 @@
             },
             "routes": [],
             "complexity": 4
+        },
+        "core\\agent_utils.py": {
+            "language": ".py",
+            "functions": [
+                "_load_coords",
+                "_save_coords",
+                "save_agent_spot",
+                "get_agent_spot",
+                "click_agent_spot"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 5
         },
         "core\\config.py": {
             "language": ".py",
@@ -2580,6 +2613,13 @@
             "routes": [],
             "complexity": 6
         },
+        "core\\login_utils.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "core\\thea_orchestrator.py": {
             "language": ".py",
             "functions": [
@@ -2606,13 +2646,6 @@
             },
             "routes": [],
             "complexity": 12
-        },
-        "core\\login_utils.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "core\\voice_engine.py": {
             "language": ".py",
@@ -2648,13 +2681,6 @@
             "complexity": 12
         },
         "core\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "core\\agents\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
@@ -2710,6 +2736,13 @@
             "routes": [],
             "complexity": 4
         },
+        "core\\agents\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "core\\chat_engine\\chat_cycle_controller.py": {
             "language": ".py",
             "functions": [
@@ -2754,26 +2787,30 @@
             "routes": [],
             "complexity": 23
         },
-        "core\\chat_engine\\feedback_engine_v2.py": {
+        "core\\chat_engine\\chat_scraper_service.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "analyze_failures",
-                "save_analysis"
+                "get_all_chats",
+                "get_filtered_chats",
+                "validate_login",
+                "manual_login_flow"
             ],
             "classes": {
-                "FeedbackEngineV2": {
+                "ChatScraperService": {
                     "methods": [
                         "__init__",
-                        "analyze_failures",
-                        "save_analysis"
+                        "get_all_chats",
+                        "get_filtered_chats",
+                        "validate_login",
+                        "manual_login_flow"
                     ],
-                    "docstring": "FeedbackEngineV2 analyzes failed prompts using an LLM and provides root cause analysis\nand recommended fixes based on archived failure data.",
+                    "docstring": "ChatScraperService retrieves available chat titles and links from the chat UI.\nIt handles exclusions and filtering for downstream execution cycles.",
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 6
+            "complexity": 10
         },
         "core\\chat_engine\\discord_dispatcher.py": {
             "language": ".py",
@@ -2806,30 +2843,48 @@
             "routes": [],
             "complexity": 16
         },
-        "core\\chat_engine\\chat_scraper_service.py": {
+        "core\\chat_engine\\feedback_engine.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "get_all_chats",
-                "get_filtered_chats",
-                "validate_login",
-                "manual_login_flow"
+                "_load_memory",
+                "_save_memory",
+                "save_memory_async",
+                "parse_and_update_memory",
+                "apply_memory_updates",
+                "log_feedback",
+                "export_feedback_log",
+                "analyze_feedback",
+                "review_memory",
+                "feedback_loop",
+                "save_context_memory_async",
+                "save_context_db",
+                "review_context_memory"
             ],
             "classes": {
-                "ChatScraperService": {
+                "FeedbackEngine": {
                     "methods": [
                         "__init__",
-                        "get_all_chats",
-                        "get_filtered_chats",
-                        "validate_login",
-                        "manual_login_flow"
+                        "_load_memory",
+                        "_save_memory",
+                        "save_memory_async",
+                        "parse_and_update_memory",
+                        "apply_memory_updates",
+                        "log_feedback",
+                        "export_feedback_log",
+                        "analyze_feedback",
+                        "review_memory",
+                        "feedback_loop",
+                        "save_context_memory_async",
+                        "save_context_db",
+                        "review_context_memory"
                     ],
-                    "docstring": "ChatScraperService retrieves available chat titles and links from the chat UI.\nIt handles exclusions and filtering for downstream execution cycles.",
+                    "docstring": "FeedbackEngine - Parses AI responses, updates persistent memory,\ntracks reinforcement loops, and evolves Victor.OS intelligence.",
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 10
+            "complexity": 28
         },
         "core\\chat_engine\\driver_manager.py": {
             "language": ".py",
@@ -2900,83 +2955,26 @@
             "routes": [],
             "complexity": 54
         },
-        "core\\chat_engine\\feedback_engine.py": {
+        "core\\chat_engine\\feedback_engine_v2.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "_load_memory",
-                "_save_memory",
-                "save_memory_async",
-                "parse_and_update_memory",
-                "apply_memory_updates",
-                "log_feedback",
-                "export_feedback_log",
-                "analyze_feedback",
-                "review_memory",
-                "feedback_loop",
-                "save_context_memory_async",
-                "save_context_db",
-                "review_context_memory"
+                "analyze_failures",
+                "save_analysis"
             ],
             "classes": {
-                "FeedbackEngine": {
+                "FeedbackEngineV2": {
                     "methods": [
                         "__init__",
-                        "_load_memory",
-                        "_save_memory",
-                        "save_memory_async",
-                        "parse_and_update_memory",
-                        "apply_memory_updates",
-                        "log_feedback",
-                        "export_feedback_log",
-                        "analyze_feedback",
-                        "review_memory",
-                        "feedback_loop",
-                        "save_context_memory_async",
-                        "save_context_db",
-                        "review_context_memory"
+                        "analyze_failures",
+                        "save_analysis"
                     ],
-                    "docstring": "FeedbackEngine - Parses AI responses, updates persistent memory,\ntracks reinforcement loops, and evolves Victor.OS intelligence.",
+                    "docstring": "FeedbackEngineV2 analyzes failed prompts using an LLM and provides root cause analysis\nand recommended fixes based on archived failure data.",
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 28
-        },
-        "core\\chat_engine\\prompt_execution_service.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "get_prompt",
-                "execute_prompt_cycle",
-                "execute_prompts_single_chat",
-                "execute_prompts_concurrently",
-                "_execute_single_prompt_thread",
-                "_determine_wait_time",
-                "_post_process_jawbone_response",
-                "_send_prompt",
-                "_fetch_response"
-            ],
-            "classes": {
-                "PromptExecutionService": {
-                    "methods": [
-                        "__init__",
-                        "get_prompt",
-                        "execute_prompt_cycle",
-                        "execute_prompts_single_chat",
-                        "execute_prompts_concurrently",
-                        "_execute_single_prompt_thread",
-                        "_determine_wait_time",
-                        "_post_process_jawbone_response",
-                        "_send_prompt",
-                        "_fetch_response"
-                    ],
-                    "docstring": "PromptExecutionService handles sending prompts and retrieving responses.\nIt manages execution cycles for single chats or cycles across multiple prompts.\nNow supports model switching, feedback integration, and parallel execution.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 20
+            "complexity": 6
         },
         "core\\chat_engine\\gui_event_handler.py": {
             "language": ".py",
@@ -3071,6 +3069,41 @@
             },
             "routes": [],
             "complexity": 31
+        },
+        "core\\chat_engine\\prompt_execution_service.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "get_prompt",
+                "execute_prompt_cycle",
+                "execute_prompts_single_chat",
+                "execute_prompts_concurrently",
+                "_execute_single_prompt_thread",
+                "_determine_wait_time",
+                "_post_process_jawbone_response",
+                "_send_prompt",
+                "_fetch_response"
+            ],
+            "classes": {
+                "PromptExecutionService": {
+                    "methods": [
+                        "__init__",
+                        "get_prompt",
+                        "execute_prompt_cycle",
+                        "execute_prompts_single_chat",
+                        "execute_prompts_concurrently",
+                        "_execute_single_prompt_thread",
+                        "_determine_wait_time",
+                        "_post_process_jawbone_response",
+                        "_send_prompt",
+                        "_fetch_response"
+                    ],
+                    "docstring": "PromptExecutionService handles sending prompts and retrieving responses.\nIt manages execution cycles for single chats or cycles across multiple prompts.\nNow supports model switching, feedback integration, and parallel execution.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 20
         },
         "core\\chat_engine\\__init__.py": {
             "language": ".py",
@@ -3234,6 +3267,27 @@
             "routes": [],
             "complexity": 0
         },
+        "core\\hooks\\chatgpt_responder.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "get_response",
+                "respond_to_mailbox"
+            ],
+            "classes": {
+                "ChatGPTResponder": {
+                    "methods": [
+                        "__init__",
+                        "get_response",
+                        "respond_to_mailbox"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 6
+        },
         "core\\hooks\\stats_logger.py": {
             "language": ".py",
             "functions": [
@@ -3252,6 +3306,19 @@
             },
             "routes": [],
             "complexity": 4
+        },
+        "core\\llm_bridge\\bridge_adapters\\another_fancy_adapter.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {
+                "AnotherFancyAdapter": {
+                    "methods": [],
+                    "docstring": "Placeholder for AnotherFancyAdapter.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 0
         },
         "core\\llm_bridge\\bridge_adapters\\base_adapter.py": {
             "language": ".py",
@@ -3297,19 +3364,6 @@
                 "FancyAdapter": {
                     "methods": [],
                     "docstring": "Placeholder for FancyAdapter.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 0
-        },
-        "core\\llm_bridge\\bridge_adapters\\another_fancy_adapter.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {
-                "AnotherFancyAdapter": {
-                    "methods": [],
-                    "docstring": "Placeholder for AnotherFancyAdapter.",
                     "base_classes": []
                 }
             },
@@ -3381,6 +3435,41 @@
             "routes": [],
             "complexity": 12
         },
+        "core\\rendering\\template_engine.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "render"
+            ],
+            "classes": {
+                "TemplateEngine": {
+                    "methods": [
+                        "__init__",
+                        "render"
+                    ],
+                    "docstring": "Wraps Jinja2 for rendering template strings.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 4
+        },
+        "core\\rendering\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "core\\services\\event_logger.py": {
+            "language": ".py",
+            "functions": [
+                "log_structured_event"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
         "core\\services\\failed_prompt_archive.py": {
             "language": ".py",
             "functions": [
@@ -3406,31 +3495,12 @@
             "routes": [],
             "complexity": 10
         },
-        "core\\rendering\\__init__.py": {
+        "core\\services\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
             "routes": [],
             "complexity": 0
-        },
-        "core\\rendering\\template_engine.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "render"
-            ],
-            "classes": {
-                "TemplateEngine": {
-                    "methods": [
-                        "__init__",
-                        "render"
-                    ],
-                    "docstring": "Wraps Jinja2 for rendering template strings.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 4
         },
         "core\\tools\\base.py": {
             "language": ".py",
@@ -3456,13 +3526,6 @@
             },
             "routes": [],
             "complexity": 8
-        },
-        "core\\services\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "core\\tools\\registry.py": {
             "language": ".py",
@@ -3608,22 +3671,6 @@
             "routes": [],
             "complexity": 6
         },
-        "core\\tools\\functional\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "core\\utils\\json_io.py": {
-            "language": ".py",
-            "functions": [
-                "write_json_safe"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
         "core\\tools\\functional\\search_tools.py": {
             "language": ".py",
             "functions": [
@@ -3648,6 +3695,31 @@
             },
             "routes": [],
             "complexity": 8
+        },
+        "core\\tools\\functional\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "core\\utils\\json_io.py": {
+            "language": ".py",
+            "functions": [
+                "write_json_safe"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "dreamforge\\main.py": {
+            "language": ".py",
+            "functions": [
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
         },
         "dreamforge\\__init__.py": {
             "language": ".py",
@@ -3712,15 +3784,6 @@
             "routes": [],
             "complexity": 41
         },
-        "dreamforge\\main.py": {
-            "language": ".py",
-            "functions": [
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
         "dreamforge\\services\\__init__.py": {
             "language": ".py",
             "functions": [],
@@ -3762,21 +3825,6 @@
             "routes": [],
             "complexity": 11
         },
-        "dreamforge\\tests\\agents\\test_cursor_dispatcher.py": {
-            "language": ".py",
-            "functions": [
-                "mock_agent_bus",
-                "cursor_dispatcher",
-                "test_execute_cursor_task_test_generation",
-                "test_execute_cursor_task_code_fix",
-                "test_execute_cursor_task_file_analysis",
-                "test_dispatcher_loop_integration",
-                "test_error_handling"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 7
-        },
         "dreamforge\\tests\\agents\\test_chatgpt_commander.py": {
             "language": ".py",
             "functions": [
@@ -3793,6 +3841,21 @@
             "classes": {},
             "routes": [],
             "complexity": 9
+        },
+        "dreamforge\\tests\\agents\\test_cursor_dispatcher.py": {
+            "language": ".py",
+            "functions": [
+                "mock_agent_bus",
+                "cursor_dispatcher",
+                "test_execute_cursor_task_test_generation",
+                "test_execute_cursor_task_code_fix",
+                "test_execute_cursor_task_file_analysis",
+                "test_dispatcher_loop_integration",
+                "test_error_handling"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 7
         },
         "dreamforge\\tests\\agents\\test_planner_agent.py": {
             "language": ".py",
@@ -3814,6 +3877,32 @@
             "classes": {},
             "routes": [],
             "complexity": 13
+        },
+        "dreamforge\\tests\\agents\\test_workflow_agent.py": {
+            "language": ".py",
+            "functions": [
+                "mock_agent_bus",
+                "mock_feedback_engine",
+                "mock_prompt_staging",
+                "workflow_agent",
+                "test_plan_task_capable_agent_selection",
+                "test_plan_task_no_capable_agents",
+                "test_plan_task_load_balancing",
+                "test_assign_agent_success",
+                "test_assign_agent_fallback",
+                "test_assign_agent_all_fail",
+                "test_check_status_metrics_format",
+                "test_check_status_unknown_task",
+                "test_route_feedback_success_case",
+                "test_route_feedback_failure_and_retry",
+                "test_route_feedback_prompt_update",
+                "test_find_capable_agents",
+                "test_select_optimal_agent",
+                "test_full_task_lifecycle"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 18
         },
         "dreamforge\\tests\\coordination\\test_agent_bus.py": {
             "language": ".py",
@@ -3849,32 +3938,6 @@
             },
             "routes": [],
             "complexity": 20
-        },
-        "dreamforge\\tests\\agents\\test_workflow_agent.py": {
-            "language": ".py",
-            "functions": [
-                "mock_agent_bus",
-                "mock_feedback_engine",
-                "mock_prompt_staging",
-                "workflow_agent",
-                "test_plan_task_capable_agent_selection",
-                "test_plan_task_no_capable_agents",
-                "test_plan_task_load_balancing",
-                "test_assign_agent_success",
-                "test_assign_agent_fallback",
-                "test_assign_agent_all_fail",
-                "test_check_status_metrics_format",
-                "test_check_status_unknown_task",
-                "test_route_feedback_success_case",
-                "test_route_feedback_failure_and_retry",
-                "test_route_feedback_prompt_update",
-                "test_find_capable_agents",
-                "test_select_optimal_agent",
-                "test_full_task_lifecycle"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 18
         },
         "dreamforge\\tests\\core\\test_feedback_engine.py": {
             "language": ".py",
@@ -4024,6 +4087,13 @@
             "routes": [],
             "complexity": 2
         },
+        "dreamforge\\utils\\image_utils.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "dreamforge\\utils\\text_utils.py": {
             "language": ".py",
             "functions": [],
@@ -4031,12 +4101,14 @@
             "routes": [],
             "complexity": 0
         },
-        "dreamforge\\utils\\image_utils.py": {
+        "dream_mode\\config.py": {
             "language": ".py",
-            "functions": [],
+            "functions": [
+                "load_config"
+            ],
             "classes": {},
             "routes": [],
-            "complexity": 0
+            "complexity": 1
         },
         "dream_mode\\azure_blob_channel.py": {
             "language": ".py",
@@ -4070,15 +4142,6 @@
             },
             "routes": [],
             "complexity": 18
-        },
-        "dream_mode\\config.py": {
-            "language": ".py",
-            "functions": [
-                "load_config"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
         },
         "dream_mode\\cursor_fleet_launcher.py": {
             "language": ".py",
@@ -4178,6 +4241,97 @@
             "routes": [],
             "complexity": 2
         },
+        "dream_mode\\virtual_desktop_runner.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "launch_cursor_headless",
+                "inject_keystrokes",
+                "teardown"
+            ],
+            "classes": {
+                "VirtualDesktopController": {
+                    "methods": [
+                        "__init__",
+                        "launch_cursor_headless",
+                        "inject_keystrokes",
+                        "teardown"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 8
+        },
+        "dream_mode\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "dream_mode\\agents\\chatgpt_web_agent.py": {
+            "language": ".py",
+            "functions": [
+                "run_loop",
+                "__init__",
+                "_load_pending_responses",
+                "_save_pending_responses",
+                "_initialize_browser",
+                "_is_result_injected",
+                "_mark_result_injected",
+                "inject_response",
+                "_get_and_cache_results",
+                "run_cycle",
+                "close"
+            ],
+            "classes": {
+                "ChatGPTWebAgent": {
+                    "methods": [
+                        "__init__",
+                        "_load_pending_responses",
+                        "_save_pending_responses",
+                        "_initialize_browser",
+                        "_is_result_injected",
+                        "_mark_result_injected",
+                        "inject_response",
+                        "_get_and_cache_results",
+                        "run_cycle",
+                        "close"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 21
+        },
+        "dream_mode\\agents\\cursor_dispatcher.py": {
+            "language": ".py",
+            "functions": [
+                "render_task_prompt",
+                "load_queue",
+                "save_queue",
+                "dispatch_tasks",
+                "run_loop"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 5
+        },
+        "dream_mode\\agents\\cursor_worker.py": {
+            "language": ".py",
+            "functions": [
+                "run",
+                "click_button",
+                "wait_for_idle",
+                "process_task_ui"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 4
+        },
         "dream_mode\\agents\\supervisor_agent.py": {
             "language": ".py",
             "functions": [
@@ -4205,56 +4359,6 @@
             "routes": [],
             "complexity": 12
         },
-        "dream_mode\\agents\\cursor_dispatcher.py": {
-            "language": ".py",
-            "functions": [
-                "render_task_prompt",
-                "load_queue",
-                "save_queue",
-                "dispatch_tasks",
-                "run_loop"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 5
-        },
-        "dream_mode\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "dream_mode\\virtual_desktop_runner.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "launch_cursor_headless",
-                "inject_keystrokes",
-                "teardown"
-            ],
-            "classes": {
-                "VirtualDesktopController": {
-                    "methods": [
-                        "__init__",
-                        "launch_cursor_headless",
-                        "inject_keystrokes",
-                        "teardown"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 8
-        },
-        "dream_mode\\agents\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "dream_mode\\agents\\task_feedback_router.py": {
             "language": ".py",
             "functions": [
@@ -4265,6 +4369,13 @@
             "classes": {},
             "routes": [],
             "complexity": 3
+        },
+        "dream_mode\\agents\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "dream_mode\\task_nexus\\task_nexus.py": {
             "language": ".py",
@@ -4306,54 +4417,6 @@
             },
             "routes": [],
             "complexity": 26
-        },
-        "dream_mode\\agents\\chatgpt_web_agent.py": {
-            "language": ".py",
-            "functions": [
-                "run_loop",
-                "__init__",
-                "_load_pending_responses",
-                "_save_pending_responses",
-                "_initialize_browser",
-                "_is_result_injected",
-                "_mark_result_injected",
-                "inject_response",
-                "_get_and_cache_results",
-                "run_cycle",
-                "close"
-            ],
-            "classes": {
-                "ChatGPTWebAgent": {
-                    "methods": [
-                        "__init__",
-                        "_load_pending_responses",
-                        "_save_pending_responses",
-                        "_initialize_browser",
-                        "_is_result_injected",
-                        "_mark_result_injected",
-                        "inject_response",
-                        "_get_and_cache_results",
-                        "run_cycle",
-                        "close"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 21
-        },
-        "dream_mode\\agents\\cursor_worker.py": {
-            "language": ".py",
-            "functions": [
-                "run",
-                "click_button",
-                "wait_for_idle",
-                "process_task_ui"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 4
         },
         "dream_mode\\tests\\test_azure_blob_channel.py": {
             "language": ".py",
@@ -4490,14 +4553,14 @@
             "routes": [],
             "complexity": 6
         },
-        "dream_os\\adapters\\discord_adapter.py": {
+        "dream_os\\adapters\\cursor_rpc_adapter.py": {
             "language": ".py",
             "functions": [
                 "__init__",
                 "execute"
             ],
             "classes": {
-                "DiscordAdapter": {
+                "CursorRPCAdapter": {
                     "methods": [
                         "__init__",
                         "execute"
@@ -4511,14 +4574,14 @@
             "routes": [],
             "complexity": 4
         },
-        "dream_os\\adapters\\cursor_rpc_adapter.py": {
+        "dream_os\\adapters\\discord_adapter.py": {
             "language": ".py",
             "functions": [
                 "__init__",
                 "execute"
             ],
             "classes": {
-                "CursorRPCAdapter": {
+                "DiscordAdapter": {
                     "methods": [
                         "__init__",
                         "execute"
@@ -4562,13 +4625,6 @@
             "routes": [],
             "complexity": 1
         },
-        "dream_os\\cli\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "dream_os\\core\\crew_agent_base.py": {
             "language": ".py",
             "functions": [
@@ -4589,6 +4645,13 @@
             },
             "routes": [],
             "complexity": 6
+        },
+        "dream_os\\cli\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "dream_os\\core\\crew_roles.py": {
             "language": ".py",
@@ -4649,13 +4712,6 @@
             "routes": [],
             "complexity": 0
         },
-        "dream_os\\ui\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "dream_os\\ui\\main_window.py": {
             "language": ".py",
             "functions": [
@@ -4679,39 +4735,12 @@
             "routes": [],
             "complexity": 6
         },
-        "integrations\\cursor\\window_controller.py": {
+        "dream_os\\ui\\__init__.py": {
             "language": ".py",
-            "functions": [
-                "__init__",
-                "_setup_os_specific_handlers",
-                "detect_all_instances",
-                "activate_window",
-                "get_window_by_id",
-                "print_window_map",
-                "enum_callback",
-                "get_window_info"
-            ],
-            "classes": {
-                "WindowWrapper": {
-                    "methods": [],
-                    "docstring": "Cross-platform window handle wrapper.",
-                    "base_classes": []
-                },
-                "CursorWindowController": {
-                    "methods": [
-                        "__init__",
-                        "_setup_os_specific_handlers",
-                        "detect_all_instances",
-                        "activate_window",
-                        "get_window_by_id",
-                        "print_window_map"
-                    ],
-                    "docstring": "Controls multiple Cursor window instances.",
-                    "base_classes": []
-                }
-            },
+            "functions": [],
+            "classes": {},
             "routes": [],
-            "complexity": 14
+            "complexity": 0
         },
         "integrations\\agent_services\\cursor_shadow_controller.py": {
             "language": ".py",
@@ -4757,6 +4786,47 @@
             "routes": [],
             "complexity": 6
         },
+        "integrations\\cursor\\window_controller.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "_setup_os_specific_handlers",
+                "detect_all_instances",
+                "activate_window",
+                "get_window_by_id",
+                "print_window_map",
+                "enum_callback",
+                "get_window_info"
+            ],
+            "classes": {
+                "WindowWrapper": {
+                    "methods": [],
+                    "docstring": "Cross-platform window handle wrapper.",
+                    "base_classes": []
+                },
+                "CursorWindowController": {
+                    "methods": [
+                        "__init__",
+                        "_setup_os_specific_handlers",
+                        "detect_all_instances",
+                        "activate_window",
+                        "get_window_by_id",
+                        "print_window_map"
+                    ],
+                    "docstring": "Controls multiple Cursor window instances.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 14
+        },
+        "PyQt5_local_backup\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "PyQt5_local_backup\\QtCore\\__init__.py": {
             "language": ".py",
             "functions": [
@@ -4785,13 +4855,6 @@
             },
             "routes": [],
             "complexity": 4
-        },
-        "PyQt5_local_backup\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "PyQt5_local_backup\\QtWidgets\\__init__.py": {
             "language": ".py",
@@ -5015,6 +5078,15 @@
             "routes": [],
             "complexity": 94
         },
+        "scripts\\agent_auto_storyteller.py": {
+            "language": ".py",
+            "functions": [
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
         "scripts\\auto_claim_tasks_agent_002.py": {
             "language": ".py",
             "functions": [
@@ -5036,14 +5108,23 @@
         "scripts\\convert_task_lists_to_json.py": {
             "language": ".py",
             "functions": [
-                "parse_json_file",
-                "parse_md_file",
-                "find_task_files",
+                "parse_markdown_tasks",
                 "main"
             ],
             "classes": {},
             "routes": [],
-            "complexity": 4
+            "complexity": 2
+        },
+        "scripts\\deduplicate_tasks.py": {
+            "language": ".py",
+            "functions": [
+                "load_tasks",
+                "dedupe",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
         },
         "scripts\\find_duplicate_tasks.py": {
             "language": ".py",
@@ -5057,6 +5138,15 @@
             "classes": {},
             "routes": [],
             "complexity": 5
+        },
+        "scripts\\organize_task_pool_v1.py": {
+            "language": ".py",
+            "functions": [
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
         },
         "scripts\\run_qa.py": {
             "language": ".py",
@@ -5182,13 +5272,6 @@
             "routes": [],
             "complexity": 14
         },
-        "social\\core\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "social\\core\\main.py": {
             "language": ".py",
             "functions": [
@@ -5199,6 +5282,13 @@
             "classes": {},
             "routes": [],
             "complexity": 3
+        },
+        "social\\core\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "social\\core\\coordination\\cursor\\cursor_editor_controller.py": {
             "language": ".py",
@@ -5307,23 +5397,6 @@
             "routes": [],
             "complexity": 22
         },
-        "social\\core\\coordination\\cursor\\editor_service.py": {
-            "language": ".py",
-            "functions": [
-                "__init__"
-            ],
-            "classes": {
-                "CursorEditorService": {
-                    "methods": [
-                        "__init__"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 2
-        },
         "social\\core\\coordination\\cursor\\cursor_ui_trainer.py": {
             "language": ".py",
             "functions": [
@@ -5390,6 +5463,23 @@
             "routes": [],
             "complexity": 22
         },
+        "social\\core\\coordination\\cursor\\editor_service.py": {
+            "language": ".py",
+            "functions": [
+                "__init__"
+            ],
+            "classes": {
+                "CursorEditorService": {
+                    "methods": [
+                        "__init__"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 2
+        },
         "social\\core\\coordination\\cursor\\locator_service.py": {
             "language": ".py",
             "functions": [
@@ -5401,23 +5491,6 @@
                         "__init__"
                     ],
                     "docstring": "Service layer for locating UI elements within Cursor.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 2
-        },
-        "social\\core\\coordination\\cursor\\window_service.py": {
-            "language": ".py",
-            "functions": [
-                "__init__"
-            ],
-            "classes": {
-                "CursorWindowService": {
-                    "methods": [
-                        "__init__"
-                    ],
-                    "docstring": "High-level service wrapper for controlling the Cursor application window.\nDelegates to the injected low-level window controller.",
                     "base_classes": []
                 }
             },
@@ -5458,23 +5531,6 @@
             },
             "routes": [],
             "complexity": 20
-        },
-        "social\\core\\coordination\\cursor\\terminal_service.py": {
-            "language": ".py",
-            "functions": [
-                "__init__"
-            ],
-            "classes": {
-                "CursorTerminalService": {
-                    "methods": [
-                        "__init__"
-                    ],
-                    "docstring": "Service layer for Cursor terminal operations.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 2
         },
         "social\\core\\coordination\\cursor\\task_execution_state_machine.py": {
             "language": ".py",
@@ -5528,6 +5584,40 @@
             },
             "routes": [],
             "complexity": 31
+        },
+        "social\\core\\coordination\\cursor\\window_service.py": {
+            "language": ".py",
+            "functions": [
+                "__init__"
+            ],
+            "classes": {
+                "CursorWindowService": {
+                    "methods": [
+                        "__init__"
+                    ],
+                    "docstring": "High-level service wrapper for controlling the Cursor application window.\nDelegates to the injected low-level window controller.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 2
+        },
+        "social\\core\\coordination\\cursor\\terminal_service.py": {
+            "language": ".py",
+            "functions": [
+                "__init__"
+            ],
+            "classes": {
+                "CursorTerminalService": {
+                    "methods": [
+                        "__init__"
+                    ],
+                    "docstring": "Service layer for Cursor terminal operations.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 2
         },
         "social\\core\\exceptions\\strategy_exceptions.py": {
             "language": ".py",
@@ -5668,6 +5758,108 @@
             "routes": [],
             "complexity": 36
         },
+        "social\\core\\strategies\\facebook_strategy.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "login",
+                "create_post",
+                "get_analytics",
+                "demo_facebook_capabilities",
+                "_get_demo_config"
+            ],
+            "classes": {
+                "FacebookStrategy": {
+                    "methods": [
+                        "__init__",
+                        "login",
+                        "create_post",
+                        "get_analytics"
+                    ],
+                    "docstring": "Strategy for interacting with Facebook platform.",
+                    "base_classes": [
+                        "BaseSocialStrategy"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 10
+        },
+        "social\\core\\strategies\\linkedin_strategy.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "login",
+                "create_post",
+                "get_analytics",
+                "post_update",
+                "post_article",
+                "_get_user_id",
+                "_get_blog_url",
+                "demo_linkedin_capabilities",
+                "_get_demo_config"
+            ],
+            "classes": {
+                "LinkedInStrategy": {
+                    "methods": [
+                        "__init__",
+                        "login",
+                        "create_post",
+                        "get_analytics",
+                        "post_update",
+                        "post_article",
+                        "_get_user_id",
+                        "_get_blog_url"
+                    ],
+                    "docstring": "Strategy for interacting with LinkedIn platform.",
+                    "base_classes": [
+                        "BaseSocialStrategy"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 18
+        },
+        "social\\core\\strategies\\twitter_strategy.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "login",
+                "create_post",
+                "get_analytics",
+                "post_update",
+                "post_thread",
+                "_get_bearer_token",
+                "_split_into_tweets"
+            ],
+            "classes": {
+                "TwitterStrategy": {
+                    "methods": [
+                        "__init__",
+                        "login",
+                        "create_post",
+                        "get_analytics",
+                        "post_update",
+                        "post_thread",
+                        "_get_bearer_token",
+                        "_split_into_tweets"
+                    ],
+                    "docstring": "Strategy for interacting with Twitter platform.",
+                    "base_classes": [
+                        "BaseSocialStrategy"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 16
+        },
+        "social\\core\\strategies\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "social\\digital_dreamscape\\app.py": {
             "language": ".py",
             "functions": [
@@ -5728,117 +5920,6 @@
             "routes": [],
             "complexity": 35
         },
-        "social\\core\\strategies\\facebook_strategy.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "login",
-                "create_post",
-                "get_analytics",
-                "demo_facebook_capabilities",
-                "_get_demo_config"
-            ],
-            "classes": {
-                "FacebookStrategy": {
-                    "methods": [
-                        "__init__",
-                        "login",
-                        "create_post",
-                        "get_analytics"
-                    ],
-                    "docstring": "Strategy for interacting with Facebook platform.",
-                    "base_classes": [
-                        "BaseSocialStrategy"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 10
-        },
-        "social\\core\\strategies\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "social\\core\\strategies\\twitter_strategy.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "login",
-                "create_post",
-                "get_analytics",
-                "post_update",
-                "post_thread",
-                "_get_bearer_token",
-                "_split_into_tweets"
-            ],
-            "classes": {
-                "TwitterStrategy": {
-                    "methods": [
-                        "__init__",
-                        "login",
-                        "create_post",
-                        "get_analytics",
-                        "post_update",
-                        "post_thread",
-                        "_get_bearer_token",
-                        "_split_into_tweets"
-                    ],
-                    "docstring": "Strategy for interacting with Twitter platform.",
-                    "base_classes": [
-                        "BaseSocialStrategy"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 16
-        },
-        "social\\digital_dreamscape\\chat_scraper.py": {
-            "language": ".py",
-            "functions": [
-                "process_all_chats"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "social\\core\\strategies\\linkedin_strategy.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "login",
-                "create_post",
-                "get_analytics",
-                "post_update",
-                "post_article",
-                "_get_user_id",
-                "_get_blog_url",
-                "demo_linkedin_capabilities",
-                "_get_demo_config"
-            ],
-            "classes": {
-                "LinkedInStrategy": {
-                    "methods": [
-                        "__init__",
-                        "login",
-                        "create_post",
-                        "get_analytics",
-                        "post_update",
-                        "post_article",
-                        "_get_user_id",
-                        "_get_blog_url"
-                    ],
-                    "docstring": "Strategy for interacting with LinkedIn platform.",
-                    "base_classes": [
-                        "BaseSocialStrategy"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 18
-        },
         "social\\digital_dreamscape\\assistant_worker.py": {
             "language": ".py",
             "functions": [
@@ -5863,6 +5944,15 @@
             },
             "routes": [],
             "complexity": 8
+        },
+        "social\\digital_dreamscape\\chat_scraper.py": {
+            "language": ".py",
+            "functions": [
+                "process_all_chats"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
         },
         "social\\digital_dreamscape\\episode_generator.py": {
             "language": ".py",
@@ -6092,6 +6182,19 @@
             "routes": [],
             "complexity": 22
         },
+        "social\\digital_dreamscape\\vector_db.py": {
+            "language": ".py",
+            "functions": [
+                "upsert",
+                "query",
+                "_load",
+                "_save",
+                "_vectorize"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 5
+        },
         "social\\digital_dreamscape\\utils.py": {
             "language": ".py",
             "functions": [
@@ -6125,19 +6228,6 @@
             "routes": [],
             "complexity": 9
         },
-        "social\\digital_dreamscape\\vector_db.py": {
-            "language": ".py",
-            "functions": [
-                "upsert",
-                "query",
-                "_load",
-                "_save",
-                "_vectorize"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 5
-        },
         "social\\digital_dreamscape\\__init__.py": {
             "language": ".py",
             "functions": [],
@@ -6161,6 +6251,13 @@
             "routes": [],
             "complexity": 1
         },
+        "social\\digital_dreamscape\\dreamscape_generator\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "social\\digital_dreamscape\\dreamscape_generator\\src\\chatgpt_locators.py": {
             "language": ".py",
             "functions": [],
@@ -6171,13 +6268,6 @@
                     "base_classes": []
                 }
             },
-            "routes": [],
-            "complexity": 0
-        },
-        "social\\digital_dreamscape\\dreamscape_generator\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
             "routes": [],
             "complexity": 0
         },
@@ -6235,19 +6325,19 @@
             "routes": [],
             "complexity": 3
         },
-        "social\\digital_dreamscape\\dreamscape_generator\\src\\external_stubs.py": {
+        "social\\digital_dreamscape\\dreamscape_generator\\src\\context_manager.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "send_message"
+                "build_prompt_context"
             ],
             "classes": {
-                "StubDiscordManager": {
+                "ContextManager": {
                     "methods": [
                         "__init__",
-                        "send_message"
+                        "build_prompt_context"
                     ],
-                    "docstring": "Placeholder for DiscordManager.",
+                    "docstring": "Builds the context dictionary for Jinja2 prompt templates.",
                     "base_classes": []
                 }
             },
@@ -6273,19 +6363,19 @@
             "routes": [],
             "complexity": 4
         },
-        "social\\digital_dreamscape\\dreamscape_generator\\src\\context_manager.py": {
+        "social\\digital_dreamscape\\dreamscape_generator\\src\\external_stubs.py": {
             "language": ".py",
             "functions": [
                 "__init__",
-                "build_prompt_context"
+                "send_message"
             ],
             "classes": {
-                "ContextManager": {
+                "StubDiscordManager": {
                     "methods": [
                         "__init__",
-                        "build_prompt_context"
+                        "send_message"
                     ],
-                    "docstring": "Builds the context dictionary for Jinja2 prompt templates.",
+                    "docstring": "Placeholder for DiscordManager.",
                     "base_classes": []
                 }
             },
@@ -6322,6 +6412,31 @@
             },
             "routes": [],
             "complexity": 6
+        },
+        "social\\digital_dreamscape\\dreamscape_generator\\src\\story_generator.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "_render_prompt",
+                "_call_llm",
+                "generate_episodes_from_web",
+                "_generate_single_episode_from_scraped"
+            ],
+            "classes": {
+                "StoryGenerator": {
+                    "methods": [
+                        "__init__",
+                        "_render_prompt",
+                        "_call_llm",
+                        "generate_episodes_from_web",
+                        "_generate_single_episode_from_scraped"
+                    ],
+                    "docstring": "Generates narrative episodes based on history and RPG state using LLMs.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 10
         },
         "social\\digital_dreamscape\\dreamscape_generator\\src\\unified_chrome_driver.py": {
             "language": ".py",
@@ -6365,31 +6480,6 @@
             },
             "routes": [],
             "complexity": 28
-        },
-        "social\\digital_dreamscape\\dreamscape_generator\\src\\story_generator.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "_render_prompt",
-                "_call_llm",
-                "generate_episodes_from_web",
-                "_generate_single_episode_from_scraped"
-            ],
-            "classes": {
-                "StoryGenerator": {
-                    "methods": [
-                        "__init__",
-                        "_render_prompt",
-                        "_call_llm",
-                        "generate_episodes_from_web",
-                        "_generate_single_episode_from_scraped"
-                    ],
-                    "docstring": "Generates narrative episodes based on history and RPG state using LLMs.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 10
         },
         "social\\digital_dreamscape\\dreamscape_generator\\src\\utils.py": {
             "language": ".py",
@@ -6457,13 +6547,6 @@
             "routes": [],
             "complexity": 15
         },
-        "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\monitoring\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\UnifiedDriverManager.py": {
             "language": ".py",
             "functions": [
@@ -6506,6 +6589,13 @@
             "complexity": 26
         },
         "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "social\\digital_dreamscape\\dreamscape_generator\\src\\core\\monitoring\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
@@ -6679,6 +6769,27 @@
             "routes": [],
             "complexity": 14
         },
+        "social\\digital_dreamscape\\dreamscape_gui\\swarm_data_bridge.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "_run"
+            ],
+            "classes": {
+                "SwarmDataBridge": {
+                    "methods": [
+                        "__init__",
+                        "_run"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "QObject"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 4
+        },
         "social\\digital_dreamscape\\scripts\\dreamscape_cli.py": {
             "language": ".py",
             "functions": [
@@ -6687,6 +6798,32 @@
             "classes": {},
             "routes": [],
             "complexity": 1
+        },
+        "social\\digital_dreamscape\\tests\\test_saga_generation_worker.py": {
+            "language": ".py",
+            "functions": [
+                "saga_worker",
+                "test_format_raw_excerpt_dict",
+                "test_parse_result_no_json",
+                "test_parse_result_with_json",
+                "test_parse_result_invalid_json",
+                "__init__",
+                "get",
+                "set"
+            ],
+            "classes": {
+                "DummyMem": {
+                    "methods": [
+                        "__init__",
+                        "get",
+                        "set"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 11
         },
         "social\\digital_dreamscape\\tests\\test_saga_monitor_integration.py": {
             "language": ".py",
@@ -6736,53 +6873,6 @@
             },
             "routes": [],
             "complexity": 22
-        },
-        "social\\digital_dreamscape\\tests\\test_saga_generation_worker.py": {
-            "language": ".py",
-            "functions": [
-                "saga_worker",
-                "test_format_raw_excerpt_dict",
-                "test_parse_result_no_json",
-                "test_parse_result_with_json",
-                "test_parse_result_invalid_json",
-                "__init__",
-                "get",
-                "set"
-            ],
-            "classes": {
-                "DummyMem": {
-                    "methods": [
-                        "__init__",
-                        "get",
-                        "set"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 11
-        },
-        "social\\digital_dreamscape\\dreamscape_gui\\swarm_data_bridge.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "_run"
-            ],
-            "classes": {
-                "SwarmDataBridge": {
-                    "methods": [
-                        "__init__",
-                        "_run"
-                    ],
-                    "docstring": null,
-                    "base_classes": [
-                        "QObject"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 4
         },
         "social\\scripts\\debug_imports.py": {
             "language": ".py",
@@ -7010,6 +7100,30 @@
             "routes": [],
             "complexity": 10
         },
+        "social\\tests\\test_twitter_strategy.py": {
+            "language": ".py",
+            "functions": [
+                "setUp",
+                "test_login_timeout_exception_handling",
+                "test_post_element_not_found_handling",
+                "find_element_side_effect"
+            ],
+            "classes": {
+                "TestTwitterStrategyErrorHandling": {
+                    "methods": [
+                        "setUp",
+                        "test_login_timeout_exception_handling",
+                        "test_post_element_not_found_handling"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "unittest.TestCase"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 7
+        },
         "social\\tests\\test_social_media_agent.py": {
             "language": ".py",
             "functions": [
@@ -7077,20 +7191,32 @@
             "routes": [],
             "complexity": 50
         },
-        "social\\tests\\test_twitter_strategy.py": {
+        "social\\tests\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "social\\tests\\core\\test_agent_monitor_agent.py": {
             "language": ".py",
             "functions": [
                 "setUp",
-                "test_login_timeout_exception_handling",
-                "test_post_element_not_found_handling",
-                "find_element_side_effect"
+                "test_log_event",
+                "test_handle_event_message_task_completed",
+                "test_handle_event_message_task_failed",
+                "test_handle_event_message_generic_error",
+                "test_handle_event_message_unknown"
             ],
             "classes": {
-                "TestTwitterStrategyErrorHandling": {
+                "TestAgentMonitorAgent": {
                     "methods": [
                         "setUp",
-                        "test_login_timeout_exception_handling",
-                        "test_post_element_not_found_handling"
+                        "test_log_event",
+                        "test_handle_event_message_task_completed",
+                        "test_handle_event_message_task_failed",
+                        "test_handle_event_message_generic_error",
+                        "test_handle_event_message_unknown"
                     ],
                     "docstring": null,
                     "base_classes": [
@@ -7099,14 +7225,7 @@
                 }
             },
             "routes": [],
-            "complexity": 7
-        },
-        "social\\tests\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
+            "complexity": 12
         },
         "social\\tests\\core\\test_cursor_control_agent.py": {
             "language": ".py",
@@ -7190,35 +7309,6 @@
             "routes": [],
             "complexity": 12
         },
-        "social\\tests\\core\\test_agent_monitor_agent.py": {
-            "language": ".py",
-            "functions": [
-                "setUp",
-                "test_log_event",
-                "test_handle_event_message_task_completed",
-                "test_handle_event_message_task_failed",
-                "test_handle_event_message_generic_error",
-                "test_handle_event_message_unknown"
-            ],
-            "classes": {
-                "TestAgentMonitorAgent": {
-                    "methods": [
-                        "setUp",
-                        "test_log_event",
-                        "test_handle_event_message_task_completed",
-                        "test_handle_event_message_task_failed",
-                        "test_handle_event_message_generic_error",
-                        "test_handle_event_message_unknown"
-                    ],
-                    "docstring": null,
-                    "base_classes": [
-                        "unittest.TestCase"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 12
-        },
         "social\\tests\\core\\test_prompt_feedback_loop_agent.py": {
             "language": ".py",
             "functions": [
@@ -7251,6 +7341,60 @@
             },
             "routes": [],
             "complexity": 16
+        },
+        "social\\tests\\core\\test_prompt_staging_service.py": {
+            "language": ".py",
+            "functions": [
+                "test_render_prompt_success",
+                "test_render_prompt_state_load_failure",
+                "test_render_prompt_analysis_load_failure",
+                "test_render_prompt_engine_unavailable",
+                "test_render_prompt_render_itself_fails"
+            ],
+            "classes": {
+                "TestPromptStagingServiceRender": {
+                    "methods": [
+                        "test_render_prompt_success",
+                        "test_render_prompt_state_load_failure",
+                        "test_render_prompt_analysis_load_failure",
+                        "test_render_prompt_engine_unavailable",
+                        "test_render_prompt_render_itself_fails"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "unittest.TestCase"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 10
+        },
+        "social\\tests\\core\\test_task_injector.py": {
+            "language": ".py",
+            "functions": [
+                "setUp",
+                "tearDown",
+                "test_initialization",
+                "test_run_cycle_injects_tasks_from_file",
+                "test_run_cycle_no_input_file"
+            ],
+            "classes": {
+                "TestTaskInjector": {
+                    "methods": [
+                        "setUp",
+                        "tearDown",
+                        "test_initialization",
+                        "test_run_cycle_injects_tasks_from_file",
+                        "test_run_cycle_no_input_file"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "unittest.TestCase"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 10
         },
         "social\\tests\\core\\test_task_executor_agent.py": {
             "language": ".py",
@@ -7310,60 +7454,6 @@
             },
             "routes": [],
             "complexity": 42
-        },
-        "social\\tests\\core\\test_task_injector.py": {
-            "language": ".py",
-            "functions": [
-                "setUp",
-                "tearDown",
-                "test_initialization",
-                "test_run_cycle_injects_tasks_from_file",
-                "test_run_cycle_no_input_file"
-            ],
-            "classes": {
-                "TestTaskInjector": {
-                    "methods": [
-                        "setUp",
-                        "tearDown",
-                        "test_initialization",
-                        "test_run_cycle_injects_tasks_from_file",
-                        "test_run_cycle_no_input_file"
-                    ],
-                    "docstring": null,
-                    "base_classes": [
-                        "unittest.TestCase"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 10
-        },
-        "social\\tests\\core\\test_prompt_staging_service.py": {
-            "language": ".py",
-            "functions": [
-                "test_render_prompt_success",
-                "test_render_prompt_state_load_failure",
-                "test_render_prompt_analysis_load_failure",
-                "test_render_prompt_engine_unavailable",
-                "test_render_prompt_render_itself_fails"
-            ],
-            "classes": {
-                "TestPromptStagingServiceRender": {
-                    "methods": [
-                        "test_render_prompt_success",
-                        "test_render_prompt_state_load_failure",
-                        "test_render_prompt_analysis_load_failure",
-                        "test_render_prompt_engine_unavailable",
-                        "test_render_prompt_render_itself_fails"
-                    ],
-                    "docstring": null,
-                    "base_classes": [
-                        "unittest.TestCase"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 10
         },
         "social\\tests\\core\\test_template_engine.py": {
             "language": ".py",
@@ -7439,6 +7529,19 @@
             "routes": [],
             "complexity": 10
         },
+        "social\\tests\\integration\\test_error_recovery.py": {
+            "language": ".py",
+            "functions": [
+                "social_agent",
+                "mock_log_event",
+                "test_login_failure_authentication",
+                "test_post_failure_rate_limit",
+                "test_scrape_failure_timeout"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 5
+        },
         "social\\tests\\integration\\test_core_task_execution.py": {
             "language": ".py",
             "functions": [
@@ -7506,26 +7609,6 @@
             },
             "routes": [],
             "complexity": 2
-        },
-        "social\\tests\\integration\\test_error_recovery.py": {
-            "language": ".py",
-            "functions": [
-                "social_agent",
-                "mock_log_event",
-                "test_login_failure_authentication",
-                "test_post_failure_rate_limit",
-                "test_scrape_failure_timeout"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 5
-        },
-        "social\\tests\\integration\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "social\\tests\\integration\\test_posting_workflow.py": {
             "language": ".py",
@@ -7649,6 +7732,13 @@
             },
             "routes": [],
             "complexity": 42
+        },
+        "social\\tests\\integration\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "social\\tests\\social\\test_facebook_strategy.py": {
             "language": ".py",
@@ -7902,29 +7992,72 @@
             "routes": [],
             "complexity": 40
         },
-        "social\\tests\\strategies\\test_sentiment_analysis.py": {
+        "social\\tests\\strategies\\base_test.py": {
             "language": ".py",
             "functions": [
+                "__init__",
+                "find_element",
+                "find_elements",
+                "get",
+                "quit",
+                "__init__",
+                "click",
+                "send_keys",
+                "is_displayed",
+                "get_attribute",
                 "setUp",
-                "test_direct_sentiment_analysis_benchmarks",
-                "test_twitter_strategy_sentiment_integration",
-                "find_element_side_effect"
+                "tearDown",
+                "assert_logged_event",
+                "simulate_element_present",
+                "simulate_element_not_found",
+                "simulate_login_success",
+                "simulate_login_failure",
+                "simulate_post_success",
+                "simulate_post_failure"
             ],
             "classes": {
-                "TestSentimentAnalysisIntegration": {
+                "MockWebDriver": {
+                    "methods": [
+                        "__init__",
+                        "find_element",
+                        "find_elements",
+                        "get",
+                        "quit"
+                    ],
+                    "docstring": "Mock Selenium WebDriver for testing.",
+                    "base_classes": []
+                },
+                "MockElement": {
+                    "methods": [
+                        "__init__",
+                        "click",
+                        "send_keys",
+                        "is_displayed",
+                        "get_attribute"
+                    ],
+                    "docstring": "Mock Selenium WebElement for testing.",
+                    "base_classes": []
+                },
+                "BaseStrategyTest": {
                     "methods": [
                         "setUp",
-                        "test_direct_sentiment_analysis_benchmarks",
-                        "test_twitter_strategy_sentiment_integration"
+                        "tearDown",
+                        "assert_logged_event",
+                        "simulate_element_present",
+                        "simulate_element_not_found",
+                        "simulate_login_success",
+                        "simulate_login_failure",
+                        "simulate_post_success",
+                        "simulate_post_failure"
                     ],
-                    "docstring": null,
+                    "docstring": "Base test class for all social media strategy tests.",
                     "base_classes": [
                         "unittest.TestCase"
                     ]
                 }
             },
             "routes": [],
-            "complexity": 7
+            "complexity": 38
         },
         "social\\tests\\strategies\\test_facebook_strategy.py": {
             "language": ".py",
@@ -8042,102 +8175,20 @@
             "routes": [],
             "complexity": 51
         },
-        "social\\tests\\strategies\\base_test.py": {
+        "social\\tests\\strategies\\test_sentiment_analysis.py": {
             "language": ".py",
             "functions": [
-                "__init__",
-                "find_element",
-                "find_elements",
-                "get",
-                "quit",
-                "__init__",
-                "click",
-                "send_keys",
-                "is_displayed",
-                "get_attribute",
                 "setUp",
-                "tearDown",
-                "assert_logged_event",
-                "simulate_element_present",
-                "simulate_element_not_found",
-                "simulate_login_success",
-                "simulate_login_failure",
-                "simulate_post_success",
-                "simulate_post_failure"
+                "test_direct_sentiment_analysis_benchmarks",
+                "test_twitter_strategy_sentiment_integration",
+                "find_element_side_effect"
             ],
             "classes": {
-                "MockWebDriver": {
-                    "methods": [
-                        "__init__",
-                        "find_element",
-                        "find_elements",
-                        "get",
-                        "quit"
-                    ],
-                    "docstring": "Mock Selenium WebDriver for testing.",
-                    "base_classes": []
-                },
-                "MockElement": {
-                    "methods": [
-                        "__init__",
-                        "click",
-                        "send_keys",
-                        "is_displayed",
-                        "get_attribute"
-                    ],
-                    "docstring": "Mock Selenium WebElement for testing.",
-                    "base_classes": []
-                },
-                "BaseStrategyTest": {
+                "TestSentimentAnalysisIntegration": {
                     "methods": [
                         "setUp",
-                        "tearDown",
-                        "assert_logged_event",
-                        "simulate_element_present",
-                        "simulate_element_not_found",
-                        "simulate_login_success",
-                        "simulate_login_failure",
-                        "simulate_post_success",
-                        "simulate_post_failure"
-                    ],
-                    "docstring": "Base test class for all social media strategy tests.",
-                    "base_classes": [
-                        "unittest.TestCase"
-                    ]
-                }
-            },
-            "routes": [],
-            "complexity": 38
-        },
-        "social\\tests\\strategies\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "social\\tests\\tools\\test_chat_cursor_bridge.py": {
-            "language": ".py",
-            "functions": [
-                "mock_config_manager",
-                "tearDown",
-                "test_write_to_cursor_input_success",
-                "test_write_to_cursor_input_failure",
-                "test_read_from_cursor_output_success",
-                "test_read_from_cursor_output_file_not_found",
-                "test_read_from_cursor_output_empty_file",
-                "test_read_from_cursor_output_invalid_json"
-            ],
-            "classes": {
-                "TestCursorBridgeFunctions": {
-                    "methods": [
-                        "tearDown",
-                        "test_write_to_cursor_input_success",
-                        "test_write_to_cursor_input_failure",
-                        "test_read_from_cursor_output_success",
-                        "test_read_from_cursor_output_file_not_found",
-                        "test_read_from_cursor_output_empty_file",
-                        "test_read_from_cursor_output_invalid_json"
+                        "test_direct_sentiment_analysis_benchmarks",
+                        "test_twitter_strategy_sentiment_integration"
                     ],
                     "docstring": null,
                     "base_classes": [
@@ -8146,7 +8197,7 @@
                 }
             },
             "routes": [],
-            "complexity": 15
+            "complexity": 7
         },
         "social\\tests\\strategies\\test_twitter_strategy.py": {
             "language": ".py",
@@ -8197,12 +8248,68 @@
             "routes": [],
             "complexity": 32
         },
+        "social\\tests\\strategies\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "social\\tests\\tools\\test_chat_cursor_bridge.py": {
+            "language": ".py",
+            "functions": [
+                "mock_config_manager",
+                "tearDown",
+                "test_write_to_cursor_input_success",
+                "test_write_to_cursor_input_failure",
+                "test_read_from_cursor_output_success",
+                "test_read_from_cursor_output_file_not_found",
+                "test_read_from_cursor_output_empty_file",
+                "test_read_from_cursor_output_invalid_json"
+            ],
+            "classes": {
+                "TestCursorBridgeFunctions": {
+                    "methods": [
+                        "tearDown",
+                        "test_write_to_cursor_input_success",
+                        "test_write_to_cursor_input_failure",
+                        "test_read_from_cursor_output_success",
+                        "test_read_from_cursor_output_file_not_found",
+                        "test_read_from_cursor_output_empty_file",
+                        "test_read_from_cursor_output_invalid_json"
+                    ],
+                    "docstring": null,
+                    "base_classes": [
+                        "unittest.TestCase"
+                    ]
+                }
+            },
+            "routes": [],
+            "complexity": 15
+        },
         "social\\tests\\tools\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
             "routes": [],
             "complexity": 0
+        },
+        "social\\tests\\utils\\test_browser_utils.py": {
+            "language": ".py",
+            "functions": [
+                "mock_uc",
+                "mock_options",
+                "test_get_undetected_driver_headless",
+                "test_get_undetected_driver_with_proxy",
+                "test_get_undetected_driver_with_user_agent",
+                "test_get_undetected_driver_all_options",
+                "test_get_undetected_driver_import_error",
+                "test_get_undetected_driver_chrome_error",
+                "test_get_undetected_driver_options_error"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 9
         },
         "social\\tests\\utils\\test_chatgpt_scraper.py": {
             "language": ".py",
@@ -8256,23 +8363,6 @@
             },
             "routes": [],
             "complexity": 38
-        },
-        "social\\tests\\utils\\test_browser_utils.py": {
-            "language": ".py",
-            "functions": [
-                "mock_uc",
-                "mock_options",
-                "test_get_undetected_driver_headless",
-                "test_get_undetected_driver_with_proxy",
-                "test_get_undetected_driver_with_user_agent",
-                "test_get_undetected_driver_all_options",
-                "test_get_undetected_driver_import_error",
-                "test_get_undetected_driver_chrome_error",
-                "test_get_undetected_driver_options_error"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 9
         },
         "social\\tests\\utils\\test_cursor_utils.py": {
             "language": ".py",
@@ -8562,6 +8652,52 @@
             "routes": [],
             "complexity": 0
         },
+        "social\\utils\\chatgpt_scraper.py": {
+            "language": ".py",
+            "functions": [
+                "main",
+                "__init__",
+                "__enter__",
+                "__exit__",
+                "setup_browser",
+                "cleanup",
+                "save_cookies",
+                "load_cookies",
+                "_perform_login",
+                "scrape_single_chat",
+                "write_json"
+            ],
+            "classes": {
+                "ChatGPTScraper": {
+                    "methods": [
+                        "__init__",
+                        "__enter__",
+                        "__exit__",
+                        "setup_browser",
+                        "cleanup",
+                        "save_cookies",
+                        "load_cookies",
+                        "_perform_login",
+                        "scrape_single_chat"
+                    ],
+                    "docstring": "Manages ChatGPT web scraping operations with session persistence.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 20
+        },
+        "social\\utils\\common.py": {
+            "language": ".py",
+            "functions": [
+                "retry_on_exception",
+                "decorator",
+                "sync_wrapper"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
         "social\\utils\\cursor.py": {
             "language": ".py",
             "functions": [
@@ -8609,40 +8745,36 @@
             "routes": [],
             "complexity": 26
         },
-        "social\\utils\\chatgpt_scraper.py": {
+        "social\\utils\\devlog_analyzer.py": {
             "language": ".py",
             "functions": [
-                "main",
                 "__init__",
-                "__enter__",
-                "__exit__",
-                "setup_browser",
-                "cleanup",
-                "save_cookies",
-                "load_cookies",
-                "_perform_login",
-                "scrape_single_chat",
-                "write_json"
+                "_get_connection",
+                "_init_db",
+                "track_post",
+                "update_metrics",
+                "get_best_posting_times",
+                "get_top_performing_tags",
+                "get_content_insights"
             ],
             "classes": {
-                "ChatGPTScraper": {
+                "DevLogAnalyzer": {
                     "methods": [
                         "__init__",
-                        "__enter__",
-                        "__exit__",
-                        "setup_browser",
-                        "cleanup",
-                        "save_cookies",
-                        "load_cookies",
-                        "_perform_login",
-                        "scrape_single_chat"
+                        "_get_connection",
+                        "_init_db",
+                        "track_post",
+                        "update_metrics",
+                        "get_best_posting_times",
+                        "get_top_performing_tags",
+                        "get_content_insights"
                     ],
-                    "docstring": "Manages ChatGPT web scraping operations with session persistence.",
+                    "docstring": "Analyzes post performance and provides optimization insights.",
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 20
+            "complexity": 16
         },
         "social\\utils\\devlog_dispatcher.py": {
             "language": ".py",
@@ -8690,58 +8822,6 @@
             },
             "routes": [],
             "complexity": 24
-        },
-        "social\\utils\\common.py": {
-            "language": ".py",
-            "functions": [
-                "retry_on_exception",
-                "decorator",
-                "sync_wrapper"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 3
-        },
-        "social\\utils\\devlog_analyzer.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "_get_connection",
-                "_init_db",
-                "track_post",
-                "update_metrics",
-                "get_best_posting_times",
-                "get_top_performing_tags",
-                "get_content_insights"
-            ],
-            "classes": {
-                "DevLogAnalyzer": {
-                    "methods": [
-                        "__init__",
-                        "_get_connection",
-                        "_init_db",
-                        "track_post",
-                        "update_metrics",
-                        "get_best_posting_times",
-                        "get_top_performing_tags",
-                        "get_content_insights"
-                    ],
-                    "docstring": "Analyzes post performance and provides optimization insights.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 16
-        },
-        "social\\utils\\logging_utils.py": {
-            "language": ".py",
-            "functions": [
-                "log_event",
-                "get_logger"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 2
         },
         "social\\utils\\devlog_generator.py": {
             "language": ".py",
@@ -8814,6 +8894,16 @@
             },
             "routes": [],
             "complexity": 8
+        },
+        "social\\utils\\logging_utils.py": {
+            "language": ".py",
+            "functions": [
+                "log_event",
+                "get_logger"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 2
         },
         "social\\utils\\selenium_utils.py": {
             "language": ".py",
@@ -8902,19 +8992,6 @@
             "routes": [],
             "complexity": 7
         },
-        "tests\\test_emotion_detector.py": {
-            "language": ".py",
-            "functions": [
-                "detector",
-                "test_detect_frustration",
-                "test_detect_insight",
-                "test_detect_inspiration",
-                "test_detect_neutral"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 5
-        },
         "tests\\test_fragment_forge_tab.py": {
             "language": ".py",
             "functions": [
@@ -8935,6 +9012,19 @@
             },
             "routes": [],
             "complexity": 2
+        },
+        "tests\\test_emotion_detector.py": {
+            "language": ".py",
+            "functions": [
+                "detector",
+                "test_detect_frustration",
+                "test_detect_insight",
+                "test_detect_inspiration",
+                "test_detect_neutral"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 5
         },
         "tests\\test_governance_memory_engine.py": {
             "language": ".py",
@@ -8996,30 +9086,6 @@
             "routes": [],
             "complexity": 16
         },
-        "tests\\test_monitor_analyzer.py": {
-            "language": ".py",
-            "functions": [
-                "temp_rulebook_for_monitor",
-                "temp_task_pool_empty",
-                "temp_logs_path",
-                "temp_agent_dirs_root",
-                "temp_proposals_path",
-                "test_load_rules",
-                "test_load_tasks_file_not_found",
-                "sample_rules",
-                "test_halt_unnecessary_keyword_match",
-                "test_halt_necessary_no_match",
-                "test_halt_agent_specific_match",
-                "test_halt_agent_specific_no_match",
-                "test_log_unnecessary_halt",
-                "test_broadcast_alert",
-                "test_request_rulebook_update",
-                "test_halt_status_handler"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 16
-        },
         "tests\\test_gpt_command_router.py": {
             "language": ".py",
             "functions": [
@@ -9067,6 +9133,30 @@
             "routes": [],
             "complexity": 30
         },
+        "tests\\test_monitor_analyzer.py": {
+            "language": ".py",
+            "functions": [
+                "temp_rulebook_for_monitor",
+                "temp_task_pool_empty",
+                "temp_logs_path",
+                "temp_agent_dirs_root",
+                "temp_proposals_path",
+                "test_load_rules",
+                "test_load_tasks_file_not_found",
+                "sample_rules",
+                "test_halt_unnecessary_keyword_match",
+                "test_halt_necessary_no_match",
+                "test_halt_agent_specific_match",
+                "test_halt_agent_specific_no_match",
+                "test_log_unnecessary_halt",
+                "test_broadcast_alert",
+                "test_request_rulebook_update",
+                "test_halt_status_handler"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 16
+        },
         "tests\\test_prompt_router.py": {
             "language": ".py",
             "functions": [
@@ -9111,31 +9201,6 @@
             "routes": [],
             "complexity": 18
         },
-        "tests\\test_task_visualizer_app.py": {
-            "language": ".py",
-            "functions": [
-                "temp_empty_file",
-                "temp_invalid_json",
-                "temp_valid_tasks",
-                "test_read_tasks_empty",
-                "test_read_tasks_invalid",
-                "test_read_tasks_valid",
-                "test_load_task_data_empty",
-                "test_load_task_data_valid",
-                "error"
-            ],
-            "classes": {
-                "DummySt": {
-                    "methods": [
-                        "error"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 10
-        },
         "tests\\test_saga_orchestrator.py": {
             "language": ".py",
             "functions": [
@@ -9177,6 +9242,31 @@
             "routes": [],
             "complexity": 14
         },
+        "tests\\test_task_visualizer_app.py": {
+            "language": ".py",
+            "functions": [
+                "temp_empty_file",
+                "temp_invalid_json",
+                "temp_valid_tasks",
+                "test_read_tasks_empty",
+                "test_read_tasks_invalid",
+                "test_read_tasks_valid",
+                "test_load_task_data_empty",
+                "test_load_task_data_valid",
+                "error"
+            ],
+            "classes": {
+                "DummySt": {
+                    "methods": [
+                        "error"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 10
+        },
         "tests\\test_template_engine.py": {
             "language": ".py",
             "functions": [
@@ -9213,6 +9303,31 @@
             "routes": [],
             "complexity": 0
         },
+        "tests\\adapters\\test_registry.py": {
+            "language": ".py",
+            "functions": [
+                "test_registry_contains_adapters",
+                "test_openai_adapter_instantiation",
+                "test_cursor_rpc_adapter_instantiation",
+                "test_discord_adapter_instantiation",
+                "test_invalid_adapter_name",
+                "test_crew_agent_uses_default_adapter",
+                "__init__",
+                "execute"
+            ],
+            "classes": {
+                "DummyAdapter": {
+                    "methods": [
+                        "__init__",
+                        "execute"
+                    ],
+                    "docstring": null,
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 10
+        },
         "tests\\coordination\\cursor\\test_cursor_chat_coordinator.py": {
             "language": ".py",
             "functions": [
@@ -9235,31 +9350,6 @@
                     "base_classes": [
                         "unittest.TestCase"
                     ]
-                }
-            },
-            "routes": [],
-            "complexity": 10
-        },
-        "tests\\adapters\\test_registry.py": {
-            "language": ".py",
-            "functions": [
-                "test_registry_contains_adapters",
-                "test_openai_adapter_instantiation",
-                "test_cursor_rpc_adapter_instantiation",
-                "test_discord_adapter_instantiation",
-                "test_invalid_adapter_name",
-                "test_crew_agent_uses_default_adapter",
-                "__init__",
-                "execute"
-            ],
-            "classes": {
-                "DummyAdapter": {
-                    "methods": [
-                        "__init__",
-                        "execute"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
                 }
             },
             "routes": [],
@@ -9628,16 +9718,6 @@
             "routes": [],
             "complexity": 4
         },
-        "tools\\dreamscape_chronicle.py": {
-            "language": ".py",
-            "functions": [
-                "generate_chronicle",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 2
-        },
         "tests\\tools\\test_compile_lore_cli.py": {
             "language": ".py",
             "functions": [
@@ -9658,6 +9738,16 @@
             "routes": [],
             "complexity": 1
         },
+        "tools\\dreamscape_chronicle.py": {
+            "language": ".py",
+            "functions": [
+                "generate_chronicle",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 2
+        },
         "tools\\onboarding_splitter.py": {
             "language": ".py",
             "functions": [
@@ -9667,6 +9757,15 @@
             "classes": {},
             "routes": [],
             "complexity": 2
+        },
+        "tools\\thea_strategist.py": {
+            "language": ".py",
+            "functions": [
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
         },
         "typer\\testing.py": {
             "language": ".py",
@@ -9694,15 +9793,6 @@
             },
             "routes": [],
             "complexity": 6
-        },
-        "tools\\thea_strategist.py": {
-            "language": ".py",
-            "functions": [
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
         },
         "typer\\__init__.py": {
             "language": ".py",
@@ -9897,6 +9987,7 @@
                 "sync_event_with_board",
                 "save_state",
                 "_append_task_to_list",
+                "load_state_fallback",
                 "closeEvent",
                 "cleanup_resources"
             ],
@@ -9919,6 +10010,7 @@
                         "sync_event_with_board",
                         "save_state",
                         "_append_task_to_list",
+                        "load_state_fallback",
                         "closeEvent",
                         "cleanup_resources"
                     ],
@@ -9929,7 +10021,7 @@
                 }
             },
             "routes": [],
-            "complexity": 24
+            "complexity": 26
         },
         "ui\\task_visualizer_app.py": {
             "language": ".py",
@@ -9941,14 +10033,14 @@
             "routes": [],
             "complexity": 2
         },
-        "_agent_coordination\\config.py": {
+        "ui\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
             "routes": [],
             "complexity": 0
         },
-        "ui\\__init__.py": {
+        "_agent_coordination\\config.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
@@ -10021,48 +10113,6 @@
             "routes": [],
             "complexity": 0
         },
-        "_agent_coordination\\examples\\onboarding_message_injector.py": {
-            "language": ".py",
-            "functions": [
-                "inject_initial_onboarding_message"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "_agent_coordination\\monitors\\mailbox_monitor_agent.py": {
-            "language": ".py",
-            "functions": [
-                "acquire_lock",
-                "release_lock",
-                "__init__",
-                "_read_mailbox_file",
-                "_write_mailbox",
-                "_add_task_to_list",
-                "_get_mailbox_files",
-                "_process_unread_messages",
-                "_transform_message_to_task",
-                "stop"
-            ],
-            "classes": {
-                "MailboxMonitorAgent": {
-                    "methods": [
-                        "__init__",
-                        "_read_mailbox_file",
-                        "_write_mailbox",
-                        "_add_task_to_list",
-                        "_get_mailbox_files",
-                        "_process_unread_messages",
-                        "_transform_message_to_task",
-                        "stop"
-                    ],
-                    "docstring": null,
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 18
-        },
         "_agent_coordination\\dispatchers\\task_dispatcher.py": {
             "language": ".py",
             "functions": [
@@ -10090,6 +10140,34 @@
             },
             "routes": [],
             "complexity": 13
+        },
+        "_agent_coordination\\examples\\onboarding_message_injector.py": {
+            "language": ".py",
+            "functions": [
+                "inject_initial_onboarding_message"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "_agent_coordination\\coordinators\\cursor_chat_coordinator.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "interpret_response"
+            ],
+            "classes": {
+                "CursorChatCoordinator": {
+                    "methods": [
+                        "__init__",
+                        "interpret_response"
+                    ],
+                    "docstring": "Agent responsible for managing high-level conversational task execution inside a Cursor instance.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 4
         },
         "_agent_coordination\\examples\\reflection_agent.py": {
             "language": ".py",
@@ -10136,33 +10214,40 @@
             "routes": [],
             "complexity": 4
         },
-        "_agent_coordination\\coordinators\\cursor_chat_coordinator.py": {
+        "_agent_coordination\\monitors\\mailbox_monitor_agent.py": {
             "language": ".py",
             "functions": [
+                "acquire_lock",
+                "release_lock",
                 "__init__",
-                "interpret_response"
+                "_read_mailbox_file",
+                "_write_mailbox",
+                "_add_task_to_list",
+                "_get_mailbox_files",
+                "_process_unread_messages",
+                "_transform_message_to_task",
+                "stop"
             ],
             "classes": {
-                "CursorChatCoordinator": {
+                "MailboxMonitorAgent": {
                     "methods": [
                         "__init__",
-                        "interpret_response"
+                        "_read_mailbox_file",
+                        "_write_mailbox",
+                        "_add_task_to_list",
+                        "_get_mailbox_files",
+                        "_process_unread_messages",
+                        "_transform_message_to_task",
+                        "stop"
                     ],
-                    "docstring": "Agent responsible for managing high-level conversational task execution inside a Cursor instance.",
+                    "docstring": null,
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 4
+            "complexity": 18
         },
         "_agent_coordination\\runtime\\agent_entrypoint.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "_agent_coordination\\state_machines\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
@@ -10201,6 +10286,13 @@
             "routes": [],
             "complexity": 10
         },
+        "_agent_coordination\\state_machines\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
         "_agent_coordination\\supervisor_tools\\apply_proposals.py": {
             "language": ".py",
             "functions": [
@@ -10222,56 +10314,12 @@
             "routes": [],
             "complexity": 2
         },
-        "_agent_coordination\\supervisor_tools\\project_scanner\\cli\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
-        "_agent_coordination\\tasks\\consolidate_tasks.py": {
-            "language": ".py",
-            "functions": [
-                "load_all_tasks",
-                "dedupe_tasks",
-                "split_and_write",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 4
-        },
         "_agent_coordination\\supervisor_tools\\project_scanner\\__init__.py": {
             "language": ".py",
             "functions": [],
             "classes": {},
             "routes": [],
             "complexity": 0
-        },
-        "_agent_coordination\\tasks\\organize_task_pool_v1.py": {
-            "language": ".py",
-            "functions": [
-                "is_output_file",
-                "load_tasks_from_file",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 3
-        },
-        "_agent_coordination\\tests\\test_agent_registry.py": {
-            "language": ".py",
-            "functions": [
-                "clear_registry_before_each",
-                "test_reflection_agent_registered",
-                "test_get_agent_class",
-                "test_get_unknown_agent_class",
-                "test_agent_instantiation_and_run_smoke",
-                "test_duplicate_registration_error"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 6
         },
         "_agent_coordination\\supervisor_tools\\project_scanner\\project_scanner.py": {
             "language": ".py",
@@ -10389,6 +10437,59 @@
             },
             "routes": [],
             "complexity": 70
+        },
+        "_agent_coordination\\tasks\\organize_task_pool_v1.py": {
+            "language": ".py",
+            "functions": [
+                "is_output_file",
+                "load_tasks_from_file",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
+        "_agent_coordination\\supervisor_tools\\project_scanner\\cli\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
+        },
+        "_agent_coordination\\tasks\\consolidate_tasks.py": {
+            "language": ".py",
+            "functions": [
+                "load_all_tasks",
+                "dedupe_tasks",
+                "split_and_write",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 4
+        },
+        "_agent_coordination\\tasks\\deduplicate_tasks.py": {
+            "language": ".py",
+            "functions": [
+                "deduplicate_by_description"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "_agent_coordination\\tests\\test_agent_registry.py": {
+            "language": ".py",
+            "functions": [
+                "clear_registry_before_each",
+                "test_reflection_agent_registered",
+                "test_get_agent_class",
+                "test_get_unknown_agent_class",
+                "test_agent_instantiation_and_run_smoke",
+                "test_duplicate_registration_error"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 6
         },
         "_agent_coordination\\tests\\test_apply_proposals.py": {
             "language": ".py",
@@ -10533,28 +10634,6 @@
             "routes": [],
             "complexity": 13
         },
-        "_agent_coordination\\tests\\agents\\test_stall_recovery_agent.py": {
-            "language": ".py",
-            "functions": [
-                "temp_project",
-                "recovery_agent",
-                "test_stall_detection_and_context",
-                "test_recovery_task_injection",
-                "test_stall_logging",
-                "test_task_fields_populated",
-                "test_specific_stall_category_no_input"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 7
-        },
-        "_agent_coordination\\tests\\core\\test_agent_bus.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "_agent_coordination\\tests\\test_template_engine.py": {
             "language": ".py",
             "functions": [
@@ -10576,6 +10655,28 @@
             "classes": {},
             "routes": [],
             "complexity": 14
+        },
+        "_agent_coordination\\tests\\agents\\test_stall_recovery_agent.py": {
+            "language": ".py",
+            "functions": [
+                "temp_project",
+                "recovery_agent",
+                "test_stall_detection_and_context",
+                "test_recovery_task_injection",
+                "test_stall_logging",
+                "test_task_fields_populated",
+                "test_specific_stall_category_no_input"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 7
+        },
+        "_agent_coordination\\tests\\core\\test_agent_bus.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "_agent_coordination\\tests\\core\\test_base_utils.py": {
             "language": ".py",
@@ -10705,41 +10806,44 @@
             "routes": [],
             "complexity": 6
         },
-        "_agent_coordination\\tests\\tools\\test_cursor_metrics.py": {
+        "_agent_coordination\\tests\\social\\utils\\test_chatgpt_scraper.py": {
             "language": ".py",
             "functions": [
-                "mock_directories",
-                "clean_registry",
-                "test_execution_metrics_success",
-                "test_execution_metrics_failure",
-                "test_error_metrics",
-                "test_queue_metrics",
-                "test_processing_time_tracking",
-                "test_multiple_error_types",
-                "test_queue_metrics_error_handling",
-                "test_execution_metrics_default_agent",
-                "test_concurrent_metric_updates",
-                "random_update"
+                "mock_session",
+                "scraper",
+                "test_initialization",
+                "test_login_success",
+                "test_login_failure",
+                "test_verify_session",
+                "test_get_conversation_history",
+                "test_get_conversation_messages",
+                "test_send_message",
+                "test_rate_limit_handling",
+                "test_error_response_handling",
+                "test_retry_mechanism",
+                "test_cleanup"
             ],
             "classes": {
-                "TestCursorMetrics": {
+                "TestChatGPTScraper": {
                     "methods": [
-                        "test_execution_metrics_success",
-                        "test_execution_metrics_failure",
-                        "test_error_metrics",
-                        "test_queue_metrics",
-                        "test_processing_time_tracking",
-                        "test_multiple_error_types",
-                        "test_queue_metrics_error_handling",
-                        "test_execution_metrics_default_agent",
-                        "test_concurrent_metric_updates"
+                        "test_initialization",
+                        "test_login_success",
+                        "test_login_failure",
+                        "test_verify_session",
+                        "test_get_conversation_history",
+                        "test_get_conversation_messages",
+                        "test_send_message",
+                        "test_rate_limit_handling",
+                        "test_error_response_handling",
+                        "test_retry_mechanism",
+                        "test_cleanup"
                     ],
-                    "docstring": "Test suite for cursor metrics functionality.",
+                    "docstring": "Test suite for ChatGPT scraping functionality.",
                     "base_classes": []
                 }
             },
             "routes": [],
-            "complexity": 21
+            "complexity": 24
         },
         "_agent_coordination\\tests\\social\\utils\\test_chatgpt_templating.py": {
             "language": ".py",
@@ -10779,6 +10883,42 @@
             "routes": [],
             "complexity": 17
         },
+        "_agent_coordination\\tests\\tools\\test_cursor_metrics.py": {
+            "language": ".py",
+            "functions": [
+                "mock_directories",
+                "clean_registry",
+                "test_execution_metrics_success",
+                "test_execution_metrics_failure",
+                "test_error_metrics",
+                "test_queue_metrics",
+                "test_processing_time_tracking",
+                "test_multiple_error_types",
+                "test_queue_metrics_error_handling",
+                "test_execution_metrics_default_agent",
+                "test_concurrent_metric_updates",
+                "random_update"
+            ],
+            "classes": {
+                "TestCursorMetrics": {
+                    "methods": [
+                        "test_execution_metrics_success",
+                        "test_execution_metrics_failure",
+                        "test_error_metrics",
+                        "test_queue_metrics",
+                        "test_processing_time_tracking",
+                        "test_multiple_error_types",
+                        "test_queue_metrics_error_handling",
+                        "test_execution_metrics_default_agent",
+                        "test_concurrent_metric_updates"
+                    ],
+                    "docstring": "Test suite for cursor metrics functionality.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 21
+        },
         "_agent_coordination\\tests\\tools\\test_cursor_result_listener.py": {
             "language": ".py",
             "functions": [
@@ -10796,45 +10936,6 @@
             "classes": {},
             "routes": [],
             "complexity": 10
-        },
-        "_agent_coordination\\tests\\social\\utils\\test_chatgpt_scraper.py": {
-            "language": ".py",
-            "functions": [
-                "mock_session",
-                "scraper",
-                "test_initialization",
-                "test_login_success",
-                "test_login_failure",
-                "test_verify_session",
-                "test_get_conversation_history",
-                "test_get_conversation_messages",
-                "test_send_message",
-                "test_rate_limit_handling",
-                "test_error_response_handling",
-                "test_retry_mechanism",
-                "test_cleanup"
-            ],
-            "classes": {
-                "TestChatGPTScraper": {
-                    "methods": [
-                        "test_initialization",
-                        "test_login_success",
-                        "test_login_failure",
-                        "test_verify_session",
-                        "test_get_conversation_history",
-                        "test_get_conversation_messages",
-                        "test_send_message",
-                        "test_rate_limit_handling",
-                        "test_error_response_handling",
-                        "test_retry_mechanism",
-                        "test_cleanup"
-                    ],
-                    "docstring": "Test suite for ChatGPT scraping functionality.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 24
         },
         "_agent_coordination\\tests\\tools\\test_event_bus.py": {
             "language": ".py",
@@ -10998,6 +11099,18 @@
             "routes": [],
             "complexity": 2
         },
+        "_agent_coordination\\tools\\diagnostics.py": {
+            "language": ".py",
+            "functions": [
+                "check_directory_exists",
+                "check_file_exists",
+                "check_json_file",
+                "run_diagnostics"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 4
+        },
         "_agent_coordination\\tools\\dreamctl.py": {
             "language": ".py",
             "functions": [
@@ -11011,18 +11124,6 @@
             "classes": {},
             "routes": [],
             "complexity": 6
-        },
-        "_agent_coordination\\tools\\diagnostics.py": {
-            "language": ".py",
-            "functions": [
-                "check_directory_exists",
-                "check_file_exists",
-                "check_json_file",
-                "run_diagnostics"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 4
         },
         "_agent_coordination\\tools\\event_bus.py": {
             "language": ".py",
@@ -11083,16 +11184,6 @@
             "routes": [],
             "complexity": 3
         },
-        "_agent_coordination\\tools\\monitor_console.py": {
-            "language": ".py",
-            "functions": [
-                "count_json_files",
-                "monitor_loop"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 2
-        },
         "_agent_coordination\\tools\\log_analyzer.py": {
             "language": ".py",
             "functions": [
@@ -11103,31 +11194,21 @@
             "routes": [],
             "complexity": 2
         },
+        "_agent_coordination\\tools\\monitor_console.py": {
+            "language": ".py",
+            "functions": [
+                "count_json_files",
+                "monitor_loop"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 2
+        },
         "_agent_coordination\\tools\\parse_feedback_stats.py": {
             "language": ".py",
             "functions": [
                 "load_latest_stats",
                 "load_feedback",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 3
-        },
-        "_agent_coordination\\tools\\run_agent.py": {
-            "language": ".py",
-            "functions": [
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "_agent_coordination\\tools\\proposal_security_scanner.py": {
-            "language": ".py",
-            "functions": [
-                "log_security_finding",
-                "scan_proposal_block",
                 "main"
             ],
             "classes": {},
@@ -11152,6 +11233,17 @@
             "routes": [],
             "complexity": 4
         },
+        "_agent_coordination\\tools\\proposal_security_scanner.py": {
+            "language": ".py",
+            "functions": [
+                "log_security_finding",
+                "scan_proposal_block",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
         "_agent_coordination\\tools\\reload_agent_context.py": {
             "language": ".py",
             "functions": [
@@ -11170,83 +11262,10 @@
             "routes": [],
             "complexity": 1
         },
-        "_agent_coordination\\tools\\set_project.py": {
+        "_agent_coordination\\tools\\run_agent.py": {
             "language": ".py",
             "functions": [
                 "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "_agent_coordination\\tools\\supervisor_task_consolidator.py": {
-            "language": ".py",
-            "functions": [
-                "load_all_tasks",
-                "split_and_write",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 3
-        },
-        "_agent_coordination\\utils\\agent_registry.py": {
-            "language": ".py",
-            "functions": [
-                "register_agent",
-                "get_agent_class",
-                "get_registered_agents"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 3
-        },
-        "_agent_coordination\\tools\\swarm_orchestrator.py": {
-            "language": ".py",
-            "functions": [
-                "load_json",
-                "save_json",
-                "log_to_mailboxes",
-                "assign_tasks",
-                "collect_results",
-                "main"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 6
-        },
-        "_agent_coordination\\utils\\emotion_detector.py": {
-            "language": ".py",
-            "functions": [
-                "__init__",
-                "detect_emotion"
-            ],
-            "classes": {
-                "EmotionCueDetector": {
-                    "methods": [
-                        "__init__",
-                        "detect_emotion"
-                    ],
-                    "docstring": "Detects emotional cues in reflection text using simple keyword heuristics.",
-                    "base_classes": []
-                }
-            },
-            "routes": [],
-            "complexity": 4
-        },
-        "_agent_coordination\\utils\\common_utils.py": {
-            "language": ".py",
-            "functions": [
-                "add_proposal"
-            ],
-            "classes": {},
-            "routes": [],
-            "complexity": 1
-        },
-        "_agent_coordination\\utils\\mailbox_utils.py": {
-            "language": ".py",
-            "functions": [
-                "process_directory_loop"
             ],
             "classes": {},
             "routes": [],
@@ -11269,6 +11288,88 @@
             "routes": [],
             "complexity": 9
         },
+        "_agent_coordination\\tools\\set_project.py": {
+            "language": ".py",
+            "functions": [
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "_agent_coordination\\tools\\supervisor_task_consolidator.py": {
+            "language": ".py",
+            "functions": [
+                "load_all_tasks",
+                "split_and_write",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
+        "_agent_coordination\\tools\\swarm_orchestrator.py": {
+            "language": ".py",
+            "functions": [
+                "load_json",
+                "save_json",
+                "log_to_mailboxes",
+                "assign_tasks",
+                "collect_results",
+                "main"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 6
+        },
+        "_agent_coordination\\utils\\agent_registry.py": {
+            "language": ".py",
+            "functions": [
+                "register_agent",
+                "get_agent_class",
+                "get_registered_agents"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 3
+        },
+        "_agent_coordination\\utils\\common_utils.py": {
+            "language": ".py",
+            "functions": [
+                "add_proposal"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
+        "_agent_coordination\\utils\\emotion_detector.py": {
+            "language": ".py",
+            "functions": [
+                "__init__",
+                "detect_emotion"
+            ],
+            "classes": {
+                "EmotionCueDetector": {
+                    "methods": [
+                        "__init__",
+                        "detect_emotion"
+                    ],
+                    "docstring": "Detects emotional cues in reflection text using simple keyword heuristics.",
+                    "base_classes": []
+                }
+            },
+            "routes": [],
+            "complexity": 4
+        },
+        "_agent_coordination\\utils\\mailbox_utils.py": {
+            "language": ".py",
+            "functions": [
+                "process_directory_loop"
+            ],
+            "classes": {},
+            "routes": [],
+            "complexity": 1
+        },
         "_agent_coordination\\utils\\task_utils.py": {
             "language": ".py",
             "functions": [
@@ -11279,6 +11380,13 @@
             "classes": {},
             "routes": [],
             "complexity": 3
+        },
+        "_agent_coordination\\utils\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "_archive\\visual_cursor_control\\coordination\\cursor\\bridge_adapter.py": {
             "language": ".py",
@@ -11311,13 +11419,6 @@
             },
             "routes": [],
             "complexity": 12
-        },
-        "_agent_coordination\\utils\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
         },
         "_archive\\visual_cursor_control\\coordination\\cursor\\cursor_instance_controller.py": {
             "language": ".py",
@@ -11356,13 +11457,6 @@
             "routes": [],
             "complexity": 16
         },
-        "_core\\__init__.py": {
-            "language": ".py",
-            "functions": [],
-            "classes": {},
-            "routes": [],
-            "complexity": 0
-        },
         "_archive\\visual_cursor_control\\coordination\\cursor\\task_execution_state_machine.py": {
             "language": ".py",
             "functions": [
@@ -11398,6 +11492,13 @@
             },
             "routes": [],
             "complexity": 4
+        },
+        "_core\\__init__.py": {
+            "language": ".py",
+            "functions": [],
+            "classes": {},
+            "routes": [],
+            "complexity": 0
         },
         "_core\\coordination\\__init__.py": {
             "language": ".py",
