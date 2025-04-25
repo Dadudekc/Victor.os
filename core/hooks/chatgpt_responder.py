@@ -15,7 +15,7 @@ class ChatGPTResponder:
         if self.dev_mode:
             return self.scraper.ask(message)
         else:
-            return self.adapter.complete(message)
+            return self.adapter.execute({"prompt": message})
 
     def respond_to_mailbox(self, mailbox_data: dict) -> dict:
         """Processes last user message and appends the GPT reply to messages."""

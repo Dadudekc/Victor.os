@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QSplitter, QWidget,
     QVBoxLayout, QTableWidget, QTableWidgetItem, QTabWidget,
     QComboBox, QTextEdit, QPushButton, QShortcut, QLabel,
-    QLineEdit, QAbstractItemView, QInputDialog, QMessageBox
+    QLineEdit, QAbstractItemView, QInputDialog, QMessageBox,
+    QCheckBox
 )
 from PyQt5.QtGui import QKeySequence, QColor
 from PyQt5.QtCore import Qt, QTimer
@@ -113,6 +114,11 @@ class DashboardWindow(QMainWindow):
 
     def _setup_mailboxes_tab(self):
         w = QWidget(); layout = QVBoxLayout(w)
+        # Dev/Prod toggle for ChatGPTResponder
+        self.dev_toggle = QCheckBox("Dev Mode", w)
+        self.dev_toggle.setChecked(self.responder.dev_mode)
+        self.dev_toggle.stateChanged.connect(self._toggle_dev_mode)
+        layout.addWidget(self.dev_toggle)
         self.mailbox_table = QTableWidget(); self.msg_view = QTextEdit(); self.msg_view.setReadOnly(True)
         self.mailbox_table.itemSelectionChanged.connect(self.update_messages)
         layout.addWidget(QLabel("Shared Mailboxes"))
@@ -260,6 +266,13 @@ class DashboardWindow(QMainWindow):
 
     def _on_reject(self):
         pyautogui.hotkey("ctrl","backspace")
+
+    def _toggle_dev_mode(self, state: int):
+        """Recreate the ChatGPTResponder in dev or prod mode."""
+        dev = self.dev_toggle.isChecked()
+        self.responder = ChatGPTResponder(dev_mode=dev) if ChatGPTResponder else None
+        mode = 'dev' if dev else 'prod'
+        print(f"🔄 ChatGPTResponder switched to {mode} mode")
 
 
 if __name__ == "__main__":
