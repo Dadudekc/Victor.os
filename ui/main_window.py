@@ -10,6 +10,9 @@ from PyQt5.QtGui import QFont, QIcon # Import QIcon
 
 import json
 from pathlib import Path
+import os
+import uuid
+from datetime import datetime
 # Commented out problematic import
 # from core.services.event_logger import log_structured_event 
 
@@ -24,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 # Define path to task list
 TASK_LIST_PATH = Path(__file__).parent.parent / "task_list.json"
+
+# Determine project root for structured events logging
+UI_DIR = Path(__file__).parent
+PROJECT_ROOT = UI_DIR.parent
 
 # Placeholder for Task Manager logic
 class DummyTaskManager:
@@ -191,9 +198,45 @@ class DreamOSMainWindow(QMainWindow):
          """
          log_info = {"sync_type": sync_type, "data_keys": list(data.keys())}
          logger.info(f"[Stub] Syncing '{sync_type}' with Central Agent Board. Data: {data}")
-         # Log using the core service (Commented out)
-         # log_structured_event("GUI_BOARD_SYNC_ATTEMPT", log_info, "DreamOSMainWindow")
-
+         # Handle state_save events with validation and atomic writing
+         if sync_type == "state_save":
+             # Enforce schema: 'status' must be present
+             if not isinstance(data, dict) or "status" not in data:
+                 logger.error("sync_event_with_board: 'state_save' missing required 'status' field")
+                 # Fallback: reload last known good state and alert recovery flow
+                 logger.info("sync_event_with_board: triggering fallback reload")
+                 try:
+                     self.load_state_fallback()
+                 except Exception as e:
+                     logger.error(f"Error during fallback load: {e}")
+                 # Alert recovery downstream
+                 self.notify_mailbox("state_recovery_needed", {"reason": "missing status"})
+                 return
+             # Atomic append to structured_events.jsonl
+             try:
+                 structured_file = PROJECT_ROOT / "runtime" / "structured_events.jsonl"
+                 tmp_file = structured_file.with_suffix('.tmp')
+                 record = {
+                     "id": uuid.uuid4().hex,
+                     "timestamp": datetime.utcnow().isoformat(),
+                     "type": "GUI_STATE_SAVE",
+                     "source": "DreamOSMainWindow",
+                     "data": data
+                 }
+                 # Preserve existing lines
+                 existing = []
+                 if structured_file.exists():
+                     existing = structured_file.read_text(encoding='utf-8').splitlines(keepends=True)
+                 with open(tmp_file, 'w', encoding='utf-8') as f:
+                     for line in existing:
+                         f.write(line)
+                     f.write(json.dumps(record) + "\n")
+                 os.replace(str(tmp_file), str(structured_file))
+                 logger.info("sync_event_with_board: state_save event logged atomically")
+             except Exception as e:
+                 logger.error(f"sync_event_with_board: failed to write state_save event: {e}", exc_info=True)
+             return
+         
          # If this is the task add sync, append to task_list.json
          if sync_type == "task_add" and isinstance(data, dict) and 'id' in data:
              self._append_task_to_list(data)
@@ -201,8 +244,9 @@ class DreamOSMainWindow(QMainWindow):
     def save_state(self):
         """Placeholder for saving application/agent state."""
         logger.info("[Stub] Saving local agent/application state...")
-        # Simulate syncing state with board (as seen in main.py test)
-        self.sync_event_with_board("state_save", {"status": "saved"})
+        # Simulate syncing state with board, ensure status is passed
+        state_data = {"status": "saved"}
+        self.sync_event_with_board("state_save", state_data)
 
     def _append_task_to_list(self, task_data: dict):
         """Appends a task dictionary to the task_list.json file."""
@@ -233,6 +277,14 @@ class DreamOSMainWindow(QMainWindow):
             logger.error(f"Failed to append task to {TASK_LIST_PATH}: {e}", exc_info=True)
             # Log using the core service (Commented out)
             # log_structured_event("GUI_TASK_APPEND_FAILED", {"task_id": task_data.get('id'), "error": str(e)}, "DreamOSMainWindow")
+
+    def load_state_fallback(self):
+        """
+        Fallback routine to reload the last known good state.
+        """
+        logger.warning("load_state_fallback: reloading last known good state (not implemented)")
+        # TODO: integrate with core state loader or recovery agent flow
+        pass
 
     # --- Window Management ---
         
