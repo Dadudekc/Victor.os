@@ -124,5 +124,29 @@
     },
     "result_summary": null,
     "error_message": null
+  },
+  {
+    "task_id": "001",
+    "payload": "Simulated response payload for task 001",
+    "status": "claimed",
+    "claimed_by": "Worker-1"
+  },
+  {
+    "task_id": "002",
+    "payload": "Simulated response payload for task 002",
+    "status": "claimed",
+    "claimed_by": "Worker-1"
+  },
+  {
+    "task_id": "001",
+    "payload": "Simulated response payload for task 001",
+    "status": "claimed",
+    "claimed_by": "Worker-1"
+  },
+  {
+    "task_id": "002",
+    "payload": "Simulated response payload for task 002",
+    "status": "claimed",
+    "claimed_by": "Worker-2"
   }
 ]

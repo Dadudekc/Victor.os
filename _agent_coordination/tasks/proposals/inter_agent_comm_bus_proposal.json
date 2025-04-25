@@ -1,0 +1,11 @@
+{
+  "proposal_id": "MD_EVENT_BUS",
+  "title": "Event Bus & Acknowledgment Protocol Proposal",
+  "description": "Replace ad-hoc mailbox polling with a lightweight publish/subscribe broker that guarantees delivery, ordering, and acknowledgment across agents.",
+  "benefits": [
+    "Real-time, push-based communication instead of periodic polling.",
+    "Built-in reliability, retries, and observability of message flows.",
+    "Simplifies agent and controller loops by abstracting away mailbox polling."
+  ],
+  "status": "proposed"
+} 
