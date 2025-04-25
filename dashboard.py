@@ -419,10 +419,26 @@ class Dashboard(QMainWindow):
         QMessageBox.information(self, "Capture", "Place cursor, press OK")
         x, y = pyautogui.position()
         QApplication.restoreOverrideCursor()
-        aid, ok = QInputDialog.getText(self, "Agent ID", "Enter ID:")
-        if ok and aid.strip():
-            save_agent_spot(aid.strip(), (x, y))
-            self.refresh()
+        # let user select existing agent or create new
+        coords = _load_coords()
+        items = list(coords.keys()) + ["< New Agent >"]
+        choice, ok = QInputDialog.getItem(self, "Agent ID", "Select agent or new:", items, editable=False)
+        if not ok:
+            return
+        if choice == "< New Agent >":
+            aid, ok2 = QInputDialog.getText(self, "Agent ID", "Enter new Agent ID:")
+            if not ok2 or not aid.strip():
+                return
+            agent_id = aid.strip()
+        else:
+            agent_id = choice
+        save_agent_spot(agent_id, (x, y))
+        logging.info("Spot saved %s → (%d,%d)", agent_id, x, y)
+        # set this agent as the default for future actions
+        CFG.default_agent = agent_id
+        QMessageBox.information(self, "Default Agent", f"Default agent set to {agent_id}")
+        # refresh views
+        self.refresh()
 
     # ───────── dev / prod toggle ─────────
     def _flip_mode(self, checked: bool) -> None:
