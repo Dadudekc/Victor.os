@@ -5,7 +5,7 @@ class ChatGPTResponder:
     def __init__(self, dev_mode=False):
         self.dev_mode = dev_mode
         if dev_mode:
-            from dream_mode.chatgpt_scraper.chatgpt_scraper import ChatGPTScraper
+            from social.utils.chatgpt_scraper import ChatGPTScraper
             self.scraper = ChatGPTScraper()
         else:
             from dream_os.adapters.openai_adapter import OpenAIAdapter
