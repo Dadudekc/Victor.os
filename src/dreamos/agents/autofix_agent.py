@@ -11,7 +11,7 @@ import signal
 import sys
 import logging
 
-from dream_os.services.task_nexus import import import get_all_tasks, claim_task
+from dream_os.services.task_nexus import import import import get_all_tasks, claim_task
 from dreamos.orchestrator import run_cycle
 from dreamos.config import Config
 
