@@ -15,7 +15,7 @@ try:
     # Import the target module
     import agents.reflection_agent.reflection_agent as reflection_agent
     # Import dependency from core for mocking
-    import core.governance_memory_engine as governance_memory_engine
+    import dreamos.governance_memory_engine as governance_memory_engine
     module_load_error = None
 except ImportError as e:
     reflection_agent = None

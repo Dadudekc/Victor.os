@@ -40,13 +40,13 @@ import os # Import os for basename
 from typing import TYPE_CHECKING, Optional
 
 # Placeholder for Template Engine and Memory Manager (to be imported from core)
-# from core.rendering import TemplateEngine 
-# from core.memory import MemoryManager
+# from dreamos.rendering import TemplateEngine 
+# from dreamos.memory import MemoryManager
 
 # Type hinting imports
 if TYPE_CHECKING:
-    from core.memory.memory_manager import MemoryManager
-    from core.rendering.template_engine import TemplateEngine
+    from dreamos.memory.memory_manager import MemoryManager
+    from dreamos.rendering.template_engine import TemplateEngine
 
 logger = logging.getLogger(__name__)
 

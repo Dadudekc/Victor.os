@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException, NoSuchElementException, TimeoutException
 
 from .base_strategy import BaseSocialStrategy
-from core.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError
 from utils.logging_utils import setup_logging
 from utils.browser_utils import wait_and_click, wait_and_send_keys
 from utils.selenium_utils import wait_for_element, safe_click, safe_send_keys, navigate_to

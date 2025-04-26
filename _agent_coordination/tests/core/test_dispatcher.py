@@ -1,7 +1,7 @@
 import pytest
 import asyncio
-from core.coordination.dispatcher import EventDispatcher, EventType, Event
-from core.agent_bus import AgentBus
+from dreamos.coordination.dispatcher import EventDispatcher, EventType, Event
+from dreamos.agent_bus import AgentBus
 
 @pytest.fixture
 async def agent_bus():

@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 import time
-from core.utils.metrics import (
+from dreamos.utils.metrics import (
     MetricPoint, MetricCollector, TimingStats, Timer
 )
 

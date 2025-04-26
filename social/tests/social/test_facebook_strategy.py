@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch
-from core.strategies.facebook_strategy import FacebookStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError
+from dreamos.strategies.facebook_strategy import FacebookStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError
 
 @pytest.fixture
 def mock_config():

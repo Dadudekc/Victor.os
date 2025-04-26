@@ -15,7 +15,7 @@ if project_root not in sys.path:
 # ------------------------------------
 
 # Module to test
-from core.memory import governance_memory_engine
+from dreamos.memory import governance_memory_engine
 
 
 class TestGovernanceMemoryEngine(unittest.TestCase):

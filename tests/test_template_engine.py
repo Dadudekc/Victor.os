@@ -9,9 +9,9 @@ sys.path.insert(0, project_root)
 
 # Import from core module
 try:
-    from core.template_engine import render_template
+    from dreamos.template_engine import render_template
     # Attempt to import necessary components for re-initialization if needed
-    from core.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR, env as engine_env
+    from dreamos.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR, env as engine_env
     from jinja2 import Environment, FileSystemLoader
     module_load_error = None
 except ImportError as e:
@@ -100,7 +100,7 @@ class TestTemplateEngine(unittest.TestCase):
 
 if __name__ == '__main__':
     if module_load_error:
-        print(f"\nCannot run tests: Failed to import template_engine module from core.")
+        print(f"\nCannot run tests: Failed to import template_engine module from dreamos.")
         print(f"Error: {module_load_error}")
     else:
         unittest.main() 

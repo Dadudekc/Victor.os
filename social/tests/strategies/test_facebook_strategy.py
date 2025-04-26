@@ -7,8 +7,8 @@ from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 
-from core.strategies.facebook_strategy import FacebookStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError
+from dreamos.strategies.facebook_strategy import FacebookStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError
 from tests.strategies.base_strategy_test import BaseStrategyTest
 
 # Mock setup_logging

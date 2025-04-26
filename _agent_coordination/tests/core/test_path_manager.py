@@ -2,7 +2,7 @@ import pytest
 import os
 import tempfile
 from pathlib import Path
-from core.coordination.path_manager import PathManager, FileType, FileNode
+from dreamos.coordination.path_manager import PathManager, FileType, FileNode
 
 @pytest.fixture
 def temp_dir():

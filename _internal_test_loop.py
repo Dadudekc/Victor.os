@@ -16,8 +16,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger("_InternalTestLoop")
 
 try:
-    from core.tools.registry import get_registry
-    from core.agents.tool_executor_agent import ToolExecutionAgent
+    from dreamos.tools.registry import get_registry
+    from dreamos.agents.tool_executor_agent import ToolExecutionAgent
     logger.info("Core components imported successfully.")
 except ImportError as e:
     logger.error(f"Failed to import core components: {e}", exc_info=True)
@@ -27,8 +27,8 @@ except ImportError as e:
         if parent_dir not in sys.path:
             logger.info(f"Adding {parent_dir} to sys.path")
             sys.path.insert(0, parent_dir)
-        from core.tools.registry import get_registry
-        from core.agents.tool_executor_agent import ToolExecutionAgent
+        from dreamos.tools.registry import get_registry
+        from dreamos.agents.tool_executor_agent import ToolExecutionAgent
         logger.info("Core components imported successfully after path adjustment.")
     except ImportError as e2:
         logger.error(f"Still failed to import core components after path adjustment: {e2}", exc_info=True)

@@ -15,8 +15,8 @@ if project_root not in sys.path:
 try:
     from core import prompt_staging_service
     from tools import chat_cursor_bridge
-    from core.memory import governance_memory_engine # For mocking log_event
-    from core.memory import supervisor_memory # For mocking load_state
+    from dreamos.memory import governance_memory_engine # For mocking log_event
+    from dreamos.memory import supervisor_memory # For mocking load_state
     _core_imports_ok = True
 except ImportError as e:
     print(f"Error importing core modules for integration test: {e}")
@@ -27,7 +27,7 @@ from agents.dreamforge.core.prompt_staging_service import write_to_cursor_input,
 
 # Assume other necessary imports like SocialMediaAgent, TaskContext, process_feedback are correct
 from social.core.agents.social_media_agent import SocialMediaAgent
-from core.models.task_context import TaskContext
+from dreamos.models.task_context import TaskContext
 
 @unittest.skipUnless(_core_imports_ok, "Core dependencies not met, skipping integration test")
 class TestFullPromptCycleSimulation(unittest.TestCase):

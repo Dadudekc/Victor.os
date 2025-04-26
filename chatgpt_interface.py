@@ -3,7 +3,7 @@ Interface to ChatGPTResponder via HTTP auto-fix endpoint.
 """
 from typing import Dict, Any
 import requests
-from config import Config
+from dreamos.config import Config
 
 
 def refine(context: Dict[str, Any]) -> str:

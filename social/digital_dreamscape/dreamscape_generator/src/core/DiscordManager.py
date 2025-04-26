@@ -1,5 +1,5 @@
 import logging
-import config # Use project config for potential settings like webhook URL
+import dreamos.config as config # Use project config for potential settings like webhook URL
 
 logger = logging.getLogger(__name__)
 

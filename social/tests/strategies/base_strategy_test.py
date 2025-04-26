@@ -8,8 +8,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
-from core.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
-from core.exceptions.strategy_exceptions import StrategyError
+from dreamos.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
+from dreamos.exceptions.strategy_exceptions import StrategyError
 
 class MockStrategy(BaseStrategy):
     """Mock strategy for testing base functionality."""

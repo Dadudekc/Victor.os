@@ -7,8 +7,8 @@ from typing import Dict, Any
 import subprocess
 import time
 import pyautogui
-from config import Config
-from core.agent_utils import click_agent_spot as click_spot, paste_from_clipboard
+from dreamos.config import Config
+from dreamos.agent_utils import click_agent_spot as click_spot, paste_from_clipboard
 
 
 def send_prompt(context: Dict[str, Any]) -> None:

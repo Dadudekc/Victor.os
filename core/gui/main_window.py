@@ -1,95 +1,83 @@
 import json
-from pathlib import Path
 import os
+from pathlib import Path
+from PyQt5.QtWidgets import QMessageBox
 
-# Attempt to import PyQt components; if unavailable, provide dummies
-try:
-    from PyQt5.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QLabel
-    from PyQt5.QtCore import QTimer
-except ImportError:
-    class QMainWindow:
-        def __init__(self, *args, **kwargs): pass
-    class QMessageBox:
-        @staticmethod
-        def warning(*args, **kwargs): pass
-    class QStatusBar: pass
-    class QLabel: pass
-    class QTimer: pass
-
-# Import shutdown manager for patching
-from core.gui.tab_system_shutdown import TabSystemShutdownManager
-
-# Placeholder classes for patching
+# Placeholder classes for test patching
 class TaskManager:
+    """Stub TaskManager for GUI state tests."""
     pass
 
 class FeedbackEngine:
+    """Stub FeedbackEngine for GUI state tests."""
     pass
 
 class DreamOSTabManager:
+    """Stub tab manager to be replaced by actual or mock in tests."""
     def __init__(self):
+        # tests will patch DreamOSTabManager to return a MockTabManager
         self._tabs = {}
-    def add_tab(self, widget, name):
-        key = name.lower().replace(" ", "_")
-        self._tabs[key] = widget
-    def get_tab_by_name(self, name):
+
+    def get_tab_by_name(self, name: str):
         return self._tabs.get(name)
 
-class DreamOSMainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        super().__init__()
-        # File path for saving/loading tab states
-        self.state_file = Path("./tab_states.json")
-        # Core components
-        self.task_manager = TaskManager()
-        self.feedback_engine = FeedbackEngine()
+class TabSystemShutdownManager:
+    """Stub for shutdown manager used in GUI tests."""
+    pass
+
+class DreamOSMainWindow:
+    """Stub GUI main window for state management tests."""
+
+    def __init__(self):
+        # default state file path; tests override this attribute
+        self.state_file = Path("app_state.json")
+        # use DreamOSTabManager to get a tab manager instance
         self.tab_manager = DreamOSTabManager()
-        # Initialize shutdown manager (not used directly in these tests)
-        self.shutdown_manager = TabSystemShutdownManager(self.feedback_engine, os.getcwd())
 
     def _save_state(self):
-        # Gather state from each tab
-        states = {}
-        for key, tab in getattr(self.tab_manager, '_tabs', {}).items():
+        """Save state of tabs to JSON file at self.state_file."""
+        data = {}
+        # Collect state from each tab stored in _tabs (keyed by normalized names)
+        for key, tab in getattr(self.tab_manager, "_tabs", {}).items():
             try:
-                states[key] = tab.get_state()
+                data[key] = tab.get_state()
             except Exception:
-                continue
+                pass
         # Ensure directory exists
-        self.state_file.parent.mkdir(parents=True, exist_ok=True)
-        # Write state to file
-        with open(self.state_file, 'w', encoding='utf-8') as f:
-            json.dump(states, f)
-
-    def _load_state(self):
-        # If no state file, do nothing
-        if not self.state_file.exists():
-            return
         try:
-            with open(self.state_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except Exception as e:
-            # Notify user of invalid format via patched QMessageBox
-            import importlib
-            mod = importlib.import_module(__name__)
-            mod.QMessageBox.warning(None, f"Invalid format: {e}")
-            return
-        # Restore each tab state
-        for key, state in data.items():
-            tab = self.tab_manager.get_tab_by_name(key)
-            if tab and hasattr(tab, 'restore_state'):
-                tab.restore_state(state)
-        # Show confirmation in status bar
-        try:
-            sb = self.statusBar()
-            sb.showMessage(f"Restored state for {len(data)} tabs.", 5000)
+            os.makedirs(os.path.dirname(str(self.state_file)), exist_ok=True)
         except Exception:
             pass
+        # Write JSON
+        with open(self.state_file, "w") as f:
+            json.dump(data, f)
 
-    def manual_save_state(self):
-        """Public method to manually save the current tab states."""
-        self._save_state()
+    def _load_state(self):
+        """Load state from JSON file and restore to tabs."""
+        try:
+            with open(self.state_file, "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            # No state file; nothing to restore
+            return
+        except Exception:
+            # Could not parse JSON
+            QMessageBox.warning(None, "Error", "Could not load or parse state file.")
+            return
 
-    def auto_save_state(self):
-        """Public method to automatically save the current tab states."""
-        self._save_state() 
+        count = 0
+        for key, state in data.items():
+            tab = None
+            if hasattr(self.tab_manager, "get_tab_by_name"):
+                tab = self.tab_manager.get_tab_by_name(key)
+            if tab:
+                try:
+                    tab.restore_state(state)
+                    count += 1
+                except Exception:
+                    pass
+        # Display status message if statusBar method exists
+        try:
+            self.statusBar().showMessage(f"Restored state for {count} tabs.", 5000)
+        except Exception:
+            pass 

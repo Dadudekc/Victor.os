@@ -20,8 +20,8 @@ if project_root not in sys.path:
 # from strategy_exceptions import LoginError, ScrapeError, PostError, RateLimitError
 
 # Assuming RedditStrategy exists in core.strategies
-from core.strategies.reddit_strategy import RedditStrategy
-from core.exceptions.strategy_exceptions import LoginError, ScrapeError, PostError, RateLimitError
+from dreamos.strategies.reddit_strategy import RedditStrategy
+from dreamos.exceptions.strategy_exceptions import LoginError, ScrapeError, PostError, RateLimitError
 
 # Mock setup_logging
 @pytest.fixture(autouse=True)

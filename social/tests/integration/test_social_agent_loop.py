@@ -16,9 +16,9 @@ if project_root not in sys.path:
 
 # Import the class to test and dependencies to mock
 try:
-    from core.agents.social_media_agent import SocialMediaAgent, AGENT_ID
-    from core.utils.mailbox_handler import MailboxHandler
-    from core.strategies.base_strategy import BaseSocialStrategy
+    from dreamos.agents.social_media_agent import SocialMediaAgent, AGENT_ID
+    from dreamos.utils.mailbox_handler import MailboxHandler
+    from dreamos.strategies.base_strategy import BaseSocialStrategy
     _imports_ok = True
 except ImportError as e:
     print(f"Error importing modules for SocialAgent integration test: {e}")

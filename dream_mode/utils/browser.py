@@ -17,7 +17,7 @@ from typing import Optional
 dds_src = Path(__file__).parent.parent.parent / "social" / "digital_dreamscape" / "dreamscape_generator" / "src"
 if str(dds_src) not in sys.path:
     sys.path.insert(0, str(dds_src))
-from core.UnifiedDriverManager import UnifiedDriverManager
+from dreamos.UnifiedDriverManager import UnifiedDriverManager
 
 logger = logging.getLogger("BrowserUtils")
 _manager: Optional[UnifiedDriverManager] = None

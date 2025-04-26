@@ -3,9 +3,17 @@
 CLI tool to split USER_ONBOARDING.md by section and distribute each section as a Markdown file
 into each agent's inbox directory under a base path.
 """
-import os
+import sys
+from pathlib import Path
 import re
 import argparse
+
+# Setup Python path to import coordination utils
+SCRIPT_DIR = Path(__file__).parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+sys.path.append(str(PROJECT_ROOT))
+
+from _agent_coordination.utils.mailbox_utils import dispatch_message_to_agent
 
 def split_onboarding(input_file: str, output_base: str, agents: list, sections: list):
     # Read full onboarding file
@@ -17,19 +25,26 @@ def split_onboarding(input_file: str, output_base: str, agents: list, sections: 
     # Iterate through matches and extract section content
     for i, m in enumerate(matches):
         title = m.group('title').strip()
-        if title in sections:
+        # If sections list is empty, include all headings; otherwise filter
+        if not sections or title in sections:
             start = m.start()
             end = matches[i+1].start() if i+1 < len(matches) else len(content)
             section_text = content[start:end].strip() + '\n'
             # Write section to each agent inbox
             for agent in agents:
-                inbox_dir = os.path.join(output_base, agent, 'inbox')
-                os.makedirs(inbox_dir, exist_ok=True)
-                filename = title.replace(' ', '_') + '.md'
-                out_path = os.path.join(inbox_dir, filename)
-                with open(out_path, 'w') as out_f:
-                    out_f.write(section_text)
-                print(f"Written section '{title}' to {out_path}")
+                # EDIT START: dispatch onboarding section message using shared helper
+                mailbox_root = Path(output_base)
+                payload = {
+                    "event_type": "ONBOARDING_SECTION",
+                    "section_title": title,
+                    "section_content": section_text
+                }
+                success = dispatch_message_to_agent(mailbox_root, agent, payload)
+                if success:
+                    print(f"Dispatched section '{title}' to agent '{agent}' inbox")
+                else:
+                    print(f"Failed to dispatch section '{title}' to agent '{agent}'")
+                # EDIT END
 
 def main():
     parser = argparse.ArgumentParser(

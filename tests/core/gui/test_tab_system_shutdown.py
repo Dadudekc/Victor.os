@@ -44,7 +44,7 @@ class MockTab:
         return self._prep_success
 
 # Import the class to be tested
-from core.gui.tab_system_shutdown import TabSystemShutdownManager
+from ui.tab_system_shutdown import TabSystemShutdownManager
 
 class TestTabSystemShutdown(unittest.TestCase):
 
@@ -61,7 +61,7 @@ class TestTabSystemShutdown(unittest.TestCase):
         )
 
         # Mock the logger within the shutdown manager module
-        self.patcher_logger = patch('core.gui.tab_system_shutdown.logger')
+        self.patcher_logger = patch('ui.tab_system_shutdown.logger')
         self.mock_logger = self.patcher_logger.start()
 
         # Mock datetime to control timestamps if needed (optional)
@@ -70,7 +70,7 @@ class TestTabSystemShutdown(unittest.TestCase):
         # self.mock_datetime.utcnow.return_value = datetime(2023, 1, 1, 12, 0, 0)
 
         # Mock os.replace for testing atomic write
-        self.patcher_os_replace = patch('core.gui.tab_system_shutdown.os.replace')
+        self.patcher_os_replace = patch('ui.tab_system_shutdown.os.replace')
         self.mock_os_replace = self.patcher_os_replace.start()
 
     def tearDown(self):

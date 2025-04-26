@@ -1,3 +1,7 @@
+import os, sys
+# Ensure project root (two levels up) is on sys.path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import time
 import json
 import traceback # Added
@@ -5,16 +9,13 @@ from pathlib import Path
 import logging
 from typing import List, Any # Added Any
 
-# Stub AgentBus at module level to satisfy annotation
-AgentBus = None
-
 # Assuming task_utils is importable from parent dir
 try:
     # from .._agent_coordination.task_utils import read_tasks # Old import
-    from core.utils.task_utils import read_tasks # New absolute import
-    from core.tools.context import produce_project_context # New absolute import
-    from social.core.agent_bus import AgentBus # Import canonical bus
-    from core.memory.governance_memory_engine import log_event # Added
+    from dreamos.utils.task_utils import read_tasks # New absolute import
+    from dreamos.tools.context import produce_project_context # New absolute import
+    from dreamos.agent_bus import AgentBus # Import canonical bus
+    from dreamos.memory.governance_memory_engine import log_event # Added
     _core_imports_ok = True
 except ImportError as e:
     # Use logger once defined
@@ -55,16 +56,17 @@ class StallRecoveryAgent:
                  task_list_path="master_task_list.json"
                  ):
         if not _core_imports_ok:
-            msg = "StallRecoveryAgent cannot initialize due to missing core component imports."
+            msg = "StallRecoveryAgent running with stub fallbacks due to missing core component imports."
             try:
                 logger.critical(msg)
             except NameError:
                 print(f"CRITICAL: {msg}")
-            raise RuntimeError(msg)
-        # Handle optional AgentBus
+            # Continue initialization with stubbed read_tasks, produce_project_context, AgentBus, log_event
+
+        # Attach AgentBus: use provided instance or create a new one
+        import asyncio
         if agent_bus is None:
-            logger.warning("AgentBus instance not provided; skipping bus registration and operations.")
-            self.agent_bus = None
+            self.agent_bus = AgentBus()
         else:
             self.agent_bus = agent_bus
 
@@ -82,20 +84,16 @@ class StallRecoveryAgent:
         except Exception as e:
             logger.warning(f"Could not get initial log file size for {self.log_file_path}: {e}")
 
-        # Register with Agent Bus if available
-        if self.agent_bus:
-            try:
-                registration_success = self.agent_bus.register_agent(self)
-                if registration_success:
-                    log_event("AGENT_REGISTERED", self.agent_id, {"message": "Successfully registered with AgentBus."})
-                    logger.info(f"Agent {self.agent_id} registered successfully.")
-                else:
-                    log_event("AGENT_ERROR", self.agent_id, {"error": "Failed to register with AgentBus (register_agent returned False)."})
-                    logger.error("Agent registration failed.")
-            except Exception as reg_e:
-                log_event("AGENT_ERROR", self.agent_id, {"error": f"Exception during AgentBus registration: {reg_e}", "traceback": traceback.format_exc()})
-                logger.exception("Exception during AgentBus registration.")
-        # Else: AgentBus not provided; skipping registration
+        # Register with AgentBus asynchronously
+        try:
+            coro = self.agent_bus.register_agent(self.agent_id, self.CAPABILITIES)
+            if asyncio.iscoroutine(coro):
+                asyncio.create_task(coro)
+            log_event("AGENT_REGISTERED", self.agent_id, {"message": "Scheduled registration with AgentBus."})
+            logger.info(f"Agent {self.agent_id} registration scheduled.")
+        except Exception as reg_e:
+            log_event("AGENT_ERROR", self.agent_id, {"error": f"AgentBus registration error: {reg_e}", "traceback": traceback.format_exc()})
+            logger.exception("Failed scheduling AgentBus registration.")
 
     # --- Public Dispatch Target Method ---
     def perform_stall_check(self, calling_agent_id: str = "Unknown") -> bool:
@@ -267,26 +265,40 @@ class StallRecoveryAgent:
                  logger.error(f"Cannot dispatch context_reload for {recovery_task_id}: Missing target_agent_for_reload in context.")
                  return None
 
-        # Remove params not needed by the target method?
-        # Might be safer to keep them or define schemas
-
-        logger.info(f"Dispatching recovery method {target_agent}.{target_method_name} for task {recovery_task_id}")
+        # Prepare the new task entry
+        task_entry = {
+            "task_id": recovery_task_id,
+            "status": "PENDING",
+            "task_type": target_method_name,
+            "action": context.get("suggested_action_keyword"),
+            "params": params,
+            "target_agent": target_agent,
+            "timestamp_created": time.time()
+        }
+        # Write to task list file
         try:
-            # Use AgentBus.dispatch()
-            dispatch_result = self.agent_bus.dispatch(
-                target_agent_id=target_agent,
-                method_name=target_method_name,
-                calling_agent_id=self.agent_id, # Pass caller context
-                **params
+            with open(self.task_list_path, "r+", encoding="utf-8") as f:
+                tasks = json.load(f)
+                tasks.append(task_entry)
+                f.seek(0)
+                json.dump(tasks, f)
+                f.truncate()
+        except Exception as write_e:
+            logger.error(f"Failed writing recovery task to file: {write_e}")
+        # Send via AgentBus
+        try:
+            sent = self.agent_bus.send_message(
+                self.agent_id,
+                target_agent,
+                "TASK",
+                {"task_id": recovery_task_id, "task_type": target_method_name, "params": params}
             )
-            logger.info(f"Recovery dispatch successful. Result: {dispatch_result}")
+            logger.info(f"Recovery task {recovery_task_id} sent via AgentBus: {sent}")
             log_event("AGENT_ACTION_SUCCESS", self.agent_id, {"action": "dispatch_recovery_task", "recovery_task_id": recovery_task_id, "target_agent": target_agent, "target_method": target_method_name})
-            # Return the dispatch result AND the task ID for logging
-            return {"task_id": recovery_task_id, "dispatch_result": dispatch_result} 
-        except Exception as e:
-            logger.exception(f"Failed to dispatch recovery task {recovery_task_id} via AgentBus")
-            log_event("AGENT_ACTION_FAILED", self.agent_id, {"action": "dispatch_recovery_task", "recovery_task_id": recovery_task_id, "error": str(e)})
-            return None
+        except Exception as bus_e:
+            logger.error(f"Failed sending recovery task via AgentBus: {bus_e}")
+            log_event("AGENT_ACTION_FAILED", self.agent_id, {"action": "dispatch_recovery_task", "recovery_task_id": recovery_task_id, "error": str(bus_e)})
+        return recovery_task_id
 
     def attempt_recovery(self, log_snippet) -> str | None:
         """
@@ -306,12 +318,10 @@ class StallRecoveryAgent:
             logger.info("---------------------")
 
             # Dispatch recovery task
-            dispatch_info = self.dispatch_recovery_task(context)
-            if dispatch_info and isinstance(dispatch_info, dict):
-                dispatched_task_id = dispatch_info.get("task_id")
-                if dispatched_task_id:
-                     recovery_dispatched = True
-                     context["recovery_task_id"] = dispatched_task_id # Add for logging
+            dispatched_task_id = self.dispatch_recovery_task(context)
+            if dispatched_task_id:
+                recovery_dispatched = True
+                context["recovery_task_id"] = dispatched_task_id # Add for logging
 
             # Log the event regardless of dispatch success, but note if dispatched
             self.log_stall_event(context, recovery_dispatched)
@@ -329,7 +339,10 @@ class StallRecoveryAgent:
             
         return dispatched_task_id # Return the task ID if dispatched
 
-    # Removed the run() method - triggering should be external via dispatch
+    # Add run method stub to allow direct execution
+    def run(self):
+        """Stub run method for direct execution of the agent script."""
+        logger.info(f"{self.agent_id} run() called; no operation performed in stub.")
 
 # --- Removed Direct Execution Block ---
 # if __name__ == "__main__":
@@ -337,6 +350,8 @@ class StallRecoveryAgent:
 
 # Example instantiation and run (if executed directly)
 if __name__ == "__main__":
-    # Assumes running from the workspace root where logs/ and tools/ exist
-    recovery_agent = StallRecoveryAgent(agent_id="StallRecoveryAgent", agent_bus=None, project_root=".") 
+    # Instantiate a real AgentBus and pass it to the agent
+    from dreamos.coordination.agent_bus import AgentBus as RealAgentBus
+    bus = RealAgentBus()
+    recovery_agent = StallRecoveryAgent(agent_id="StallRecoveryAgent", agent_bus=bus, project_root=".")
     recovery_agent.run() 

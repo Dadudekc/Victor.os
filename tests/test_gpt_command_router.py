@@ -16,9 +16,9 @@ sys.path.insert(0, project_root)
 # (missing except block) is not manually fixed first.
 try:
     # Import the target module from core
-    import core.gpt_command_router as gpt_command_router
+    import dreamos.gpt_command_router as gpt_command_router
     # Import dependency from core
-    import core.governance_memory_engine as governance_memory_engine
+    import dreamos.governance_memory_engine as governance_memory_engine
     module_load_error = None
 except SyntaxError as e:
     # Handle specific syntax error preventing import
@@ -251,7 +251,7 @@ class TestGptCommandRouter(unittest.TestCase):
 
 if __name__ == '__main__':
     if module_load_error:
-        print(f"\nCannot run tests: Failed to import gpt_command_router module from core.")
+        print(f"\nCannot run tests: Failed to import gpt_command_router module from dreamos.")
         print(f"Error: {module_load_error}")
         if "SyntaxError" in str(module_load_error):
              print("Please ensure the syntax error (missing except block) in core/gpt_command_router.py is fixed manually.")

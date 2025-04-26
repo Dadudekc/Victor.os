@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 
 # Module to test (from core)
 try:
-    import core.governance_memory_engine as governance_memory_engine
+    import dreamos.governance_memory_engine as governance_memory_engine
     module_load_error = None
 except ImportError as e:
     governance_memory_engine = None
@@ -109,7 +109,7 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
 
 if __name__ == '__main__':
     if module_load_error:
-        print(f"\nCannot run tests: Failed to import governance_memory_engine module from core.")
+        print(f"\nCannot run tests: Failed to import governance_memory_engine module from dreamos.")
         print(f"Error: {module_load_error}")
     else:
         unittest.main() 

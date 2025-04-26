@@ -66,21 +66,13 @@
     "cli.py": {
         "language": ".py",
         "functions": [
+            "configure_logging",
             "run",
             "log_stats",
-            "get_help",
-            "setup_logging"
+            "validate_config",
+            "version"
         ],
         "classes": {
-            "DreamGroup": {
-                "methods": [
-                    "get_help"
-                ],
-                "docstring": null,
-                "base_classes": [
-                    "click.Group"
-                ]
-            },
             "ConfigError": {
                 "methods": [],
                 "docstring": null,
@@ -255,52 +247,112 @@
     "dashboard.py": {
         "language": ".py",
         "functions": [
+            "_safe_json",
+            "_qcolor",
+            "_avatar",
+            "_md",
             "__init__",
-            "_setup_tasks_tab",
-            "_setup_mailboxes_tab",
-            "_setup_agents_tab",
-            "_setup_comm_tab",
-            "refresh_all",
-            "_load_tasks",
-            "_load_mailboxes",
-            "inject_task",
-            "claim_next_task",
-            "update_messages",
-            "capture_spot",
-            "refresh_agents_table",
-            "_on_accept",
-            "_on_reject",
-            "add_task",
-            "get_all_tasks",
-            "claim_task"
+            "rowCount",
+            "columnCount",
+            "headerData",
+            "data",
+            "refresh",
+            "__init__",
+            "rowCount",
+            "columnCount",
+            "headerData",
+            "data",
+            "refresh",
+            "__init__",
+            "_init_tasks_tab",
+            "_init_mailbox_tab",
+            "_init_agents_tab",
+            "_init_refresh",
+            "refresh",
+            "_load_box",
+            "_render_messages",
+            "_send_reply",
+            "_ai_reply",
+            "_create_mailbox",
+            "_inject_task",
+            "_claim_next",
+            "_capture_spot",
+            "_flip_mode",
+            "keyPressEvent",
+            "__init__",
+            "on_any_event"
         ],
         "classes": {
-            "DashboardWindow": {
+            "Config": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            },
+            "MailboxTable": {
                 "methods": [
                     "__init__",
-                    "_setup_tasks_tab",
-                    "_setup_mailboxes_tab",
-                    "_setup_agents_tab",
-                    "_setup_comm_tab",
-                    "refresh_all",
-                    "_load_tasks",
-                    "_load_mailboxes",
-                    "inject_task",
-                    "claim_next_task",
-                    "update_messages",
-                    "capture_spot",
-                    "refresh_agents_table",
-                    "_on_accept",
-                    "_on_reject"
+                    "rowCount",
+                    "columnCount",
+                    "headerData",
+                    "data",
+                    "refresh"
                 ],
-                "docstring": "Main dashboard for Dream.OS agents, tasks, mailboxes, etc.",
+                "docstring": null,
+                "base_classes": [
+                    "QAbstractTableModel"
+                ]
+            },
+            "TaskTable": {
+                "methods": [
+                    "__init__",
+                    "rowCount",
+                    "columnCount",
+                    "headerData",
+                    "data",
+                    "refresh"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "QAbstractTableModel"
+                ]
+            },
+            "Dashboard": {
+                "methods": [
+                    "__init__",
+                    "_init_tasks_tab",
+                    "_init_mailbox_tab",
+                    "_init_agents_tab",
+                    "_init_refresh",
+                    "refresh",
+                    "_load_box",
+                    "_render_messages",
+                    "_send_reply",
+                    "_ai_reply",
+                    "_create_mailbox",
+                    "_inject_task",
+                    "_claim_next",
+                    "_capture_spot",
+                    "_flip_mode",
+                    "keyPressEvent"
+                ],
+                "docstring": null,
                 "base_classes": [
                     "QMainWindow"
+                ]
+            },
+            "H": {
+                "methods": [
+                    "__init__",
+                    "on_any_event"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "FileSystemEventHandler"
                 ]
             }
         },
         "routes": [],
-        "complexity": 33
+        "complexity": 64
     },
     "chat_mate_config.py": {
         "language": ".py",
@@ -1839,6 +1891,7 @@
             "log_stall_event",
             "dispatch_recovery_task",
             "attempt_recovery",
+            "run",
             "read_tasks",
             "produce_project_context",
             "log_event"
@@ -1852,14 +1905,15 @@
                     "check_for_stall",
                     "log_stall_event",
                     "dispatch_recovery_task",
-                    "attempt_recovery"
+                    "attempt_recovery",
+                    "run"
                 ],
                 "docstring": "Detects system stalls by monitoring logs and dispatches recovery tasks via AgentBus.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 17
+        "complexity": 19
     },
     "agents\\recovery\\supervisor_oria_agent.py": {
         "language": ".py",
@@ -2522,11 +2576,14 @@
             "_save_coords",
             "save_agent_spot",
             "get_agent_spot",
-            "click_agent_spot"
+            "click_agent_spot",
+            "screenshot_spot",
+            "copy_to_clipboard",
+            "paste_from_clipboard"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 5
+        "complexity": 8
     },
     "core\\config.py": {
         "language": ".py",
@@ -3152,81 +3209,47 @@
         "language": ".py",
         "functions": [
             "__init__",
-            "add_tab",
             "get_tab_by_name",
             "__init__",
             "_save_state",
-            "_load_state",
-            "manual_save_state",
-            "auto_save_state",
-            "__init__",
-            "warning"
+            "_load_state"
         ],
         "classes": {
             "TaskManager": {
                 "methods": [],
-                "docstring": null,
+                "docstring": "Stub TaskManager for GUI state tests.",
                 "base_classes": []
             },
             "FeedbackEngine": {
                 "methods": [],
-                "docstring": null,
+                "docstring": "Stub FeedbackEngine for GUI state tests.",
                 "base_classes": []
             },
             "DreamOSTabManager": {
                 "methods": [
                     "__init__",
-                    "add_tab",
                     "get_tab_by_name"
                 ],
-                "docstring": null,
+                "docstring": "Stub tab manager to be replaced by actual or mock in tests.",
+                "base_classes": []
+            },
+            "TabSystemShutdownManager": {
+                "methods": [],
+                "docstring": "Stub for shutdown manager used in GUI tests.",
                 "base_classes": []
             },
             "DreamOSMainWindow": {
                 "methods": [
                     "__init__",
                     "_save_state",
-                    "_load_state",
-                    "manual_save_state",
-                    "auto_save_state"
+                    "_load_state"
                 ],
-                "docstring": null,
-                "base_classes": [
-                    "QMainWindow"
-                ]
-            },
-            "QMainWindow": {
-                "methods": [
-                    "__init__"
-                ],
-                "docstring": null,
-                "base_classes": []
-            },
-            "QMessageBox": {
-                "methods": [
-                    "warning"
-                ],
-                "docstring": null,
-                "base_classes": []
-            },
-            "QStatusBar": {
-                "methods": [],
-                "docstring": null,
-                "base_classes": []
-            },
-            "QLabel": {
-                "methods": [],
-                "docstring": null,
-                "base_classes": []
-            },
-            "QTimer": {
-                "methods": [],
-                "docstring": null,
+                "docstring": "Stub GUI main window for state management tests.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 20
+        "complexity": 10
     },
     "core\\gui\\tab_system_shutdown.py": {
         "language": ".py",
@@ -10159,7 +10182,7 @@
                     "__init__",
                     "interpret_response"
                 ],
-                "docstring": "Agent responsible for managing high-level conversational task execution inside a Cursor instance.",
+                "docstring": "Stub coordinator for cursor chat tasks.",
                 "base_classes": []
             }
         },
@@ -10595,20 +10618,16 @@
             "test_dirs",
             "create_test_file",
             "test_directory_creation",
-            "test_successful_processing",
-            "test_failed_processing",
-            "test_process_func_exception",
+            "test_process_variants",
             "test_wrong_file_suffix",
             "test_stop_event_handling",
-            "process_func",
-            "process_func",
-            "process_func",
+            "wrap",
             "process_func",
             "process_func"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 14
+        "complexity": 10
     },
     "_agent_coordination\\tests\\test_reflection_agent.py": {
         "language": ".py",
@@ -11361,11 +11380,12 @@
     "_agent_coordination\\utils\\mailbox_utils.py": {
         "language": ".py",
         "functions": [
-            "process_directory_loop"
+            "process_directory_loop",
+            "dispatch_message_to_agent"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 1
+        "complexity": 2
     },
     "_agent_coordination\\utils\\task_utils.py": {
         "language": ".py",
@@ -11516,7 +11536,7 @@
                     "__init__",
                     "interpret_response"
                 ],
-                "docstring": null,
+                "docstring": "Stub coordinator for cursor chat tasks.",
                 "base_classes": []
             }
         },
@@ -11524,6 +11544,428 @@
         "complexity": 4
     },
     "_core\\coordination\\cursor\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "evaluator.py": {
+        "language": ".py",
+        "functions": [
+            "evaluate"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "chatgpt_interface.py": {
+        "language": ".py",
+        "functions": [
+            "refine"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "cursor_interface.py": {
+        "language": ".py",
+        "functions": [
+            "send_prompt",
+            "fetch_reply"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "config.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "Config": {
+                "methods": [],
+                "docstring": "Central configuration for Dream.OS Auto-Fix Loop",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "core\\agent_bus.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "AgentStatus": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "Enum"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "core\\coordination\\agent_bus.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_start_event_system",
+            "register_handler"
+        ],
+        "classes": {
+            "AgentBus": {
+                "methods": [
+                    "__init__",
+                    "_start_event_system",
+                    "register_handler"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "core\\coordination\\dispatcher.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "__init__",
+            "register_handler"
+        ],
+        "classes": {
+            "EventType": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "Enum"
+                ]
+            },
+            "Event": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "EventDispatcher": {
+                "methods": [
+                    "__init__",
+                    "register_handler"
+                ],
+                "docstring": "Dispatcher that processes events in priority order.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "core\\memory\\governance_memory_engine.py": {
+        "language": ".py",
+        "functions": [
+            "log_event"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "core\\tools\\context.py": {
+        "language": ".py",
+        "functions": [
+            "produce_project_context"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "core\\utils\\task_utils.py": {
+        "language": ".py",
+        "functions": [
+            "read_tasks",
+            "write_tasks",
+            "update_task_status"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "core\\utils\\base.py": {
+        "language": ".py",
+        "functions": [
+            "generate_id",
+            "save_json_file",
+            "load_json_file",
+            "validate_required_fields",
+            "validate_field_type",
+            "__call__",
+            "__init__",
+            "__init__",
+            "__init__"
+        ],
+        "classes": {
+            "Singleton": {
+                "methods": [
+                    "__call__"
+                ],
+                "docstring": "Metaclass for single-instance classes.",
+                "base_classes": [
+                    "type"
+                ]
+            },
+            "AsyncLockManager": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Async context manager for asyncio.Lock with optional timeout.",
+                "base_classes": []
+            },
+            "Cache": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "In-memory cache with time-to-live (TTL) expiration.",
+                "base_classes": [
+                    null
+                ]
+            },
+            "RetryManager": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Manager to retry async operations with backoff.",
+                "base_classes": []
+            },
+            "ValidationError": {
+                "methods": [],
+                "docstring": "Raised when data validation fails.",
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 13
+    },
+    "core\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\chatgpt_interface.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\cursor_interface.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\evaluator.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\orchestrator.py": {
+        "language": ".py",
+        "functions": [
+            "run_cycle"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "dreamos\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\orchestrator.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\agents\\autofix_agent.py": {
+        "language": ".py",
+        "functions": [
+            "_signal_handler",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\agents\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\services\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "tests\\test_orchestrator.py": {
+        "language": ".py",
+        "functions": [
+            "test_run_cycle_single",
+            "test_run_cycle_loop",
+            "fake_send",
+            "fake_fetch"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "ui\\tab_system_shutdown.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_handle_shutdown_error",
+            "initiate_shutdown",
+            "emit"
+        ],
+        "classes": {
+            "TabSystemShutdownManager": {
+                "methods": [
+                    "__init__",
+                    "_handle_shutdown_error",
+                    "initiate_shutdown"
+                ],
+                "docstring": "Manager to handle shutdown sequence of UI tabs and persist their state.",
+                "base_classes": []
+            },
+            "Signal": {
+                "methods": [
+                    "emit"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 8
+    },
+    "_agent_coordination\\bridge_adapters\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\core\\config.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "CursorCoordinatorConfig": {
+                "methods": [],
+                "docstring": "Configuration settings for CursorChatCoordinator.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\services\\dispatcher.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "Dispatcher": {
+                "methods": [],
+                "docstring": "Service responsible for routing parsed action dictionaries to appropriate handlers or agents.",
+                "base_classes": [
+                    "ABC"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\services\\interpreter.py": {
+        "language": ".py",
+        "functions": [
+            "parse"
+        ],
+        "classes": {
+            "ResponseInterpreter": {
+                "methods": [
+                    "parse"
+                ],
+                "docstring": "Service responsible for parsing chat response text into structured actions.",
+                "base_classes": [
+                    "ABC"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "_agent_coordination\\services\\ocr_service.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "OCRService": {
+                "methods": [],
+                "docstring": "Service responsible for capturing and processing OCR-based responses from Cursor instances.",
+                "base_classes": [
+                    "ABC"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\services\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\tests\\test_dispatchers.py": {
+        "language": ".py",
+        "functions": [
+            "test_dispatch_message_to_agent_creates_file_and_valid_json",
+            "test_task_dispatcher_delegates_to_mailbox_util",
+            "test_concurrent_dispatch_message",
+            "worker"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "_agent_coordination\\tests\\core\\conftest.py": {
         "language": ".py",
         "functions": [],
         "classes": {},

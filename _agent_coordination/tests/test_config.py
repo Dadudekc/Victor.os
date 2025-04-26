@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import pytest
-from config import (
+from dreamos.config import (
     WORKSPACE_ROOT, PROPOSALS_DIR, LOG_DIR, TOOLS_DIR,
     RULEBOOK_PATH, PROPOSALS_FILE_PATH, PROJECT_BOARD_PATH,
     REFLECTION_LOG_FILE, SECURITY_SCAN_LOG_FILE, AGENT_ACTIVITY_LOG_FILE,

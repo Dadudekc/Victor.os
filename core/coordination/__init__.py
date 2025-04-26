@@ -1,1 +1,1 @@
-# core coordination package 
+# core.coordination package 

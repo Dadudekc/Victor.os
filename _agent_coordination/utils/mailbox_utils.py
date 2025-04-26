@@ -105,3 +105,54 @@ def process_directory_loop(
             # Check if stop_event is asyncio.Event and use await if needed?
             # For now, assume polling is sufficient given the time.sleep
             time.sleep(min(1, sleep_end_time - time.time())) # Sleep in 1s increments or less 
+
+"""
+Utility functions for mailbox directory monitoring and file processing.
+"""
+
+# EDIT START: Add helper to dispatch messages to agent inboxes
+from pathlib import Path  # ensure Path is available
+
+def dispatch_message_to_agent(
+    mailbox_root: Path,
+    target_agent: str,
+    message_payload: dict,
+    inbox_subdir: str = None,
+    message_format: str = None
+) -> bool:
+    """
+    Writes a message file to the specified agent's inbox directory and adds standard metadata.
+    """
+    import uuid
+    from ..config import INBOX_SUBDIR, MESSAGE_FORMAT
+
+    # Determine inbox directory and file format
+    if inbox_subdir is None:
+        inbox_subdir = INBOX_SUBDIR
+    if message_format is None:
+        message_format = MESSAGE_FORMAT
+
+    try:
+        agent_inbox = mailbox_root / target_agent / inbox_subdir
+        agent_inbox.mkdir(parents=True, exist_ok=True)
+
+        # Generate message file name and add metadata
+        message_id = str(uuid.uuid4())
+        message_filename = f"msg_{message_id}{message_format}"
+        message_payload["message_id"] = message_id
+        # Preserve existing sender_agent or leave blank if not provided
+        message_payload.setdefault("sender_agent", "")
+        # Add timestamp metadata
+        message_payload["timestamp_dispatched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+        # Write JSON payload
+        message_path = agent_inbox / message_filename
+        with message_path.open("w", encoding="utf-8") as f:
+            json.dump(message_payload, f, indent=2)
+
+        logger.info(f"Dispatched message {message_id} to agent '{target_agent}' inbox: {message_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to dispatch message to agent '{target_agent}': {e}", exc_info=True)
+        return False
+# EDIT END

@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 
-from core.strategies.twitter_strategy import TwitterStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError, RateLimitError
+from dreamos.strategies.twitter_strategy import TwitterStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError, RateLimitError
 from tests.strategies.base_strategy_test import BaseStrategyTest
 
 class TestTwitterStrategy(BaseStrategyTest):

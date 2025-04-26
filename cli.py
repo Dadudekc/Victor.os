@@ -1,125 +1,162 @@
-import typer
-import logging
-from typing import Optional
-from pathlib import Path
-import click
+#!/usr/bin/env python3
+"""
+cli.py – Dream.OS command-line interface (v2)
+---------------------------------------------
+Launch Dream.OS in GUI or task mode, manage stats, and validate config.
+"""
+
 import sys
+import logging
+from pathlib import Path
+from typing import Optional
 
-# ---------------------------------------------------
-# Safe import of config and logging setup
-# ---------------------------------------------------
+import typer
+
+# ───────────────────────── Backend imports ─────────────────────────
 try:
-    from core.config import AppConfig, setup_logging, ConfigError
+    from dreamos.config import AppConfig, setup_logging, ConfigError
 except ImportError as e:
-    logging.basicConfig(level=logging.WARNING)
-    logging.warning(f"[Dream.OS] core.config not available: {e}")
-    AppConfig = None
-    class ConfigError(Exception): pass
-    def setup_logging(config): pass
+    typer.secho(f"[Warning] core.config not available: {e}", fg=typer.colors.YELLOW)
+    AppConfig = None  # type: ignore
+    setup_logging = lambda cfg: None  # type: ignore
+    class ConfigError(Exception): pass  # type: ignore
 
-# ---------------------------------------------------
-# Custom Click Group to override default help
-# ---------------------------------------------------
-class DreamGroup(click.Group):
-    def get_help(self, ctx):
-        return 'dream-os\n' + super().get_help(ctx)
-
-# ---------------------------------------------------
-# Typer CLI App
-# ---------------------------------------------------
+# ───────────────────────── Typer app setup ────────────────────────
 app = typer.Typer(
     name="dream-os",
     help="Dream.OS Agent – Your AI-powered Operating System Assistant.",
     add_completion=False,
-    cls=DreamGroup
 )
 
-logger = logging.getLogger(__name__)
+# ─────────────────────────── Helpers ─────────────────────────────
+def configure_logging(config: AppConfig, verbose: bool) -> None:
+    """
+    Initialize Python logging based on config + --verbose flag.
+    """
+    level = logging.DEBUG if verbose else getattr(logging, config.logging.level.upper(), logging.INFO)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    setup_logging(config)
+    logging.debug("Logging configured: level=%s", logging.getLevelName(level))
 
-# ---------------------------------------------------
-# Primary Run Command
-# ---------------------------------------------------
+
+# ─────────────────────────── run command ──────────────────────────
 @app.command()
 def run(
-    task: Optional[str] = typer.Option(None, "--task", "-t", help="Task description (for non-GUI mode)."),
+    task: Optional[str] = typer.Option(
+        None, "--task", "-t", help="Execute a single task (non-GUI mode)."
+    ),
     config_path: Path = typer.Option(
-        Path("config.yaml"),
-        "--config",
-        "-c",
-        help="Path to config file",
-        exists=True
-    )
+        Path("config/config.yaml"), "--config", "-c", exists=True, help="Path to config file."
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose (DEBUG) logging."
+    ),
 ):
     """
-    Launch Dream.OS using a config file or direct task execution mode.
+    Launch Dream.OS in GUI mode (default) or Task mode (`--task`).
     """
+    # Load and validate config
     try:
-        typer.echo(f"🔧 Loading config from: {config_path.resolve()}")
+        if AppConfig is None:
+            raise ConfigError("AppConfig unavailable")
         config = AppConfig.load(str(config_path.resolve()))
-        setup_logging(config)
-
-        logger.info("✅ Configuration loaded.")
-        logger.info(f"Run mode: {config.mode}, Logging Level: {config.logging.level}")
-
-        # Determine execution mode
-        run_mode = "task" if task else config.mode
-
-        if run_mode == "gui":
-            logger.info("🖥️ Launching GUI mode...")
-            # TODO: hook to actual GUI launcher
-            print("🔧 GUI launch stub (not yet connected to main.py)")
-        elif run_mode == "task":
-            if not task:
-                logger.error("❌ Task mode requires --task 'description'")
-                raise typer.Exit(code=1)
-            logger.info(f"⚙ Executing task: {task}")
-            # TODO: hook to task runner
-            print(f"🔧 Task runner stub (task = '{task}')")
-        else:
-            logger.error(f"❌ Invalid mode: {run_mode}. Must be 'gui' or 'task'.")
-            raise typer.Exit(code=1)
-
-    except ConfigError as ce:
-        logging.exception("❌ Config validation failed.")
-        typer.echo(f"Configuration Error: {ce}")
+    except ConfigError as e:
+        typer.secho(f"[Error] Config load failed: {e}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
     except Exception as e:
-        logging.exception("❌ Unhandled error during CLI launch.")
-        typer.echo(f"Unexpected Error: {e}")
+        typer.secho(f"[Error] Unexpected error loading config: {e}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-# ---------------------------------------------------
-# Stats Snapshot Command
-# ---------------------------------------------------
-@app.command()
+    # Configure logging
+    configure_logging(config, verbose)
+    logging.info("Configuration loaded from %s", config_path)
+
+    mode = "task" if task else config.mode
+
+    if mode == "gui":
+        logging.info("Launching GUI (mode=gui)…")
+        try:
+            from gui.main import launch_gui
+        except ImportError:
+            typer.secho("GUI component not installed.", fg=typer.colors.YELLOW)
+            raise typer.Exit(code=1)
+        launch_gui(config)
+
+    elif mode == "task":
+        if not task:
+            typer.secho("Error: `--task` is required for task mode.", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+        logging.info("Running one-off task: %s", task)
+        try:
+            from dreamos.tasks import run_task
+            run_task(task, config)
+        except Exception as e:
+            logging.exception("Task execution failed")
+            typer.secho(f"[Error] Task failed: {e}", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+
+    else:
+        typer.secho(f"Error: Unknown mode '{mode}'. Must be 'gui' or 'task'.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+
+# ────────────────────── stats snapshot command ────────────────────
+@app.command("stats")
 def log_stats():
     """
-    Logs the current system stats snapshot.
+    Write a snapshot of current system stats (via StatsLoggingHook).
     """
     try:
-        from core.hooks.stats_logger import StatsLoggingHook
-        from dream_mode.task_nexus.task_nexus import TaskNexus
+        from dreamos.hooks.stats_logger import StatsLoggingHook
+        from dream_os.services.task_nexus import TaskNexus
     except ImportError as e:
-        typer.echo(f"Failed to import stats logging components: {e}")
+        typer.secho(f"Stats logging unavailable: {e}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
     nexus = TaskNexus(task_file="runtime/task_list.json")
     hook = StatsLoggingHook(nexus)
     hook.log_snapshot()
-    typer.echo("📊 Stats snapshot written.")
+    typer.secho("Stats snapshot saved.", fg=typer.colors.GREEN)
 
-# ---------------------------------------------------
-# Future Extensions Placeholder
-# ---------------------------------------------------
-# @app.command()
-# def validate_config(...):
-#     """Validate config structure and values."""
-#     ...
 
-# ---------------------------------------------------
-# Entry Point
-# ---------------------------------------------------
+# ───────────────────── validate-config command ────────────────────
+@app.command("validate-config")
+def validate_config(
+    config_path: Path = typer.Option(
+        Path("config/config.yaml"), "--config", "-c", exists=True, help="Path to config file."
+    )
+):
+    """
+    Validate the structure and values of the Dream.OS config file.
+    """
+    try:
+        config = AppConfig.load(str(config_path.resolve()))
+        typer.secho("Configuration is valid.", fg=typer.colors.GREEN)
+    except ConfigError as e:
+        typer.secho(f"[Error] Invalid config: {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    except Exception as e:
+        typer.secho(f"[Error] Unexpected error: {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+
+# ───────────────────────── version command ─────────────────────────
+@app.command()
+def version():
+    """Show Dream.OS version."""
+    try:
+        from dreamos.version import __version__
+        typer.echo(__version__)
+    except ImportError:
+        typer.echo("Version info unavailable")
+
+
+# ─────────────────────────── entrypoint ───────────────────────────
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    print("🚀 Starting Dream.OS CLI...")
+    print("Starting Dream.OS CLI...")
     app()
+

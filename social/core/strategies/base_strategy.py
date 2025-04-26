@@ -20,7 +20,7 @@ from utils.common import retry_on_exception
 from utils.selenium_utils import wait_for_element, safe_click, safe_send_keys, navigate_to
 from utils.logging_utils import get_logger, log_event, setup_logging
 from utils.retry_utils import retry_on_stale_element
-from core.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError, AuthenticationError, RateLimitError, ContentError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError, AuthenticationError, RateLimitError, ContentError
 from utils.browser_utils import get_driver
 
 logger = get_logger("BaseSocialStrategy")

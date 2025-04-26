@@ -5,11 +5,8 @@ import asyncio
 from unittest.mock import MagicMock, AsyncMock
 
 # Modules to test/mock (adjust paths as necessary)
-from _core.coordination.cursor.cursor_chat_coordinator import CursorChatCoordinator
-# from _core.coordination.cursor.task_execution_state_machine import TaskExecutionStateMachine
-# from _core.coordination.cursor.bridge_adapter import CursorBridgeAdapter, CursorGoal
-# from _core.coordination.cursor.cursor_instance_controller import CursorInstanceController
-# from core.agent_bus import AgentBus, Event, EventType # Mock AgentBus or use a test double
+from _agent_coordination.coordinators.cursor_chat_coordinator import CursorChatCoordinator
+from _agent_coordination.bridge_adapters.cursor_bridge_adapter import CursorBridgeAdapter, CursorGoal
 
 class TestCursorChatCoordinator(unittest.TestCase):
 

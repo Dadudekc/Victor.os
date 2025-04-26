@@ -23,10 +23,10 @@ from coordination.agent_bus import AgentBus
 from agents.cursor_control_agent import CursorControlAgent
 from agents.task_executor_agent import TaskExecutorAgent, DEFAULT_TASK_LIST_PATH, TaskStatus
 from agents.agent_monitor_agent import AgentMonitorAgent, DEFAULT_LOG_PATH
-from agents.prompt_feedback_loop_agent import PromptFeedbackLoopAgent
+from agents.core.prompt_feedback_loop_agent import PromptFeedbackLoopAgent
 from agents.task_injector import TaskInjector
 from agents.social_media_agent import SocialMediaAgent
-from core.utils.task_status_updater import TaskStatusUpdater
+from dreamos.utils.task_status_updater import TaskStatusUpdater
 from agents.meredith_resonance_scanner import MeredithResonanceScanner
 
 # Setup Logging

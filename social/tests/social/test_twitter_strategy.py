@@ -1,6 +1,6 @@
 import unittest
-from core.strategies.twitter_strategy import TwitterStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError, RateLimitError
+from dreamos.strategies.twitter_strategy import TwitterStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError, RateLimitError
 from unittest.mock import Mock, patch
 
 @pytest.fixture

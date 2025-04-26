@@ -8,7 +8,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 # Import configuration and necessary components
-import config as project_config
+import dreamos.config as config as project_config
 from src.core.MemoryManager import MemoryManager
 # Stubs are used implicitly by StoryGenerator for now
 # from src.external_stubs import get_stubs

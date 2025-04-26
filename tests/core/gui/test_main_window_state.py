@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QLabel, QStatusBar
 import importlib.util
-from tests.core.gui.main_window import DreamOSMainWindow
+from ui.main_window import DreamOSMainWindow
 
 # Mock PyQt classes before importing the main window
 class MockTaskManager:
@@ -76,10 +76,10 @@ class TestMainWindowState(unittest.TestCase):
         self.state_file_path = self.test_dir / "tab_states.json"
 
         # Patch dependencies directly before creating the instance
-        with patch('core.gui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM, \
-             patch('core.gui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE, \
-             patch('core.gui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM, \
-             patch('core.gui.main_window.TabSystemShutdownManager') as MockShutdownMgr: # Keep shutdown manager mocked
+        with patch('ui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM, \
+             patch('ui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE, \
+             patch('ui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM, \
+             patch('ui.main_window.TabSystemShutdownManager') as MockShutdownMgr: # Keep shutdown manager mocked
 
             # Create the main window instance
             self.window = DreamOSMainWindow()
@@ -100,7 +100,7 @@ class TestMainWindowState(unittest.TestCase):
             self.window.event_count_label = MagicMock(spec=QLabel)
 
             # Mock QMessageBox to avoid GUI popups during tests
-            self.patcher_msgbox = patch('core.gui.main_window.QMessageBox')
+            self.patcher_msgbox = patch('ui.main_window.QMessageBox')
             self.MockMessageBox = self.patcher_msgbox.start()
 
     def tearDown(self):

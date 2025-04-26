@@ -124,4 +124,45 @@ Shared files are JSON. Always use file locking. Read full, modify memory, write 
 
 ---
 
+## 🐝 The Dream.OS Swarm
+
+The Dream.OS Swarm is the collective of all autonomous agents—your "digital organism"—working in concert to plan, execute, monitor, and adapt every workflow. At its core lies the **Cursor Army**, a fleet of Cursor instances (headless or GUI-driven) that act as your hands—typing prompts, applying patches, clicking buttons, and scraping responses—on behalf of Dream.OS.
+
+| Layer                 | Responsibility                                                                 |
+|-----------------------|--------------------------------------------------------------------------------|
+| **Planner Agents**    | Break high-level goals into granular tasks (e.g. "write function," "fix test").|
+| **Orchestrator Agents**| Sequence tasks, manage dependencies, dispatch to executors.                   |
+| **Cursor Agents**     | Execute UI-level actions and code edits via Cursor.                            |
+| **ChatGPT Agents**    | Provide LLM-driven analysis, refactoring, and patch generation.                |
+| **Feedback Agents**   | Collect results, detect errors, and feed back into the planner/orchestrator.   |
+| **File & IO Agents**  | Handle persistent storage, event logging, and file-system operations.          |
+| **Monitoring Agents** | Track health, performance, and metrics across the swarm.                       |
+
+Together, these agents form a **self-organizing, self-healing loop**: plan → execute → observe → adapt → repeat.
+
+---
+## ⚔️ Your Cursor Army
+
+Each **Cursor Agent** is an instance (or container) of your Cursor client, tasked with carrying out low-level operations:
+
+1. **Prompt Injection**  
+   - Types or loads `.prompt.md` files into the Cursor chat input.  
+   - Sends `Ctrl+Enter` (or headless `cursor tasks run`) to trigger execution.
+
+2. **Response Capture**  
+   - Uses OCR or clipboard to grab Cursor's output.  
+   - Normalizes and diffs against prior state to isolate new content.
+
+3. **Sub-Task Execution**  
+   - Applies patches or code edits via `cursor.applyEdit` (or UI clicks).  
+   - Commits changes, runs tests, and reports back.
+
+4. **Concurrency & Scaling**  
+   - Multiple Cursor instances can run in parallel, each handling independent tasks.  
+   - Instances register with the AgentBus so orchestrators can load-balance work.
+
+5. **Resilience & Self-Healing**  
+   - On failures or timeouts, they report errors back to the swarm.  
+   - The planner can retry with adjusted prompts or escalate for human review.
+
 Onboarding complete. Awaiting messages. Operate autonomously.

@@ -1,7 +1,7 @@
 import pytest
 import asyncio
-from core.agent_bus import AgentBus, AgentStatus
-from core.coordination.dispatcher import EventType, Event
+from dreamos.agent_bus import AgentBus, AgentStatus
+from dreamos.coordination.dispatcher import EventType, Event
 import json
 import shutil
 from pathlib import Path

@@ -15,7 +15,7 @@ del sys # Remove sys from module scope after use
 try:
     from governance_memory_engine import load_memory # Corrected import path (assuming root)
     # Import prompt staging service and template engine
-    from core.prompt_staging_service import stage_and_execute_prompt
+    from dreamos.prompt_staging_service import stage_and_execute_prompt
     from template_engine import render_template
 except ImportError as e:
     # print(f"[PostContextGenerator] Warning: Failed to import dependencies: {e}")

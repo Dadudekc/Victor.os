@@ -46,126 +46,49 @@ def test_directory_creation(test_dirs):
     assert error_dir.exists()
     log_event("TEST_PASSED", "CoverageAgent", {"test": "test_directory_creation"})
 
-def test_successful_processing(test_dirs):
-    """Test successful file processing."""
+@pytest.mark.parametrize("process_func,expected_success,expected_error,expect_error_context", [
+    (lambda path: True, True, False, False),
+    (lambda path: False, False, True, False),
+    (lambda path: (_ for _ in ()).throw(Exception("Test exception")), False, True, True),
+])
+def test_process_variants(test_dirs, process_func, expected_success, expected_error, expect_error_context):
+    """Parametrized test for multiple processing outcomes."""
     watch_dir, success_dir, error_dir = test_dirs
     watch_dir.mkdir()
-    
     # Create a test file
-    test_file = create_test_file(watch_dir, "test_success")
+    test_file = create_test_file(watch_dir, "variant_test")
     processed = threading.Event()
-    
-    def process_func(path):
-        processed.set()
-        return True
-    
-    stop_event = threading.Event()
-    
-    # Start processing in a thread
-    thread = threading.Thread(target=process_directory_loop,
-                            kwargs={
-                                'watch_dir': watch_dir,
-                                'process_func': process_func,
-                                'success_dir': success_dir,
-                                'error_dir': error_dir,
-                                'poll_interval': 1,
-                                'stop_event': stop_event
-                            })
-    thread.start()
-    
-    # Wait for processing or timeout
-    processed.wait(timeout=5)
-    stop_event.set()
-    thread.join(timeout=5)
-    
-    # Check results
-    assert not test_file.exists()  # Original file should be moved
-    assert (success_dir / test_file.name).exists()  # File should be in success dir
-    assert not (error_dir / test_file.name).exists()  # File should not be in error dir
-    log_event("TEST_PASSED", "CoverageAgent", {"test": "test_successful_processing"})
 
-def test_failed_processing(test_dirs):
-    """Test failed file processing."""
-    watch_dir, success_dir, error_dir = test_dirs
-    watch_dir.mkdir()
-    
-    # Create a test file
-    test_file = create_test_file(watch_dir, "test_failure")
-    processed = threading.Event()
-    
-    def process_func(path):
+    def wrap(path):
         processed.set()
-        return False
-    
-    stop_event = threading.Event()
-    
-    # Start processing in a thread
-    thread = threading.Thread(target=process_directory_loop,
-                            kwargs={
-                                'watch_dir': watch_dir,
-                                'process_func': process_func,
-                                'success_dir': success_dir,
-                                'error_dir': error_dir,
-                                'poll_interval': 1,
-                                'stop_event': stop_event
-                            })
-    thread.start()
-    
-    # Wait for processing or timeout
-    processed.wait(timeout=5)
-    stop_event.set()
-    thread.join(timeout=5)
-    
-    # Check results
-    assert not test_file.exists()  # Original file should be moved
-    assert not (success_dir / test_file.name).exists()  # File should not be in success dir
-    assert (error_dir / test_file.name).exists()  # File should be in error dir
-    log_event("TEST_PASSED", "CoverageAgent", {"test": "test_failed_processing"})
+        return process_func(path)
 
-def test_process_func_exception(test_dirs):
-    """Test handling of exceptions in process_func."""
-    watch_dir, success_dir, error_dir = test_dirs
-    watch_dir.mkdir()
-    
-    # Create a test file
-    test_file = create_test_file(watch_dir, "test_exception")
-    processed = threading.Event()
-    
-    def process_func(path):
-        processed.set()
-        raise Exception("Test exception")
-    
     stop_event = threading.Event()
-    
-    # Start processing in a thread
-    thread = threading.Thread(target=process_directory_loop,
-                            kwargs={
-                                'watch_dir': watch_dir,
-                                'process_func': process_func,
-                                'success_dir': success_dir,
-                                'error_dir': error_dir,
-                                'poll_interval': 1,
-                                'stop_event': stop_event
-                            })
+    thread = threading.Thread(
+        target=process_directory_loop,
+        kwargs={
+            'watch_dir': watch_dir,
+            'process_func': wrap,
+            'success_dir': success_dir,
+            'error_dir': error_dir,
+            'poll_interval': 1,
+            'stop_event': stop_event
+        }
+    )
     thread.start()
-    
-    # Wait for processing or timeout
     processed.wait(timeout=5)
     stop_event.set()
     thread.join(timeout=5)
-    
-    # Check results
-    assert not test_file.exists()  # Original file should be moved
-    assert not (success_dir / test_file.name).exists()  # File should not be in success dir
-    assert (error_dir / test_file.name).exists()  # File should be in error dir
-    # Verify augmented error context in the error file
-    error_file = error_dir / test_file.name
-    data = json.loads(error_file.read_text())
-    assert 'error_context' in data
-    assert 'timestamp_failed' in data['error_context']
-    assert 'error_message' in data['error_context']
-    assert 'Test exception' in data['error_context']['error_message']
-    log_event("TEST_PASSED", "CoverageAgent", {"test": "test_process_func_exception"})
+    # Verify file movement
+    assert not test_file.exists()
+    assert (success_dir / test_file.name).exists() == expected_success
+    assert (error_dir / test_file.name).exists() == expected_error
+    if expect_error_context:
+        data = json.loads((error_dir / test_file.name).read_text())
+        assert 'error_context' in data
+        assert 'timestamp_failed' in data['error_context']
+        assert 'error_message' in data['error_context']
+        assert 'Test exception' in data['error_context']['error_message']
 
 def test_wrong_file_suffix(test_dirs):
     """Test handling of files with wrong suffix."""

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Generator
 from unittest.mock import patch, MagicMock
 
-from core.utils.system import (
+from dreamos.utils.system import (
     CommandExecutor, CommandResult,
     DirectoryMonitor, FileManager
 )

@@ -109,3 +109,6 @@ venv/
 env/
 ENV/
 **/venv*/
+
+# Ignore archived Chrome extension locale dumps
+_agent_coordination/archive/

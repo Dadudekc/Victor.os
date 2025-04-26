@@ -15,7 +15,7 @@ if project_root not in sys.path:
 # ------------------------------------
 
 # Module to test
-from core.template_engine import render_template, template_env
+from dreamos.template_engine import render_template, template_env
 from utils.logging_utils import log_event
 
 @patch('core.template_engine.print')

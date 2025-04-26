@@ -23,7 +23,7 @@ if coordination_dir not in sys.path:
      sys.path.insert(0, coordination_dir)
 
 # Import the class to test
-from core.agents.cursor_control_agent import CursorControlAgent, AGENT_NAME
+from dreamos.agents.cursor_control_agent import CursorControlAgent, AGENT_NAME
 
 # Mock dependencies
 sys.modules['core.coordination.agent_bus'] = MagicMock()

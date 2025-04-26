@@ -1,4 +1,5 @@
 from .task_execution_state_machine import TaskExecutionPlan, TaskStep
+import logging
 
 logger = logging.getLogger("CursorBridgeAdapter")
 

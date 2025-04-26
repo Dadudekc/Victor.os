@@ -15,7 +15,7 @@ from datetime import datetime
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import config
+import dreamos.config as config
 
 # Import the new utility
 from _agent_coordination.tools.rulebook_utils import load_rules

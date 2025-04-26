@@ -4,7 +4,7 @@ import json
 import logging
 
 from dream_mode.task_nexus.task_nexus import TaskNexus
-from agents.thea_auto_planner import TheaAutoPlanner
+from agents.core.thea_auto_planner import TheaAutoPlanner
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

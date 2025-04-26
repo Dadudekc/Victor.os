@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime, timedelta
 
-import core.monitoring.prompt_execution_monitor as pem_mod
-from core.monitoring.prompt_execution_monitor import PromptExecutionMonitor
+import dreamos.monitoring.prompt_execution_monitor as pem_mod
+from dreamos.monitoring.prompt_execution_monitor import PromptExecutionMonitor
 
 def make_monitor(timeout_sec=0):
     class DummyMemory:

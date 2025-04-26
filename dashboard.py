@@ -34,12 +34,12 @@ except Exception:
     get_all_tasks = lambda: []
 
 try:
-    from core.hooks.chatgpt_responder import ChatGPTResponder
+    from dreamos.hooks.chatgpt_responder import ChatGPTResponder
 except Exception:
     ChatGPTResponder = None
 
 try:
-    from core.agent_utils import save_agent_spot, click_agent_spot, _load_coords
+    from dreamos.agent_utils import save_agent_spot, click_agent_spot, _load_coords
 except Exception as e:
     print("agent_utils missing:", e)
     sys.exit(1)

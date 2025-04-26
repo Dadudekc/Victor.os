@@ -4,7 +4,7 @@ import json
 import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
-from core.utils.base import (
+from dreamos.utils.base import (
     Singleton, AsyncLockManager, Cache, RetryManager,
     generate_id, load_json_file, save_json_file,
     ValidationError, validate_required_fields, validate_field_type

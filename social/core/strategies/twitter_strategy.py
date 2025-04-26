@@ -14,7 +14,7 @@ import time
 # Use updated import paths
 from .base_strategy import BaseSocialStrategy
 # from strategy_exceptions import LoginError, PostError, ScrapeError, RateLimitError, AuthenticationError
-from core.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError, RateLimitError, AuthenticationError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError, ScrapeError, RateLimitError, AuthenticationError
 # from utils import retry_on_stale_element, setup_logging, wait_and_click, wait_and_send_keys
 from utils.retry_utils import retry_on_stale_element
 from utils.logging_utils import setup_logging

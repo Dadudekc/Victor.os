@@ -4,7 +4,7 @@ import os
 import json
 from dream_os.core.crew_agent_base import CrewAgent
 from dream_os.services.prompt_router_service import PromptRouterService
-from dream_os.services.task_nexus import add_task
+from dream_os.services.task_nexus import import import add_task
 from dream_os.adapters.base_adapter import AdapterRegistry
 
 

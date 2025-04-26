@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock, mock_open, call
-from core.agents.prompt_feedback_loop_agent import PromptFeedbackLoopAgent
-from core.utils.lock import MockLock
+from dreamos.agents.prompt_feedback_loop_agent import PromptFeedbackLoopAgent
+from dreamos.utils.lock import MockLock
 import sys
 
 class TestPromptFeedbackLoopAgent(unittest.TestCase):

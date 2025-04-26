@@ -5,7 +5,7 @@ import yaml
 import pytest
 from pathlib import Path
 from typing import Generator
-from core.coordination.config_service import ConfigService, ConfigFormat, ConfigSource
+from dreamos.coordination.config_service import ConfigService, ConfigFormat, ConfigSource
 
 @pytest.fixture
 def config_dir(tmp_path) -> Generator[Path, None, None]:

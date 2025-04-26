@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
-from core.agents.agent_monitor_agent import AgentMonitorAgent
+from dreamos.agents.agent_monitor_agent import AgentMonitorAgent
 
 class TestAgentMonitorAgent(unittest.TestCase):
     def setUp(self):

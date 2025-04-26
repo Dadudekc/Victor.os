@@ -4,6 +4,10 @@ import os
 import uuid
 from pathlib import Path
 import logging
+from typing import Tuple, Any
+
+from .config import TaskDispatcherConfig
+from .mailbox_service import MailboxService
 
 # Import shared task utilities
 # Assuming task_utils.py is in the parent directory (_agent_coordination)
@@ -30,41 +34,25 @@ if not logging.getLogger("TaskDispatcher").hasHandlers():
 logger = logging.getLogger("TaskDispatcher")
 
 class TaskDispatcher:
-    def __init__(self, task_list_path="task_list.json", check_interval=10, mailbox_root_dir="mailboxes"):
-        """Initializes the TaskDispatcher."""
-        # Ensure task_list_path is a Path object and resolved
-        self.task_list_path = Path(task_list_path).resolve()
-        self.check_interval = check_interval
-        # Define and ensure the root mailbox directory exists relative to task list
-        self.mailbox_root = self.task_list_path.parent / mailbox_root_dir
-        self.mailbox_root.mkdir(parents=True, exist_ok=True)
-        logger.info(f"TaskDispatcher initialized. Monitoring: {self.task_list_path}. Mailbox Root: {self.mailbox_root}")
+    def __init__(self, config: TaskDispatcherConfig, mailbox_service: MailboxService):
+        """Initializes the TaskDispatcher with DI config and mailbox service."""
+        self.config = config
+        # Task list path and scheduling
+        self.task_list_path = config.task_list_path.resolve()
+        self.check_interval = config.check_interval
+        # Mailbox service for dispatching messages
+        self.mailbox_service = mailbox_service
+        logger.info(
+            f"TaskDispatcher initialized. Monitoring: {self.task_list_path}."
+            f" Mailbox Root: {self.mailbox_service.mailbox_root}"
+        )
 
-    # Removed local _read_tasks, _write_tasks, _update_task_status methods
-
-    def _dispatch_message_to_agent(self, target_agent: str, message_payload: dict):
-        """Writes a message file to the target agent's inbox."""
-        try:
-            agent_inbox = self.mailbox_root / target_agent / "inbox"
-            agent_inbox.mkdir(parents=True, exist_ok=True)
-            
-            message_id = str(uuid.uuid4())
-            message_filename = f"msg_{message_id}.json"
-            message_path = agent_inbox / message_filename
-
-            # Add standard message envelope fields
-            message_payload["message_id"] = message_id
-            message_payload["sender_agent"] = "TaskDispatcher"
-            message_payload["timestamp_dispatched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-
-            with message_path.open("w", encoding="utf-8") as f:
-                json.dump(message_payload, f, indent=2)
-            
-            logger.info(f"Dispatched message {message_id} to agent '{target_agent}' inbox: {message_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to dispatch message to agent '{target_agent}': {e}", exc_info=True)
-            return False
+    def _dispatch_message_to_agent(
+        self, target_agent: str, message_payload: dict
+    ) -> bool:
+        """Dispatches a message via the MailboxService to the agent's inbox."""
+        message_payload["sender_agent"] = "TaskDispatcher"
+        return self.mailbox_service.dispatch_message(target_agent, message_payload)
 
     def handle_task(self, task):
         """Handles a single task by dispatching a message to the target agent's mailbox."""
@@ -96,11 +84,21 @@ class TaskDispatcher:
         if dispatch_successful:
             logger.info(f"Successfully dispatched TASK event for task {task_id} to {target_agent}.")
             # Mark task as COMPLETED after successful dispatch
-            update_task_status(self.task_list_path, task_id, "COMPLETED", result_summary=f"TASK event dispatched to {target_agent}")
+            update_task_status(
+                self.task_list_path,
+                task_id,
+                "COMPLETED",
+                result_summary=f"TASK event dispatched to {target_agent}"
+            )
             return True, None
         else:
             logger.error(f"Failed to dispatch TASK event for task {task_id} to {target_agent}. Marking as FAILED.")
-            update_task_status(self.task_list_path, task_id, "FAILED", error_message=f"Failed to dispatch TASK event to {target_agent}")
+            update_task_status(
+                self.task_list_path,
+                task_id,
+                "FAILED",
+                error_message=f"Failed to dispatch TASK event to {target_agent}"
+            )
             return False, f"Failed to dispatch TASK event to {target_agent}"
 
     def process_pending_tasks(self):

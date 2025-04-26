@@ -1,8 +1,8 @@
 import pytest
-import orchestrator
-import cursor_interface
-import chatgpt_interface
-import evaluator
+import dreamos.orchestrator as orchestrator
+import dreamos.cursor_interface as cursor_interface
+import dreamos.chatgpt_interface as chatgpt_interface
+import dreamos.evaluator as evaluator
 
 
 def test_run_cycle_single(monkeypatch):

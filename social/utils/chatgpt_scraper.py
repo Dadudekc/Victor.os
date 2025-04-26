@@ -26,7 +26,7 @@ from pathlib import Path
 import asyncio # Import asyncio if not already present, for potential async helpers
 
 # Import placeholder for DriverManager - Assuming it exists and follows a singleton or similar pattern
-from core.chat_engine.driver_manager import DriverManager
+from dreamos.chat_engine.driver_manager import DriverManager
 
 # Configure logging
 logging.basicConfig(

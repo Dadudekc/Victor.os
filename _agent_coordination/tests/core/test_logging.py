@@ -7,7 +7,7 @@ import pytest
 from pathlib import Path
 from typing import Generator
 
-from core.utils.logging import LogManager, LogFormatter, get_logger
+from dreamos.utils.logging import LogManager, LogFormatter, get_logger
 
 @pytest.fixture
 def log_dir(tmp_path) -> Generator[Path, None, None]:

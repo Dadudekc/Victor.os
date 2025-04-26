@@ -1,8 +1,8 @@
 import pytest
-from core.strategies.linkedin_strategy import LinkedInStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError, MetricGatheringError
+from dreamos.strategies.linkedin_strategy import LinkedInStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError, MetricGatheringError
 from unittest.mock import Mock, patch
-from core.services.feedback_engine import FeedbackEngine
+from dreamos.services.feedback_engine import FeedbackEngine
 
 @pytest.fixture
 def mock_config():

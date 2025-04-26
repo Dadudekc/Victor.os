@@ -1,0 +1,315 @@
+{
+    "broadcast_directive.py": {
+        "language": ".py",
+        "functions": [
+            "broadcast_to_mailboxes"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "brainstorm_tank.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "compile_lore.py": {
+        "language": ".py",
+        "functions": [
+            "load_translation",
+            "load_tasks",
+            "compile_lore",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "code_applicator.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "demo_local_channel.py": {
+        "language": ".py",
+        "functions": [
+            "worker",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "auto_task_claimer.py": {
+        "language": ".py",
+        "functions": [
+            "claim_next_task",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "dreamctl.py": {
+        "language": ".py",
+        "functions": [
+            "status",
+            "pause",
+            "resume",
+            "claim",
+            "release",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 6
+    },
+    "check_confirmation_state.py": {
+        "language": ".py",
+        "functions": [
+            "check_confirmation"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "consolidate_master_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "diagnostics.py": {
+        "language": ".py",
+        "functions": [
+            "check_directory_exists",
+            "check_file_exists",
+            "check_json_file",
+            "run_diagnostics"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "context_planner.py": {
+        "language": ".py",
+        "functions": [
+            "parse_context",
+            "extract_entities_v3",
+            "create_plan_step",
+            "generate_context_plan_v3",
+            "find_entity"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 5
+    },
+    "find_potential_scripts.py": {
+        "language": ".py",
+        "functions": [
+            "is_excluded",
+            "file_contains_keywords",
+            "find_scripts"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "log_analyzer.py": {
+        "language": ".py",
+        "functions": [
+            "load_logs",
+            "analyze"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "monitor_console.py": {
+        "language": ".py",
+        "functions": [
+            "count_json_files",
+            "monitor_loop"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "parse_feedback_stats.py": {
+        "language": ".py",
+        "functions": [
+            "load_latest_stats",
+            "load_feedback",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "project_context_producer.py": {
+        "language": ".py",
+        "functions": [
+            "extract_paths_from_log",
+            "find_python_files",
+            "produce_project_context",
+            "main"
+        ],
+        "classes": {
+            "ContextConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "reload_agent_context.py": {
+        "language": ".py",
+        "functions": [
+            "reload_context"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "proposal_security_scanner.py": {
+        "language": ".py",
+        "functions": [
+            "log_security_finding",
+            "scan_proposal_block",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "reset_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "run_agent.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "run_qa.py": {
+        "language": ".py",
+        "functions": [
+            "load_checklist",
+            "save_checklist",
+            "find_item",
+            "list_items",
+            "update_item_status",
+            "show_summary",
+            "generate_markdown_report",
+            "save_report",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 9
+    },
+    "swarm_orchestrator.py": {
+        "language": ".py",
+        "functions": [
+            "load_json",
+            "save_json",
+            "log_to_mailboxes",
+            "assign_tasks",
+            "collect_results",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 6
+    },
+    "supervisor_task_consolidator.py": {
+        "language": ".py",
+        "functions": [
+            "load_all_tasks",
+            "split_and_write",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "set_project.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "event_bus.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "subscribe",
+            "publish"
+        ],
+        "classes": {
+            "EventBus": {
+                "methods": [
+                    "__init__",
+                    "subscribe",
+                    "publish"
+                ],
+                "docstring": "Lightweight in-memory pub/sub broker with ack support.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "file_lock_manager.py": {
+        "language": ".py",
+        "functions": [
+            "read_json",
+            "write_json",
+            "__init__",
+            "acquire",
+            "release",
+            "__enter__",
+            "__exit__"
+        ],
+        "classes": {
+            "FileLock": {
+                "methods": [
+                    "__init__",
+                    "acquire",
+                    "release",
+                    "__enter__",
+                    "__exit__"
+                ],
+                "docstring": "Context manager that provides exclusive file lock for a given file path.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    }
+}

@@ -15,7 +15,7 @@ if project_root not in sys.path:
 from agents.dreamforge.core.prompt_staging_service import write_to_cursor_input, read_from_cursor_output
 
 # Assume ConfigManager and log_event are available/mockable
-# from core.config_manager import ConfigManager # Example
+# from dreamos.config_manager import ConfigManager # Example
 # from utils.event_logger import log_event # Example
 
 # Mock config for testing - replace with actual config loading/mocking as needed

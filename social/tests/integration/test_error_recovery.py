@@ -14,9 +14,9 @@ if project_root not in sys.path:
 
 # --- Imports for Testing ---
 # Import the agent, specific strategies, and exceptions
-from core.agents.social_media_agent import SocialMediaAgent
-from core.utils.common import log_event
-from core.strategies.strategy_exceptions import LoginError, PostError, ScrapeError, RateLimitError, AuthenticationError
+from dreamos.agents.social_media_agent import SocialMediaAgent
+from dreamos.utils.common import log_event
+from dreamos.strategies.strategy_exceptions import LoginError, PostError, ScrapeError, RateLimitError, AuthenticationError
 # Import specific selenium/requests exceptions if mocking those
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 

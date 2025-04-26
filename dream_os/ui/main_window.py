@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
 # Removed sys.path modification and conditional import logic
 
 # Changed to absolute import relative to project root (added to sys.path in main.py)
-from core.config import AppConfig
+from dreamos.config import AppConfig
 
 class MainWindow(QMainWindow):
     closeRequested = pyqtSignal()

@@ -7,7 +7,7 @@ import time
 import logging
 
 from .base_strategy import BaseSocialStrategy
-from core.exceptions.strategy_exceptions import LoginError, PostError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError
 from utils.selenium_utils import wait_for_element, safe_click, safe_send_keys, navigate_to
 from utils.logging_utils import log_event, setup_logging
 

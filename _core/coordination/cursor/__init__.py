@@ -1,1 +1,1 @@
-# _core coordination cursor package 
+# Package for _core coordination cursor 
