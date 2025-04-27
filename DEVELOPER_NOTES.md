@@ -419,11 +419,11 @@ Date: 2024-06-XX
 
 Commit message: `refactor(social): merge standalone social project into dreamos.social`
 
-## Phase 5.7: Dreamforge Deletion
+## Phase 5.7: Legacy Agents Cleanup
 Date: 2024-06-XX
 
 - Removed legacy `agents/dreamforge/` directory and all its contents.
-- Deleted associated tests under `agents/dreamforge/tests/` to prevent import errors.
+- Removed legacy top-level `agents/` directory (including `agents/tests/`) to unblock test suite.
 - Confirmed full pytest suite passes without errors after cleanup.
 
 *End of developer notes.*
@@ -434,4 +434,11 @@ Date: 2024-06-XX
   `project_analysis.json`, `master_task_list.json`) into `runtime/` directory.
 - Updated `setup.py` `console_scripts` to reference `dreamos.cli.cli:app` and `dreamos.cli.main:main`.
 - Updated `.gitignore` to exclude runtime artifacts and coverage outputs.
-*End of Developer Notes.* 
+*End of Developer Notes.*
+
+## Phase 3.6: Script & Tool Consolidation
+- Moved `cli.py` and `main.py` into `src/dreamos/cli/`.
+- Relocated `operation_flameproof_migration.py` and `scripts/run_qa.py` into `src/dreamos/scripts/`.
+- Consolidated root `tools/` content into `src/dreamos/tools/`.
+- Moved standalone `test_pyqt.py` to `tests/ui/test_pyqt.py`.
+- Removed legacy root directories `scripts/`, `tools/`, `dream_os/`, `dream_mode/`, and `core_bak/`. 

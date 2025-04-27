@@ -40,4 +40,23 @@
 
 -   [ ] **Commit Final Code:** Ensure all changes (e.g., `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py`, `/d:/Dream.os/tools/task_list_visualizer.py`) are committed.
 -   [ ] **(Optional) Tag Version:** Create a Git tag.
--   [ ] **(Optional) Push Changes:** Push commits and tags. 
+-   [ ] **(Optional) Push Changes:** Push commits and tags.
+
+## VI. Coordination Tools: Broadcast Directive Enhancements
+-   [x] **Broadcast Directive Enhancements**: Introduced dry-run mode, enforced mailbox schema validation, and updated Developer Notes (Phase 5.1).
+    - Possible Future Enhancements:
+        - 🔹 CLI Feedback: nicer errors for corrupted mailboxes
+        - 🔹 Agent resilience: skip bad mailboxes gracefully
+        - 🔹 Centralized mailbox schema monitor/repair tool
+    - Linked to Phase 5 Coordination Stability thread in Developer Notes.
+
+## VII. Logical Structure Relocation
+- [x] **Logical Structure Refactor**: Core source code migrated into logical `dreamos.dashboard`, `dreamos.automation`, `dreamos.coordination`, `dreamos.memory`, `dreamos.feedback`, and `dreamos.services` packages; duplicate modules removed.
+    - 📜 **Normalization**: All import paths in source and tests updated via `scripts/normalize_imports.py` and bulk `sed` commands.
+    - 🧪 **Validation**: Full pytest suite executed successfully post-refactor.
+    - 🗂 **Developer Notes**: DEVELOPER_NOTES.md appended under "Phase 6: Logical Structure Relocation".
+- Possible Future Enhancements:
+    - 🔹 **Folder enforcement**: add lightweight CI checks to validate package layout consistency.
+    - 🔹 **Import check**: integrate static analysis to warn on outdated import paths.
+    - 🔹 **Microservices splitting**: optional decoupling of services into microservices for increased modularity.
+- Linked to Phase 5 Coordination Stability thread in Developer Notes. 

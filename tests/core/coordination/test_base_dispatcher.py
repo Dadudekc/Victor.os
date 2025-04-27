@@ -2,7 +2,7 @@
 
 import pytest
 from typing import Dict, Any
-from core.coordination.dispatchers.base_dispatcher import BaseDispatcher
+from dreamos.coordination.dispatchers.base_dispatcher import BaseDispatcher
 
 class MockDispatcher(BaseDispatcher):
     """Mock dispatcher for testing."""
