@@ -1,73 +1,104 @@
-<!-- 
-NOTE: This user guide appears to describe the 'ScreenshotTrainer' module specifically.
-It may be outdated or not representative of the overall Dream.OS system.
-Consider moving this to a subdirectory related to that tool if it's still active,
-and creating a new top-level user guide based on USER_ONBOARDING.md.
--->
+# Dream.OS User Guide
 
-# Dream.OS ScreenshotTrainer - User Guide (LEGACY?)
+## Introduction
 
-## 1. Overview
+Welcome to Dream.OS! This guide provides a more detailed overview of how to use the framework, building upon the [Quickstart Guide](./USER_ONBOARDING.md).
 
-Welcome to the Dream.OS ScreenshotTrainer module! This application helps you manage and monitor tasks related to training UI element recognition, particularly within the context of the Dream.OS ecosystem. It provides a tabbed interface for executing task cycles, monitoring progress, and viewing system feedback.
+Dream.OS is designed to orchestrate AI agents for complex development tasks, leveraging automated code analysis, task management, and inter-agent communication.
 
-A key feature is its ability to save its state automatically and when you shut it down, allowing you to resume your work later without losing context.
+## Core Concepts
 
-## 2. Interface Overview
+- **Agents:** Specialized Python classes designed to perform specific tasks (e.g., code analysis, refactoring, testing, documentation). Located in `src/dreamos/agents/`.
+- **Agent Bus:** The central nervous system (`src/dreamos/agent_bus.py`). Agents publish and subscribe to messages, enabling decoupled communication and event-driven workflows.
+- **Tools:** Reusable modules providing core capabilities to agents (`src/dreamos/tools/`). Examples include file manipulation, code search, and project structure analysis.
+- **Project Scanner:** A key tool (`src/dreamos/tools/analysis/scanner/`) that analyzes the codebase, identifies components, calculates complexity, and generates context files (`project_analysis.json`, `chatgpt_project_context.json`) used by agents and for observability.
+- **Configuration:** Settings are primarily managed in `src/dreamos/config.py`, potentially augmented by `.env` files for environment specifics.
+- **Orchestration:** High-level control flow, task assignment, and agent lifecycle management (likely handled by `src/dreamos/orchestrator.py` and/or the CLI/Dashboard).
 
-The main window consists of:
+## Installation & Setup
 
-*   **Tab Bar:** Allows switching between different functional views.
-*   **Control Bar:** Contains buttons for manually saving the application state and initiating a graceful shutdown.
-*   **Status Bar:** Displays real-time information like the number of active tasks, logged events, and the current system status (Ready, Saving, Loading, Shutting Down, Error).
+(Refer to the [Quickstart Guide](./USER_ONBOARDING.md#installation) for detailed steps on cloning, setting up a virtual environment, and installing dependencies.)
 
-### Tabs
+**Key Dependencies:**
+- Core Python libraries (check `requirements.txt` or `pyproject.toml`).
+- `tree-sitter` (optional, for advanced multi-language analysis).
+- `PyQt5` (optional, for the GUI Dashboard).
 
-*   **Task Monitor:**
-    *   Displays a list of all known tasks managed by the system.
-    *   Allows filtering tasks by status (Pending, Running, Completed, Failed, Cancelled).
-    *   Allows searching for tasks by ID or name.
-    *   Provides controls (buttons and context menu) to cancel or retry selected tasks.
-    *   Shows details for the currently selected task.
-*   **Cycle Execution:**
-    *   Allows selecting a predefined task template.
-    *   Allows setting the number of times (cycles) the template should be executed.
-    *   Provides buttons to start and stop the execution cycle.
-    *   Displays overall progress for the current cycle.
-    *   Shows detailed statistics (start/end time, task counts, success rate) for the last or current cycle.
-    *   Lists the individual tasks within the currently running or selected template cycle.
-*   **Feedback:**
-    *   Displays a chronological log of system events and feedback messages.
-    *   Allows filtering events by source component (e.g., MainWindow, TaskMonitorTab) or severity (Info, Warning, Error, Success).
-    *   Allows searching for specific event messages or types.
-    *   Shows detailed information for the selected event, including any associated data.
-    *   Provides actions like copying event details.
+## Configuration In-Depth
 
-## 3. State Persistence
+- **`src/dreamos/config.py`:** This is the primary configuration hub. Explore this file to understand:
+    - Logging levels (Console, File)
+    - Log rotation settings (size, backup count)
+    - Agent-specific parameters
+    - Default paths (runtime data, logs)
+    - Feature flags
+- **`.env` File:** If a `.env.template` exists, copy it to `.env` and fill in sensitive information like API keys or environment-specific paths. This file is typically loaded at startup and overrides defaults from `config.py`.
+- **Tree-sitter Paths:** If using Rust/JS/TS analysis, ensure the paths to your compiled `.so`/`.dll` grammar files are correctly set in `src/dreamos/tools/analysis/scanner/analyzer.py` within the `_init_tree_sitter_language` method.
 
-The application automatically saves the state of all open tabs every 5 minutes. It also saves the state when you initiate a graceful shutdown. This includes:
+## Running Dream.OS
 
-*   Filter settings and search text in Task Monitor and Feedback tabs.
-*   Selected items (tasks or events) in the tables.
-*   Scroll positions within tables.
-*   Splitter positions (in the Feedback tab).
-*   The last selected template and cycle count in the Cycle Execution tab (Note: running cycles are *not* automatically resumed on startup).
+### Command Line Interface (CLI)
 
-When you restart the application, it will attempt to load this saved state, restoring the UI to how you left it.
+The primary way to interact with Dream.OS is via the CLI module.
 
-## 4. Shutdown Procedures
+```bash
+# View available commands and options
+python -m src.dreamos.cli --help
+```
 
-*   **Graceful Shutdown:** Use the "Shutdown" button in the control bar or close the main window (using the X button). This initiates a process where:
-    1.  Each tab prepares for shutdown (stops timers, logs final stats).
-    2.  The state of each tab is saved to `agent_directory/tab_states.json`.
-    3.  The application closes.
-*   **Status Indicator:** During shutdown, the main status label will indicate "System Status: Shutting Down...".
+**Common CLI Tasks:**
 
-## 5. Error Handling & Known Limitations
+- **Run Project Scan:** Update the codebase analysis.
+  ```bash
+  python -m src.dreamos.cli scan --categorize-agents --generate-init
+  ```
+  * `--categorize-agents`: Adds maturity/type info to `project_analysis.json`.
+  * `--generate-init`: Automatically creates/updates `__init__.py` files in Python packages.
 
-*   **Error Indicator:** If a significant error occurs (e.g., failure to save/load state), the main status label will turn red and display an error message. Check the Feedback tab or the log files for more details.
-*   **State Restoration Failures:** If the `tab_states.json` file is corrupted or unreadable, the application will start with a default state. A warning message will be shown. If only specific tabs fail to restore, a warning listing those tabs will appear.
-*   **Running Cycles:** Active execution cycles in the "Cycle Execution" tab are stopped during shutdown and are *not* automatically restarted when the application loads its state. You will need to manually restart the cycle if desired.
+- **Execute a Specific Task:** (Verify exact command structure)
+  ```bash
+  # Hypothetical example
+  # python -m src.dreamos.cli run --task "Update docs for module X" --agent DocsAgent
+  ```
 
----
-*This document provides a basic overview. Refer to specific module documentation or developer notes for more technical details.* 
+### GUI Dashboard
+
+An optional PyQt dashboard provides visual monitoring and interaction.
+
+```bash
+# Ensure PyQt5 is installed (pip install pyqt5)
+# Verify the exact launch command:
+python -m src.dreamos.dashboard.main 
+```
+
+*(Add details about Dashboard features once verified: Task monitoring, agent status, logging view, interaction capabilities)*
+
+## Understanding the Project Scanner
+
+The scanner (`src/dreamos/tools/analysis/scanner/`) is crucial for context and automation.
+
+- **Operation:** It walks the project tree, identifies supported files (`.py`, `.rs`, `.js`, `.ts`), hashes them, and uses `ast` (Python) or `tree-sitter` (others) to extract structure (functions, classes, complexity).
+- **Caching:** Uses `dependency_cache.json` to store file hashes. Only changed files are re-analyzed, speeding up subsequent scans. Delete this file to force a full re-scan.
+- **Output Files:**
+    - `project_analysis.json`: Detailed structural information for each analyzed file. Used by agents for context.
+    - `chatgpt_project_context.json`: A potentially condensed or formatted version of the analysis suitable for large language models.
+- **Agent Categorization:** The `--categorize-agents` flag adds `maturity` and `agent_type` fields to Python class entries in `project_analysis.json` based on heuristics (docstrings, methods, base classes).
+- **`__init__.py` Generation:** The `--generate-init` flag automatically creates or updates `__init__.py` files in detected Python packages, adding necessary imports and `__all__` lists.
+
+## Working with Agents
+
+- **Communication:** Agents use the `AgentBus` to send and receive messages. This allows for loose coupling and reactive behavior.
+- **Task Execution:** Agents typically receive task assignments via the bus or perform actions based on monitored events.
+- **Using Tools:** Agents import and use tools from `src/dreamos/tools/` to perform actions like searching code (`search_tools`), modifying files (`file_tools`), or analyzing structure (`scanner`).
+
+## Troubleshooting
+
+- **Check Logs:** The primary source for diagnosing issues is `logs/agent.log`. Use `tail -f logs/agent.log` or inspect the JSON content.
+- **Increase Log Verbosity:** Modify `src/dreamos/config.py` (or use environment variables/CLI flags if available) to set the logging level to `DEBUG` for more detailed output.
+- **Check Configuration:** Ensure `src/dreamos/config.py` and any `.env` files have correct paths and settings.
+- **Scanner Issues:** If analysis seems incorrect, try deleting `dependency_cache.json` and re-running the scan.
+- **GUI Issues:** Ensure PyQt5 and any other dashboard dependencies are correctly installed.
+
+## Contributing
+
+Please refer to the [Quickstart Guide](./USER_ONBOARDING.md#contributing--feedback) for details on contributing via GitHub Issues and Pull Requests. 
