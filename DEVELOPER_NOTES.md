@@ -31,6 +31,12 @@ This commit consolidates key modules into the new `dreamos` package structure:
 - Added JSON schema–driven task validation using `jsonschema` (schema at `src/dreamos/utils/task_schema.json`) and refactored `validate_task_entry` in `social/scripts/inject_task.py`.
 - Created unit tests in `tests/utils/test_task_schema_validation.py` covering required fields, type enforcement, and date-time format validation.
 
+### 5.1 Broadcast Validation Enhancements
+- Introduced `dry_run` mode in `broadcast_directive` CLI to simulate broadcasts without writing files.
+- Enforced mailbox schema validation: mailbox JSON must contain a list at `messages`, else the broadcast is rejected and an error logged.
+- Refactored `broadcast_to_mailboxes` to perform atomic writes via temporary files and `os.replace`, improving safety under concurrent operations.
+- Added comprehensive tests in `tests/core/coordination/test_broadcast_directive.py` covering dry-run behavior, corrupt mailbox schemas, invalid JSON handling, and concurrency scenarios.
+
 ### 6. Memory Layer Migration
 - Migrated to UnifiedMemoryManager:
   - Replaced imports of `MemoryManager` with `UnifiedMemoryManager` in UI (`ui/main_window.py`, `ui/fragment_forge_tab.py`) and monitoring modules.
@@ -289,6 +295,14 @@ Following the core module tests, we've now broadened coverage to include:
 
 These additions bring us closer to the 95%+ coverage goal across core coordination, utility, and integration layers.
 
+### Task Update Hardening
+- Added tests for `update_task_status` edge-cases:
+  - Read failure (read_tasks returns None) → logs error and returns False.
+  - Task not found in list → logs warning and returns False.
+  - No-op update (status unchanged) → returns True without file rewrite.
+  - Successful update → rewrites file with `timestamp_updated`, `last_updated_by`, and optional result/error fields.
+  - Invalid structure (non-list JSON) → safe failure with warning, returns False.
+
 ## Automation Supervisor Agent
 
 - On initialization, `AutomationSupervisor` registers itself with `AgentBus` as agent_id `automation_supervisor` and capability `automation`.
@@ -311,5 +325,63 @@ These additions bring us closer to the 95%+ coverage goal across core coordinati
 - Legend remains visible and hover interactions persist after refresh.
 - Phase 2 Health Chart polish milestone: complete.
 - Phase 3 Health Chart Stacked View: added a "Stacked View" toggle checkbox to switch between grouped and stacked bar views, implemented in `dashboard_ui.py`, with unit test coverage in `tests/ui/test_dashboard_stacked_toggle.py`.
+- Phase 4 Health Chart Threshold Overlays: added dashed green/red lines at SUCCESS_THRESHOLD (50) and FAILURE_THRESHOLD (10), implemented via `QLineSeries` with `QPen` dash styles.
+- Phase 4.1 Health Chart Breach Warnings: added yellow UI pulse on threshold breach (success < 50 or failure > 10) using `self._flash_color(QColor(255,255,0))`.
 
+*End of developer notes.*
+
+## Phase 4: TaskUtils Hardening
+
+Date: 2024-07-XX
+
+- Hardened `update_task_status` in `task_utils.py` with:
+  - Atomic writes using a temporary file and `os.replace` for crash-safety
+  - Automatic backup of the original JSON to a `.bak` file before overwrite
+  - Enforcement of `ALLOWED_STATUSES`, returning `False` on invalid status inputs
+  - Enhanced logging listing available task IDs when the specified `task_id` is not found
+  - Optional `fail_on_corrupt` flag to escalate `JSONDecodeError` on corrupted task lists
+  - Optional `enable_file_locking` flag to perform file-level locking via the `filelock` library
+- Added comprehensive pytest tests (`coordination/tests/test_task_utils.py`) covering:
+  - `test_backup_and_atomic_write`
+  - `test_invalid_status_no_update`
+  - `test_task_not_found_logs_available_ids`
+  - `test_fail_on_corrupt`
+  - `test_file_locking`
+
+*End of developer notes.*
+
+## CLI Help Stabilization
+- Added CLI smoke tests for `--help` and `-h` via `tests/integration/test_cli_help_output.py`.
+- Snapshot validated core commands: `run`, `stats`, `validate-config`, `version`.
+- Ensures baseline Typer behavior and helps detect future CLI regressions.
+
+*End of developer notes.*
+
+### Phase 4.1: Threshold Breach Warnings
+- After drawing thresholds, `Dashboard.refresh()` scans each agent's stats:
+  • If **success < SUCCESS_THRESHOLD** or **failure > FAILURE_THRESHOLD**, fires a yellow UI pulse via `self._flash_color(QColor(255,255,0))`.
+- Utilizes existing `QTimer.singleShot` for an immediate, non-blocking flash.
+- Keeps warnings lightweight—no tab changes or system events.
+- Phase 4.1 milestone: threshold breach warnings fully implemented and verified.
+
+*End of developer notes.*
+
+### Phase 4.2: Persistent Breach Badges
+- Introduced `self.agent_breach_flags: Dict[str,bool]` to track per-agent breach state on each `refresh()`.
+- Badge column (⚠️) added to Agents tab; hidden when no active breaches.
+- Breach flags persist until agent recovers (success ≥ threshold AND failure ≤ threshold).
+- Uses `QStandardItemModel.setColumnHidden` to show/hide badge column dynamically.
+
+*End of developer notes.*
+
+## Release v0.2.1
+- Fully integrated `CycleHealthMonitor` with AgentBus event-driven scrape health tracking.
+- Added health chart threshold overlays (dashed SUCCESS/FAILURE lines) and breach warnings (yellow UI pulses).
+- Enhanced `update_task_status` with hardening tests and edge-case coverage.
+
+*End of developer notes.*
+
+### Phase 4.3: Legacy Test Migration
+- Deleted legacy `tests/utils/test_task_utils.py` after migrating and consolidating tests under `coordination/tests`.
+- Added read_tasks edge-case tests (`test_read_tasks_missing_and_empty`, `test_read_tasks_invalid_json`) to `coordination/tests/test_task_utils.py`.
 *End of developer notes.* 
