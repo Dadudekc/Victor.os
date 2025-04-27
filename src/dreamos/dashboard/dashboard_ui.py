@@ -1,10 +1,26 @@
+import logging
+import json
+from datetime import datetime
+import pyautogui
+from typing import Dict, Any, List, Tuple
+
+from PyQt5.QtCore import Qt, QTimer, QModelIndex
 from PyQt5.QtGui import (
-    QColor, QIcon, QKeySequence, QPixmap, QPainter, QCursor, QPen
+    QColor, QIcon, QKeySequence, QPixmap, QPainter, QCursor, QPen,
+    QStandardItemModel, QStandardItem
 )
-from PyQt5.QtChart import QChart, QChartView, QBarSeries, QBarSet, QBarCategoryAxis, QValueAxis, QLineSeries
-from PyQt5.QtChart import QStackedBarSeries
-from PyQt5.QtCore import QTimer
-from typing import Dict, Any
+from PyQt5.QtChart import (
+    QChart, QChartView, QBarSeries, QBarSet, QBarCategoryAxis, QValueAxis, QLineSeries,
+    QStackedBarSeries
+)
+from PyQt5.QtWidgets import (
+    QMainWindow, QApplication, QMessageBox, QInputDialog
+)
+
+import dreamos.config as CFG
+from dreamos.utils.ui_helpers import _qcolor, _md, _avatar
+from dreamos.core.task_management import add_task, claim_task
+from dreamos.core.agent_coords import _load_coords, save_agent_spot, click_agent_spot
 
 class Dashboard(QMainWindow):
     # EDIT START: Phase 4 threshold constants
@@ -19,7 +35,46 @@ class Dashboard(QMainWindow):
         self.agent_breach_flags: Dict[str, bool] = {}
         # EDIT END: initialize breach flags
 
+        # --- Placeholder: Initialize UI elements and potentially axes here ---
+        # Example: self._setup_charts()
+        self.health_chart = QChart() # Placeholder initialization
+        self.category_axis = QBarCategoryAxis() # Placeholder initialization
+        self.value_axis = QValueAxis() # Placeholder initialization
+        self.health_chart.addAxis(self.category_axis, Qt.AlignBottom) # Placeholder setup
+        self.health_chart.addAxis(self.value_axis, Qt.AlignLeft) # Placeholder setup
+        # --- End Placeholder ---
+
     def refresh(self):
+        # --- EDIT START: Retrieve or Calculate required data ---
+        # Ensure chart and axes are valid (assuming setup in __init__ or elsewhere)
+        if not hasattr(self, 'health_chart') or not self.health_chart:
+             logging.error("Health chart not initialized before refresh.")
+             return
+        # Retrieve axes from chart if not guaranteed by init (safer)
+        # Assuming the axes were added with specific types during setup
+        self.category_axis = next((ax for ax in self.health_chart.axes(Qt.Horizontal) if isinstance(ax, QBarCategoryAxis)), None)
+        self.value_axis = next((ax for ax in self.health_chart.axes(Qt.Vertical) if isinstance(ax, QValueAxis)), None)
+
+        if not self.category_axis or not self.value_axis:
+            logging.error("Chart axes not found or not of expected type during refresh.")
+            return
+
+        # Placeholder: Fetch latest data needed for the refresh
+        # Replace these with actual data retrieval logic (e.g., from a data store/manager)
+        self.agent_scrape_stats: Dict[str, Dict[str, int]] = getattr(self, '_data_source', {}).get('agent_stats', {}) # Example fetch
+        self.agent_metadata: Dict[str, Dict[str, Any]] = getattr(self, '_data_source', {}).get('agent_metadata', {}) # Example fetch
+        agents_list: List[Tuple[str, str]] = getattr(self, '_data_source', {}).get('agents_list', []) # Example fetch (e.g., [('agent1', 'xy1'), ('agent2', 'xy2')])
+        self.health_agents: List[str] = [aid for aid, xy in agents_list] # Example derived list
+
+        # Calculate success/failure sets based on fetched stats
+        success_values = [self.agent_scrape_stats.get(aid, {}).get('success', 0) for aid in self.health_agents]
+        failure_values = [self.agent_scrape_stats.get(aid, {}).get('failure', 0) for aid in self.health_agents]
+        success_set = QBarSet("Success")
+        success_set.append(success_values)
+        failure_set = QBarSet("Failure")
+        failure_set.append(failure_values)
+        # --- EDIT END: Retrieve or Calculate required data ---
+
         # Refresh series
         self.health_chart.removeAllSeries()
         series = QBarSeries()
@@ -72,13 +127,13 @@ class Dashboard(QMainWindow):
         # EDIT END: Phase 4.1 threshold breach tracking and warnings
         # Update categories
         self.category_axis.clear()
+        self.category_axis.append(self.health_agents)
 
-        from PyQt5.QtGui import QStandardItemModel, QStandardItem
         # Now include Priority, Description, and Breach Badge columns
         col_count = 6
-        mdl = QStandardItemModel(len(agents), col_count, self)
+        mdl = QStandardItemModel(len(agents_list), col_count, self)
         mdl.setHorizontalHeaderLabels(["Agent", "XY", "Scrapes ✅/❌", "Priority", "Description", "⚠️"])
-        for r, (aid, xy) in enumerate(agents):
+        for r, (aid, xy) in enumerate(agents_list):
             # Ensure stats entry exists
             stats = self.agent_scrape_stats.get(aid, {"success": 0, "failure": 0})
             suc = stats.get("success", 0)
@@ -105,7 +160,7 @@ class Dashboard(QMainWindow):
         self.agent_tbl.setModel(mdl)
         # EDIT START: Phase 4.2 persistent breach badges
         # Hide badge column if no agents currently in breach
-        has_breach = any(self.agent_breach_flags.get(aid, False) for aid in self.agent_scrape_stats.keys())
+        has_breach = any(self.agent_breach_flags.get(aid, False) for aid in self.health_agents)
         self.agent_tbl.setColumnHidden(5, not has_breach)
         # EDIT END: Phase 4.2 persistent breach badges 
 
