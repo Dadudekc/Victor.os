@@ -11,4 +11,10 @@ setup(
         "jinja2",
     ],
     python_requires=">=3.8",
+    entry_points={
+        'console_scripts': [
+            'dreamos-cli=dreamos.cli.cli:app',
+            'dreamos-main=dreamos.cli.main:main',
+        ],
+    },
 ) 

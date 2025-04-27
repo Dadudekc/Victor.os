@@ -1,3 +1,15 @@
+# Developer Notes: Project Structure Enforcement
+- Before executing any task, verify that all modified files belong under `src/dreamos/` or appropriate subpackage.
+- Migrate or normalize file locations to align with the service boundaries (e.g., `coordination/`, `monitoring/`, `services/`).
+- Update all import statements to reflect any relocations.
+- After structural changes, update this Developer Notes file under "Structural Enforcement Guidelines".
+- Commit messages must include `chore(structure):` when files are moved or reorganized.
+
+## Phase 5.6: Core Flatten - agent_bus and utils
+- Moved `agent_bus.py` from `_agent_coordination/core/agent_bus.py` to `src/dreamos/coordination/agent_bus.py`.
+- Consolidated core util modules from `_agent_coordination/core/utils/*.py` into `src/dreamos/coordination/utils/`.
+- Updated imports from `_agent_coordination.core.agent_bus` and `_agent_coordination.core.utils` to `dreamos.coordination.agent_bus` and `dreamos.coordination.utils` respectively.
+
 # Developer Notes: Memory & Feedback Module Consolidation
 
 Date: 2024-06-XX
@@ -384,4 +396,42 @@ Date: 2024-07-XX
 ### Phase 4.3: Legacy Test Migration
 - Deleted legacy `tests/utils/test_task_utils.py` after migrating and consolidating tests under `coordination/tests`.
 - Added read_tasks edge-case tests (`test_read_tasks_missing_and_empty`, `test_read_tasks_invalid_json`) to `coordination/tests/test_task_utils.py`.
-*End of developer notes.* 
+*End of developer notes.*
+
+## Structural Enforcement Guidelines
+- All changes must first ensure correct project organization under `src/dreamos/` modules.
+- Migrate or normalize any new or moved files into their appropriate subpackages (e.g., `coordination/`, `monitoring/`, `services/`, etc.).
+- Update all import statements to reflect new paths after any relocation.
+- Document all structure changes in this notes file, noting moved files and updated imports.
+- Prioritize reducing codebase sprawl and enforcing modular boundaries before implementing new features or fixes.
+
+## Phase 5: Social Project Merge
+Date: 2024-06-XX
+
+- Merged standalone `social/` project into `src/dreamos/social/`.
+- Moved:
+  - `social/social/` → `src/dreamos/social/`
+  - `social/utils/` → `src/dreamos/services/utils/`
+  - Tests under `social/tests/` → `tests/social/`
+- Deleted redundant root-level `social/setup.py`, `social/pyproject.toml`, and `social/pytest.ini`.
+- Updated import paths from `social.*` → `dreamos.social.*` and `dreamos.services.utils.*`.
+- Ran full pytest suite to confirm no regressions.
+
+Commit message: `refactor(social): merge standalone social project into dreamos.social`
+
+## Phase 5.7: Dreamforge Deletion
+Date: 2024-06-XX
+
+- Removed legacy `agents/dreamforge/` directory and all its contents.
+- Deleted associated tests under `agents/dreamforge/tests/` to prevent import errors.
+- Confirmed full pytest suite passes without errors after cleanup.
+
+*End of developer notes.*
+
+## Phase 5.2: CLI & Artifact Consolidation
+- Moved `cli.py` and `main.py` into `src/dreamos/cli/` package for unified command entrypoints.
+- Relocated generated JSON artifacts (`chatgpt_project_context.json`, `dependency_cache.json`,
+  `project_analysis.json`, `master_task_list.json`) into `runtime/` directory.
+- Updated `setup.py` `console_scripts` to reference `dreamos.cli.cli:app` and `dreamos.cli.main:main`.
+- Updated `.gitignore` to exclude runtime artifacts and coverage outputs.
+*End of Developer Notes.* 

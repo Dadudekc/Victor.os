@@ -50,4 +50,10 @@ secrets/
 **/.venv/
 
 # Ignore stray root script
-r.py 
+r.py
+
+# Added JSON files
+runtime/chatgpt_project_context.json
+runtime/dependency_cache.json
+runtime/project_analysis.json
+runtime/master_task_list.json 
