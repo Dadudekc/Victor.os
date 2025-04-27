@@ -1,0 +1,424 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "phase": "Audit & Classification",
+      "description": "Create an /audit folder in the project root for storing audit outputs",
+      "details": "Use git to create a new directory named audit to keep intermediate artifacts",
+      "status": "todo"
+    },
+    {
+      "id": 2,
+      "phase": "Audit & Classification",
+      "description": "Generate a full file manifest JSON at /audit/manifest.json",
+      "details": "Run a script to scan /src recursively and output file paths, sizes, and types into audit/manifest.json",
+      "status": "todo"
+    },
+    {
+      "id": 3,
+      "phase": "Audit & Classification",
+      "description": "Generate an import graph and save to /audit/import-graph.json",
+      "details": "Use a tool like madge or dependency-cruiser to produce a JSON graph of module imports",
+      "status": "todo"
+    },
+    {
+      "id": 4,
+      "phase": "Audit & Classification",
+      "description": "Identify orphaned files with no incoming imports",
+      "details": "Analyze the import graph to find files not referenced by any other file and list them in audit/orphaned-files.json",
+      "status": "todo"
+    },
+    {
+      "id": 5,
+      "phase": "Audit & Classification",
+      "description": "Export the list of orphaned files to /audit/orphaned-files.json",
+      "details": "Write the orphaned list JSON and verify it includes full file paths",
+      "status": "todo"
+    },
+    {
+      "id": 6,
+      "phase": "Audit & Classification",
+      "description": "Classify all files by domain (feature, shared, assets)",
+      "details": "Annotate each file in the manifest with a domain tag based on its path or content",
+      "status": "todo"
+    },
+    {
+      "id": 7,
+      "phase": "Audit & Classification",
+      "description": "Generate domain mapping JSON at /audit/domains.json",
+      "details": "Output a JSON file grouping each file by its assigned domain for review",
+      "status": "todo"
+    },
+    {
+      "id": 8,
+      "phase": "Audit & Classification",
+      "description": "Analyze asset usage and generate /audit/assets-usage.json",
+      "details": "Scan code for asset imports and record usage counts per asset file",
+      "status": "todo"
+    },
+    {
+      "id": 9,
+      "phase": "Audit & Classification",
+      "description": "Identify unused asset files not referenced in code",
+      "details": "Compare asset list to assets-usage and list unused assets in /audit/unreferenced-assets.json",
+      "status": "todo"
+    },
+    {
+      "id": 10,
+      "phase": "Audit & Classification",
+      "description": "Export unused assets list to /audit/unreferenced-assets.json",
+      "details": "Ensure the JSON file contains full paths and usage count zero",
+      "status": "todo"
+    },
+    {
+      "id": 11,
+      "phase": "Audit & Classification",
+      "description": "Compile a human-readable audit summary at /audit/summary.md",
+      "details": "Summarize key findings (orphaned files, unused assets, domain breakdown) in markdown",
+      "status": "todo"
+    },
+    {
+      "id": 12,
+      "phase": "Audit & Classification",
+      "description": "Commit all audit artifacts to a review branch",
+      "details": "Use git to add /audit folder, commit with message 'chore:audit project structure', and push for review",
+      "status": "todo"
+    },
+    {
+      "id": 13,
+      "phase": "Conventions & Naming",
+      "description": "Create /docs/naming.md to document file and naming conventions",
+      "details": "Add a new markdown file specifying casing rules and suffix patterns for all code types",
+      "status": "todo"
+    },
+    {
+      "id": 14,
+      "phase": "Conventions & Naming",
+      "description": "Define PascalCase for React component filenames in naming.md",
+      "details": "Document that all React components should be in PascalCase with the .component.tsx suffix",
+      "status": "todo"
+    },
+    {
+      "id": 15,
+      "phase": "Conventions & Naming",
+      "description": "Define camelCase for custom hook filenames",
+      "details": "Document that hooks should use camelCase and have the .hook.ts suffix when distinguished",
+      "status": "todo"
+    },
+    {
+      "id": 16,
+      "phase": "Conventions & Naming",
+      "description": "Define kebab-case for non-code asset filenames",
+      "details": "Document that images, styles, and static files should be in kebab-case for consistency",
+      "status": "todo"
+    },
+    {
+      "id": 17,
+      "phase": "Conventions & Naming",
+      "description": "Define file suffix conventions (.service.ts, .types.ts)",
+      "details": "Clarify suffixes for service modules and type definition files in naming.md",
+      "status": "todo"
+    },
+    {
+      "id": 18,
+      "phase": "Conventions & Naming",
+      "description": "Update .eslintrc rules to enforce naming conventions",
+      "details": "Enable ESLint rules in config to match the documented casing and suffix patterns",
+      "status": "todo"
+    },
+    {
+      "id": 19,
+      "phase": "Conventions & Naming",
+      "description": "Update .prettierrc to ensure filename case formatting",
+      "details": "Add settings to Prettier config or plugin to respect file-casing rules if available",
+      "status": "todo"
+    },
+    {
+      "id": 20,
+      "phase": "Conventions & Naming",
+      "description": "Create codemod scripts to rename files according to conventions",
+      "details": "Write and test a jscodeshift or TS-morph script for file renaming by pattern",
+      "status": "todo"
+    },
+    {
+      "id": 21,
+      "phase": "Conventions & Naming",
+      "description": "Run codemod on a sample folder and verify rename results",
+      "details": "Execute the script on /src/shared/components subset and manually inspect changes",
+      "status": "todo"
+    },
+    {
+      "id": 22,
+      "phase": "Conventions & Naming",
+      "description": "Run codemod across entire codebase to rename files",
+      "details": "Execute the script on all source directories and resolve any conflicts",
+      "status": "todo"
+    },
+    {
+      "id": 23,
+      "phase": "Conventions & Naming",
+      "description": "Fix import paths broken by file renaming",
+      "details": "Search and replace import statements to match new filenames using a find-and-replace tool",
+      "status": "todo"
+    },
+    {
+      "id": 24,
+      "phase": "Conventions & Naming",
+      "description": "Commit naming convention docs and renaming changes",
+      "details": "Use git to add updated files and commit with message 'chore:enforce naming conventions'",
+      "status": "todo"
+    },
+    {
+      "id": 25,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/todo folder and move todo files using git mv",
+      "details": "Relocate all todo domain files into /src/features/todo to group feature code",
+      "status": "todo"
+    },
+    {
+      "id": 26,
+      "phase": "Directory Structure",
+      "description": "Update import statements in todo feature to new path and test",
+      "details": "Replace old import paths with '@/features/todo' and ensure todo feature builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 27,
+      "phase": "Directory Structure",
+      "description": "Commit todo feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move todo feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 28,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/auth folder and move auth files using git mv",
+      "details": "Relocate all auth domain files into /src/features/auth to organize authentication code",
+      "status": "todo"
+    },
+    {
+      "id": 29,
+      "phase": "Directory Structure",
+      "description": "Update import statements in auth feature to new path and test",
+      "details": "Replace old import paths with '@/features/auth' and ensure auth feature builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 30,
+      "phase": "Directory Structure",
+      "description": "Commit auth feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move auth feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 31,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/dashboard folder and move dashboard files using git mv",
+      "details": "Relocate all dashboard domain files into /src/features/dashboard to group dashboard code",
+      "status": "todo"
+    },
+    {
+      "id": 32,
+      "phase": "Directory Structure",
+      "description": "Update import statements in dashboard feature to new path and test",
+      "details": "Replace old import paths with '@/features/dashboard' and ensure dashboard builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 33,
+      "phase": "Directory Structure",
+      "description": "Commit dashboard feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move dashboard feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 34,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/components folder and move component files using git mv",
+      "details": "Relocate UI component files into /src/shared/components to centralize shared components",
+      "status": "todo"
+    },
+    {
+      "id": 35,
+      "phase": "Directory Structure",
+      "description": "Update import statements for components to new shared folder and test",
+      "details": "Replace old import paths with '@/shared/components' and run component stories/tests",
+      "status": "todo"
+    },
+    {
+      "id": 36,
+      "phase": "Directory Structure",
+      "description": "Commit shared components restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared components into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 37,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/hooks folder and move hook files using git mv",
+      "details": "Relocate hook modules into /src/shared/hooks to centralize custom hooks",
+      "status": "todo"
+    },
+    {
+      "id": 38,
+      "phase": "Directory Structure",
+      "description": "Update import statements for hooks to shared/hooks and test",
+      "details": "Replace old imports with '@/shared/hooks' and run hook usage tests",
+      "status": "todo"
+    },
+    {
+      "id": 39,
+      "phase": "Directory Structure",
+      "description": "Commit shared hooks restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared hooks into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 40,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/utils folder and move util files using git mv",
+      "details": "Relocate utility modules into /src/shared/utils to centralize shared functions",
+      "status": "todo"
+    },
+    {
+      "id": 41,
+      "phase": "Directory Structure",
+      "description": "Update import statements for utils to shared/utils and test",
+      "details": "Replace old imports with '@/shared/utils' and run utility function tests",
+      "status": "todo"
+    },
+    {
+      "id": 42,
+      "phase": "Directory Structure",
+      "description": "Commit shared utils restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared utils into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 43,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/types folder and move type definition files using git mv",
+      "details": "Relocate .d.ts and types files into /src/shared/types to centralize type definitions",
+      "status": "todo"
+    },
+    {
+      "id": 44,
+      "phase": "Directory Structure",
+      "description": "Update import statements for types to shared/types and test",
+      "details": "Replace old imports with '@/shared/types' and ensure TypeScript compiles without errors",
+      "status": "todo"
+    },
+    {
+      "id": 45,
+      "phase": "Directory Structure",
+      "description": "Commit shared types restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared types into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 46,
+      "phase": "Directory Structure",
+      "description": "Move App.tsx and index.tsx into /src folder using git mv",
+      "details": "Relocate root entry files into /src to keep source code together",
+      "status": "todo"
+    },
+    {
+      "id": 47,
+      "phase": "Directory Structure",
+      "description": "Update root-level import paths for App and index and test",
+      "details": "Fix entry point imports in webpack or package.json and run the dev server",
+      "status": "todo"
+    },
+    {
+      "id": 48,
+      "phase": "Directory Structure",
+      "description": "Commit root-level restructure",
+      "details": "git add and commit changes with message 'refactor: move root entry files into src folder'",
+      "status": "todo"
+    },
+    {
+      "id": 49,
+      "phase": "Documentation & Maintenance",
+      "description": "Create top-level README.md describing project structure",
+      "details": "Document directory layout, naming conventions, and flows in README.md",
+      "status": "todo"
+    },
+    {
+      "id": 50,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/add_new_feature.md guidelines",
+      "details": "Describe steps to scaffold a new feature folder and update routing/app state",
+      "status": "todo"
+    },
+    {
+      "id": 51,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/add_shared_component.md guidelines",
+      "details": "Describe steps to add a new shared component, including testing and styling",
+      "status": "todo"
+    },
+    {
+      "id": 52,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/style_guide.md for CSS and assets",
+      "details": "Define where to place styles, how to name classes, and asset organization",
+      "status": "todo"
+    },
+    {
+      "id": 53,
+      "phase": "Documentation & Maintenance",
+      "description": "Update CI workflow to enforce directory structure",
+      "details": "Modify .github/workflows/ci.yml to include a directory-layout check",
+      "status": "todo"
+    },
+    {
+      "id": 54,
+      "phase": "Documentation & Maintenance",
+      "description": "Add lint job for naming conventions in CI",
+      "details": "Ensure ESLint step fails on naming violations in GitHub Actions",
+      "status": "todo"
+    },
+    {
+      "id": 55,
+      "phase": "Documentation & Maintenance",
+      "description": "Add documentation validation job in CI",
+      "details": "Use markdownlint or similar to validate docs formatting in CI",
+      "status": "todo"
+    },
+    {
+      "id": 56,
+      "phase": "Documentation & Maintenance",
+      "description": "Commit all docs and CI updates",
+      "details": "Commit with message 'docs: add guidelines and CI checks' to capture changes",
+      "status": "todo"
+    },
+    {
+      "id": 57,
+      "phase": "Cleanup",
+      "description": "Remove /audit folder and scripts after final merge",
+      "details": "Use git rm -r to delete audit artifacts and commit with message 'chore:remove audit artifacts'",
+      "status": "todo"
+    },
+    {
+      "id": 58,
+      "phase": "Cleanup",
+      "description": "Remove codemod scripts if they are no longer needed",
+      "details": "Use git rm to delete codemod files and update any CLI scripts in package.json",
+      "status": "todo"
+    },
+    {
+      "id": 59,
+      "phase": "Cleanup",
+      "description": "Run final lint, format, and type-check across codebase",
+      "details": "Execute npm run lint, npm run format:check, and npm run type-check to ensure a clean build",
+      "status": "todo"
+    },
+    {
+      "id": 60,
+      "phase": "Cleanup",
+      "description": "Merge final PR and tag release v1.0.0",
+      "details": "Complete code review, merge branch into main, and git tag v1.0.0",
+      "status": "todo"
+    }
+  ]
+} 

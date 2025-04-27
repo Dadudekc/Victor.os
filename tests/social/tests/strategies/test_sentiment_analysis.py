@@ -16,9 +16,9 @@ if project_root not in sys.path:
 # Modules/Classes to test or use
 # Need to handle potential import errors if NLTK isn't installed/downloaded
 try:
-    from core.strategies.twitter_strategy import TwitterStrategy
-    from core.strategies.reddit_strategy import RedditStrategy
-    from core.utils.sentiment_analyzer import analyze_sentiment # Assuming location
+    from dreamos.strategies.twitter_strategy import TwitterStrategy
+    from dreamos.strategies.reddit_strategy import RedditStrategy
+    from dreamos.utils.sentiment_analyzer import analyze_sentiment # Assuming location
     # Attempt to instantiate analyzer to trigger potential NLTK download check early
     _analyzer_test_instance = analyze_sentiment()
     _SENTIMENT_READY = True

@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 
 # Updated import path
 # from social.utils.browser_utils import get_undetected_driver, wait_and_click, wait_and_send_keys
-from core.utils.browser_utils import get_undetected_driver, wait_and_click, wait_and_send_keys # Updated
+from dreamos.utils.browser_utils import get_undetected_driver, wait_and_click, wait_and_send_keys # Updated
 
 # Mock selenium imports if needed, or assume they are installed
 from selenium.webdriver.common.by import By

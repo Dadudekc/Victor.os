@@ -18,7 +18,7 @@ from apscheduler.triggers.date import DateTrigger
 from queue import Queue
 from threading import Thread
 
-from config import settings
+from dreamos.config import settings
 from strategies import TwitterStrategy, LinkedInStrategy
 from utils.devlog_generator import DevLogPost
 from utils.devlog_analyzer import DevLogAnalyzer

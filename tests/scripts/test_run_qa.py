@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 import json
+import io
 
 # --- Add project root to sys.path ---
 script_dir = Path(__file__).parent
@@ -113,8 +114,49 @@ class TestRunQAScript(unittest.TestCase):
         self.assertIn("_(No items found in checklist)_", report)
         self.assertNotIn("| Status | ID", report) # No tables should be present
 
-    # TODO: Add tests for list_items output formatting (requires capturing stdout)
-    # TODO: Add tests for update_item_status logic (checking data modification)
+    def test_list_items_default_formatting(self):
+        """Test list_items prints all items with correct formatting."""
+        buf = io.StringIO()
+        with patch('sys.stdout', buf):
+            list_items(self.sample_data)
+        output = buf.getvalue()
+        self.assertIn("--- Sample Phase ---", output)
+        self.assertIn("[Cat One] - First category tests.", output)
+        self.assertIn("  [T1] Test One - Status: PASS", output)
+        self.assertIn("  [T2] Test Two (test_file.py) - Status: PENDING", output)
+        self.assertIn("[Cat Two] - Second category.", output)
+        self.assertIn("  [T3] Test Three - Status: FAIL", output)
+        self.assertIn("  [T4] Test Four - Status: PASS", output)
+        self.assertIn("Total items: 4. Items shown: 4.", output)
+
+    def test_list_items_filtering(self):
+        """Test list_items with filter_status only prints matching items."""
+        buf = io.StringIO()
+        with patch('sys.stdout', buf):
+            list_items(self.sample_data, filter_status="fail")
+        output = buf.getvalue()
+        self.assertIn("[Cat One] - First category tests.", output)
+        self.assertIn("  (No items match status 'fail')", output)
+        self.assertIn("[Cat Two] - Second category.", output)
+        self.assertIn("  [T3] Test Three - Status: FAIL", output)
+        self.assertIn("Total items: 4. Items shown: 1.", output)
+
+    def test_update_item_status_success(self):
+        """Test that update_item_status correctly updates an item's status and returns True."""
+        # Ensure initial status is as expected
+        self.assertEqual(self.sample_data["categories"]["cat_one"]["items"][1]["status"], "pending")
+        # Perform update
+        result = update_item_status(self.sample_data, "T2", "pass")
+        self.assertTrue(result)
+        # Verify the status was updated
+        self.assertEqual(self.sample_data["categories"]["cat_one"]["items"][1]["status"], "pass")
+
+    def test_update_item_status_not_found(self):
+        """Test that update_item_status returns False when item id is not found."""
+        # Attempt to update non-existent item
+        result = update_item_status(self.sample_data, "UNKNOWN", "fail")
+        self.assertFalse(result)
+
     # TODO: Add tests for load/save checklist functionality (interaction with file system)
     # TODO: Add tests for main() function argument parsing and command dispatching
 

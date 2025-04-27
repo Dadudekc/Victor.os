@@ -1,0 +1,60 @@
+{
+  "statistics": {
+    "detectionDate": "2025-04-23T20:25:12.216Z",
+    "formats": {
+      "typescript": {
+        "sources": {
+          "_agent_coordination/.venv/Lib/site-packages/playwright/driver/package/types/structs.d.ts": {
+            "lines": 44,
+            "tokens": 611,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "_agent_coordination/.venv/Lib/site-packages/playwright/driver/package/index.d.ts": {
+            "lines": 16,
+            "tokens": 10,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 60,
+          "tokens": 621,
+          "sources": 2,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 60,
+      "tokens": 621,
+      "sources": 2,
+      "clones": 0,
+      "duplicatedLines": 0,
+      "duplicatedTokens": 0,
+      "percentage": 0,
+      "percentageTokens": 0,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": []
+}

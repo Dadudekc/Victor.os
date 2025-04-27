@@ -14,13 +14,13 @@ if project_root not in sys.path:
 
 # Import the class to test and dependencies to mock
 try:
-    from core.agents.social_media_agent import SocialMediaAgent, AGENT_ID
+    from dreamos.agents.social_media_agent import SocialMediaAgent, AGENT_ID
     from utils.mailbox_handler import MailboxHandler 
-    from core.strategies.base_strategy import BaseSocialStrategy
+    from dreamos.strategies.base_strategy import BaseSocialStrategy
     # Import exceptions for testing error cases
-    from core.strategies.strategy_exceptions import PostError, AuthenticationError
-    from core.devlog_processor import DevLogPost, ContentBlock
-    from core.strategy_loader import load_strategies
+    from dreamos.strategies.strategy_exceptions import PostError, AuthenticationError
+    from dreamos.devlog_processor import DevLogPost, ContentBlock
+    from dreamos.strategy_loader import load_strategies
     _imports_ok = True
 except ImportError as e:
     print(f"Error importing modules for Posting Workflow test: {e}")

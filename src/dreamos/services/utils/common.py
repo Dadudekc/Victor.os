@@ -5,9 +5,10 @@ Includes retry logic and potentially other cross-cutting concerns.
 
 import logging
 import time
+import asyncio # Import asyncio
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar
-from utils.logging_utils import get_logger
+from .logging_utils import get_logger # Use relative import assuming it's in the same package
 
 # Configure logging for this utility module
 logger = get_logger(__name__)
@@ -24,40 +25,64 @@ def retry_on_exception(
 ) -> Callable:
     """
     Retry decorator for functions that may fail temporarily.
-    
+    Handles both synchronous and asynchronous functions.
+
     Args:
         max_attempts: Maximum number of retry attempts
         delay: Initial delay between retries in seconds
         backoff: Multiplier for delay after each retry
         exceptions: Tuple of exceptions to catch and retry
-        
+
     Returns:
         Decorated function that implements retry logic
     """
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> ReturnType:
-            current_delay = delay
-            for attempt in range(max_attempts):
-                try:
-                    return func(*args, **kwargs)
-                except exceptions as e:
-                    if attempt == max_attempts - 1:
-                        # Log final failure before raising
-                        logger.error(
-                            f"Function {func.__name__} failed after {max_attempts} attempts. Final error: {e}",
-                            exc_info=True # Include stack trace for the final error
+        is_async = asyncio.iscoroutinefunction(func)
+
+        if is_async:
+            @wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> ReturnType:
+                current_delay = delay
+                for attempt in range(max_attempts):
+                    try:
+                        return await func(*args, **kwargs) # Await the async function
+                    except exceptions as e:
+                        if attempt == max_attempts - 1:
+                            logger.error(
+                                f"Async function {func.__name__} failed after {max_attempts} attempts. Final error: {e}",
+                                exc_info=True
+                            )
+                            raise
+                        logger.warning(
+                            f"Attempt {attempt + 1}/{max_attempts} failed for async {func.__name__}: {e}. Retrying in {current_delay:.2f}s..."
                         )
-                        raise
-                    # Log retry attempt
-                    logger.warning(
-                        f"Attempt {attempt + 1}/{max_attempts} failed for {func.__name__}: {e}. Retrying in {current_delay:.2f}s..."
-                    )
-                    time.sleep(current_delay)
-                    current_delay *= backoff
-            # This line should theoretically not be reached if max_attempts >= 1
-            raise RuntimeError(f"Retry logic failed unexpectedly after {max_attempts} attempts for {func.__name__}")
-        return wrapper
+                        await asyncio.sleep(current_delay) # Use async sleep
+                        current_delay *= backoff
+                # This line should not be reached
+                raise RuntimeError(f"Async retry logic failed unexpectedly after {max_attempts} attempts for {func.__name__}")
+            return async_wrapper
+        else:
+            @wraps(func)
+            def sync_wrapper(*args: Any, **kwargs: Any) -> ReturnType:
+                current_delay = delay
+                for attempt in range(max_attempts):
+                    try:
+                        return func(*args, **kwargs) # Call the sync function
+                    except exceptions as e:
+                        if attempt == max_attempts - 1:
+                            logger.error(
+                                f"Sync function {func.__name__} failed after {max_attempts} attempts. Final error: {e}",
+                                exc_info=True
+                            )
+                            raise
+                        logger.warning(
+                            f"Attempt {attempt + 1}/{max_attempts} failed for sync {func.__name__}: {e}. Retrying in {current_delay:.2f}s..."
+                        )
+                        time.sleep(current_delay) # Use sync sleep
+                        current_delay *= backoff
+                # This line should not be reached
+                raise RuntimeError(f"Sync retry logic failed unexpectedly after {max_attempts} attempts for {func.__name__}")
+            return sync_wrapper
     return decorator
 
 # Removed log_event (duplicate of utils.logging_utils.log_event)

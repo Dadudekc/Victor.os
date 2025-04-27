@@ -27,12 +27,12 @@ for p in [core_path, coordination_path, agents_path, utils_path]:
 sys.modules['core.coordination.cursor_coordinator'] = MagicMock()
 
 # Import Agents and Utilities
-from core.agents.task_executor_agent import TaskExecutorAgent, TaskStatus
-from core.agents.cursor_control_agent import CursorControlAgent
-from core.agents.agent_monitor_agent import AgentMonitorAgent
-# from core.agents.prompt_feedback_loop_agent import PromptFeedbackLoopAgent # Cannot test yet
-from core.utils.task_status_updater import TaskStatusUpdater
-from core.coordination.agent_bus import AgentBus, Message # Need real AgentBus structure
+from dreamos.agents.task_executor_agent import TaskExecutorAgent, TaskStatus
+from dreamos.agents.cursor_control_agent import CursorControlAgent
+from dreamos.agents.agent_monitor_agent import AgentMonitorAgent
+# from dreamos.agents.prompt_feedback_loop_agent import PromptFeedbackLoopAgent # Cannot test yet
+from dreamos.utils.task_status_updater import TaskStatusUpdater
+from dreamos.coordination.agent_bus import AgentBus, Message # Need real AgentBus structure
 
 # --- Mock AgentBus with Simple Queueing --- 
 # More functional than MagicMock for integration tests

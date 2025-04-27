@@ -1,6 +1,10 @@
+# Environment variables
+.env
+
 # Python cache files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 *.pyo
 *.pyd
 
@@ -27,9 +31,6 @@ runtime/**/*.json # Be careful, might exclude config if stored here
 # Generated reports (e.g., from find_todos)
 todo_report_categories/
 
-# Environment variables
-.env
-
 # IDE specific folders
 .vscode/
 .idea/
@@ -46,6 +47,7 @@ social/social_config.json
 # Secrets storage (e.g., cookies)
 secrets/
 
+<<<<<<< HEAD
 # Virtual environment directories
 **/.venv/
 
@@ -57,3 +59,70 @@ runtime/chatgpt_project_context.json
 runtime/dependency_cache.json
 runtime/project_analysis.json
 runtime/master_task_list.json 
+=======
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+node_modules/
+
+# Temporary / Output Files
+*.log
+logs/
+*.tmp
+*.swp
+*.bak
+*.patch
+*.diff
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.out
+
+# Test / Coverage
+.coverage
+htmlcov/
+
+# Specific Project Files to Ignore
+chatgpt_cookies.json
+temp_chats.json
+test_pyqt.py
+
+# Browser profiles (can contain sensitive data and lots of files)
+chrome_profile/
+drivers/ # Directory where chromedriver is cached
+
+# Ignore Council user data/profile
+council_user_data/
+
+# Ignore cookie storage directory
+social/digital_dreamscape/dreamscape_generator/cookies/
+
+# Ignore log files
+selector_log.txt
+
+# Ignore ChromeDriver cache
+drivers/
+
+# Ignore specific coordination module outputs
+_agent_coordination/chatgpt_output/
+
+# Ignore archived prompts in prompt_library
+_agent_coordination/prompt_library/archive/
+
+# Virtual environment directories
+venv/
+.venv/
+env/
+ENV/
+**/venv*/
+
+# Ignore archived Chrome extension locale dumps
+_agent_coordination/archive/
+>>>>>>> 4838cd7da54339e944a554df164ddeb9250cf526

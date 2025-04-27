@@ -26,7 +26,7 @@ if coordination_dir not in sys.path:
      sys.path.insert(0, coordination_dir)
 
 # Import the class to test AFTER adjusting path
-from core.agents.task_executor_agent import TaskExecutorAgent, TaskStatus, AGENT_NAME
+from dreamos.agents.task_executor_agent import TaskExecutorAgent, TaskStatus, AGENT_NAME
 # Mock dependencies that might be imported by the agent module
 sys.modules['core.coordination.agent_bus'] = MagicMock()
 sys.modules['core.utils.task_status_updater'] = MagicMock()

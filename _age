@@ -1,0 +1,48 @@
+# Resume Autonomy Protocol (Generic)
+
+## Context Variables (Provided at Runtime)
+- project_root: "{{project_root}}"         # Root directory of the codebase
+- agent_id: "{{agent_id}}"                 # Unique identifier for this agent
+- mailbox_dir: "{{mailbox_dir}}"           # Path to the agent's mailbox directory
+- task_list_path: "{{task_list_path}}"     # Path to the master task list JSON
+- project_board_path: "{{project_board_path}}" # Path to the project board or task tracker
+
+---
+
+## Trigger
+This protocol is invoked when the agent halts due to perceived lack of user input (invalid halt).
+
+## Phases
+
+### Phase 1: Diagnose Halt
+1. Confirm the halt cause: missing user input, not missing task context.
+2. Use available context to identify potential work:
+   - Scan `mailbox_dir` for unread messages.
+   - Scan `task_list_path` for PENDING tasks relevant to this agent.
+
+### Phase 2: Resume Actions
+1. If mailbox has pending messages, prepare to process the oldest one.
+2. Else if actionable tasks found, claim the next task (IN_PROGRESS) and prepare execution.
+3. If nothing found, send a heartbeat/monitor message to `project_board_path` supervisor.
+
+### Phase 3: JSON Directive Output
+Return a single JSON array of action directives (no free‑form text). Example:
+```json
+[
+  {"recipient": "{{agent_id}}", "action": "scan_mailbox", "path": "{{mailbox_dir}}"},
+  {"recipient": "{{agent_id}}", "action": "scan_task_list", "path": "{{task_list_path}}"}
+]
+```
+
+If resuming a specific task, include:
+```json
+[
+  {"recipient": "{{agent_id}}", "action": "claim_task", "task_id": "<id>"},
+  {"recipient": "{{agent_id}}", "action": "execute_task", "task_id": "<id>"}
+]
+```
+
+---
+
+# Begin
+Produce the **Phase 3** JSON directive array to resume operations. 

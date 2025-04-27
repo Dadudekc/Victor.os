@@ -6,18 +6,22 @@ Processes chat history into structured blog posts, technical articles, and socia
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 from pathlib import Path
 import markdown
 import frontmatter
 from jinja2 import Environment, FileSystemLoader
-from config import settings # Import the existing settings module
+from ..config import settings # Using relative import consistently
 
-from utils.chatgpt_scraper import ChatGPTScraper
-from utils.strategies import TwitterStrategy, LinkedInStrategy
-from utils.logging_utils import get_logger # Import get_logger
+# from utils.chatgpt_scraper import ChatGPTScraper # This causes circular import, remove if ChatGPTScraper doesn't need DevLogGenerator
+# from utils.strategies import TwitterStrategy, LinkedInStrategy # Incorrect import
+# Correct imports assuming strategies are in social/core/strategies/
+from ..core.strategies.twitter_strategy import TwitterStrategy
+from ..core.strategies.linkedin_strategy import LinkedInStrategy
+
+from .logging_utils import get_logger # Import get_logger
 
 # Configure logging using the consolidated utility
 logger = get_logger(__name__) # Use __name__ for module-level logger

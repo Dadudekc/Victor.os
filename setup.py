@@ -1,15 +1,22 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="dreamforge",
+    name="dreamos",
     version="0.1.0",
-    packages=find_packages(),
+    description="Dream.OS: Autonomous Auto-Fix Loop and agentic system",
+    author="Victor",
+    author_email="",
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     install_requires=[
-        "discord.py",
-        "pytest",
-        "pytest-asyncio",
-        "jinja2",
+        'fastapi',
+        'uvicorn',
+        'requests',
+        'pytest',
+        'pyautogui',
+        'pyperclip'
     ],
+<<<<<<< HEAD
     python_requires=">=3.8",
     entry_points={
         'console_scripts': [
@@ -18,3 +25,12 @@ setup(
         ],
     },
 ) 
+=======
+    python_requires='>=3.7',
+    entry_points={
+        'console_scripts': [
+            'dreamos-autofix=src.dreamos.agents.autofix_agent:main'
+        ]
+    }
+) 
+>>>>>>> 4838cd7da54339e944a554df164ddeb9250cf526

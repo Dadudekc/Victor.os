@@ -1,0 +1,8 @@
+{% set max_len = 1800 %}
+**Generation Complete** ✨
+
+Model Used: `{{ model }}`
+Template: `{{ template_name }}`
+
+```
+{{ content[:max_len] }}{% if content|length > max_len %}... (truncated){% endif %} 

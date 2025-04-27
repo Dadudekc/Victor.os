@@ -9,7 +9,7 @@ import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from core.strategies.base_strategy import BaseSocialStrategy
+from dreamos.strategies.base_strategy import BaseSocialStrategy
 from datetime import datetime
 import pytest
 import unittest

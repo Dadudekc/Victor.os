@@ -1,0 +1,6 @@
+Write a short story about [SUBJECT].
+
+The story should include:
+- [DETAIL 1]
+- [DETAIL 2]
+- A surprising twist. 

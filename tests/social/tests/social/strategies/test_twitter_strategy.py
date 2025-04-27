@@ -19,7 +19,7 @@ import json
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.exceptions import (
+from dreamos.exceptions import (
     MissingCredentialsError,
     RateLimitError,
     AuthenticationError,
@@ -29,8 +29,8 @@ from core.exceptions import (
     NetworkError,
     SessionError
 )
-from core.strategies.twitter_strategy import TwitterStrategy
-from core.services.feedback_engine import FeedbackEngine
+from dreamos.strategies.twitter_strategy import TwitterStrategy
+from dreamos.services.feedback_engine import FeedbackEngine
 from tests.social.strategies.base_strategy_test import BaseStrategyTest
 
 # Test configuration

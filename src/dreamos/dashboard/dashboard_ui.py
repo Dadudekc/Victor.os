@@ -8,8 +8,8 @@ from typing import Dict, Any
 
 class Dashboard(QMainWindow):
     # EDIT START: Phase 4 threshold constants
-    SUCCESS_THRESHOLD = 50
-    FAILURE_THRESHOLD = 10
+    SUCCESS_THRESHOLD = 0.8  # threshold for chart overlay
+    FAILURE_THRESHOLD = 0.2  # threshold for chart overlay
     # EDIT END: Phase 4 threshold constants 
 
     def __init__(self):
@@ -108,3 +108,168 @@ class Dashboard(QMainWindow):
         has_breach = any(self.agent_breach_flags.get(aid, False) for aid in self.agent_scrape_stats.keys())
         self.agent_tbl.setColumnHidden(5, not has_breach)
         # EDIT END: Phase 4.2 persistent breach badges 
+
+    # ───────── mailbox helpers ─────────
+    def _load_box(self, idx: QModelIndex) -> None:
+        self.cur_box = self.box_model.rows[self.box_tbl.model().mapToSource(idx).row()]
+        self._render_messages()
+
+    def _render_messages(self) -> None:
+        if not hasattr(self, "cur_box"):
+            return
+        html: List[str] = []
+        for m in self.cur_box["messages"]:
+            sender = m.get("sender", "?")
+            ts = m.get("timestamp", "")
+            content = _md(m.get("content", ""))
+            # determine bubble side
+            side = "left" if sender != CFG.default_agent and sender != "Dream.OS" else "right"
+            # avatar or emoji fallback
+            av = _avatar(sender)
+            if av:
+                avatar_html = f'<img src="{CFG.avatar_dir / f"{sender}.png"}" width="24"/>'
+            else:
+                avatar_html = "🐺" if side == "right" else "👤"
+            html.append(
+                f'<div class="bubble {side}">{avatar_html} ' +
+                f'<span class="meta">{sender} {ts}</span><br>{content}</div>'
+            )
+        self.msg_view.setHtml("<br>".join(html))
+
+    def _send_reply(self) -> None:
+        if not hasattr(self, "cur_box") or not self.reply_in.text().strip():
+            return
+        msg = {
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "sender": "Dream.OS",
+            "content": self.reply_in.text().strip(),
+        }
+        self.cur_box["messages"].append(msg)
+        self.cur_box["data"]["messages"] = self.cur_box["messages"]
+        self.cur_box["path"].write_text(json.dumps(self.cur_box["data"], indent=2))
+        self.reply_in.clear()
+        self.refresh()
+        self._render_messages()
+
+    def _ai_reply(self) -> None:
+        if not hasattr(self, "cur_box") or not self.responder:
+            return
+        data = self.responder.respond_to_mailbox(self.cur_box["data"])
+        self.cur_box["data"] = data
+        self.cur_box["messages"] = data.get("messages", [])
+        self.cur_box["path"].write_text(json.dumps(data, indent=2))
+        self.refresh()
+        self._render_messages()
+
+    def _create_mailbox(self) -> None:
+        name, ok = QInputDialog.getText(self, "New Mailbox", "Mailbox name?")
+        if not ok or not name.strip():
+            return
+        owner, ok2 = QInputDialog.getText(self, "Owner", "Assign to agent (ID)?")
+        mbx = {"status": "idle", "owner": owner.strip(), "messages": []}
+        fpath = CFG.mailbox_root / f"mailbox_{name.strip()}.json"
+        fpath.write_text(json.dumps(mbx, indent=2))
+        self.refresh()
+
+    # ───────── tasks / agents helpers ─────────
+    def _inject_task(self) -> None:
+        txt = self.task_in.text().strip()
+        self.task_in.clear()
+        if not txt:
+            return
+        add_task(self.task_type.currentText(), txt)
+        self.refresh()
+
+    def _claim_next(self) -> None:
+        if claim_task(CFG.default_agent) and self.auto_click:
+            try:
+                click_agent_spot(CFG.default_agent)
+            except Exception as e:
+                logging.warning("click failure %s", e)
+        self.refresh()
+
+    def _capture_spot(self) -> None:
+        QApplication.setOverrideCursor(Qt.CrossCursor)
+        QMessageBox.information(self, "Capture", "Place cursor, press OK")
+        x, y = pyautogui.position()
+        QApplication.restoreOverrideCursor()
+        # let user select existing agent or create new
+        coords = _load_coords()
+        items = list(coords.keys()) + ["< New Agent >"]
+        choice, ok = QInputDialog.getItem(self, "Agent ID", "Select agent or new:", items, editable=False)
+        if not ok:
+            return
+        if choice == "< New Agent >":
+            aid, ok2 = QInputDialog.getText(self, "Agent ID", "Enter new Agent ID:")
+            if not ok2 or not aid.strip():
+                return
+            agent_id = aid.strip()
+        else:
+            agent_id = choice
+        save_agent_spot(agent_id, (x, y))
+        logging.info("Spot saved %s → (%d,%d)", agent_id, x, y)
+        # set this agent as the default for future actions
+        CFG.default_agent = agent_id
+        QMessageBox.information(self, "Default Agent", f"Default agent set to {agent_id}")
+        # refresh views
+        self.refresh()
+
+    # ───────── dev / prod toggle ─────────
+    def _flip_mode(self, checked: bool) -> None:
+        self.dev_mode = checked
+        if self.responder:
+            self.responder.dev_mode = checked
+
+    # ───────── hotkey passthrough ─────────
+    def keyPressEvent(self, e) -> None:
+        if e.matches(QKeySequence.InsertParagraphSeparator):
+            pyautogui.hotkey("ctrl", "enter")
+        elif e.matches(QKeySequence.DeleteStartOfWord):
+            pyautogui.hotkey("ctrl", "backspace")
+        elif e.key() == Qt.Key_F5:
+            self.refresh()
+        super().keyPressEvent(e)
+
+    # EDIT START: upgraded prompt event handlers are now managed by DashboardEventListener
+    # (Old handle_system_event definitions removed in favor of modular listener)
+    def handle_system_event(self, event_name: str, event_payload: dict) -> bool:
+        # stub: use modular listener callbacks instead
+        return False
+
+    def _flash_color(self, color: QColor) -> None:
+        """Flash the dashboard background with the given color briefly."""
+        original = self.styleSheet()
+        self.setStyleSheet(f"background-color: rgba({color.red()},{color.green()},{color.blue()},100);")
+        QTimer.singleShot(300, lambda: self.setStyleSheet(original))
+
+    def _show_bar_tooltip(self, bar_set, index, status):
+        """Show tooltip with agent name and count for hovered bar, color-coded and suppress zeros."""
+        if not status:
+            return
+        # Determine agent order from Health tab
+        agents = getattr(self, 'health_agents', list(self.agent_scrape_stats.keys()))
+        if index < 0 or index >= len(agents):
+            return
+        aid = agents[index]
+        count = bar_set.at(index)
+        # Suppress tooltip for zero-count bars
+        if count <= 0:
+            return
+        name = bar_set.label()
+        # Choose text color based on bar label
+        color = '#00AA00' if name.lower() == 'success' else '#AA0000'
+        text = f"{aid}: {name} {count}"
+        # Use HTML to color the tooltip text
+        QToolTip.showText(QCursor.pos(), f"<font color='{color}'>{text}</font>")
+
+    def _handle_stacked_toggle(self, state):
+        """Toggle between stacked and grouped bar view and refresh chart."""
+        self._stacked_mode = (state == Qt.Checked)
+        self.refresh()
+
+# ───────────────────────── bootstrap ───────────────────────
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    win = Dashboard()
+    win.show()
+    sys.exit(app.exec_())

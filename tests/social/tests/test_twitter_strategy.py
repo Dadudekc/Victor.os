@@ -15,12 +15,12 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Import the strategy to test
-from core.strategies.twitter_strategy import TwitterStrategy
+from dreamos.strategies.twitter_strategy import TwitterStrategy
 # Import Selenium exceptions to simulate them
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 # Updated import path
 # from strategy_exceptions import LoginError, PostError, RateLimitError
-from core.exceptions.strategy_exceptions import LoginError, PostError, RateLimitError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError, RateLimitError
 
 # Mock log_event (assuming it's used by the strategy or its parent)
 @patch('core.strategies.base_strategy.log_event') # Check path if different

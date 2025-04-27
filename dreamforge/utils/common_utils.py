@@ -1,95 +1,31 @@
 import os
 import sys
-import random
-import time
 import logging
-from functools import wraps
-import json # Added for JSON parsing
+import json
 
-# Add project root to sys.path
-script_dir = os.path.dirname(__file__) # social/utils
+# Temporarily keep project root finding if CURSOR_OUTPUT_DIR logic remains
+# Consider moving CURSOR_OUTPUT_DIR to a config file or constants module
+script_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
 
-# Example imports
-try:
-    from social.log_writer import get_social_logger
-    # from some_module import some_function
-    pass
-except ImportError as e:
-    print(f"[CommonUtils] Warning: Failed to import dependencies: {e}")
-    # Fallback logger if import fails
-    def get_social_logger():
-        logger = logging.getLogger("DummySocialLogger")
-        logger.setLevel(logging.WARNING)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        if not logger.hasHandlers():
-             logger.addHandler(handler)
-        return logger
+# If CURSOR_OUTPUT_DIR is moved, remove script_dir and project_root above.
+
+# Setup logger for this module specifically
+# If parse_cursor_result_file is moved, this logger setup can be removed.
+logger = logging.getLogger(__name__)
 
 
-logger = get_social_logger() # Initialize logger
-
-def random_delay(min_delay=0.5, max_delay=1.5):
-    # ... existing code ...
-    pass
-
-# --- Added Utility Functions ---
-
-MAX_ATTEMPTS = 3 # Default max attempts, can be overridden
-
-def retry_on_failure(max_attempts=MAX_ATTEMPTS, delay=2):
-    """
-    Decorator to retry a function on failure with a delay between attempts.
-    Logs warnings on failure and error after max attempts.
-    """
-    def decorator_retry(func):
-        @wraps(func)
-        def wrapper_retry(*args, **kwargs):
-            attempts = 0
-            last_exception = None
-            while attempts < max_attempts:
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    attempts += 1
-                    last_exception = e
-                    logger.warning(f"Attempt {attempts}/{max_attempts} failed in {func.__name__} due to: {type(e).__name__} - {e}")
-                    time.sleep(delay * attempts) # Exponential backoff based on attempt number
-            error_msg = f"All {max_attempts} attempts failed in {func.__name__}. Last exception: {type(last_exception).__name__} - {last_exception}"
-            logger.error(error_msg)
-            # Re-raise the last exception to allow calling code to handle it if needed
-            raise Exception(error_msg) from last_exception
-        return wrapper_retry
-    return decorator_retry
-
-def get_random_user_agent():
-    """
-    Returns a random user agent string from a predefined list.
-    """
-    user_agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0"
-    ]
-    return random.choice(user_agents)
-
-# --- End Added Utility Functions --- 
-
-# --- Cursor Result Parsing ---
+# --- Cursor Result Parsing (Potentially move to cursor integration) ---
 
 # Define expected output directory (relative to project root)
-# This might be better placed in constants or agent config
+# TODO: Move this to configuration or a dedicated constants module
 CURSOR_OUTPUT_DIR = os.path.join(project_root, "outputs", "social_cursor")
 
 def parse_cursor_result_file(result_filepath: str) -> dict | None:
     """
     Parses a Cursor result JSON file.
+    TODO: Re-evaluate if this belongs here or within cursor-specific modules.
+    TODO: Replace placeholder log_event calls if that system is removed or refactored.
 
     Args:
         result_filepath: The full path to the JSON result file.
@@ -97,6 +33,12 @@ def parse_cursor_result_file(result_filepath: str) -> dict | None:
     Returns:
         A dictionary containing the parsed result data, or None if parsing fails.
     """
+    # Placeholder for the potential log_event function if it's needed here
+    # This needs to be resolved based on where log_event is defined/used.
+    def log_event(event_type, source, details):
+        logger.warning(f"Placeholder log_event called: {event_type} from {source} - {details}")
+        pass
+
     log_context = {"filepath": result_filepath}
     logger.info(f"Attempting to parse Cursor result file: {os.path.basename(result_filepath)}")
 
@@ -110,6 +52,7 @@ def parse_cursor_result_file(result_filepath: str) -> dict | None:
             result_data = json.load(f)
 
         # Basic validation (adapt based on the actual Cursor output schema)
+        # TODO: Make validation more robust based on actual schema
         required_keys = ["result_id", "original_prompt_id", "status", "output"]
         missing_keys = [key for key in required_keys if key not in result_data]
         if missing_keys:

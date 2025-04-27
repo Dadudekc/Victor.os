@@ -6,8 +6,8 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, Any, Optional, Type
 
-from core.exceptions.strategy_exceptions import StrategyError
-from core.services.feedback_engine import FeedbackEngine
+from dreamos.exceptions.strategy_exceptions import StrategyError
+from dreamos.services.feedback_engine import FeedbackEngine
 
 class BaseStrategyTest:
     """Base test class for all social media strategy tests."""

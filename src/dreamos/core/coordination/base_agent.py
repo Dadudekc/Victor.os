@@ -7,19 +7,19 @@ from datetime import datetime
 
 # Update imports to use 'core' or relative paths
 # from dreamforge.core.coordination.agent_bus import AgentBus, Message, MessageType, BusError
-from core.coordination.agent_bus import AgentBus, Message, BusError # Removed MessageType
+from dreamos.core.coordination.agent_bus import AgentBus, Message, BusError # Removed MessageType
 # from dreamforge.core.coordination.message_patterns import (
 #     TaskMessage, TaskStatus, TaskPriority,
 #     create_task_message, update_task_status
 # )
-from core.coordination.message_patterns import (
+from dreamos.core.coordination.message_patterns import (
     TaskMessage, TaskStatus, TaskPriority,
     create_task_message, update_task_status
 )
 # from dreamforge.core.utils.performance_logger import PerformanceLogger
-from core.utils.performance_logger import PerformanceLogger
+from dreamos.core.utils.performance_logger import PerformanceLogger
 # from dreamforge.core.memory.governance_memory_engine import log_event
-from core.memory.governance_memory_engine import log_event
+from dreamos.core.memory.governance_memory_engine import log_event
 # from dreamforge.core.utils.agent_utils import (
 #     with_error_handling,
 #     with_performance_tracking,
@@ -32,7 +32,7 @@ from core.memory.governance_memory_engine import log_event
 #     MessageHandlingError
 # )
 # Assuming agent_utils is now in core/utils
-from core.utils.agent_utils import (
+from dreamos.core.utils.agent_utils import (
     with_error_handling,
     with_performance_tracking,
     publish_task_update,

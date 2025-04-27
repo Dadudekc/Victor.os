@@ -19,11 +19,11 @@ if project_root not in sys.path:
 
 # Updated import paths
 # from strategies.linkedin_strategy import LinkedInStrategy
-from core.strategies.linkedin_strategy import LinkedInStrategy
+from dreamos.strategies.linkedin_strategy import LinkedInStrategy
 # from strategies.base_strategy import BaseSocialStrategy
-from core.strategies.base_strategy import BaseSocialStrategy
+from dreamos.strategies.base_strategy import BaseSocialStrategy
 # from strategy_exceptions import LoginError, PostError
-from core.exceptions.strategy_exceptions import LoginError, PostError
+from dreamos.exceptions.strategy_exceptions import LoginError, PostError
 
 # Mock setup_logging
 @pytest.fixture(autouse=True)

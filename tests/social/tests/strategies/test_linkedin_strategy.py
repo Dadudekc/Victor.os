@@ -13,8 +13,8 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from core.strategies.linkedin_strategy import LinkedInStrategy
-from core.exceptions.strategy_exceptions import MissingCredentialsError, MetricGatheringError
+from dreamos.strategies.linkedin_strategy import LinkedInStrategy
+from dreamos.exceptions.strategy_exceptions import MissingCredentialsError, MetricGatheringError
 
 @pytest.fixture
 def mock_driver():

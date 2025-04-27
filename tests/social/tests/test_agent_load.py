@@ -7,8 +7,8 @@ from unittest.mock import patch, MagicMock
 # Updated import paths
 # from social_media_agent import SocialMediaAgent, load_strategies, load_config
 # from constants import AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
-from core.agents.social_media_agent import SocialMediaAgent, load_strategies, load_config
-from core.constants import AGENT_ID_SOCIAL_MEDIA as AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
+from dreamos.agents.social_media_agent import SocialMediaAgent, load_strategies, load_config
+from dreamos.constants import AGENT_ID_SOCIAL_MEDIA as AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
 
 # Mock strategies and config path for isolation
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..\config\test_config.json')

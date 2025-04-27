@@ -23,7 +23,7 @@ if coordination_dir not in sys.path:
      sys.path.insert(0, coordination_dir)
 
 # Import class
-from core.agents.meredith_resonance_scanner import MeredithResonanceScanner
+from dreamos.agents.meredith_resonance_scanner import MeredithResonanceScanner
 
 # Mock dependencies
 sys.modules['core.agent_bus'] = MagicMock() # Assuming agent uses this import path

@@ -25,7 +25,7 @@ if coordination_dir not in sys.path:
      sys.path.insert(0, coordination_dir)
 
 # Import class
-from core.agents.task_injector import TaskInjector, AGENT_NAME, DEFAULT_INJECTION_TARGET
+from dreamos.agents.task_injector import TaskInjector, AGENT_NAME, DEFAULT_INJECTION_TARGET
 
 # Mock dependencies
 sys.modules['core.coordination.agent_bus'] = MagicMock()

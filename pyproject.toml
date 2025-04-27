@@ -1,0 +1,98 @@
+[tool.poetry]
+name = "dream-os"
+version = "0.4.0"
+description = "Dream.OS - Agentic Development Environment"
+authors = ["Your Name <you@example.com>"] # Add author info
+readme = "README.md" # Assuming you have a README
+packages = [{include = "dream_os"}, {include = "core"}, {include = "ui"}, {include = "social"}] # Define packages
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+
+# --- Core Libraries ---
+# GUI (Using PyQt6 now as per original [project] section, confirm if this is intended or stick to PyQt5)
+PyQt6 = ">=6.7.0"
+PyQt6-WebEngine = ">=6.7.0"
+PyQt6-sip = ">=13.6.0"
+# Keep PyQt5 if it's actually used, remove if migrated to PyQt6
+# PyQt5 = "^5.15.9"
+# PyQtWebEngine = "^5.15.6"
+
+# Web/Automation
+requests = "*"
+selenium = ">=4.10.0"
+undetected-chromedriver = "*"
+webdriver-manager = "*"
+beautifulsoup4 = ">=4.12.3"
+markdownify = ">=0.11.6"
+aiohttp = ">=3.9.5"
+playwright = ">=1.40"
+
+# AI/LLM
+openai = ">=1.23.6"
+jinja2 = ">=3.1.0"
+
+# Data Handling & Validation
+pydantic = ">=2.0"
+PyYAML = ">=6.0"
+pandas = ">=2.0"
+
+# Async Utilities
+# asyncio is built-in
+async-lru = ">=2.0.4"
+
+# Web / Visualization
+streamlit = ">=1.0"
+
+# CLI Framework
+typer = {extras = ["all"], version = ">=0.9.0"}
+rich = ">=13.7.1" # For better CLI output
+
+# Desktop Interaction (If needed)
+pyautogui = ">=0.9.54"
+pyperclip = ">=1.8.2"
+Pillow = ">=10.3.0"
+
+# Added python-dotenv
+python-dotenv = ">=0.21.0"
+
+# --- Consolidated Dependencies from requirements.txt ---
+praw = "*"
+screeninfo = ">=0.7.0"
+python-dateutil = "==2.8.2"
+pytz = "==2023.3"
+numpy = "==1.24.3"
+opencv-python = "==4.8.0.74"
+loguru = "==0.7.0"
+gitpython = "==3.1.31"
+azure-storage-blob = ">=12.9.0"
+watchdog = ">=2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.2.0" # Use version from original [project]
+pytest-asyncio = ">=0.23.6"
+pytest-cov = "*"
+ruff = "*"
+mypy = "*"
+
+[tool.poetry.scripts]
+dream-cli = "dream_os.cli:app"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# --- Configuration Sections (Keep existing Ruff, MyPy if needed) ---
+
+# [tool.setuptools] # Remove this section, Poetry handles packaging
+# packages = ["core", "ui", "social", "dream_os"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"] # Enable standard checks + isort
+
+# Remove the duplicated sections from the previous attempt below this line
+# // ... existing code ... 

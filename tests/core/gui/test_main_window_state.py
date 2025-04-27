@@ -7,19 +7,11 @@ import os
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-
-# --- Add project root to sys.path ---
-# Assuming this test file is in tests/core/gui
-script_dir = Path(__file__).parent
-project_root = script_dir.parent.parent.parent # Adjust based on actual structure
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-# ------------------------------------
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QLabel, QStatusBar
+import importlib.util
+from dreamos.gui.main_window import DreamOSMainWindow
 
 # Mock PyQt classes before importing the main window
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QLabel, QStatusBar
-
-# Define dummy classes for components that MainWindow depends on
 class MockTaskManager:
     def get_tasks(self): return []
 
@@ -66,9 +58,6 @@ class MockTab:
         print(f"Preparing {self.name} for shutdown")
         return True # Simulate successful preparation
 
-# Now import the class to be tested
-from core.gui.main_window import DreamOSMainWindow
-
 # Mock the QTimer class to prevent timers from actually running during tests
 @patch('PyQt5.QtCore.QTimer', MagicMock())
 class TestMainWindowState(unittest.TestCase):
@@ -87,10 +76,10 @@ class TestMainWindowState(unittest.TestCase):
         self.state_file_path = self.test_dir / "tab_states.json"
 
         # Patch dependencies directly before creating the instance
-        with patch('core.gui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM,
-             patch('core.gui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE,
-             patch('core.gui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM,
-             patch('core.gui.main_window.TabSystemShutdownManager') as MockShutdownMgr: # Keep shutdown manager mocked
+        with patch('dreamos.gui.main_window.TaskManager', return_value=MockTaskManager()) as MockTM, \
+             patch('dreamos.gui.main_window.FeedbackEngine', return_value=MockFeedbackEngine()) as MockFE, \
+             patch('dreamos.gui.main_window.DreamOSTabManager', return_value=MockTabManager()) as MockTBM, \
+             patch('dreamos.gui.main_window.TabSystemShutdownManager') as MockShutdownMgr: # Keep shutdown manager mocked
 
             # Create the main window instance
             self.window = DreamOSMainWindow()
@@ -111,7 +100,7 @@ class TestMainWindowState(unittest.TestCase):
             self.window.event_count_label = MagicMock(spec=QLabel)
 
             # Mock QMessageBox to avoid GUI popups during tests
-            self.patcher_msgbox = patch('core.gui.main_window.QMessageBox')
+            self.patcher_msgbox = patch('dreamos.gui.main_window.QMessageBox')
             self.MockMessageBox = self.patcher_msgbox.start()
 
     def tearDown(self):
@@ -213,8 +202,45 @@ class TestMainWindowState(unittest.TestCase):
         self.assertTrue("Invalid format" in self.MockMessageBox.warning.call_args[0][1])
         print("Load state (corrupt file) test passed.")
 
-    # TODO: Add tests for manual_save_state and auto_save_state (might need timer mocking)
-    # TODO: Add tests for shutdown sequence integration if possible
+    def test_05_manual_save_state(self):
+        """Test that manual_save_state correctly writes state file."""
+        # Prepare some state on mock tabs
+        self.tab1.state = {"filter": "test", "count": 1}
+        self.tab2.state = {"filter": "check", "count": 2}
+
+        # Trigger manual save
+        self.window.manual_save_state()
+
+        # Assertions
+        self.assertTrue(self.state_file_path.exists(), "State file was not created by manual_save_state.")
+        with open(self.state_file_path, 'r') as f:
+            saved_data = json.load(f)
+        expected_data = {
+            "task_monitor": self.tab1.state,
+            "cycle_execution": self.tab2.state
+        }
+        self.assertEqual(saved_data, expected_data, "Manual save state content does not match expected.")
+        print("Manual save state test passed.")
+
+    def test_06_auto_save_state(self):
+        """Test that auto_save_state behaves like manual_save_state."""
+        # Prepare some state on mock tabs
+        self.tab1.state = {"foo": "bar"}
+        self.tab2.state = {"baz": "qux"}
+
+        # Trigger auto save
+        self.window.auto_save_state()
+
+        # Assertions
+        self.assertTrue(self.state_file_path.exists(), "State file was not created by auto_save_state.")
+        with open(self.state_file_path, 'r') as f:
+            saved_data = json.load(f)
+        expected_data = {
+            "task_monitor": self.tab1.state,
+            "cycle_execution": self.tab2.state
+        }
+        self.assertEqual(saved_data, expected_data, "Auto save state content does not match expected.")
+        print("Auto save state test passed.")
 
 if __name__ == '__main__':
     unittest.main() 

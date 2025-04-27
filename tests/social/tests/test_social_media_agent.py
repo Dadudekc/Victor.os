@@ -6,18 +6,18 @@ from unittest.mock import patch, MagicMock, call
 
 # Updated import path
 # from social_media_agent import SocialMediaAgent
-from core.agents.social_media_agent import SocialMediaAgent
+from dreamos.agents.social_media_agent import SocialMediaAgent
 # Import exceptions used by the agent
 # from strategy_exceptions import (
 #     StrategyError, LoginError, PostError, ScrapeError, AuthenticationError, RateLimitError, ContentError
 # )
-from core.exceptions.strategy_exceptions import (
+from dreamos.exceptions.strategy_exceptions import (
     StrategyError, LoginError, PostError, ScrapeError, AuthenticationError, RateLimitError, ContentError
 )
 
 # Assuming constants are moved
 # from constants import AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
-from core.constants import AGENT_ID_SOCIAL_MEDIA as AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
+from dreamos.constants import AGENT_ID_SOCIAL_MEDIA as AGENT_ID, DEFAULT_MAILBOX_BASE_DIR_NAME
 
 import unittest
 from unittest.mock import patch, MagicMock

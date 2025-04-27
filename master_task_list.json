@@ -1,7 +1,7 @@
 [
   {
     "task_id": "f8b1e2d0-c3a4-4b5e-9d6f-a1b2c3d4e5f6",
-    "description": "FLAMEPROOF Phase 2: Consolidate AgentBus implementations. Designate core/coordination/agent_bus.py as canonical. Analyze & merge logic from old locations (dreamforge/core/agent_bus.py, coordination/agent_bus.py, agents/chatgpt_commander_agent.py). Refactor all agent code to use the canonical bus. Delete old bus files.",
+    "description": "FLAMEPROOF Phase 2: Consolidate  implementations. Designate core/coordination/agent_bus.py as canonical. Analyze & merge logic from old locations (dreamforge/core/agent_bus.py, coordination/agent_bus.py, agents/chatgpt_commander_agent.py). Refactor all agent code to use the canonical bus. Delete old bus files.",
     "status": "FAILED",
     "assigned_to": "agent1",
     "priority": "CRITICAL",
@@ -24,7 +24,7 @@
   },
   {
     "task_id": "a90b7e14-e552-4da2-a1eb-2972779be574",
-    "description": "**Review Agent Registration:** Ensure all agents within this directory are correctly registered with the `AgentBus` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
+    "description": "**Review Agent Registration:** Ensure all agents within this directory are correctly registered with the `` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
     "status": "COMPLETED",
     "assigned_to": "agent1",
     "result_summary": "Review complete. Found agents agent_1, agent_2, agent_3, agent_4, social/core/*, agents/dreamforge/agent_monitor_agent, agents/agents/* are registering. Missing registration in _agent_coordination/agents/cursor_control_agent, _agent_coordination/agents/stall_recovery_agent, agents/calendar_agent, agents/architects_edge_agent, agents/chatgpt_commander_agent. Sub-tasks created.",
@@ -35,7 +35,7 @@
   },
   {
     "task_id": "e148d2f2-3f8d-46c4-b4c0-b4e5b54d58c1",
-    "description": "**Standardize Event Handling:** Ensure agents consistently subscribe to and handle events using `AgentBus` methods.",
+    "description": "**Standardize Event Handling:** Ensure agents consistently subscribe to and handle events using `` methods.",
     "status": "IN_PROGRESS",
     "assigned_to": "agent1",
     "source_file": "agents/task_list.md",
@@ -45,6 +45,7 @@
   },
   {
     "task_id": "a7510711-9785-4e3e-b3d5-fcccf79adf31",
+    "claimed_by": "agent_002",
     "description": "**Task Reception (`EventType.TASK`):**",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
@@ -57,7 +58,7 @@
     "description": "Verify all agents intended to receive tasks from `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py` correctly handle the `EventType.TASK` event.",
     "status": "COMPLETED",
     "assigned_to": "Agent_4",
-    "result_summary": "Verification complete. Agents handle tasks via specific actions dispatched by TaskExecutorAgent through AgentBus, not via a generic EventType.TASK from the specified dispatcher path (which appears inconsistent with project structure).",
+    "result_summary": "Verification complete. Agents handle tasks via specific actions dispatched by TaskExecutorAgent through , not via a generic EventType.TASK from the specified dispatcher path (which appears inconsistent with project structure).",
     "source_file": "agents/task_list.md",
     "module": "agents",
     "original_line": 112,
@@ -85,10 +86,10 @@
   },
   {
     "task_id": "54e1cf8e-42ff-4d67-947c-62e8ee1ce8b5",
-    "description": "Standardize how agents report `COMPLETED`/`FAILED` status for tasks originating from the task list (e.g., direct update to `/d:/Dream.os/runtime/task_list.json` via utility, `AgentBus` status event).",
+    "description": "Standardize how agents report `COMPLETED`/`FAILED` status for tasks originating from the task list (e.g., direct update to `/d:/Dream.os/runtime/task_list.json` via utility, `` status event).",
     "status": "COMPLETED",
     "assigned_to": "Agent_4",
-    "result_summary": "Created core/utils/task_status_updater.py utility. Refactored TaskExecutorAgent to use this utility for updating task statuses, prioritizing AgentBus with file write fallback. Updated core/main.py to instantiate and inject the updater.",
+    "result_summary": "Created core/utils/task_status_updater.py utility. Refactored TaskExecutorAgent to use this utility for updating task statuses, prioritizing  with file write fallback. Updated core/main.py to instantiate and inject the updater.",
     "source_file": "agents/task_list.md",
     "module": "agents",
     "original_line": 115,
@@ -240,7 +241,7 @@
   },
   {
     "task_id": "44c7aaee-c86a-40ac-94d9-e4b70ef13cb9",
-    "description": "**Other Agents:** Review any other agents in `/d:/Dream.os/agents/` for AgentBus integration, task handling, and specific logic.",
+    "description": "**Other Agents:** Review any other agents in `/d:/Dream.os/agents/` for  integration, task handling, and specific logic.",
     "status": "BLOCKED",
     "assigned_to": "Agent_4",
     "result_summary": "Blocked: Failed to update task status to IN_PROGRESS in master_task_list.json after multiple attempts (edit_file and reapply). Cannot claim task.",
@@ -260,7 +261,7 @@
   },
   {
     "task_id": "60e20bbb-ce35-4a83-a44e-9ac39704a294",
-    "description": "Add/update integration tests (using mocked `AgentBus`) for agent event handling and task processing (as outlined in `/d:/Dream.os/tests/task_list.md`).",
+    "description": "Add/update integration tests (using mocked ``) for agent event handling and task processing (as outlined in `/d:/Dream.os/tests/task_list.md`).",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -352,7 +353,7 @@
   },
   {
     "task_id": "650b36b8-76f6-46df-bd8a-061af2dd8ff0",
-    "description": "AgentBus Integration: Handle relevant scheduling tasks/events.",
+    "description": " Integration: Handle relevant scheduling tasks/events.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -390,7 +391,7 @@
   },
   {
     "task_id": "aff37076-2590-4d6a-ad33-6faf026d1242",
-    "description": "AgentBus Integration: Subscribe to code change events, report architectural violations.",
+    "description": " Integration: Subscribe to code change events, report architectural violations.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -437,7 +438,7 @@
   },
   {
     "task_id": "910517e8-2bd5-4af7-977b-1dcab1f54550",
-    "description": "AgentBus Integration: Receive commands, dispatch resulting tasks/events.",
+    "description": " Integration: Receive commands, dispatch resulting tasks/events.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -473,7 +474,7 @@
   },
   {
     "task_id": "eaf2d057-5c82-459a-9228-cad0a30cdf5f",
-    "description": "AgentBus Integration: Trigger reflection cycles, report insights.",
+    "description": " Integration: Trigger reflection cycles, report insights.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -482,7 +483,7 @@
   },
   {
     "task_id": "92bf23a8-720c-44e3-81c8-1bdca97edb89",
-    "description": "**Review Agent Registration:** Ensure all agents within `/d:/Dream.os/agents/` are correctly registered with the `AgentBus` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
+    "description": "**Review Agent Registration:** Ensure all agents within `/d:/Dream.os/agents/` are correctly registered with the `` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -491,7 +492,7 @@
   },
   {
     "task_id": "266658ab-fd6b-4bbd-a08e-8858b98d2f2d",
-    "description": "**Standardize Event Handling:** Ensure agents consistently subscribe to and handle events using `AgentBus` methods.",
+    "description": "**Standardize Event Handling:** Ensure agents consistently subscribe to and handle events using `` methods.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -536,7 +537,7 @@
   },
   {
     "task_id": "3060f69a-c2ba-4489-be89-319f9ba9179a",
-    "description": "Standardize how agents report `COMPLETED`/`FAILED` status for tasks originating from the task list (e.g., direct update to `/d:/Dream.os/runtime/task_list.json` via utility, `AgentBus` status event).",
+    "description": "Standardize how agents report `COMPLETED`/`FAILED` status for tasks originating from the task list (e.g., direct update to `/d:/Dream.os/runtime/task_list.json` via utility, `` status event).",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -671,7 +672,7 @@
   },
   {
     "task_id": "b0d0c4c6-88c1-496d-91ba-ac18175862ea",
-    "description": "**Other Agents:** Review any other agents in `/d:/Dream.os/agents/` for AgentBus integration, task handling, and specific logic post-coordination refactor.",
+    "description": "**Other Agents:** Review any other agents in `/d:/Dream.os/agents/` for  integration, task handling, and specific logic post-coordination refactor.",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -689,7 +690,7 @@
   },
   {
     "task_id": "57544fa3-95c5-4ccc-ba58-185d08b2ba24",
-    "description": "Add/update integration tests (using mocked `AgentBus`) for agent event handling and task processing (as outlined in `/d:/Dream.os/tests/task_list.md`).",
+    "description": "Add/update integration tests (using mocked ``) for agent event handling and task processing (as outlined in `/d:/Dream.os/tests/task_list.md`).",
     "status": "PENDING",
     "source_file": "agents/task_list.md",
     "module": "agents",
@@ -922,7 +923,7 @@
         "Task Throughput: Rate of task completion (overall, per agent, per task_type).",
         "Task Latency: Time from PENDING to COMPLETED/FAILED (average, median, p95).",
         "Error Rates: Frequency of FAILED/BLOCKED tasks (overall, per agent, per task_type). Categorize errors using result.error_code.",
-        "Agent Utilization: Time spent BUSY vs IDLE (requires agent status reporting via AgentBus).",
+        "Agent Utilization: Time spent BUSY vs IDLE (requires agent status reporting via ).",
         "Resource Consumption: CPU/Memory usage per agent or per task (requires OS/infra integration).",
         "Task Queue Length: Monitor the number of PENDING tasks over time.",
         "Retry Rates: Frequency of retries and success rate after retry.",
@@ -1004,7 +1005,7 @@
   },
   {
     "task_id": "51a44d87-3444-4cf8-8504-7da63145b736",
-    "description": "**Implement Monitoring:** Develop mechanisms to collect and track these KPIs (potentially involving `AgentBus` events or log parsing).",
+    "description": "**Implement Monitoring:** Develop mechanisms to collect and track these KPIs (potentially involving `` events or log parsing).",
     "status": "PENDING",
     "source_file": "analysis/task_list.md",
     "module": "analysis",
@@ -1129,7 +1130,7 @@
   },
   {
     "task_id": "1ac7e133-9700-49e6-9cd1-2f4750d5e6bb",
-    "description": "**AgentBus Config:** Document configuration options for `/d:/Dream.os/_agent_coordination/core/agent_bus.py` (if any).",
+    "description": "** Config:** Document configuration options for `/d:/Dream.os/_agent_coordination/core/agent_bus.py` (if any).",
     "status": "IN_PROGRESS",
     "assigned_to": "Agent_4",
     "source_file": "config/task_list.md",
@@ -1256,7 +1257,7 @@
   },
   {
     "task_id": "39da93ab-9694-43fc-af62-ffc782093c2a",
-    "description": "**Compare with `_agent_coordination`:** Determine how strategies here relate to or complement the `AgentBus` and `TaskDispatcherAgent` in `/d:/Dream.os/_agent_coordination/`.",
+    "description": "**Compare with `_agent_coordination`:** Determine how strategies here relate to or complement the `` and `TaskDispatcherAgent` in `/d:/Dream.os/_agent_coordination/`.",
     "status": "PENDING",
     "source_file": "coordination/task_list.md",
     "module": "coordination",
@@ -1427,7 +1428,7 @@
   },
   {
     "task_id": "7c0f1677-57d1-4b3b-ad4e-25e02365efaf",
-    "description": "**Initialization:** Ensure `AgentBus` and core agents are initialized correctly during system startup.",
+    "description": "**Initialization:** Ensure `` and core agents are initialized correctly during system startup.",
     "status": "PENDING",
     "source_file": "core/task_list.md",
     "module": "core",
@@ -1472,7 +1473,7 @@
   },
   {
     "task_id": "42415327-45e0-4312-8c0e-e18e6a49337a",
-    "description": "**Integration Tests:** Add tests covering the core workflow and interactions between major components (Dispatcher, AgentBus, key agents).",
+    "description": "**Integration Tests:** Add tests covering the core workflow and interactions between major components (Dispatcher, , key agents).",
     "status": "PENDING",
     "source_file": "core/task_list.md",
     "module": "core",
@@ -1535,7 +1536,7 @@
   },
   {
     "task_id": "3bfb4cb6-13a5-454f-88d7-f5999a70b603",
-    "description": "**AgentBus:** Document the `AgentBus` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py` or similar):",
+    "description": "**:** Document the `` (`/d:/Dream.os/_agent_coordination/core/agent_bus.py` or similar):",
     "status": "PENDING",
     "source_file": "docs/task_list.md",
     "module": "docs",
@@ -1562,7 +1563,7 @@
   },
   {
     "task_id": "db32b771-dcad-4156-b708-0433248c971a",
-    "description": "**Update Architecture Diagram:** Modify diagrams to accurately reflect the role of `TaskDispatcherAgent` and `AgentBus` in the task flow.",
+    "description": "**Update Architecture Diagram:** Modify diagrams to accurately reflect the role of `TaskDispatcherAgent` and `` in the task flow.",
     "status": "PENDING",
     "source_file": "docs/task_list.md",
     "module": "docs",
@@ -1661,7 +1662,7 @@
   },
   {
     "task_id": "1e914ac3-3859-4364-8a19-206e4969fa8f",
-    "description": "**AgentBus Interaction:**",
+    "description": "** Interaction:**",
     "status": "PENDING",
     "source_file": "dreamforge/task_list.md",
     "module": "dreamforge",
@@ -1697,7 +1698,7 @@
   },
   {
     "task_id": "fd40acae-48f9-4604-a7bf-afe47466e08c",
-    "description": "Verify how `dreamforge` components receive tasks (e.g., via `AgentBus` event from `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py`).",
+    "description": "Verify how `dreamforge` components receive tasks (e.g., via `` event from `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py`).",
     "status": "PENDING",
     "source_file": "dreamforge/task_list.md",
     "module": "dreamforge",
@@ -1760,7 +1761,7 @@
   },
   {
     "task_id": "2a45065a-523f-4571-b379-d76d263bb781",
-    "description": "**Add Integration Tests:** Test interactions between `dreamforge` components and the core system (e.g., `AgentBus`, `TaskDispatcherAgent`).",
+    "description": "**Add Integration Tests:** Test interactions between `dreamforge` components and the core system (e.g., ``, `TaskDispatcherAgent`).",
     "status": "PENDING",
     "source_file": "dreamforge/task_list.md",
     "module": "dreamforge",
@@ -2129,7 +2130,7 @@
   },
   {
     "task_id": "ce347d7b-0f48-44a8-a6f4-b5e7ebd02b53",
-    "description": "**Data Sources:** Verify reports use correct data sources (e.g., `/d:/Dream.os/runtime/task_list.json`, logs, AgentBus metrics if available).",
+    "description": "**Data Sources:** Verify reports use correct data sources (e.g., `/d:/Dream.os/runtime/task_list.json`, logs,  metrics if available).",
     "status": "PENDING",
     "source_file": "reports/task_list.md",
     "module": "reports",
@@ -2318,7 +2319,7 @@
   },
   {
     "task_id": "d860db2a-6532-4b1c-8631-d1e8fd47df5e",
-    "description": "Clarify and document how agents update task status to `COMPLETED` or `FAILED` (e.g., Do they write directly? Send an `AgentBus` event? Use a shared utility?).",
+    "description": "Clarify and document how agents update task status to `COMPLETED` or `FAILED` (e.g., Do they write directly? Send an `` event? Use a shared utility?).",
     "status": "PENDING",
     "source_file": "runtime/task_list.md",
     "module": "runtime",
@@ -2417,7 +2418,7 @@
   },
   {
     "task_id": "d9a023b4-ea09-45fa-a8c4-1844af2a9dbd",
-    "description": "**Update for System Changes:** Ensure scripts are compatible with recent changes (e.g., `AgentBus`, task list format in `/d:/Dream.os/runtime/task_list.json`, directory structures).",
+    "description": "**Update for System Changes:** Ensure scripts are compatible with recent changes (e.g., ``, task list format in `/d:/Dream.os/runtime/task_list.json`, directory structures).",
     "status": "PENDING",
     "source_file": "scripts/task_list.md",
     "module": "scripts",
@@ -2543,7 +2544,7 @@
   },
   {
     "task_id": "7accca32-b6d8-4cda-8a81-6cce72c21e1b",
-    "description": "**Review Agent Registration:** Ensure all social agents are correctly registered with the `AgentBus` (likely defined in `/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
+    "description": "**Review Agent Registration:** Ensure all social agents are correctly registered with the `` (likely defined in `/d:/Dream.os/_agent_coordination/core/agent_bus.py`).",
     "status": "PENDING",
     "source_file": "social/task_list.md",
     "module": "social",
@@ -2552,7 +2553,7 @@
   },
   {
     "task_id": "ec519de5-c8e4-4b27-a174-e06f7325fa3f",
-    "description": "**Define Social EventTypes:** Define specific `EventType` values for social interactions (e.g., `CHAT_MESSAGE`, `RELATIONSHIP_UPDATE`) within the `AgentBus` event definitions.",
+    "description": "**Define Social EventTypes:** Define specific `EventType` values for social interactions (e.g., `CHAT_MESSAGE`, `RELATIONSHIP_UPDATE`) within the `` event definitions.",
     "status": "PENDING",
     "source_file": "social/task_list.md",
     "module": "social",
@@ -2561,7 +2562,7 @@
   },
   {
     "task_id": "f0394533-02c6-46de-9e3f-e60a31f4e878",
-    "description": "**Implement Event Handling:** Ensure social agents subscribe to and correctly handle relevant events from the `AgentBus`.",
+    "description": "**Implement Event Handling:** Ensure social agents subscribe to and correctly handle relevant events from the ``.",
     "status": "PENDING",
     "source_file": "social/task_list.md",
     "module": "social",
@@ -2615,7 +2616,7 @@
   },
   {
     "task_id": "d666fcd4-d6ac-407f-be6a-f7ef1bf13309",
-    "description": "**Test Social Event Flows:** Simulate social events on the `AgentBus` and verify correct agent responses.",
+    "description": "**Test Social Event Flows:** Simulate social events on the `` and verify correct agent responses.",
     "status": "PENDING",
     "source_file": "social/task_list.md",
     "module": "social",
@@ -2633,7 +2634,7 @@
   },
   {
     "task_id": "e617324e-7bf3-48d4-99a9-ea52bb1347e9",
-    "description": "**Integration Tests:** Add tests covering interactions between social agents and core agents via the `AgentBus`.",
+    "description": "**Integration Tests:** Add tests covering interactions between social agents and core agents via the ``.",
     "status": "PENDING",
     "source_file": "social/task_list.md",
     "module": "social",
@@ -3056,7 +3057,7 @@
   },
   {
     "task_id": "5212a150-1e16-477a-9816-6be48142376a",
-    "description": "Test task injection resulting in `FAILED` status (mocked `AgentBus` dispatch error).",
+    "description": "Test task injection resulting in `FAILED` status (mocked `` dispatch error).",
     "status": "PENDING",
     "source_file": "tests/task_list.md",
     "module": "tests",
@@ -3083,7 +3084,7 @@
   },
   {
     "task_id": "02b90796-a4de-404d-8bb5-bab5d593f604",
-    "description": "**`AgentBus` Tests:**",
+    "description": "**`` Tests:**",
     "status": "PENDING",
     "source_file": "tests/task_list.md",
     "module": "tests",
@@ -3110,7 +3111,7 @@
   },
   {
     "task_id": "30a7472d-6769-4ea6-b055-8247c3db97ce",
-    "description": "Test error handling within the `AgentBus`.",
+    "description": "Test error handling within the ``.",
     "status": "PENDING",
     "source_file": "tests/task_list.md",
     "module": "tests",
@@ -3119,7 +3120,7 @@
   },
   {
     "task_id": "01a663e4-98b5-45e5-af43-b058df6fd174",
-    "description": "**Agent Event Reception:** For key agents (`CursorControlAgent`, etc.), add tests to verify they correctly receive `EventType.TASK` events from a mocked `AgentBus`.",
+    "description": "**Agent Event Reception:** For key agents (`CursorControlAgent`, etc.), add tests to verify they correctly receive `EventType.TASK` events from a mocked ``.",
     "status": "PENDING",
     "source_file": "tests/task_list.md",
     "module": "tests",
@@ -3173,7 +3174,7 @@
   },
   {
     "task_id": "8fc7320a-5c72-47c1-af1e-f198479bdee6",
-    "description": "**Refactor Existing Tests:** Update any existing tests affected by the `AgentBus` integration or dispatcher refactor.",
+    "description": "**Refactor Existing Tests:** Update any existing tests affected by the `` integration or dispatcher refactor.",
     "status": "PENDING",
     "source_file": "tests/task_list.md",
     "module": "tests",
@@ -3299,7 +3300,7 @@
   },
   {
     "task_id": "6ab2776c-d89c-41c4-9971-8226c8e7f465",
-    "description": "Separate event log window (requires AgentBus integration or log file monitoring).",
+    "description": "Separate event log window (requires  integration or log file monitoring).",
     "status": "PENDING",
     "source_file": "tools/task_list.md",
     "module": "tools",
@@ -3317,7 +3318,7 @@
   },
   {
     "task_id": "17b1c532-d029-490d-8dc7-3f6d57b426da",
-    "description": "**Agent Simulation/Debugging Tools:** Consider tools to simulate `AgentBus` events or inspect agent states for easier debugging.",
+    "description": "**Agent Simulation/Debugging Tools:** Consider tools to simulate `` events or inspect agent states for easier debugging.",
     "status": "PENDING",
     "source_file": "tools/task_list.md",
     "module": "tools",
@@ -3470,7 +3471,7 @@
   },
   {
     "task_id": "5e6a0c70-3316-4a96-a44d-e98d3f2a9a7f",
-    "description": "**AgentBus Utils:** Review any helper functions related to `AgentBus` event creation or parsing.",
+    "description": "** Utils:** Review any helper functions related to `` event creation or parsing.",
     "status": "PENDING",
     "source_file": "utils/task_list.md",
     "module": "utils",
@@ -3542,7 +3543,7 @@
   },
   {
     "task_id": "d514afbb-a429-40a7-8c7a-f053a6809b3d",
-    "description": "**Confirm AgentBus Event Dispatch:** Verify that `agent_bus.dispatch_event` is called correctly with the appropriate `Event` structure (type `EventType.TASK`, correct `source_id`, and `data` payload).",
+    "description": "**Confirm  Event Dispatch:** Verify that `agent_bus.dispatch_event` is called correctly with the appropriate `Event` structure (type `EventType.TASK`, correct `source_id`, and `data` payload).",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3569,7 +3570,7 @@
   },
   {
     "task_id": "b3e9ca0b-8dea-4567-9b4f-f06e0dcda268",
-    "description": "**Verify AgentBus Availability Check:** Confirm the `if not AGENT_BUS_AVAILABLE:` check in `_dispatch_task` works correctly.",
+    "description": "**Verify  Availability Check:** Confirm the `if not AGENT_BUS_AVAILABLE:` check in `_dispatch_task` works correctly.",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3578,7 +3579,7 @@
   },
   {
     "task_id": "25d7eac1-9a4a-4868-a5a7-38d065426ccc",
-    "description": "**(Optional) Trace Event Handling:** If possible, trace the `EventType.TASK` event dispatched by `TaskDispatcherAgent` through the `AgentBus` (potentially `/d:/Dream.os/_agent_coordination/core/agent_bus.py`) to the intended recipient agent.",
+    "description": "**(Optional) Trace Event Handling:** If possible, trace the `EventType.TASK` event dispatched by `TaskDispatcherAgent` through the `` (potentially `/d:/Dream.os/_agent_coordination/core/agent_bus.py`) to the intended recipient agent.",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3596,7 +3597,7 @@
   },
   {
     "task_id": "7ed7f726-6b20-457e-9708-736990e127dc",
-    "description": "**Review Logging:** Ensure logs within `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py` and potentially core AgentBus components are sufficient for debugging coordination issues.",
+    "description": "**Review Logging:** Ensure logs within `/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py` and potentially core  components are sufficient for debugging coordination issues.",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3614,7 +3615,7 @@
   },
   {
     "task_id": "8962f875-76dc-4019-a7a4-aee2c113a7f5",
-    "description": "**Add/Update Docstrings:** Ensure all public methods and classes within the dispatcher (`/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py`) and relevant core components (like `AgentBus` if modified) have comprehensive docstrings.",
+    "description": "**Add/Update Docstrings:** Ensure all public methods and classes within the dispatcher (`/d:/Dream.os/_agent_coordination/dispatchers/task_dispatcher.py`) and relevant core components (like `` if modified) have comprehensive docstrings.",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3623,7 +3624,7 @@
   },
   {
     "task_id": "48bb3e6a-07ec-4fdd-873b-f070057309a8",
-    "description": "**Module README:** Consider adding or updating a `README.md` within `/d:/Dream.os/_agent_coordination/` explaining the purpose of this module, especially the role of the dispatcher and the AgentBus.",
+    "description": "**Module README:** Consider adding or updating a `README.md` within `/d:/Dream.os/_agent_coordination/` explaining the purpose of this module, especially the role of the dispatcher and the .",
     "status": "PENDING",
     "source_file": "_agent_coordination/task_list.md",
     "module": "_agent_coordination",
@@ -3641,7 +3642,7 @@
   },
   {
     "task_id": "380d7710-06a3-420c-8121-b42c4e601b67",
-    "description": "**Review BaseAgent Class:** Examine the base class for agents. Ensure it provides necessary common functionality (e.g., lifecycle methods, logging setup, basic AgentBus interaction).",
+    "description": "**Review BaseAgent Class:** Examine the base class for agents. Ensure it provides necessary common functionality (e.g., lifecycle methods, logging setup, basic  interaction).",
     "status": "PENDING",
     "source_file": "_core/task_list.md",
     "module": "_core",
@@ -3668,7 +3669,7 @@
   },
   {
     "task_id": "2187a647-6bda-4bbd-ab44-f79b10f1ec01",
-    "description": "**BaseAgent `AgentBus` Integration:** Ensure the `BaseAgent` correctly handles registration and basic communication with `/d:/Dream.os/_agent_coordination/core/agent_bus.py`.",
+    "description": "**BaseAgent `` Integration:** Ensure the `BaseAgent` correctly handles registration and basic communication with `/d:/Dream.os/_agent_coordination/core/agent_bus.py`.",
     "status": "PENDING",
     "source_file": "_core/task_list.md",
     "module": "_core",

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import os
 
 # Update import path
-from core.utils.devlog_analyzer import DevLogAnalyzer
+from dreamos.utils.devlog_analyzer import DevLogAnalyzer
 
 
 # Helper function to create sample data

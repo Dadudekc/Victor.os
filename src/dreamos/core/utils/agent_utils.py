@@ -6,13 +6,13 @@ from typing import Dict, Any, Optional, Callable, Awaitable
 from datetime import datetime, timezone
 from functools import wraps
 
-from core.coordination.agent_bus import AgentBus, Message # Removed MessageType, added AgentBus hint
-from core.coordination.message_patterns import (
+from dreamos.core.coordination.agent_bus import AgentBus, Message # Removed MessageType, added AgentBus hint
+from dreamos.core.coordination.message_patterns import (
     TaskMessage, TaskStatus, TaskPriority,
     create_task_message, update_task_status
 )
-from core.memory.governance_memory_engine import log_event
-from core.utils.performance_logger import PerformanceLogger
+from dreamos.core.memory.governance_memory_engine import log_event
+from dreamos.core.utils.performance_logger import PerformanceLogger
 
 # Setup a logger for utility functions
 util_logger = logging.getLogger("core.utils")
