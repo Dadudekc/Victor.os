@@ -44,4 +44,10 @@ build/
 social/social_config.json
 
 # Secrets storage (e.g., cookies)
-secrets/ 
+secrets/
+
+# Virtual environment directories
+**/.venv/
+
+# Ignore stray root script
+r.py 
