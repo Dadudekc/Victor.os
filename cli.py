@@ -20,10 +20,12 @@ if not hasattr(typer, 'secho'):
 # ───────────────────────── Backend imports ─────────────────────────
 try:
     from dreamos.config import AppConfig, setup_logging, ConfigError
+    from dreamos.hooks.chronicle_logger import ChronicleLoggerHook
 except ImportError:
     AppConfig = None  # type: ignore
     setup_logging = lambda cfg: None  # type: ignore
     class ConfigError(Exception): pass  # type: ignore
+    ChronicleLoggerHook = None # type: ignore
 
 # ───────────────────────── Typer app setup ────────────────────────
 app = typer.Typer(
@@ -47,6 +49,18 @@ def configure_logging(config: AppConfig, verbose: bool) -> None:
     )
     setup_logging(config)
     logging.debug("Logging configured: level=%s", logging.getLevelName(level))
+
+    # Initialize Chronicle Logger Hook after logging setup
+    if ChronicleLoggerHook:
+        try:
+            chronicle_hook = ChronicleLoggerHook()
+            logging.info("Dreamscape Chronicle logging enabled.")
+            # Note: Hook subscribes itself. We might need a global registry or context
+            # in a larger app to manage hooks and ensure cleanup (hook.stop()).
+        except Exception as e:
+            logging.error(f"Failed to initialize ChronicleLoggerHook: {e}")
+    else:
+        logging.warning("ChronicleLoggerHook not available.")
 
 # ────────────────────────── run command ───────────────────────────
 @app.command()
