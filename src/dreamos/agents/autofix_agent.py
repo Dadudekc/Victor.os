@@ -12,7 +12,7 @@ import sys
 import logging
 
 from dream_os.services.task_nexus import get_all_tasks, claim_task
-from dreamos.orchestrator import run_cycle
+# from dreamos.orchestrator import run_cycle # FIXME: run_cycle is not defined here; needs architectural review
 from dreamos.config import Config
 
 # Agent shutdown flag
@@ -60,7 +60,8 @@ def main(
                 task_id = task.get("id")
                 logging.info("Claimed autofix task %s, context=%s", task_id, context)
                 try:
-                    result = run_cycle(context)
+                    # result = run_cycle(context) # FIXME: run_cycle cannot be called directly here.
+                    result = None # Placeholder
                     logging.info("run_cycle result for %s: %s", task_id, result)
                 except Exception as e:
                     logging.exception("Error during run_cycle for %s: %s", task_id, e)
