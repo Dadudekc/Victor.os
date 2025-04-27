@@ -1,96 +1,104 @@
 # Dream.OS Quickstart Guide
 
-## Overview
-Dream.OS orchestrates Cursor‐based agents under a ChatGPT Web UI loop:
-- **WebAgent** scrapes JSON directives from your ChatGPT conversation.
-- **SwarmController** launches a fleet of Cursor agents (GUI + headless) and routes tasks/results.
-- **LocalBlobChannel** (default) or AzureBlobChannel handles task exchange.
-- **TaskNexus** centralizes tasks; **StatsLoggingHook** emits periodic snapshots.
+## System Overview (DRAFT)
+Dream.OS is an extensible framework for orchestrating AI agents to perform complex tasks. Core components include:
+- **`src/dreamos/`**: Main source code directory.
+- **Agent Bus (`agent_bus.py`):** Facilitates communication between agents and components.
+- **Orchestrator (`orchestrator.py`?):** Manages the overall workflow and agent lifecycle (TBC).
+- **Tools (`src/dreamos/tools/`):** Reusable utilities for agents, including:
+    - **Project Scanner (`analysis/scanner/`):** Analyzes codebase structure.
+    - **File Tools, Search Tools, etc.**
+- **Configuration (`config.py`):** Centralized settings.
+- **Dashboard (TBC):** GUI for monitoring and interaction.
 
-## Prerequisites
-- Python 3.8+ and a modern Chrome browser.
-- Clone the repo and install:
-  ```bash
-  git clone <repo-url> && cd Dream.os
-  pip install -r requirements.txt
-  ```
+## Setup & Configuration (DRAFT)
 
-## Run in Local Mode (one line)
+### Prerequisites
+- Python 3.9+ (Verify exact version)
+- Git
+- (Optional) `tree-sitter` and language grammars for advanced code analysis (See `project_scanner.py`).
+- (Optional) GUI dependencies if using Dashboard (e.g., PyQt5 - Verify)
+
+### Installation
 ```bash
-export USE_LOCAL_BLOB=1        # Windows PowerShell: $Env:USE_LOCAL_BLOB='1'
-python run_dream_os.py
-```
-This single command starts both WebAgent and SwarmController in local mode.
+# 1. Clone the repository
+git clone <repo-url> && cd Dream.os
 
-## Manual Run
-**WebAgent (Terminal 1):**
+# 2. Create a virtual environment (recommended)
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate    # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+# OR potentially using Poetry or setup.py
+# poetry install
+# pip install -e .
+```
+
+### Configuration
+- Primary configuration is likely managed in `src/dreamos/config.py`.
+- Sensitive keys or environment-specific settings might use a `.env` file (check for `.env.template`).
+- Adjust Tree-sitter grammar paths in `src/dreamos/tools/analysis/scanner/analyzer.py` if needed.
+
+## Running Dream.OS (DRAFT)
+
+*(Instructions TBC based on current entry point)*
+
+**Example (Hypothetical CLI):**
 ```bash
-export USE_LOCAL_BLOB=1
-python -m dream_mode.agents.chatgpt_web_agent
+python -m src.dreamos.main --config src/dreamos/config.py 
+# Or potentially via a configured entry point in pyproject.toml
+dreamos --task "Analyze src/dreamos/core/" 
 ```
-**SwarmController (Terminal 2):**
+
+**Example (Hypothetical Dashboard):**
 ```bash
-export USE_LOCAL_BLOB=1
-python -m dream_mode.swarm_controller --fleet-size 3
+# Verify path and command
+python src/dreamos/dashboard/main.py # ?
 ```
 
-## Passing Directives
-Type a JSON snippet into ChatGPT:
-```json
-{"task_id":"unique-id","command":"inspect dream_mode/utils.py and report functions"}
-```
-- **WebAgent** detects it and pushes to the channel.
-- **SwarmController** claims, executes, and pushes results back.
-- **WebAgent** injects results into your ChatGPT session.
+## Agent Interaction & Tasking (DRAFT)
+- Agents likely communicate via the `AgentBus`.
+- Tasks might be defined in configuration, triggered by events, or assigned via API/Dashboard.
+- *(Details needed on how tasks are created, assigned, and monitored in the current system)*
 
-## Key Paths & Files
-- `runtime/task_list.json` – live task statuses
-- `_agent_coordination/tasks/` – master task manifest & schemas
-- `dream_mode/` – agent implementations & channels
-- `dream_logs/feedback/` – automated failure analyses
+## Key Paths & Files (DRAFT)
+- **`src/dreamos/`**: Core source code.
+    - `agents/`: Agent implementations.
+    - `core/`: Core utilities (coordination, utils, etc.).
+    - `tools/`: Agent tools (analysis, file ops, search).
+    - `config.py`: Main configuration.
+    - `main.py` / `cli.py` / `orchestrator.py`: Potential entry points/controllers.
+- **`runtime/`**: Runtime data (cache, state, logs - TBC).
+    - `local_blob/processed/`: (If still used) Task results.
+- **`logs/`**: Log files (e.g., `agent.log`).
+- **`docs/`**: Documentation.
+- **`tests/`**: Unit and integration tests.
+- **`project_analysis.json`**: Output of the project scanner.
+- **`chatgpt_project_context.json`**: Context export for LLMs.
+- **`dependency_cache.json`**: File hash cache for the scanner.
 
-## GUI Dashboard
+## GUI Dashboard (DRAFT)
+*(Verify existence, location, and features)*
+- If a dashboard exists (e.g., in `src/dreamos/dashboard/` or `ui/`), update instructions for installation and launch.
+- Describe current features and relevant configuration/data paths.
 
-To visually monitor and control the agent swarm, launch the PyQt5 Dashboard:
+## Agent Autonomy Concepts (DRAFT)
+- *(Explain how agents initiate actions or select tasks)*
+- Examples:
+    - Responding to specific messages on the `AgentBus`.
+    - Monitoring filesystem locations for new inputs.
+    - Following predefined schedules or triggers.
+    - Proactive analysis based on system state.
 
-```bash
-# Install GUI dependencies
-pip install pyqt5 pyautogui pynput
-# Run the dashboard
-python dashboard.py
-```
+## Tips & Support (DRAFT)
+- Check `logs/agent.log` for detailed structured logs.
+- Configure logging levels and settings in *(location TBC)*.
+- *(Add current relevant tips)*
+- Questions or issues? Open an issue in the repo.
 
-The Dashboard provides:
-- **Mailboxes**: shows online status, owner, and message count for each agent mailbox.
-- **Tasks**: aggregated view across all task lists, sortable and color-coded by status; claim tasks directly.
-- **Messaging**: send and view raw messages into any mailbox.
-- **Templates**: browse and load JSON-schema templates for prompts.
-- **Agents**: configure click spots for each of 8 agents; settings persist in `_agent_coordination/config/agent_coords.json`.
-- **Actions**: load user prompts, send them, and accept/reject changes via GUI buttons.
-
-### Config & Data Paths
-- `_agent_coordination/config/agent_coords.json` – saved click coordinates for agent input spots
-- `_agent_coordination/user_prompts/` – custom prompt files to drive the swarm via the Actions tab
-
-## Tips & Support
-- Console logs include heartbeat snapshots every interval (default 60s).
-- Adjust stats interval with `--stats-interval N` or `STATS_INTERVAL=N`.
-- Ensure Chrome is installed and configured for WebAgent.
-- For Azure C2 use `AZURE_STORAGE_CONNECTION_STRING`/`AZURE_SAS_TOKEN`.
-- Questions or issues? Open an issue in the repo or chat with the team.
-
-## Proposals & Discovery
-To propose improvements or fixes during your work, prefix your message with `/proposal:` followed by your suggestion, and send it to any agent's mailbox file (e.g., `_agent_coordination/shared_mailboxes/mailbox_<id>.json`).
-
-If you discover a new issue or TODO while completing tasks, append it to `D:/Dream.os/_agent_coordination/tasks/complete/discovered_tasks.json` in the following JSON format:
-```json
-{
-  "file": "<path/to/file>",
-  "line_range": [start_line, end_line],
-  "category": "<bug|enhancement|cleanup>",
-  "description": "Description of the issue or improvement",
-  "discovered_by": "<your_agent_id>"
-}
-```
+## Contributing & Feedback (DRAFT)
+- *(Describe current process for suggesting changes or reporting issues, likely via GitHub issues/PRs)*
 
 Enjoy building with Dream.OS! 🚀

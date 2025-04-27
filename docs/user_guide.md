@@ -1,4 +1,11 @@
-# Dream.OS ScreenshotTrainer - User Guide
+<!-- 
+NOTE: This user guide appears to describe the 'ScreenshotTrainer' module specifically.
+It may be outdated or not representative of the overall Dream.OS system.
+Consider moving this to a subdirectory related to that tool if it's still active,
+and creating a new top-level user guide based on USER_ONBOARDING.md.
+-->
+
+# Dream.OS ScreenshotTrainer - User Guide (LEGACY?)
 
 ## 1. Overview
 
