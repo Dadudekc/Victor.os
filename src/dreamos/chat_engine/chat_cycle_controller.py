@@ -8,7 +8,7 @@ from datetime import datetime
 # SERVICES
 from dreamos.chat_engine.chat_scraper_service import ChatScraperService
 from dreamos.chat_engine.prompt_execution_service import PromptExecutionService
-from dreamos.chat_engine.feedback_engine import FeedbackEngine
+from dreamos.feedback.feedback_engine import FeedbackEngine
 from dreamos.chat_engine.discord_dispatcher import DiscordDispatcher
 
 # UTILS

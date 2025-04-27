@@ -8,7 +8,7 @@ from dream_mode.utils.browser import launch_browser, navigate_to_page, wait_for_
 from dream_mode.utils.html_parser import extract_latest_reply
 from dream_mode.utils.task_parser import extract_task_metadata
 
-from dream_mode.local_blob_channel import LocalBlobChannel
+from dreamos.memory.blob_channel_memory import LocalBlobChannel
 from dream_mode.task_nexus.task_nexus import TaskNexus
 import os  # for environment variables
 from typing import Dict

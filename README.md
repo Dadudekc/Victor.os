@@ -82,3 +82,56 @@ pytest
 
 ## Contributing
 Please open issues or pull requests. All code should follow PEP8 and include tests. 
+
+## Cursor Auto Controller
+
+A lightweight automation script to fully control Cursor clients: send prompts, auto-accept changes, auto-resume, and monitor agent statuses.
+
+### Requirements
+- Python 3.7+
+- pyautogui
+- pywinauto (optional, for native Windows UI automation)
+
+Install dependencies:
+```bash
+pip install pyautogui pywinauto
+```
+
+### Usage
+```bash
+python scripts/cursor_auto.py --prompt-dir path/to/prompts --heartbeat 30
+```
+
+- `--prompt-dir`: directory containing `*.prompt.md` files.
+- `--heartbeat`: seconds before considering an agent idle.
+
+The script displays a CLI dashboard showing each Cursor client's status and current task.
+
+## Restoration Plan
+
+To systematically restore the Dream.OS modules and test suite, we'll proceed in three phases:
+
+**Phase 1: Scaffold & Normalize**
+- Create package skeletons under `src/dreamos/` for the following slices:
+  - `coordination/` (dispatchers, services, etc.)
+  - `memory/`
+  - `feedback/`
+  - `monitoring/`
+  - `services/`
+  - `agents/`
+  - `tools/`
+- Ensure each directory has an `__init__.py` and stub modules matching test imports.
+- Normalize imports throughout the code to point at `dreamos.<slice>`.
+
+**Phase 2: Incremental Test Re-Enabling**
+- Remove the xfail/ignore hook for one slice at a time.
+- Add minimal viable stubs or implementations to satisfy its tests.
+- Confirm 100% pass on that slice before moving on.
+- Target order: coordination → memory → feedback → monitoring → services → agents → tools.
+
+**Phase 3: Cleanup & Refactor**
+- Remove dead code and archive old implementations.
+- Consolidate duplicate utilities into `src/dreamos/utils` or `core/`.
+- Run full test suite, bump test coverage, and document restored functionality.
+
+We'll document progress here and in `docs/restoration.md` as needed.

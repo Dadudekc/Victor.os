@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from pathlib import Path
-from ui.task_visualizer_app import read_tasks_from_json, load_task_data
+from dreamos.gui.task_visualizer_app import read_tasks_from_json, load_task_data
 import json
 
 @pytest.fixture
@@ -33,10 +33,10 @@ def test_read_tasks_empty(temp_empty_file):
 
 def test_read_tasks_invalid(temp_invalid_json, monkeypatch):
     # Monkeypatch logger and streamlit st.error
-    import ui.task_visualizer_app as app_mod
+    import dreamos.gui.task_visualizer_app as app_mod
     class DummySt:
         def error(self, msg): pass
-    monkeypatch.setattr('ui.task_visualizer_app.st', DummySt())
+    monkeypatch.setattr('dreamos.gui.task_visualizer_app.st', DummySt())
     tasks = read_tasks_from_json(temp_invalid_json)
     assert tasks == []
 

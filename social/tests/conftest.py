@@ -27,4 +27,20 @@ def pytest_configure(config):
 # def shared_resource():
 #     print("\nSetting up shared resource")
 #     yield "resource_data"
-#     print("\nTearing down shared resource") 
+#     print("\nTearing down shared resource")
+
+# Shared fixture to mock logging setup across social tests
+@pytest.fixture(autouse=True)
+def mock_setup_logging():
+    # Automatic fixture to suppress or mock logging configuration
+    yield
+
+# Shared WebDriver fixture for strategy tests
+@pytest.fixture
+def mock_driver():
+    from unittest.mock import Mock
+    from selenium.webdriver.remote.webdriver import WebDriver
+    driver = Mock(spec=WebDriver)
+    driver.find_element.return_value = Mock()
+    driver.find_elements.return_value = []
+    return driver 

@@ -8,11 +8,12 @@ import traceback # Added
 from pathlib import Path
 import logging
 from typing import List, Any # Added Any
+from dreamos.coordination.dispatcher import EventType
 
 # Assuming task_utils is importable from parent dir
 try:
     # from .._agent_coordination.task_utils import read_tasks # Old import
-    from dreamos.utils.task_utils import read_tasks # New absolute import
+    from dreamos.utils.task_utils import read_tasks, update_task_status # Added update_task_status import
     from dreamos.tools.context import produce_project_context # New absolute import
     from dreamos.agent_bus import AgentBus # Import canonical bus
     from dreamos.memory.governance_memory_engine import log_event # Added
@@ -84,16 +85,33 @@ class StallRecoveryAgent:
         except Exception as e:
             logger.warning(f"Could not get initial log file size for {self.log_file_path}: {e}")
 
-        # Register with AgentBus asynchronously
+        # Register with AgentBus if available
+        if self.agent_bus:
+            try:
+                registration_success = self.agent_bus.register_agent(self)
+                if registration_success:
+                    log_event("AGENT_REGISTERED", self.agent_id, {"message": "Successfully registered with AgentBus."})
+                    logger.info(f"Agent {self.agent_id} registered successfully.")
+                else:
+                    log_event("AGENT_ERROR", self.agent_id, {"error": "Failed to register with AgentBus (register_agent returned False)."})
+                    logger.error("Agent registration failed.")
+            except Exception as reg_e:
+                log_event("AGENT_ERROR", self.agent_id, {"error": f"Exception during AgentBus registration: {reg_e}", "traceback": traceback.format_exc()})
+                logger.exception("Exception during AgentBus registration.")
+        # Hook StallRecoveryAgent into real-time recovery events on SYSTEM channel
         try:
-            coro = self.agent_bus.register_agent(self.agent_id, self.CAPABILITIES)
-            if asyncio.iscoroutine(coro):
-                asyncio.create_task(coro)
-            log_event("AGENT_REGISTERED", self.agent_id, {"message": "Scheduled registration with AgentBus."})
-            logger.info(f"Agent {self.agent_id} registration scheduled.")
-        except Exception as reg_e:
-            log_event("AGENT_ERROR", self.agent_id, {"error": f"AgentBus registration error: {reg_e}", "traceback": traceback.format_exc()})
-            logger.exception("Failed scheduling AgentBus registration.")
+            self.agent_bus.register_handler(EventType.SYSTEM, self._on_any_system_event)
+            log_event("HANDLER_REGISTERED", self.agent_id, {"handler": "_on_any_system_event"})
+        except Exception as e:
+            logger.error(f"Failed to register recovery event handler: {e}")
+        # Else: AgentBus not provided; skipping registration
+
+    # --- Recovery Parameters ---
+    MAX_REASSIGN_RETRIES = 4
+    INITIAL_BACKOFF = 1.0
+    MAX_BACKOFF = 16.0
+    ESCALATION_THRESHOLD = 4
+    MAX_CONCURRENT_AGENTS = 10
 
     # --- Public Dispatch Target Method ---
     def perform_stall_check(self, calling_agent_id: str = "Unknown") -> bool:
@@ -343,6 +361,103 @@ class StallRecoveryAgent:
     def run(self):
         """Stub run method for direct execution of the agent script."""
         logger.info(f"{self.agent_id} run() called; no operation performed in stub.")
+
+    # --- Real-time recovery event handlers ---
+    def _on_agent_stalled(self, event):
+        failed_agent = event.data.get('agent_id')
+        log_event("AGENT_STALLED_DETECTED", self.agent_id, {"failed_agent": failed_agent})
+        tasks = read_tasks(self.task_list_path) or []
+        for task in tasks:
+            if task.get('assigned_to') != failed_agent:
+                continue
+            capabilities = task.get('capabilities', [])
+            backoff = self.INITIAL_BACKOFF
+            reassigned = False
+            for attempt in range(self.MAX_REASSIGN_RETRIES):
+                try:
+                    available = self.agent_bus.get_available_agents(capabilities)
+                except Exception:
+                    available = []
+                if available:
+                    new_agent = available[0]
+                    task['assigned_to'] = new_agent
+                    update_task_status(self.task_list_path, task['task_id'], 'PENDING')
+                    log_event("TASK_REASSIGNED", self.agent_id, {"task_id": task['task_id'], "from": failed_agent, "to": new_agent, "attempt": attempt+1})
+                    self.agent_bus.broadcast_message(self.agent_id, "TASK_STATUS_UPDATE", {"task_id": task['task_id'], "assigned_to": new_agent, "status": "PENDING"})
+                    reassigned = True
+                    break
+                logger.warning(f"Attempt {attempt+1}: no agents free for {task['task_id']}. backing off {backoff}s.")
+                time.sleep(backoff)
+                backoff = min(backoff * 2, self.MAX_BACKOFF)
+            if not reassigned:
+                # Log and broadcast structured escalation for max retries exceeded
+                log_event("TASK_REASSIGN_ESCALATION", self.agent_id, {"task_id": task['task_id'], "failed_agent": failed_agent})
+                # Structured escalation event
+                self._escalation_event(
+                    task_id=task['task_id'],
+                    failing_agent=failed_agent,
+                    failure_count=task.get('failure_count', 0),
+                    urgency=str(task.get('urgency', 'UNKNOWN')),
+                    escalation_reason="MAX_RETRIES_EXCEEDED"
+                )
+
+    def _on_agent_heartbeat_lost(self, event):
+        dead_agent = event.data.get('agent_id')
+        log_event("AGENT_HEARTBEAT_LOST", self.agent_id, {"dead_agent": dead_agent})
+        tasks = read_tasks(self.task_list_path) or []
+        # Auto-spawn a replacement agent if capacity allows
+        try:
+            if len(self.agent_bus.active_agents) < self.MAX_CONCURRENT_AGENTS:
+                repl_id = f"{dead_agent}_repl_{int(time.time())}"
+                self.agent_bus.register_agent(repl_id, self.CAPABILITIES)
+                log_event("AGENT_SPAWNED", self.agent_id, {"new_agent": repl_id})
+        except Exception:
+            pass
+        # Prioritize rescue tasks by failure_count and urgency
+        rescue_tasks = [t for t in tasks if t.get('assigned_to') == dead_agent]
+        rescue_tasks.sort(key=lambda t: (t.get('failure_count', 0), -t.get('urgency', 0)))
+        for task in rescue_tasks:
+            try:
+                update_task_status(self.task_list_path, task['task_id'], 'RESCUE_PENDING')
+                log_event("TASK_MARKED_FOR_RESCUE", self.agent_id, {"task_id": task['task_id'], "agent": dead_agent})
+                self.agent_bus.broadcast_message(self.agent_id, "TASK_STATUS_UPDATE", {"task_id": task['task_id'], "status": "RESCUE_PENDING"})
+                # Structured escalation for heartbeat loss rescue
+                self._escalation_event(
+                    task_id=task['task_id'],
+                    failing_agent=dead_agent,
+                    failure_count=task.get('failure_count', 0),
+                    urgency=str(task.get('urgency', 'UNKNOWN')),
+                    escalation_reason="HEARTBEAT_LOST"
+                )
+            except Exception as e:
+                logger.error(f"Failed to mark task {task['task_id']} for rescue: {e}")
+
+    def _on_any_system_event(self, event):
+        """Dispatch to recovery handlers based on event.data['type']."""
+        etype = event.data.get('type')
+        if etype == 'agent_stalled':
+            self._on_agent_stalled(event)
+        elif etype == 'agent_heartbeat_lost':
+            self._on_agent_heartbeat_lost(event)
+
+    def _escalation_event(self, task_id: str | None, failing_agent: str, failure_count: int, urgency: str, escalation_reason: str):
+        """Broadcast and persist a structured escalation event."""
+        payload = {
+            "agent_id": failing_agent,
+            "task_id": task_id,
+            "failure_count": failure_count,
+            "urgency": urgency,
+            "escalation_reason": escalation_reason,
+            "timestamp": time.time()
+        }
+        # Broadcast structured escalation
+        self.agent_bus.broadcast_message(self.agent_id, "ESCALATION", payload)
+        # Persist to file system
+        esc_dir = Path(self.project_root) / "runtime" / "logs" / "escalations"
+        esc_dir.mkdir(parents=True, exist_ok=True)
+        filename = esc_dir / f"{int(payload['timestamp'])}_{failing_agent}_{task_id or 'agent'}.json"
+        with filename.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
 
 # --- Removed Direct Execution Block ---
 # if __name__ == "__main__":

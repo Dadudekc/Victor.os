@@ -1,6 +1,6 @@
 import json
 from unittest.mock import MagicMock, patch
-from dream_mode.azure_blob_channel import AzureBlobChannel
+from dreamos.memory.azure_blob_channel_memory import AzureBlobChannel
 
 @patch("dream_mode.azure_blob_channel.BlobServiceClient")
 def test_push_and_pull_task(mock_bsc):

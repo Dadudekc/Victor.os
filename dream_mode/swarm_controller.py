@@ -5,12 +5,12 @@ import logging
 from typing import Any, Dict, List, Tuple, Optional
 import subprocess
 
-from dream_mode.local_blob_channel import LocalBlobChannel
+from dreamos.memory.blob_channel_memory import LocalBlobChannel
 from dream_mode.cursor_fleet_launcher import launch_cursor_instance, get_cursor_windows, assign_windows_to_monitors
 from dream_mode.virtual_desktop_runner import VirtualDesktopController
 from dream_mode.task_nexus.task_nexus import TaskNexus
 from dreamos.hooks.stats_logger import StatsLoggingHook
-from dreamos.chat_engine.feedback_engine_v2 import FeedbackEngineV2
+from dreamos.feedback.feedback_engine_v2 import FeedbackEngineV2
 from _agent_coordination.tools.event_bus import EventBus
 
 logger = logging.getLogger(__name__)

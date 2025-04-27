@@ -2,7 +2,7 @@ import os
 import time
 import json
 import logging
-from dream_mode.local_blob_channel import LocalBlobChannel
+from dreamos.memory.blob_channel_memory import LocalBlobChannel
 
 logger = logging.getLogger("SupervisorAgent")
 logger.setLevel(logging.INFO)

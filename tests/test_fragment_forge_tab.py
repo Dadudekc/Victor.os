@@ -1,5 +1,5 @@
 import pytest
-from ui.fragment_forge_tab import FragmentForgeTab
+from dreamos.gui.fragment_forge_tab import FragmentForgeTab
 
 # Dummy classes to satisfy type hints
 class DummyMemoryManager:

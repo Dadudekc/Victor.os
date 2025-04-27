@@ -58,10 +58,13 @@
     },
     "conftest.py": {
         "language": ".py",
-        "functions": [],
+        "functions": [
+            "pytest_collection_modifyitems",
+            "pytest_ignore_collect"
+        ],
         "classes": {},
         "routes": [],
-        "complexity": 0
+        "complexity": 2
     },
     "cli.py": {
         "language": ".py",
@@ -1892,6 +1895,10 @@
             "dispatch_recovery_task",
             "attempt_recovery",
             "run",
+            "_on_agent_stalled",
+            "_on_agent_heartbeat_lost",
+            "_on_any_system_event",
+            "_escalation_event",
             "read_tasks",
             "produce_project_context",
             "log_event"
@@ -1906,14 +1913,18 @@
                     "log_stall_event",
                     "dispatch_recovery_task",
                     "attempt_recovery",
-                    "run"
+                    "run",
+                    "_on_agent_stalled",
+                    "_on_agent_heartbeat_lost",
+                    "_on_any_system_event",
+                    "_escalation_event"
                 ],
                 "docstring": "Detects system stalls by monitoring logs and dispatches recovery tasks via AgentBus.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 19
+        "complexity": 27
     },
     "agents\\recovery\\supervisor_oria_agent.py": {
         "language": ".py",
@@ -6934,7 +6945,8 @@
         "language": ".py",
         "functions": [
             "parse_arguments",
-            "main"
+            "main",
+            "write_task_line"
         ],
         "classes": {
             "TaskStatus": {
@@ -6944,16 +6956,18 @@
             }
         },
         "routes": [],
-        "complexity": 2
+        "complexity": 3
     },
     "social\\tests\\conftest.py": {
         "language": ".py",
         "functions": [
-            "pytest_configure"
+            "pytest_configure",
+            "mock_setup_logging",
+            "mock_driver"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 1
+        "complexity": 3
     },
     "social\\tests\\test_agent_load.py": {
         "language": ".py",
@@ -7066,7 +7080,6 @@
     "social\\tests\\test_reddit_strategy.py": {
         "language": ".py",
         "functions": [
-            "mock_setup_logging",
             "setUp",
             "test_login_success",
             "test_post_text_success",
@@ -7091,7 +7104,7 @@
             }
         },
         "routes": [],
-        "complexity": 13
+        "complexity": 12
     },
     "social\\tests\\test_social_agent_e2e.py": {
         "language": ".py",
@@ -10009,7 +10022,9 @@
             "_append_task_to_list",
             "load_state_fallback",
             "closeEvent",
-            "cleanup_resources"
+            "cleanup_resources",
+            "_save_state",
+            "_load_state"
         ],
         "classes": {
             "DummyTaskManager": {
@@ -10017,6 +10032,30 @@
                     "add_task"
                 ],
                 "docstring": null,
+                "base_classes": []
+            },
+            "TaskManager": {
+                "methods": [],
+                "docstring": "Alias for DummyTaskManager for testing compatibility.",
+                "base_classes": [
+                    "DummyTaskManager"
+                ]
+            },
+            "FeedbackEngine": {
+                "methods": [],
+                "docstring": "Placeholder for feedback engine in tests.",
+                "base_classes": []
+            },
+            "DreamOSTabManager": {
+                "methods": [],
+                "docstring": "Placeholder for tab manager in tests.",
+                "base_classes": [
+                    "QTabWidget"
+                ]
+            },
+            "TabSystemShutdownManager": {
+                "methods": [],
+                "docstring": "Placeholder for tab system shutdown in tests.",
                 "base_classes": []
             },
             "DreamOSMainWindow": {
@@ -10032,7 +10071,9 @@
                     "_append_task_to_list",
                     "load_state_fallback",
                     "closeEvent",
-                    "cleanup_resources"
+                    "cleanup_resources",
+                    "_save_state",
+                    "_load_state"
                 ],
                 "docstring": "Main application window for Dream.OS using Sidebar Navigation.",
                 "base_classes": [
@@ -10041,7 +10082,7 @@
             }
         },
         "routes": [],
-        "complexity": 26
+        "complexity": 30
     },
     "ui\\task_visualizer_app.py": {
         "language": ".py",
@@ -10110,21 +10151,19 @@
     "_agent_coordination\\agents\\feedback_monitor_agent.py": {
         "language": ".py",
         "functions": [
-            "__init__",
-            "run"
+            "__init__"
         ],
         "classes": {
             "FeedbackMonitorAgent": {
                 "methods": [
-                    "__init__",
-                    "run"
+                    "__init__"
                 ],
                 "docstring": null,
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 4
+        "complexity": 2
     },
     "_agent_coordination\\archive\\temp_test_registry.py": {
         "language": ".py",
@@ -10140,10 +10179,7 @@
             "_dispatch_message_to_agent",
             "handle_task",
             "process_pending_tasks",
-            "run",
-            "read_tasks",
-            "write_tasks",
-            "update_task_status"
+            "run"
         ],
         "classes": {
             "TaskDispatcher": {
@@ -10159,7 +10195,7 @@
             }
         },
         "routes": [],
-        "complexity": 13
+        "complexity": 10
     },
     "_agent_coordination\\examples\\onboarding_message_injector.py": {
         "language": ".py",
@@ -10182,7 +10218,7 @@
                     "__init__",
                     "interpret_response"
                 ],
-                "docstring": "Stub coordinator for cursor chat tasks.",
+                "docstring": "Stub coordinator for cursor chat tasks under agent coordination.",
                 "base_classes": []
             }
         },
@@ -10681,18 +10717,24 @@
             "test_recovery_task_injection",
             "test_stall_logging",
             "test_task_fields_populated",
-            "test_specific_stall_category_no_input"
+            "test_specific_stall_category_no_input",
+            "test_read_tasks_adds_failure_count",
+            "test_update_task_status_persists_and_increments",
+            "test_heartbeat_lost_prioritization_and_spawn",
+            "test_stalled_reassign_exponential_backoff"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 7
+        "complexity": 11
     },
     "_agent_coordination\\tests\\core\\test_agent_bus.py": {
         "language": ".py",
-        "functions": [],
+        "functions": [
+            "raise_error"
+        ],
         "classes": {},
         "routes": [],
-        "complexity": 0
+        "complexity": 1
     },
     "_agent_coordination\\tests\\core\\test_base_utils.py": {
         "language": ".py",
@@ -11915,6 +11957,8 @@
     "_agent_coordination\\services\\interpreter.py": {
         "language": ".py",
         "functions": [
+            "parse",
+            "__init__",
             "parse"
         ],
         "classes": {
@@ -11926,10 +11970,20 @@
                 "base_classes": [
                     "ABC"
                 ]
+            },
+            "DefaultResponseInterpreter": {
+                "methods": [
+                    "__init__",
+                    "parse"
+                ],
+                "docstring": "Parses chat response segments into actionable dictionaries\nfor the CursorChatCoordinator.",
+                "base_classes": [
+                    "ResponseInterpreter"
+                ]
             }
         },
         "routes": [],
-        "complexity": 2
+        "complexity": 6
     },
     "_agent_coordination\\services\\ocr_service.py": {
         "language": ".py",
@@ -11959,11 +12013,13 @@
             "test_dispatch_message_to_agent_creates_file_and_valid_json",
             "test_task_dispatcher_delegates_to_mailbox_util",
             "test_concurrent_dispatch_message",
+            "test_handle_task_dispatch_and_status_update",
+            "test_process_pending_tasks_workflow",
             "worker"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 4
+        "complexity": 6
     },
     "_agent_coordination\\tests\\core\\conftest.py": {
         "language": ".py",
@@ -11971,5 +12027,1685 @@
         "classes": {},
         "routes": [],
         "complexity": 0
+    },
+    "validate_onboarding_prompts.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "apps\\examples\\onboarding_message_injector.py": {
+        "language": ".py",
+        "functions": [
+            "inject_initial_onboarding_message"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "apps\\examples\\reflection_agent.py": {
+        "language": ".py",
+        "functions": [
+            "load_rules_from_rulebook",
+            "generate_reflection",
+            "save_reflection",
+            "submit_proposal",
+            "start_monitoring",
+            "__init__",
+            "on_created"
+        ],
+        "classes": {
+            "AlertHandler": {
+                "methods": [
+                    "__init__",
+                    "on_created"
+                ],
+                "docstring": "Handles new alert files in the inbox directory.",
+                "base_classes": [
+                    "FileSystemEventHandler"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 9
+    },
+    "apps\\examples\\stubs\\agent_1_stub.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_handle_plan"
+        ],
+        "classes": {
+            "Agent1Stub": {
+                "methods": [
+                    "__init__",
+                    "_handle_plan"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "dreamos\\agent_bus.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\version.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\coordination\\dispatcher.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\memory\\governance_memory_engine.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\memory\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\tools\\context.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\tools\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\utils\\task_utils.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "dreamos\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "scripts\\cursor_auto.py": {
+        "language": ".py",
+        "functions": [
+            "list_cursor_windows",
+            "parse_args",
+            "main",
+            "__init__",
+            "_connect",
+            "bring_to_front",
+            "send_prompt",
+            "accept_changes",
+            "resume_cursor",
+            "scrape_response",
+            "__init__",
+            "update_agent_status",
+            "detect_idle_agents",
+            "get_report",
+            "__init__",
+            "_next_prompt",
+            "_load_prompt",
+            "_archive_prompt",
+            "_print_dashboard",
+            "run"
+        ],
+        "classes": {
+            "CursorAutoController": {
+                "methods": [
+                    "__init__",
+                    "_connect",
+                    "bring_to_front",
+                    "send_prompt",
+                    "accept_changes",
+                    "resume_cursor",
+                    "scrape_response"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "AgentStateMonitor": {
+                "methods": [
+                    "__init__",
+                    "update_agent_status",
+                    "detect_idle_agents",
+                    "get_report"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "Supervisor": {
+                "methods": [
+                    "__init__",
+                    "_next_prompt",
+                    "_load_prompt",
+                    "_archive_prompt",
+                    "_print_dashboard",
+                    "run"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 37
+    },
+    "scripts\\refactor_imports.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "scripts\\scraper_agent.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_connect",
+            "_uia_extract",
+            "_ocr_extract",
+            "scrape",
+            "save"
+        ],
+        "classes": {
+            "ScraperAgent": {
+                "methods": [
+                    "__init__",
+                    "_connect",
+                    "_uia_extract",
+                    "_ocr_extract",
+                    "scrape",
+                    "save"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\agent_bus.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "AgentStatus": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "Enum"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\agent_utils.py": {
+        "language": ".py",
+        "functions": [
+            "_load_coords",
+            "_save_coords",
+            "save_agent_spot",
+            "get_agent_spot",
+            "click_agent_spot",
+            "screenshot_spot",
+            "copy_to_clipboard",
+            "paste_from_clipboard"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 8
+    },
+    "src\\dreamos\\config.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "Config": {
+                "methods": [],
+                "docstring": "Central configuration for Dream.OS Auto-Fix Loop",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\FileManager.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "save",
+            "load"
+        ],
+        "classes": {
+            "FileManager": {
+                "methods": [
+                    "__init__",
+                    "save",
+                    "load"
+                ],
+                "docstring": "Stub FileManager to satisfy imports. Implement actual file operations as needed.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "src\\dreamos\\login_utils.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\thea_orchestrator.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "dispatch_directive",
+            "extract_json_from_response",
+            "run",
+            "run_loop",
+            "list_history"
+        ],
+        "classes": {
+            "TheaOrchestrator": {
+                "methods": [
+                    "__init__",
+                    "dispatch_directive",
+                    "extract_json_from_response",
+                    "run",
+                    "run_loop",
+                    "list_history"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\voice_engine.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "speak",
+            "_inject_persona_context",
+            "_get_tone_directives",
+            "__init__",
+            "ask"
+        ],
+        "classes": {
+            "VictorVoiceEngine": {
+                "methods": [
+                    "__init__",
+                    "speak",
+                    "_inject_persona_context",
+                    "_get_tone_directives"
+                ],
+                "docstring": "Unified voice engine to generate persona-aligned text.",
+                "base_classes": []
+            },
+            "AIChatAgent": {
+                "methods": [
+                    "__init__",
+                    "ask"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\agents\\agents\\task_executor_agent.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_load_tasks",
+            "_check_dependencies",
+            "handle_response",
+            "run_cycle"
+        ],
+        "classes": {
+            "TaskStatus": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            },
+            "TaskExecutorAgent": {
+                "methods": [
+                    "__init__",
+                    "_load_tasks",
+                    "_check_dependencies",
+                    "handle_response",
+                    "run_cycle"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\agents\\agents\\tool_executor_agent.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "execute_plan"
+        ],
+        "classes": {
+            "ToolExecutionAgent": {
+                "methods": [
+                    "__init__",
+                    "execute_plan"
+                ],
+                "docstring": "Executes a plan (list of tool call steps) sequentially.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\agents\\agents\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\chat_engine\\chat_cycle_controller.py": {
+        "language": ".py",
+        "functions": [
+            "sanitize_filename",
+            "__init__",
+            "_default_output_callback",
+            "append_output",
+            "start",
+            "process_chat",
+            "run_single_chat",
+            "_save_prompt_response",
+            "_save_run_summary",
+            "shutdown",
+            "__init__",
+            "get"
+        ],
+        "classes": {
+            "ChatCycleController": {
+                "methods": [
+                    "__init__",
+                    "_default_output_callback",
+                    "append_output",
+                    "start",
+                    "process_chat",
+                    "run_single_chat",
+                    "_save_prompt_response",
+                    "_save_run_summary",
+                    "shutdown"
+                ],
+                "docstring": "Master orchestrator for chat scraping, prompt cycles,\nmemory updates, and Discord dispatching.",
+                "base_classes": []
+            },
+            "Config": {
+                "methods": [
+                    "__init__",
+                    "get"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 23
+    },
+    "src\\dreamos\\chat_engine\\discord_dispatcher.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_setup_events",
+            "send_message",
+            "dispatch_memory_update",
+            "dispatch_dreamscape_episode",
+            "dispatch_feedback_loop",
+            "run_bot",
+            "shutdown"
+        ],
+        "classes": {
+            "DiscordDispatcher": {
+                "methods": [
+                    "__init__",
+                    "_setup_events",
+                    "send_message",
+                    "dispatch_memory_update",
+                    "dispatch_dreamscape_episode",
+                    "dispatch_feedback_loop",
+                    "run_bot",
+                    "shutdown"
+                ],
+                "docstring": "DiscordDispatcher - Manages communication to a Discord server.\nSends updates on system events, memory updates, and AI output.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 16
+    },
+    "src\\dreamos\\chat_engine\\chat_scraper_service.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "get_all_chats",
+            "get_filtered_chats",
+            "validate_login",
+            "manual_login_flow"
+        ],
+        "classes": {
+            "ChatScraperService": {
+                "methods": [
+                    "__init__",
+                    "get_all_chats",
+                    "get_filtered_chats",
+                    "validate_login",
+                    "manual_login_flow"
+                ],
+                "docstring": "ChatScraperService retrieves available chat titles and links from the chat UI.\nIt handles exclusions and filtering for downstream execution cycles.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\chat_engine\\driver_manager.py": {
+        "language": ".py",
+        "functions": [
+            "setup_logger",
+            "example_main",
+            "get_instance",
+            "__init__",
+            "__enter__",
+            "__exit__",
+            "_get_cached_driver_path",
+            "_download_driver_if_needed",
+            "_is_session_expired",
+            "_renew_driver_session",
+            "get_session_info",
+            "set_session_timeout",
+            "_create_chrome_options",
+            "get_driver",
+            "_quit_driver_instance",
+            "release_driver",
+            "save_cookies",
+            "load_cookies",
+            "clear_cookies",
+            "is_logged_in",
+            "execute_with_retry",
+            "scroll_into_view",
+            "scroll_page",
+            "scroll_to_bottom_smoothly",
+            "update_options",
+            "shutdown",
+            "_force_kill_browsers",
+            "__del__"
+        ],
+        "classes": {
+            "DriverManager": {
+                "methods": [
+                    "get_instance",
+                    "__init__",
+                    "__enter__",
+                    "__exit__",
+                    "_get_cached_driver_path",
+                    "_download_driver_if_needed",
+                    "_is_session_expired",
+                    "_renew_driver_session",
+                    "get_session_info",
+                    "set_session_timeout",
+                    "_create_chrome_options",
+                    "get_driver",
+                    "_quit_driver_instance",
+                    "release_driver",
+                    "save_cookies",
+                    "load_cookies",
+                    "clear_cookies",
+                    "is_logged_in",
+                    "execute_with_retry",
+                    "scroll_into_view",
+                    "scroll_page",
+                    "scroll_to_bottom_smoothly",
+                    "update_options",
+                    "shutdown",
+                    "_force_kill_browsers",
+                    "__del__"
+                ],
+                "docstring": "Unified DriverManager for Selenium-based browser automation.\n\nFeatures:\n  - Singleton pattern to ensure a single active driver instance per configuration hash\n  - Session management with automatic expiration (default 1 hour) and renewal\n  - Persistent profile support (or temporary profiles in headless mode)\n  - Cookie saving/loading for session persistence\n  - Support for headless mode, mobile emulation, and optional undetected mode\n  - Auto-downloading and caching of the ChromeDriver executable\n  - Robust retry mechanisms for resilient browser operations\n  - Utilities for waiting, scrolling, and option updates",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 54
+    },
+    "src\\dreamos\\chat_engine\\feedback_engine.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_load_memory",
+            "_save_memory",
+            "save_memory_async",
+            "parse_and_update_memory",
+            "apply_memory_updates",
+            "log_feedback",
+            "export_feedback_log",
+            "analyze_feedback",
+            "review_memory",
+            "feedback_loop",
+            "save_context_memory_async",
+            "save_context_db",
+            "review_context_memory"
+        ],
+        "classes": {
+            "FeedbackEngine": {
+                "methods": [
+                    "__init__",
+                    "_load_memory",
+                    "_save_memory",
+                    "save_memory_async",
+                    "parse_and_update_memory",
+                    "apply_memory_updates",
+                    "log_feedback",
+                    "export_feedback_log",
+                    "analyze_feedback",
+                    "review_memory",
+                    "feedback_loop",
+                    "save_context_memory_async",
+                    "save_context_db",
+                    "review_context_memory"
+                ],
+                "docstring": "FeedbackEngine - Parses AI responses, updates persistent memory,\ntracks reinforcement loops, and evolves Victor.OS intelligence.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 28
+    },
+    "src\\dreamos\\chat_engine\\feedback_engine_v2.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "analyze_failures",
+            "save_analysis"
+        ],
+        "classes": {
+            "FeedbackEngineV2": {
+                "methods": [
+                    "__init__",
+                    "analyze_failures",
+                    "save_analysis"
+                ],
+                "docstring": "FeedbackEngineV2 analyzes failed prompts using an LLM and provides root cause analysis\nand recommended fixes based on archived failure data.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "src\\dreamos\\chat_engine\\gui_event_handler.py": {
+        "language": ".py",
+        "functions": [
+            "run_gui",
+            "__init__",
+            "init_ui",
+            "toggle_headless",
+            "toggle_reverse",
+            "toggle_archive",
+            "start_dispatcher",
+            "stop_dispatcher",
+            "log",
+            "__init__",
+            "exec_",
+            "__init__",
+            "__init__",
+            "__init__",
+            "__init__",
+            "__init__"
+        ],
+        "classes": {
+            "GUIEventHandler": {
+                "methods": [
+                    "__init__",
+                    "init_ui",
+                    "toggle_headless",
+                    "toggle_reverse",
+                    "toggle_archive",
+                    "start_dispatcher",
+                    "stop_dispatcher",
+                    "log"
+                ],
+                "docstring": "GUI Event Handler for ChatMate Agent Control Panel\n- Control Config Flags (Headless, Reverse Order, Archive)\n- Start/Stop the Agent Dispatcher\n- Display logs or status updates",
+                "base_classes": [
+                    "QMainWindow"
+                ]
+            },
+            "QtWidgets": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QtCore": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QApplication": {
+                "methods": [
+                    "__init__",
+                    "exec_"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QMainWindow": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QPushButton": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QLabel": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QCheckBox": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "QTextEdit": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 31
+    },
+    "src\\dreamos\\chat_engine\\prompt_execution_service.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "get_prompt",
+            "execute_prompt_cycle",
+            "execute_prompts_single_chat",
+            "execute_prompts_concurrently",
+            "_execute_single_prompt_thread",
+            "_determine_wait_time",
+            "_post_process_jawbone_response",
+            "_send_prompt",
+            "_fetch_response"
+        ],
+        "classes": {
+            "PromptExecutionService": {
+                "methods": [
+                    "__init__",
+                    "get_prompt",
+                    "execute_prompt_cycle",
+                    "execute_prompts_single_chat",
+                    "execute_prompts_concurrently",
+                    "_execute_single_prompt_thread",
+                    "_determine_wait_time",
+                    "_post_process_jawbone_response",
+                    "_send_prompt",
+                    "_fetch_response"
+                ],
+                "docstring": "PromptExecutionService handles sending prompts and retrieving responses.\nIt manages execution cycles for single chats or cycles across multiple prompts.\nNow supports model switching, feedback integration, and parallel execution.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 20
+    },
+    "src\\dreamos\\chat_engine\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\hooks\\chatgpt_responder.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "get_response",
+            "respond_to_mailbox"
+        ],
+        "classes": {
+            "ChatGPTResponder": {
+                "methods": [
+                    "__init__",
+                    "get_response",
+                    "respond_to_mailbox"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "src\\dreamos\\hooks\\stats_logger.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "log_snapshot"
+        ],
+        "classes": {
+            "StatsLoggingHook": {
+                "methods": [
+                    "__init__",
+                    "log_snapshot"
+                ],
+                "docstring": "Logs periodic snapshots of TaskNexus stats to a JSON file.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\llm_bridge\\bridge_adapters\\another_fancy_adapter.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "AnotherFancyAdapter": {
+                "methods": [],
+                "docstring": "Placeholder for AnotherFancyAdapter.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\llm_bridge\\bridge_adapters\\base_adapter.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "name",
+            "_validate_config",
+            "get_config_value",
+            "__init__",
+            "__str__"
+        ],
+        "classes": {
+            "BaseAdapter": {
+                "methods": [
+                    "__init__",
+                    "name",
+                    "_validate_config",
+                    "get_config_value"
+                ],
+                "docstring": "Abstract Base Class for LLM Bridge Adapters.\n\nDefines the common interface required for interacting with different\nLLM services or models through a unified bridge.",
+                "base_classes": [
+                    "ABC"
+                ]
+            },
+            "AdapterError": {
+                "methods": [
+                    "__init__",
+                    "__str__"
+                ],
+                "docstring": "Custom exception for errors originating from an adapter.",
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\llm_bridge\\bridge_adapters\\fancy_adapter.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "FancyAdapter": {
+                "methods": [],
+                "docstring": "Placeholder for FancyAdapter.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\memory\\governance_memory_engine.py": {
+        "language": ".py",
+        "functions": [
+            "log_event"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\memory\\memory_manager.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_ensure_storage_exists",
+            "load_memory",
+            "save_memory",
+            "save_fragment",
+            "load_fragment",
+            "delete_fragment",
+            "list_fragment_ids"
+        ],
+        "classes": {
+            "MemoryManager": {
+                "methods": [
+                    "__init__",
+                    "_ensure_storage_exists",
+                    "load_memory",
+                    "save_memory",
+                    "save_fragment",
+                    "load_fragment",
+                    "delete_fragment",
+                    "list_fragment_ids"
+                ],
+                "docstring": "Handles loading and saving of dictionary-like fragments to a JSON file.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 16
+    },
+    "src\\dreamos\\memory\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\monitoring\\prompt_execution_monitor.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "start_monitoring",
+            "report_success",
+            "report_failure",
+            "_monitor_loop",
+            "recover_and_requeue"
+        ],
+        "classes": {
+            "PromptExecutionMonitor": {
+                "methods": [
+                    "__init__",
+                    "start_monitoring",
+                    "report_success",
+                    "report_failure",
+                    "_monitor_loop",
+                    "recover_and_requeue"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\rendering\\template_engine.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "render"
+        ],
+        "classes": {
+            "TemplateEngine": {
+                "methods": [
+                    "__init__",
+                    "render"
+                ],
+                "docstring": "Wraps Jinja2 for rendering template strings.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\rendering\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\services\\services\\event_logger.py": {
+        "language": ".py",
+        "functions": [
+            "log_structured_event"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\services\\services\\failed_prompt_archive.py": {
+        "language": ".py",
+        "functions": [
+            "load_json_safe",
+            "write_json_safe",
+            "__init__",
+            "log_failure",
+            "get_failures",
+            "get_by_prompt_id"
+        ],
+        "classes": {
+            "FailedPromptArchiveService": {
+                "methods": [
+                    "__init__",
+                    "log_failure",
+                    "get_failures",
+                    "get_by_prompt_id"
+                ],
+                "docstring": "Service to archive failed prompts with full metadata.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\tools\\base.py": {
+        "language": ".py",
+        "functions": [
+            "name",
+            "description",
+            "execute",
+            "_log_execution"
+        ],
+        "classes": {
+            "AgentTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "execute",
+                    "_log_execution"
+                ],
+                "docstring": "Abstract base class for all tools usable by agents.",
+                "base_classes": [
+                    "ABC"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 8
+    },
+    "src\\dreamos\\services\\services\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\tools\\context.py": {
+        "language": ".py",
+        "functions": [
+            "produce_project_context"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\tools\\registry.py": {
+        "language": ".py",
+        "functions": [
+            "get_registry",
+            "_populate_default_tools",
+            "__init__",
+            "register",
+            "get_tool",
+            "list_tools"
+        ],
+        "classes": {
+            "ToolRegistry": {
+                "methods": [
+                    "__init__",
+                    "register",
+                    "get_tool",
+                    "list_tools"
+                ],
+                "docstring": "Manages a collection of available AgentTools.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\tools\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\tools\\functional\\context_planner_tool.py": {
+        "language": ".py",
+        "functions": [
+            "name",
+            "description",
+            "_extract_targets",
+            "execute",
+            "_rule_copy_file",
+            "_rule_extract_symbol",
+            "_rule_refactor_symbol",
+            "_rule_create_file",
+            "_rule_migrate_update_generic_refactor",
+            "_rule_read_analyze",
+            "_rule_search",
+            "_rule_fallback_log",
+            "_generate_plan_narration",
+            "_log_execution"
+        ],
+        "classes": {
+            "ContextPlannerTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "_extract_targets",
+                    "execute",
+                    "_rule_copy_file",
+                    "_rule_extract_symbol",
+                    "_rule_refactor_symbol",
+                    "_rule_create_file",
+                    "_rule_migrate_update_generic_refactor",
+                    "_rule_read_analyze",
+                    "_rule_search",
+                    "_rule_fallback_log",
+                    "_generate_plan_narration",
+                    "_log_execution"
+                ],
+                "docstring": "Generates a execution plan based on keywords and patterns in the task description.\nNOTE: This is a simplified rule-based planner, NOT an LLM-based planner.",
+                "base_classes": [
+                    "AgentTool"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 28
+    },
+    "src\\dreamos\\tools\\functional\\file_tools.py": {
+        "language": ".py",
+        "functions": [
+            "name",
+            "description",
+            "execute",
+            "name",
+            "description",
+            "execute"
+        ],
+        "classes": {
+            "FileReadTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "execute"
+                ],
+                "docstring": "Reads the content of a specified file.",
+                "base_classes": [
+                    "AgentTool"
+                ]
+            },
+            "FileWriteTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "execute"
+                ],
+                "docstring": "Writes content to a specified file, overwriting if it exists.",
+                "base_classes": [
+                    "AgentTool"
+                ]
+            },
+            "SecurityException": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "src\\dreamos\\tools\\functional\\search_tools.py": {
+        "language": ".py",
+        "functions": [
+            "name",
+            "description",
+            "_check_ripgrep_installed",
+            "execute"
+        ],
+        "classes": {
+            "GrepSearchTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "_check_ripgrep_installed",
+                    "execute"
+                ],
+                "docstring": "Performs a search using Ripgrep (rg) command.",
+                "base_classes": [
+                    "AgentTool"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 8
+    },
+    "src\\dreamos\\tools\\functional\\utils_tools.py": {
+        "language": ".py",
+        "functions": [
+            "name",
+            "description",
+            "execute"
+        ],
+        "classes": {
+            "LogMessageTool": {
+                "methods": [
+                    "name",
+                    "description",
+                    "execute"
+                ],
+                "docstring": "A simple tool that logs a message using the standard logger.",
+                "base_classes": [
+                    "AgentTool"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 6
+    },
+    "src\\dreamos\\tools\\functional\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\utils\\base.py": {
+        "language": ".py",
+        "functions": [
+            "generate_id",
+            "save_json_file",
+            "load_json_file",
+            "validate_required_fields",
+            "validate_field_type",
+            "__call__",
+            "__init__",
+            "__init__",
+            "__init__"
+        ],
+        "classes": {
+            "Singleton": {
+                "methods": [
+                    "__call__"
+                ],
+                "docstring": "Metaclass for single-instance classes.",
+                "base_classes": [
+                    "type"
+                ]
+            },
+            "AsyncLockManager": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Async context manager for asyncio.Lock with optional timeout.",
+                "base_classes": []
+            },
+            "Cache": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "In-memory cache with time-to-live (TTL) expiration.",
+                "base_classes": [
+                    null
+                ]
+            },
+            "RetryManager": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Manager to retry async operations with backoff.",
+                "base_classes": []
+            },
+            "ValidationError": {
+                "methods": [],
+                "docstring": "Raised when data validation fails.",
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 13
+    },
+    "src\\dreamos\\utils\\json_io.py": {
+        "language": ".py",
+        "functions": [
+            "write_json_safe"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\utils\\task_utils.py": {
+        "language": ".py",
+        "functions": [
+            "read_tasks",
+            "write_tasks",
+            "update_task_status"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "src\\dreamos\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "tests\\test_scraper_agent.py": {
+        "language": ".py",
+        "functions": [
+            "no_log_error",
+            "test_uia_extract_and_scrape",
+            "test_ocr_extract_and_scrape",
+            "test_scrape_fails_after_retries",
+            "test_save_creates_json",
+            "__init__",
+            "window_text",
+            "descendants",
+            "__init__",
+            "connect",
+            "window"
+        ],
+        "classes": {
+            "DummyElem": {
+                "methods": [
+                    "__init__",
+                    "window_text"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "DummyWin": {
+                "methods": [
+                    "descendants"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "DummyApp": {
+                "methods": [
+                    "__init__",
+                    "connect",
+                    "window"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 17
+    },
+    "tests\\services\\test_interpreter.py": {
+        "language": ".py",
+        "functions": [
+            "interpreter",
+            "test_parse_python_code_block",
+            "test_parse_diff_code_block",
+            "test_parse_generic_code_block",
+            "test_parse_accept_prompt",
+            "test_parse_task_complete",
+            "test_parse_no_action",
+            "test_parse_error_detected",
+            "test_parse_clarification"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 9
+    },
+    "tests\\integration\\cli_tests.py": {
+        "language": ".py",
+        "functions": [
+            "run_cli",
+            "test_run_help",
+            "test_stats_help",
+            "test_validate_config_help",
+            "test_version_command",
+            "test_validate_config_success",
+            "test_validate_config_missing_path"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 7
+    },
+    "ui\\stubs.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "TaskManager": {
+                "methods": [],
+                "docstring": "Placeholder for task manager used by DreamOSMainWindow.",
+                "base_classes": []
+            },
+            "FeedbackEngine": {
+                "methods": [],
+                "docstring": "Placeholder for feedback engine in UI and tests.",
+                "base_classes": []
+            },
+            "DreamOSTabManager": {
+                "methods": [],
+                "docstring": "Placeholder for the application's tab manager in UI and tests.",
+                "base_classes": [
+                    "QTabWidget"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\bridge_adapters\\cursor_bridge_adapter.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "translate_goal_to_plan",
+            "_build_refactor_plan",
+            "_build_generate_tests_plan",
+            "_build_execute_prompt_plan",
+            "_build_type_text_plan",
+            "translate_goal_to_plan",
+            "__init__"
+        ],
+        "classes": {
+            "CursorGoal": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Stub goal object for cursor coordination tests.",
+                "base_classes": []
+            },
+            "CursorBridgeAdapter": {
+                "methods": [
+                    "translate_goal_to_plan"
+                ],
+                "docstring": "Stub adapter to translate cursor goals into plans.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "_agent_coordination\\coordinators\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\coordinators\\cursor\\cursor_chat_coordinator.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "interpret_response"
+        ],
+        "classes": {
+            "CursorChatCoordinator": {
+                "methods": [
+                    "__init__",
+                    "interpret_response"
+                ],
+                "docstring": "Stub coordinator for cursor chat tasks.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "_agent_coordination\\dispatchers\\config.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "TaskDispatcherConfig": {
+                "methods": [],
+                "docstring": "Configuration settings for TaskDispatcher.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\dispatchers\\mailbox_service.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "dispatch_message"
+        ],
+        "classes": {
+            "MailboxService": {
+                "methods": [
+                    "__init__",
+                    "dispatch_message"
+                ],
+                "docstring": "Service to dispatch messages to agent mailboxes, using mailbox utilities.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "_agent_coordination\\services\\dispatcher_bus.py": {
+        "language": ".py",
+        "functions": [
+            "__init__"
+        ],
+        "classes": {
+            "AgentBusDispatcher": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Dispatcher implementation that routes actions via the AgentBus event system.",
+                "base_classes": [
+                    "Dispatcher"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "_agent_coordination\\services\\ocr_service_tesseract.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_capture_screenshot"
+        ],
+        "classes": {
+            "TesseractOCRService": {
+                "methods": [
+                    "__init__",
+                    "_capture_screenshot"
+                ],
+                "docstring": "Concrete OCRService using Tesseract via pytesseract, running capture in an executor.",
+                "base_classes": [
+                    "OCRService"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "_agent_coordination\\state_machines\\task_execution_plan.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "TaskStep": {
+                "methods": [],
+                "docstring": "A single step in a TaskExecutionPlan.",
+                "base_classes": []
+            },
+            "TaskExecutionPlan": {
+                "methods": [],
+                "docstring": "Represents a sequence of TaskStep objects to execute a CursorGoal.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_agent_coordination\\tests\\test_task_utils.py": {
+        "language": ".py",
+        "functions": [
+            "test_update_sets_last_updated_by_and_timestamp",
+            "test_no_update_if_status_unchanged",
+            "test_return_false_when_task_not_found"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "social\\tests\\base_social_test.py": {
+        "language": ".py",
+        "functions": [
+            "mock_setup_logging",
+            "mock_driver"
+        ],
+        "classes": {
+            "BaseSocialTest": {
+                "methods": [
+                    "mock_setup_logging",
+                    "mock_driver"
+                ],
+                "docstring": "Base class for social platform tests to provide shared fixtures and helpers.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\coordination\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\coordination\\dispatchers\\base_dispatcher.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "add_task",
+            "run_dispatcher_loop",
+            "stop",
+            "get_status"
+        ],
+        "classes": {
+            "BaseDispatcher": {
+                "methods": [
+                    "__init__",
+                    "add_task",
+                    "run_dispatcher_loop",
+                    "stop",
+                    "get_status"
+                ],
+                "docstring": "Base dispatcher handling a task queue and execution.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\feedback\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\coordination\\dispatchers\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "tests\\coordination\\test_resilience_flows.py": {
+        "language": ".py",
+        "functions": [
+            "fake_bus",
+            "tasks_file",
+            "test_agent_stalled_reassignment_success",
+            "test_agent_stalled_reassignment_failure",
+            "test_agent_heartbeat_lost_and_rescue",
+            "__init__"
+        ],
+        "classes": {
+            "DummyEvent": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 7
+    },
+    "tests\\integration\\test_cli_commands.py": {
+        "language": ".py",
+        "functions": [
+            "run_cli",
+            "test_run_help",
+            "test_stats_help",
+            "test_validate_config_help",
+            "test_version_command",
+            "test_validate_config_success",
+            "test_validate_config_missing_path"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 7
     }
 }

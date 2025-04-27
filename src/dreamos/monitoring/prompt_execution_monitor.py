@@ -4,6 +4,11 @@ import time
 import logging
 from datetime import datetime
 from typing import Dict, Any
+import asyncio
+from dreamos.agent_bus import AgentBus
+from dreamos.coordination.dispatcher import Event, EventType
+import json
+from pathlib import Path
 
 from dreamos.services.failed_prompt_archive import FailedPromptArchiveService
 
@@ -36,19 +41,36 @@ class PromptExecutionMonitor:
         """Handle successful completion of a prompt."""
         logger.info(f"✅ Prompt {prompt_id} completed successfully.")
         try:
-            if hasattr(self.memory, 'save_fragment'):
-                self.memory.save_fragment(prompt_id, {"response": response})
+            if hasattr(self.memory, 'set'):
+                # migrate to UnifiedMemoryManager: store response in 'interactions' segment
+                self.memory.set(prompt_id, {"response": response}, seg='interactions')
         except Exception as e:
             logger.error(f"Failed to store response for {prompt_id}: {e}", exc_info=True)
         with self._lock:
             self.active_prompts.pop(prompt_id, None)
+        # Dispatch prompt_success event
+        try:
+            bus = AgentBus()
+            evt = Event(
+                type=EventType.SYSTEM,
+                data={
+                    "type": "prompt_success",
+                    "prompt_id": prompt_id,
+                    "timestamp": datetime.utcnow().isoformat()
+                },
+                source_id=prompt_id
+            )
+            asyncio.get_event_loop().create_task(bus.dispatch_event(evt))
+        except Exception as e:
+            logger.error(f"Failed to dispatch PROMPT_SUCCESS event: {e}")
 
     def report_failure(self, prompt_id: str, reason: str):
         """Archive failure and requeue the prompt."""
         logger.warning(f"⚠️ Prompt {prompt_id} failed: {reason}")
         prompt_data = {}
-        if hasattr(self.memory, 'load_fragment'):
-            prompt_data = self.memory.load_fragment(prompt_id) or {}
+        if hasattr(self.memory, 'get'):
+            # migrate to UnifiedMemoryManager: retrieve data from 'interactions' segment
+            prompt_data = self.memory.get(prompt_id, seg='interactions') or {}
         retry_count = prompt_data.get("retry_count", 0)
         # Prevent duplicate archiving
         existing = self.archive_service.get_by_prompt_id(prompt_id)
@@ -58,6 +80,36 @@ class PromptExecutionMonitor:
         else:
             logger.debug(f"Prompt {prompt_id} already archived; skipping duplicate log")
         self.recover_and_requeue(prompt_id)
+        # Dispatch prompt_failure event
+        try:
+            bus = AgentBus()
+            evt = Event(
+                type=EventType.SYSTEM,
+                data={
+                    "type": "prompt_failure",
+                    "prompt_id": prompt_id,
+                    "reason": reason,
+                    "timestamp": datetime.utcnow().isoformat()
+                },
+                source_id=prompt_id
+            )
+            asyncio.get_event_loop().create_task(bus.dispatch_event(evt))
+        except Exception as e:
+            logger.error(f"Failed to dispatch PROMPT_FAILURE event: {e}")
+        # Persistent log of prompt failures
+        try:
+            out_dir = Path("runtime/logs")
+            out_dir.mkdir(parents=True, exist_ok=True)
+            log_path = out_dir / "prompt_failures.json"
+            entry = {
+                "prompt_id": prompt_id,
+                "reason": reason,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            with open(log_path, "a+", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+        except Exception as e:
+            logger.error(f"Failed to write prompt failure log: {e}")
 
     def _monitor_loop(self):
         """Background thread: check for prompt timeouts."""
@@ -76,8 +128,9 @@ class PromptExecutionMonitor:
     def recover_and_requeue(self, prompt_id: str):
         """Fetch prompt data and requeue it for retry."""
         prompt_data = {}
-        if hasattr(self.memory, 'load_fragment'):
-            prompt_data = self.memory.load_fragment(prompt_id) or {}
+        if hasattr(self.memory, 'get'):
+            # migrate to UnifiedMemoryManager: retrieve data from 'interactions' segment
+            prompt_data = self.memory.get(prompt_id, seg='interactions') or {}
         # Always attempt to requeue failed prompt, even if prompt_data is empty
         logger.info(f"🔁 Requeuing failed prompt {prompt_id}")
         try:

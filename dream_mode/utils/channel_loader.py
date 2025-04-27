@@ -1,6 +1,6 @@
 import os
 
-from dream_mode.local_blob_channel import LocalBlobChannel
+from dreamos.memory.blob_channel_memory import LocalBlobChannel
 
 
 def get_blob_channel():

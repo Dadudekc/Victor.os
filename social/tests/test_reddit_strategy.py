@@ -1,19 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import os
-import sys
-import pytest
-from unittest import mock
 import logging
-
-# Add project root to sys.path
-script_dir = os.path.dirname(__file__) # tests/
-project_root = os.path.abspath(os.path.join(script_dir, '..', '..')) # Up two levels to D:/Dream.os/
-social_dir = os.path.join(project_root, 'social')
-if os.path.isdir(social_dir) and social_dir not in sys.path:
-     sys.path.insert(0, social_dir)
-if project_root not in sys.path:
-     sys.path.insert(0, project_root)
 
 # Updated import path
 # from strategies.reddit_strategy import RedditStrategy
@@ -24,12 +11,6 @@ from dreamos.strategies.reddit_strategy import RedditStrategy
 from dreamos.exceptions.strategy_exceptions import LoginError, ScrapeError, PostError, RateLimitError
 
 # Mock setup_logging
-@pytest.fixture(autouse=True)
-def mock_setup_logging():
-    pass # Fixture needs a body
-
-# Mock PRAW library itself if it's imported at the module level in reddit_strategy
-# Alternatively, patch the specific praw.Reddit() instantiation within the strategy methods
 @patch('praw.Reddit') # Adjust target if praw is imported differently
 @unittest.skipIf(RedditStrategy is None, "RedditStrategy could not be imported.")
 class TestRedditStrategy(unittest.TestCase):

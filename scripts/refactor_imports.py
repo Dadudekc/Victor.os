@@ -22,7 +22,15 @@ REPLACEMENTS = [
     (r"^import\s+orchestrator", "import dreamos.orchestrator as orchestrator"),
     (r"^from\s+agent_utils\s+import", "from dreamos.agent_utils import"),
     (r"^import\s+agent_utils", "import dreamos.agent_utils as agent_utils"),
-    (r"^from\s+dream_os\.services\.task_nexus", "from dream_os.services.task_nexus import"),
+    (r"^from\s+dream_mode\.local_blob_channel\s+import", "from dreamos.memory.blob_channel_memory import"),
+    (r"^import\s+dream_mode\.local_blob_channel", "import dreamos.memory.blob_channel_memory as LocalBlobChannel"),
+    (r"^from\s+dream_mode\.azure_blob_channel\s+import", "from dreamos.memory.azure_blob_channel_memory import"),
+    (r"^import\s+dream_mode\.azure_blob_channel", "import dreamos.memory.azure_blob_channel_memory as AzureBlobChannel"),
+    (r"^from\s+dreamos\.chat_engine\.feedback_engine\s+import", "from dreamos.feedback.feedback_engine import"),
+    (r"^import\s+dreamos\.chat_engine\.feedback_engine", "import dreamos.feedback.feedback_engine as FeedbackEngine"),
+    (r"^from\s+dreamos\.chat_engine\.feedback_engine_v2\s+import", "from dreamos.feedback.feedback_engine_v2 import"),
+    (r"^import\s+dreamos\.chat_engine\.feedback_engine_v2", "import dreamos.feedback.feedback_engine_v2 as FeedbackEngineV2"),
+    (r"^from\s+dream_os\\.services\\.task_nexus", "from dream_os.services.task_nexus import"),
 ]
 
 EXCLUDE_DIRS = {".git", "__pycache__", "src/dreamos", "venv", "env"}

@@ -1,6 +1,6 @@
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 from dream_mode.task_nexus.task_nexus import TaskNexus
-from dream_mode.local_blob_channel import LocalBlobChannel
+from dreamos.memory.blob_channel_memory import LocalBlobChannel
 import time
 import os
 import json
