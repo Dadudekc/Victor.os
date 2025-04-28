@@ -107,6 +107,7 @@ class ConversationLogger:
     def _handle_agent_prompt_request(self, event: BaseEvent):
         """Handles AGENT_PROMPT_REQUEST event."""
         try:
+            logger.debug(f"Received AGENT_PROMPT_REQUEST data: {event.data}") # Verify payload
             # Extract data based on expected BaseEvent structure
             # We need to KNOW what fields are in event.data for this event type
             task_id = event.data.get("task_id")
@@ -140,6 +141,7 @@ class ConversationLogger:
     def _handle_agent_prompt_response(self, event: BaseEvent):
         """Handles AGENT_PROMPT_RESPONSE event."""
         try:
+            logger.debug(f"Received AGENT_PROMPT_RESPONSE data: {event.data}") # Verify payload
             # Extract data based on expected BaseEvent structure
             # We need to KNOW what fields are in event.data for this event type
             task_id = event.data.get("task_id")
