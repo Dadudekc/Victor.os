@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional
 
 from cachetools import LRUCache
 from jinja2 import Environment, FileSystemLoader
+from dreamos.coordination.agent_bus import AgentBus, EventType, MemoryEvent, MemoryEventData
 
 ###########################################################################
 # Logging
@@ -260,6 +261,8 @@ class UnifiedMemoryManager:
         self.jinja_env = Environment(loader=FileSystemLoader(str(tmpl_root)),
                                      trim_blocks=True, lstrip_blocks=True)
 
+        self.agent_bus = AgentBus()  # Get singleton instance
+
     # ────────────────────────────────────────────────────────────────── #
     # Segment helpers
     # ────────────────────────────────────────────────────────────────── #
@@ -301,37 +304,99 @@ class UnifiedMemoryManager:
     # ────────────────────────────────────────────────────────────────── #
     # Cache interface
     # ────────────────────────────────────────────────────────────────── #
-    def set(self, key: str, value: Any, seg: str = "system") -> None:
+    def set(self, key: str, value: Any, seg: str = "system", source_agent_id: str = "System") -> None:
+        """Store data, triggering MEMORY_UPDATE event."""
         comp = zlib.compress(json.dumps(value).encode("utf-8"))
         with self.lock:
             self.cache[f"{seg}:{key}"] = comp
             self.segments[seg][key] = comp
             self._save_segment(seg)
+            logger.debug(f"Memory set → {seg}/{key}")
 
-    def get(self, key: str, seg: str = "system") -> Optional[Any]:
-        cache_key = f"{seg}:{key}"
+        # Dispatch event
+        event_data = MemoryEventData(
+            agent_id=source_agent_id,
+            operation='set',
+            key_or_query=f"{seg}/{key}",
+            status='SUCCESS'
+        )
+        self.agent_bus.dispatch_event(MemoryEvent(EventType.MEMORY_UPDATE, source_agent_id, event_data))
+
+    def get(self, key: str, seg: str = "system", source_agent_id: str = "System") -> Optional[Any]:
+        """Retrieve data, triggering MEMORY_READ event."""
+        value = None
+        status = 'FAILURE'
+        message = f"Key '{key}' not found in segment '{seg}'"
         try:
-            if cache_key in self.cache:
-                comp = self.cache[cache_key]
-            else:
-                comp = self.segments[seg].get(key)
-                if comp:
-                    self.cache[cache_key] = comp
-            if comp is None:
-                return None
-            return json.loads(zlib.decompress(comp).decode("utf-8"))
-        except Exception as exc:
-            logger.error("get %s:%s failed (%s)", seg, key, exc, exc_info=True)
-            return None
+            if seg not in self.segments:
+                self._load_segments()
 
-    def delete(self, key: str, seg: str = "system") -> bool:
-        with self.lock:
-            cache_key = f"{seg}:{key}"
-            self.cache.pop(cache_key, None)
-            existed = self.segments[seg].pop(key, None) is not None
-            if existed:
+            if key in self.segments[seg]:
+                value = json.loads(zlib.decompress(self.segments[seg][key]).decode("utf-8"))
+                logger.debug(f"Memory get ← {seg}/{key}")
+                status = 'SUCCESS'
+                message = None  # Clear message on success
+            else:
+                logger.debug(f"Memory get miss ← {seg}/{key}")
+                # Keep status as FAILURE and the message
+
+        except Exception as e:
+            logger.error(f"Error during get for {seg}/{key}: {e}", exc_info=True)
+            status = 'FAILURE'
+            message = str(e)
+            value = None  # Ensure value is None on error
+        finally:
+            # Dispatch event regardless of success/failure
+            event_data = MemoryEventData(
+                agent_id=source_agent_id,
+                operation='get',
+                key_or_query=f"{seg}/{key}",
+                status=status,
+                message=message
+            )
+            self.agent_bus.dispatch_event(MemoryEvent(EventType.MEMORY_READ, source_agent_id, event_data))
+
+        return value
+
+    def delete(self, key: str, seg: str = "system", source_agent_id: str = "System") -> bool:
+        """Delete data, triggering MEMORY_DELETE event."""
+        deleted = False
+        status = 'FAILURE'
+        message = f"Key '{key}' not found for deletion in segment '{seg}'"
+        try:
+            if seg not in self.segments:
+                self._load_segments()
+
+            if key in self.segments[seg]:
+                del self.segments[seg][key]
                 self._save_segment(seg)
-            return existed
+                logger.debug(f"Memory delete 🗑️ {seg}/{key}")
+                deleted = True
+                status = 'SUCCESS'
+                message = None  # Clear message on success
+            else:
+                logger.debug(f"Memory delete miss ← {seg}/{key}")
+                # Keep status FAILURE and message
+
+        except Exception as e:
+            logger.error(f"Error during delete for {seg}/{key}: {e}", exc_info=True)
+            status = 'FAILURE'
+            message = str(e)
+            deleted = False  # Ensure flag is False on error
+        finally:
+            # Dispatch event
+            event_data = MemoryEventData(
+                agent_id=source_agent_id,
+                operation='delete',
+                key_or_query=f"{seg}/{key}",
+                status=status,
+                message=message
+            )
+            # Only dispatch if something was potentially acted upon or error occurred
+            # Alternatively, always dispatch? Let's always dispatch for observability.
+            self.agent_bus.dispatch_event(MemoryEvent(EventType.MEMORY_DELETE, source_agent_id, event_data))
+
+        return deleted
 
     def clear_segment(self, seg: str) -> None:
         with self.lock:
