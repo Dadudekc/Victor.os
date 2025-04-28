@@ -23,6 +23,8 @@ from dreamos.rendering.template_engine import TemplateEngine
 # Import the new Forge Tab
 from .fragment_forge_tab import FragmentForgeTab
 
+from dreamos.hooks.chronicle_logger import ChronicleLoggerHook
+
 logger = logging.getLogger(__name__)
 
 # Define path to task list
@@ -71,6 +73,7 @@ class DreamOSMainWindow(QMainWindow):
         self.memory_manager = UnifiedMemoryManager() 
         self.template_engine = TemplateEngine()
         self.task_manager = TaskManager()
+        self.chronicle_logger_hook = ChronicleLoggerHook()
         # Tab manager for state persistence
         self.tab_manager = DreamOSTabManager()
         
@@ -382,10 +385,17 @@ class DreamOSMainWindow(QMainWindow):
         super().closeEvent(event)
         
     def cleanup_resources(self):
-         """Placeholder for releasing resources."""
-         logger.info("[Stub] Cleaning up resources...")
-         # Example: Stop timers, disconnect signals, etc.
-         
+        """Clean up resources like timers, threads, file handlers."""
+        logger.info("Cleaning up main window resources...")
+        # Example: Stop timers
+        # if hasattr(self, 'refresh_timer') and self.refresh_timer.isActive():
+        #     self.refresh_timer.stop()
+        
+        if hasattr(self, 'chronicle_logger_hook'):
+            self.chronicle_logger_hook.stop()
+
+        logger.info("Main window resources cleaned up.")
+        
     def _save_state(self):
         """Saves the state of each tab to the state file."""
         import json

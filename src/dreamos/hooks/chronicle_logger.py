@@ -17,6 +17,14 @@ class ChronicleLoggerHook:
     def __init__(self, chronicle_path: Path | None = None):
         self.chronicle_path = chronicle_path or self.DEFAULT_CHRONICLE_PATH
         self.chronicle_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self.chronicle_path.exists():
+            try:
+                # Create file with a header if it doesn't exist
+                with open(self.chronicle_path, 'w', encoding='utf-8') as f:
+                    f.write("# Dreamscape Chronicle\n---\n\n")
+                logger.info(f"Created chronicle file: {self.chronicle_path}")
+            except OSError as e:
+                logger.error(f"Failed to create chronicle file {self.chronicle_path}: {e}")
         self._lock = threading.Lock()
         self.agent_bus = AgentBus() # Assuming singleton
 
@@ -28,13 +36,21 @@ class ChronicleLoggerHook:
         """Formats an event into a Markdown log entry."""
         timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         event_type = event.event_type
-        task_id = getattr(event.data, 'task_id', 'N/A')
-        agent_id = getattr(event.data, 'agent_id', 'System')
-        outcome = getattr(event.data, 'status', 'INFO').upper()
-        details = getattr(event.data, 'message', 'No details provided.')
-        
+        event_data = event.data if event.data is not None else {}
+        if isinstance(event_data, dict):
+            task_id = str(event_data.get('task_id', 'N/A'))
+            agent_id = str(event_data.get('agent_id', 'System'))
+            outcome = str(event_data.get('status', 'INFO')).upper()
+            details = str(event_data.get('message', 'No details provided.'))
+        else:
+            # Fallback if event.data is not a dict (e.g., a simple string or object)
+            task_id = 'N/A'
+            agent_id = 'System'
+            outcome = 'INFO'
+            details = str(event_data) # Log the raw data as details
+
         # Sanitize details slightly
-        details = str(details).replace('\n', ' ').strip()
+        details = details.replace('\n', ' ').strip()
         if not details:
             details = 'No details provided.'
 
