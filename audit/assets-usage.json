@@ -1,0 +1,21 @@
+{
+  "analysis_timestamp_utc": "2025-04-28T23:42:16.048703+00:00",
+  "asset_usage": {
+    "D:\\Dream.os\\src\\social\\reports\\coverage\\favicon_32_cb_58284776.png": 12,
+    "D:\\Dream.os\\src\\social\\reports\\coverage\\keybd_closed_cb_ce680311.png": 12,
+    "D:\\Dream.os\\src\\social\\reports\\coverage\\style_cb_718ce007.css": 12
+  },
+  "asset_usage_count": 3,
+  "code_scan_extensions": [
+    ".css",
+    ".html",
+    ".js",
+    ".jsx",
+    ".py",
+    ".scss",
+    ".ts",
+    ".tsx",
+    ".vue"
+  ],
+  "domains_source": "domains.json"
+}
