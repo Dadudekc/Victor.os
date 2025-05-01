@@ -1,0 +1,9 @@
+{
+  "src\\dreamos\\automation\\execution\\DreamModeSleep.py": "src\\dreamos\\automation\\execution\\dream_mode_sleep.py",
+  "src\\dreamos\\coordination\\tasks\\task_schema.json": "src\\dreamos\\coordination\\tasks\\task-schema.json",
+  "src\\dreamos\\schemas\\agent_task_progress.schema.json": "src\\dreamos\\schemas\\agent-task-progress.schema.json",
+  "src\\dreamos\\schemas\\scraped_response.schema.json": "src\\dreamos\\schemas\\scraped-response.schema.json",
+  "src\\social\\reports\\coverage\\favicon_32_cb_58284776.png": "src\\social\\reports\\coverage\\favicon-32-cb-58284776.png",
+  "src\\social\\reports\\coverage\\keybd_closed_cb_ce680311.png": "src\\social\\reports\\coverage\\keybd-closed-cb-ce680311.png",
+  "src\\social\\reports\\coverage\\style_cb_718ce007.css": "src\\social\\reports\\coverage\\style-cb-718ce007.css"
+}

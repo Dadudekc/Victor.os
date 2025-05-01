@@ -1,23 +1,27 @@
-import unittest
-import os
-import sys
 import json
-import tempfile
+import os
 import shutil
+import sys
+import tempfile
+import unittest
 
 # Add project root to sys.path to allow importing core modules
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
 # Module to test (from core)
 try:
     import dreamos.governance_memory_engine as governance_memory_engine
+
     module_load_error = None
 except ImportError as e:
     governance_memory_engine = None
     module_load_error = e
 
-@unittest.skipIf(module_load_error, f"Skipping tests due to module load error: {module_load_error}")
+
+@unittest.skipIf(
+    module_load_error, f"Skipping tests due to module load error: {module_load_error}"
+)
 class TestGovernanceMemoryEngine(unittest.TestCase):
 
     def setUp(self):
@@ -53,7 +57,7 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
 
         # Verify the file was created and contains one line
         self.assertTrue(os.path.exists(self.test_log_file))
-        with open(self.test_log_file, 'r', encoding='utf-8') as f:
+        with open(self.test_log_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
         self.assertEqual(len(lines), 1, "Log file should contain exactly one line.")
 
@@ -78,7 +82,7 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
         governance_memory_engine.log_event("EVENT_B", "Agent2", details2)
 
         self.assertTrue(os.path.exists(self.test_log_file))
-        with open(self.test_log_file, 'r', encoding='utf-8') as f:
+        with open(self.test_log_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
         self.assertEqual(len(lines), 2, "Log file should contain two lines.")
 
@@ -107,9 +111,12 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
         # Restore the correct path for subsequent tests/teardown
         governance_memory_engine.GOVERNANCE_LOG_FILE = self.test_log_file
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if module_load_error:
-        print(f"\nCannot run tests: Failed to import governance_memory_engine module from dreamos.")
+        print(
+            f"\nCannot run tests: Failed to import governance_memory_engine module from dreamos."
+        )
         print(f"Error: {module_load_error}")
     else:
-        unittest.main() 
+        unittest.main()

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ScrapedChatGPTResponse",
+  "description": "Schema for the data payload of a CHATGPT_RESPONSE_SCRAPED event, representing a single message scraped from ChatGPT.",
+  "type": "object",
+  "properties": {
+    "source": {
+      "description": "Indicates the origin of the scraped data.",
+      "type": "string",
+      "const": "chatgpt"
+    },
+    "timestamp_utc": {
+      "description": "ISO 8601 timestamp when the message was scraped or occurred.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "author": {
+      "description": "The author of the message content.",
+      "type": "string",
+      "enum": ["user", "assistant", "system"]
+    },
+    "content": {
+      "description": "The textual content of the message.",
+      "type": "string"
+    },
+    "conversation_id": {
+      "description": "Optional identifier for the conversation thread.",
+      "type": ["string", "null"],
+      "default": null
+    },
+    "message_id": {
+      "description": "Optional unique identifier for the specific message.",
+      "type": ["string", "null"],
+      "default": null
+    }
+  },
+  "required": [
+    "source",
+    "timestamp_utc",
+    "author",
+    "content"
+  ],
+  "additionalProperties": false
+}

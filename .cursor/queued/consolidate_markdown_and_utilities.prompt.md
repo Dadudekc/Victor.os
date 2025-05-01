@@ -22,4 +22,4 @@ Instructions:
   - [Python] Merge project_scanner_v1.py and project_scanner.py into a single canonical project_scanner.py (preferred location: tools/).
   - [Python Tests] Refactor tests/test_mailbox_utils.py to use parameterized tests instead of repeating assertion blocks.
   - Validate scanner consolidation with a quick dry-run.
-  - Commit message suggestion: "refactor: consolidate onboarding prompts, project scanner, and mailbox tests" 
+  - Commit message suggestion: "refactor: consolidate onboarding prompts, project scanner, and mailbox tests"

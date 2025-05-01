@@ -4,7 +4,13 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
+# EDIT START: Import DreamOSError
+from dreamos.core.errors import DreamOSError, ToolError
+
+# EDIT END
+
 logger = logging.getLogger(__name__)
+
 
 class BaseAdapter(ABC):
     """
@@ -19,8 +25,8 @@ class BaseAdapter(ABC):
         Initializes the adapter with optional configuration.
 
         Args:
-            config (Optional[Dict[str, Any]]): Configuration dictionary 
-                                                specific to the adapter 
+            config (Optional[Dict[str, Any]]): Configuration dictionary
+                                                specific to the adapter
                                                 (e.g., API keys, model names).
         """
         self.config = config or {}
@@ -38,10 +44,12 @@ class BaseAdapter(ABC):
         Optional method for subclasses to validate their specific configuration.
         Called during initialization. Should raise ValueError on issues.
         """
-        pass # Default implementation does nothing
+        pass  # Default implementation does nothing
 
     @abstractmethod
-    async def send_message(self, message: str, context: Optional[Dict[str, Any]] = None) -> str:
+    async def send_message(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Sends a message to the underlying LLM or service.
 
@@ -51,7 +59,7 @@ class BaseAdapter(ABC):
                                                  system prompts, or parameters.
 
         Returns:
-            str: A unique identifier for the interaction or conversation turn, 
+            str: A unique identifier for the interaction or conversation turn,
                  if applicable (e.g., message ID, thread ID). Returns an empty
                  string if not applicable.
 
@@ -65,17 +73,17 @@ class BaseAdapter(ABC):
         """
         Retrieves the response associated with a previous interaction.
 
-        This might involve polling, waiting for a webhook, or querying 
+        This might involve polling, waiting for a webhook, or querying
         based on the interaction_id returned by send_message.
 
         Args:
-            interaction_id (str): The identifier returned by a previous 
+            interaction_id (str): The identifier returned by a previous
                                   `send_message` call.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the response details, 
-                            typically including keys like 'content', 'status', 
-                            'timestamp', 'metadata'. The structure should be 
+            Dict[str, Any]: A dictionary containing the response details,
+                            typically including keys like 'content', 'status',
+                            'timestamp', 'metadata'. The structure should be
                             standardized across adapters where possible.
 
         Raises:
@@ -90,17 +98,20 @@ class BaseAdapter(ABC):
         Default implementation does nothing.
         """
         logger.info(f"Closing {self.__class__.__name__}")
-        pass # Default does nothing
+        pass  # Default does nothing
 
     # --- Helper Methods (Optional) ---
 
-    def get_config_value(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
+    def get_config_value(
+        self, key: str, default: Optional[Any] = None
+    ) -> Optional[Any]:
         """Helper to safely retrieve a value from the config."""
         return self.config.get(key, default)
 
 
-class AdapterError(Exception):
+class AdapterError(ToolError):
     """Custom exception for errors originating from an adapter."""
+
     def __init__(self, message: str, original_exception: Optional[Exception] = None):
         super().__init__(message)
         self.original_exception = original_exception
@@ -108,4 +119,4 @@ class AdapterError(Exception):
     def __str__(self):
         if self.original_exception:
             return f"{super().__str__()} (Original: {self.original_exception})"
-        return super().__str__() 
+        return super().__str__()

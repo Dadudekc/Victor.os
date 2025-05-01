@@ -1,18 +1,21 @@
-import unittest
+import json  # Keep for loading test data if needed
 import os
 import sys
-import json # Keep for loading test data if needed
+import unittest
 
 # Add project root to sys.path to allow importing core modules
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
 # Import from core module
 try:
-    from dreamos.template_engine import render_template
-    # Attempt to import necessary components for re-initialization if needed
-    from dreamos.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR, env as engine_env
     from jinja2 import Environment, FileSystemLoader
+
+    # Attempt to import necessary components for re-initialization if needed
+    from dreamos.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR
+    from dreamos.template_engine import env as engine_env
+    from dreamos.template_engine import render_template
+
     module_load_error = None
 except ImportError as e:
     render_template = None
@@ -25,7 +28,10 @@ except Exception as e:
 TESTS_DIR = os.path.dirname(__file__)
 TEST_TEMPLATE_DIR = os.path.join(TESTS_DIR, "test_templates")
 
-@unittest.skipIf(module_load_error, f"Skipping tests due to module load error: {module_load_error}")
+
+@unittest.skipIf(
+    module_load_error, f"Skipping tests due to module load error: {module_load_error}"
+)
 class TestTemplateEngine(unittest.TestCase):
 
     original_loader = None
@@ -46,10 +52,14 @@ class TestTemplateEngine(unittest.TestCase):
             cls.original_filters = engine_env.filters.copy()
             engine_env.loader = FileSystemLoader(TEST_TEMPLATE_DIR)
             # Ensure our test env has the filter
-            engine_env.filters['tojson'] = lambda v: json.dumps(v)
-            print(f"NOTE: Redirected Jinja environment loader to use: {TEST_TEMPLATE_DIR}")
+            engine_env.filters["tojson"] = lambda v: json.dumps(v)
+            print(
+                f"NOTE: Redirected Jinja environment loader to use: {TEST_TEMPLATE_DIR}"
+            )
         else:
-            print("WARNING: Engine environment not found, tests might rely on default setup or fail.")
+            print(
+                "WARNING: Engine environment not found, tests might rely on default setup or fail."
+            )
 
     @classmethod
     def tearDownClass(cls):
@@ -80,6 +90,7 @@ class TestTemplateEngine(unittest.TestCase):
         context = {"complex_data": {"key": [1, "string"], "nested": True}}
         # Note: json.dumps doesn't guarantee key order or spacing
         import json
+
         expected_json_str = json.dumps(context["complex_data"])
         expected = f"Data: {expected_json_str}"
         rendered = render_template("json_template.j2", context)
@@ -88,19 +99,24 @@ class TestTemplateEngine(unittest.TestCase):
     def test_render_template_not_found(self):
         """Test rendering a template that does not exist."""
         rendered = render_template("non_existent.j2", {})
-        self.assertIsNone(rendered, "Rendering a non-existent template should return None.")
+        self.assertIsNone(
+            rendered, "Rendering a non-existent template should return None."
+        )
 
     def test_render_with_missing_variable(self):
         """Test rendering when a variable used in the template is missing from context."""
         # Jinja2 default behavior is to render missing variables as empty strings
         context = {"name": "OnlyName"}
-        expected = "Hello OnlyName! Value: " # data.value becomes empty string
+        expected = "Hello OnlyName! Value: "  # data.value becomes empty string
         rendered = render_template("valid_template.j2", context)
         self.assertEqual(rendered, expected)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if module_load_error:
-        print(f"\nCannot run tests: Failed to import template_engine module from dreamos.")
+        print(
+            f"\nCannot run tests: Failed to import template_engine module from dreamos."
+        )
         print(f"Error: {module_load_error}")
     else:
-        unittest.main() 
+        unittest.main()

@@ -2,80 +2,73 @@
 ChatGPT Web Scraper - Automated chat history extraction tool.
 Uses undetected-chromedriver to avoid detection and provides robust session management.
 """
-import os
-import time
+
 import json
 import logging
+import os
+import time
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
+
+import undetected_chromedriver as uc
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
     NoSuchElementException,
+    StaleElementReferenceException,
     TimeoutException,
     WebDriverException,
-    StaleElementReferenceException
 )
-import undetected_chromedriver as uc
-from .common import retry_on_exception
-from .selenium_utils import wait_for_element, safe_click, safe_send_keys
-from pathlib import Path
-import asyncio # Import asyncio if not already present, for potential async helpers
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
-# Import placeholder for DriverManager - Assuming it exists and follows a singleton or similar pattern
-from dreamos.chat_engine.driver_manager import DriverManager
+from .retry_utils import retry_selenium_action
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logger = logging.getLogger('ChatGPTScraper')
+logger = logging.getLogger("ChatGPTScraper")
 
 # Constants
 COOKIE_FILE = "chatgpt_cookies.json"
 CHATGPT_URL = "https://chat.openai.com"
 JQUERY_URL = "https://code.jquery.com/jquery-3.6.0.min.js"
 WAIT_TIMEOUT = 30
-LOGIN_BUTTON_SELECTOR = (By.CSS_SELECTOR, "button[data-testid='login-button']")
-EMAIL_INPUT_SELECTOR = (By.ID, "email-input")
-PASSWORD_INPUT_SELECTOR = (By.NAME, "password")
-SUBMIT_BUTTON_SELECTOR = (By.XPATH, "//button[@type='submit' and contains(text(), 'Continue')]")
-POST_LOGIN_ELEMENT_SELECTOR = (By.ID, "prompt-textarea")
+
+# ─── DREAMSCAPE LIVE-CHAT EXTENSIONS ────────────────────────────────────────────
+CHAT_CONTAINER = (By.CSS_SELECTOR, "main div[data-testid='conversation-turns']")
+PROMPT_BOX = (By.CSS_SELECTOR, "textarea[data-testid='prompt-textarea']")
+SEND_BTN = (By.CSS_SELECTOR, "button[data-testid='send-button']")
+# Spinner selector for waiting - updated from prompt
+SPINNER_SELECTOR = (By.CSS_SELECTOR, "svg.animate-spin")
+# Selector for conversation links in sidebar - updated from prompt
+SIDEBAR_CONVERSATION_LINK = (By.CSS_SELECTOR, "nav a[href*='/c/']")
+# Selector for assistant message markdown content - updated from prompt
+ASSISTANT_MARKDOWN = (
+    By.CSS_SELECTOR,
+    "main div[data-testid='conversation-turns'] div.markdown",
+)
+# ──────────────────────────────────────────────────────────────────────────────
+
 
 class ChatGPTScraper:
     """Manages ChatGPT web scraping operations with session persistence."""
-    
-    def __init__(self,
-                 cookie_file: str = COOKIE_FILE,
-                 headless: bool = False,
-                 username: Optional[str] = None,
-                 password: Optional[str] = None):
+
+    def __init__(self, cookie_file: str = COOKIE_FILE, headless: bool = False):
         """
         Initialize the scraper with configuration.
-        
+
         Args:
             cookie_file: Path to store/load cookies
             headless: Whether to run in headless mode
-            username: Optional ChatGPT username/email for login
-            password: Optional ChatGPT password for login
         """
         self.cookie_file = cookie_file
         self.headless = headless
-        self.username = username
-        self.password = password
         self.driver = None
         self.wait = None
-        # Get the driver manager instance using specific config for this scraper
-        self.driver_manager = DriverManager.get_instance(
-            config_key=f"chatgpt_scraper_{username or 'default'}", # Key based on user or default
-            headless=self.headless,
-            cookie_file=self.cookie_file, # Pass relevant config
-            undetected_mode=True # Explicitly request undetected
-        )
         logger.info("Initializing ChatGPT Scraper")
 
     def __enter__(self):
@@ -91,224 +84,184 @@ class ChatGPTScraper:
             return False
         return True
 
-    @retry_on_exception(max_attempts=3, exceptions=(WebDriverException,))
+    @retry_selenium_action(max_attempts=3)
     def setup_browser(self) -> None:
-        """Initialize and configure the browser using the DriverManager."""
+        """Initialize and configure the browser with retry mechanism."""
         try:
-            # Options configuration is now handled by DriverManager based on init args
-            # We just need to get the driver instance.
-            
-            # --- MODIFIED PART --- 
-            logger.info("Requesting browser instance from DriverManager...")
-            # Replace direct uc.Chrome call with DriverManager call
-            self.driver = self.driver_manager.get_driver() # <<< Use DriverManager
-            # --- REMOVED TEMPORARY --- 
-            # self.driver = uc.Chrome(options=options) 
-            # --- END MODIFIED PART --- 
+            options = uc.ChromeOptions()
+            if self.headless:
+                options.add_argument("--headless")
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-popup-blocking")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--start-maximized")
 
-            if not self.driver:
-                 # get_driver should raise RuntimeError if it fails after retries
-                 raise WebDriverException("DriverManager failed to provide a driver instance after retries.")
-
-            logger.info("Browser instance obtained.")
-            # Use the wait timeout configured in the DriverManager instance
-            self.wait = WebDriverWait(self.driver, self.driver_manager.wait_timeout)
+            logger.info("Initializing uc.Chrome with version_main=135")
+            self.driver = uc.Chrome(
+                options=options, version_main=135, use_subprocess=True
+            )
+            self.wait = WebDriverWait(self.driver, WAIT_TIMEOUT)
             logger.info("Browser setup completed successfully")
-
-        except RuntimeError as e: # Catch RuntimeError from get_driver
-            logger.error(f"Failed to get driver from DriverManager: {e}")
-            raise WebDriverException(f"DriverManager failure: {e}") from e # Raise as WebDriverException
         except WebDriverException as e:
-            logger.error(f"Failed to setup browser: {str(e)}")
-            raise # Re-raise WebDriver specific errors
+            logger.error(f"Failed to setup browser: {str(e)}", exc_info=True)
+            raise
         except Exception as e:
-            logger.error(f"Unexpected error during browser setup: {str(e)}", exc_info=True)
-            raise # Re-raise other unexpected errors
+            logger.error(f"Unexpected error during browser setup: {e}", exc_info=True)
+            raise
 
     def cleanup(self) -> None:
-        """Clean up resources, potentially releasing the driver via DriverManager."""
+        """Clean up resources."""
         if self.driver:
             try:
-                # --- MODIFIED PART --- 
-                logger.info("Releasing browser instance via DriverManager...")
-                # Notify DriverManager to release/quit the driver
-                self.driver_manager.release_driver() # <<< Use DriverManager release
-                # --- REMOVED TEMPORARY --- 
-                # self.driver.quit()
-                # --- END MODIFIED PART ---
-                logger.info("Browser cleanup completed via manager.")
-            except Exception as e: # Catch broader exceptions during release
-                logger.error(f"Error during browser release via manager: {str(e)}")
-            finally:
-                 self.driver = None # Ensure driver reference is cleared
+                self.driver.quit()
+                logger.info("Browser cleanup completed")
+            except WebDriverException as e:
+                logger.error(f"Error during browser cleanup: {str(e)}")
 
     def save_cookies(self) -> bool:
         """
         Save current session cookies to file.
-        
+
         Returns:
             bool: True if successful, False otherwise
         """
-        if not self.driver:
-            logger.error("Cannot save cookies: WebDriver not initialized.")
-            return False
-
-        # Resolve the cookie file path relative to the current working directory
-        try:
-            cookie_path = Path(self.cookie_file).resolve()
-            logger.info(f"Attempting to save cookies to resolved path: {cookie_path}") # <<< Log resolved path
-        except Exception as e:
-            logger.error(f"Failed to resolve cookie file path '{self.cookie_file}': {e}")
-            return False
-
         try:
             cookies = self.driver.get_cookies()
-            # Ensure parent directory exists
-            cookie_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Ensured directory exists: {cookie_path.parent}") # <<< Log directory creation
-
-            with open(cookie_path, "w") as f:
+            os.makedirs(os.path.dirname(self.cookie_file), exist_ok=True)
+            with open(self.cookie_file, "w") as f:
                 json.dump(cookies, f)
-            logger.info(f"Cookies saved successfully to {cookie_path}")
+            logger.info(f"Cookies saved to {self.cookie_file}")
             return True
-        except (IOError, WebDriverException, TypeError, OSError) as e: # Added OSError
-            logger.error(f"Failed to save cookies to {cookie_path}: {type(e).__name__} - {str(e)}")
+        except (IOError, WebDriverException) as e:
+            logger.error(f"Failed to save cookies: {str(e)}")
             return False
 
     def load_cookies(self) -> bool:
         """
         Load cookies from file to restore session.
-        
+
         Returns:
             bool: True if successful, False otherwise
         """
-        # Resolve path for loading as well
-        try:
-            cookie_path = Path(self.cookie_file).resolve()
-            logger.info(f"Attempting to load cookies from resolved path: {cookie_path}") # <<< Log resolved path
-        except Exception as e:
-            logger.error(f"Failed to resolve cookie file path '{self.cookie_file}': {e}")
-            return False
-
-        if not cookie_path.exists():
-            logger.info(f"Cookie file not found at: {cookie_path}")
+        if not os.path.exists(self.cookie_file):
+            logger.info("No cookie file found")
             return False
 
         try:
-            with open(cookie_path, "r") as f:
+            with open(self.cookie_file, "r") as f:
                 cookies = json.load(f)
-            # Ensure driver is ready before adding cookies
-            if not self.driver:
-                logger.error("Cannot load cookies: WebDriver not initialized.")
-                return False
-            # Navigate to the domain before adding cookies is often required
-            domain = ".openai.com" # Adjust domain if necessary
-            current_url = self.driver.current_url
-            if not domain in current_url:
-                logger.info(f"Navigating to domain {domain} before loading cookies.")
-                # Attempt to navigate to a relevant page on the domain
-                self.driver.get(CHATGPT_URL) 
-                time.sleep(2) # Wait for navigation
-
             for cookie in cookies:
-                # Remove domain if present and incompatible, let browser handle it
-                if 'domain' in cookie:
-                    del cookie['domain']
-                # Skip cookies that might cause issues
-                if 'expiry' in cookie: 
-                     cookie['expiry'] = int(cookie['expiry'])
-                # Handle sameSite attribute if needed (already present)
-                if "sameSite" in cookie and cookie["sameSite"] not in ["Strict", "Lax", "None"]:
-                    logger.warning(f"Removing invalid sameSite value: {cookie['sameSite']}")
-                    del cookie['sameSite']
-                try:
-                    self.driver.add_cookie(cookie)
-                except Exception as cookie_error:
-                     logger.warning(f"Could not add cookie: {cookie.get('name', 'N/A')} - {cookie_error}")
-
-            logger.info("Cookies loaded successfully from {cookie_path}")
+                if "sameSite" in cookie and cookie["sameSite"] == "None":
+                    cookie["sameSite"] = "Strict"
+                self.driver.add_cookie(cookie)
+            logger.info("Cookies loaded successfully")
             return True
-        except (IOError, WebDriverException, json.JSONDecodeError, TypeError) as e:
-            logger.error(f"Failed to load cookies from {cookie_path}: {type(e).__name__} - {str(e)}")
+        except (IOError, WebDriverException, json.JSONDecodeError) as e:
+            logger.error(f"Failed to load cookies: {str(e)}")
             return False
 
-    @retry_on_exception(max_attempts=3, exceptions=(WebDriverException, NoSuchElementException, TimeoutException))
-    def _perform_login(self) -> bool:
-        """Performs automated login using provided credentials."""
-        if not self.username or not self.password:
-            logger.warning("Login credentials not provided.")
-            return False
+    @retry_selenium_action(max_attempts=3)
+    def inject_jquery(self) -> bool:
+        """
+        Inject jQuery into the page for enhanced DOM manipulation.
 
-        logger.info(f"Attempting login for user: {self.username}")
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            # 1. Navigate to login (Might already be there, or click initial 'Log in' button if present)
-            # Example: Check if email field is visible, if not, click main login button
-            email_field = wait_for_element(self.driver, EMAIL_INPUT_SELECTOR, timeout=5, visible=False)
-            if not email_field:
-                logger.debug("Email field not immediately visible, looking for main login button...")
-                login_button = wait_for_element(self.driver, LOGIN_BUTTON_SELECTOR, timeout=10)
-                if login_button:
-                    if not safe_click(self.driver, LOGIN_BUTTON_SELECTOR, timeout=5):
-                         logger.error("Failed to click initial login button.")
-                         return False
-                    # Wait briefly after click
-                    time.sleep(2)
-                else:
-                     logger.warning("Could not find initial login button or email field.")
-                     # Continue, maybe email field appears later
-
-            # 2. Enter Email
-            logger.debug("Entering email...")
-            if not safe_send_keys(self.driver, EMAIL_INPUT_SELECTOR, self.username, timeout=15):
-                logger.error("Failed to enter email.")
-                return False
-            time.sleep(0.5) # Brief pause
-
-            # 3. Click Continue/Submit after email (Selector might vary)
-            logger.debug("Clicking continue after email...")
-            # Use a generic submit button selector or adjust SUBMIT_BUTTON_SELECTOR if needed
-            if not safe_click(self.driver, (By.XPATH, "//button[@type='submit']"), timeout=10):
-                 logger.warning("Failed to click continue after email (trying common submit).")
-                 # Fallback if specific text isn't found
-                 if not safe_click(self.driver, SUBMIT_BUTTON_SELECTOR, timeout=10):
-                     logger.error("Failed to click continue button after email.")
-                     return False
-            time.sleep(2) # Wait for password field to appear
-
-            # 4. Enter Password
-            logger.debug("Entering password...")
-            if not safe_send_keys(self.driver, PASSWORD_INPUT_SELECTOR, self.password, timeout=15):
-                logger.error("Failed to enter password.")
-                return False
-            time.sleep(0.5)
-
-            # 5. Click Final Login/Submit Button
-            logger.debug("Clicking final login button...")
-            # Use a generic submit button selector again
-            if not safe_click(self.driver, (By.XPATH, "//button[@type='submit']"), timeout=10):
-                 logger.warning("Failed to click final login button (trying common submit).")
-                 # Fallback if specific text isn't found
-                 if not safe_click(self.driver, SUBMIT_BUTTON_SELECTOR, timeout=10): # Assuming it might be the same button text
-                      logger.error("Failed to click final login button.")
-                      return False
-
-            # 6. Wait for confirmation element
-            logger.debug("Waiting for post-login element...")
-            if wait_for_element(self.driver, POST_LOGIN_ELEMENT_SELECTOR, timeout=WAIT_TIMEOUT):
-                logger.info(f"Successfully logged in as {self.username}")
+            self.driver.execute_script(
+                f"""
+                if (typeof jQuery === 'undefined') {{
+                    var script = document.createElement("script");
+                    script.src = "{JQUERY_URL}";
+                    document.head.appendChild(script);
+                }}
+            """
+            )
+            time.sleep(1)  # Wait for jQuery to load
+            # Verify jQuery loaded
+            jquery_loaded = self.driver.execute_script(
+                "return typeof jQuery !== 'undefined';"
+            )
+            if jquery_loaded:
+                logger.info("jQuery injected successfully")
                 return True
             else:
-                logger.error("Login failed: Post-login element not found.")
+                logger.error("jQuery injection failed")
                 return False
-
-        except Exception as e:
-            logger.error(f"Error during login attempt: {str(e)}", exc_info=True)
+        except WebDriverException as e:
+            logger.error(f"Error injecting jQuery: {str(e)}")
             return False
 
-    # Make run_scraper async to properly await async helpers
-    async def run_scraper(self, model_append: str = "", output_file: str = "chatgpt_chats.json") -> bool:
+    @retry_selenium_action(max_attempts=3)
+    def scroll_and_capture_chats(self) -> List[Dict[str, str]]:
         """
-        Main scraping workflow. Includes automated login attempt.
+        Scroll through chat history and capture all chat metadata.
+
+        Returns:
+            List[Dict[str, str]]: List of chat metadata dictionaries
+        """
+        if not self.inject_jquery():
+            logger.error("Failed to inject jQuery, proceeding with basic scrolling")
+
+        logger.info("Starting chat capture")
+        chats_data = []
+
+        try:
+            # Scroll chat sidebar
+            self.driver.execute_script(
+                """
+                async function scrollChats() {
+                    let container = document.querySelector('[aria-label="Chat history"]');
+                    if (!container) return;
+                    let prevScroll = -1;
+                    while (container.scrollTop !== prevScroll) {
+                        prevScroll = container.scrollTop;
+                        container.scrollTo(0, container.scrollHeight);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                }
+                scrollChats();
+            """
+            )
+            time.sleep(5)  # Wait for content load
+
+            chat_tiles = self.driver.find_elements(
+                By.CSS_SELECTOR, '[data-testid="conversation-item"]'
+            )
+            logger.info(f"Found {len(chat_tiles)} chat tiles")
+
+            for tile in chat_tiles:
+                try:
+                    title = tile.text.strip()
+                    link_elem = tile.find_element(By.TAG_NAME, "a")
+                    url = link_elem.get_attribute("href")
+                    timestamp = link_elem.get_attribute("data-timestamp") or ""
+
+                    chat_data = {
+                        "title": title,
+                        "url": url,
+                        "timestamp": timestamp,
+                        "captured_at": datetime.now().isoformat(),
+                    }
+                    chats_data.append(chat_data)
+                except (NoSuchElementException, StaleElementReferenceException) as e:
+                    logger.warning(f"Failed to capture chat tile: {str(e)}")
+                    continue
+
+            logger.info(f"Successfully captured {len(chats_data)} chats")
+            return chats_data
+        except WebDriverException as e:
+            logger.error(f"Error during chat capture: {str(e)}")
+            return []
+
+    def run_scraper(
+        self, model_append: str = "", output_file: str = "chatgpt_chats.json"
+    ) -> bool:
+        """
+        Main scraping workflow.
 
         Args:
             model_append: URL parameter to specify ChatGPT model
@@ -318,307 +271,124 @@ class ChatGPTScraper:
             bool: True if successful, False otherwise
         """
         try:
-            if not self.driver:
-                # Use the setup_browser method which now uses the manager
-                await asyncio.to_thread(self.setup_browser) 
-                if not self.driver:
-                    return False
-
-            logger.info(f"Navigating to {self.driver_manager.CHATGPT_URL + model_append}")
-            await asyncio.to_thread(self.driver.get, self.driver_manager.CHATGPT_URL + model_append)
+            self.driver.get(CHATGPT_URL + model_append)
             logger.info("Navigated to ChatGPT")
-            await asyncio.sleep(3) 
 
-            login_successful = False
-            # Use DriverManager's cookie loading
-            cookies_loaded = await asyncio.to_thread(self.driver_manager.load_cookies, target_url=self.driver_manager.CHATGPT_URL)
-            if cookies_loaded:
-                logger.info("Session restored using cookies via DriverManager.")
-                # driver.refresh() is called inside load_cookies
-                await asyncio.sleep(2) # Allow refresh
-                # Use DriverManager's login check
-                login_verified = await asyncio.to_thread(self.driver_manager.is_logged_in)
-                if login_verified:
-                    logger.info("Login verified after loading cookies.")
-                    login_successful = True
-                else:
-                    logger.warning("Cookies loaded, but login state not verified. Clearing cookies via manager.")
-                    await asyncio.to_thread(self.driver_manager.clear_cookies)
+            if not self.load_cookies():
+                logger.info("Waiting for manual login (30s)...")
+                time.sleep(30)  # Allow time for manual login
+                self.save_cookies()
 
-            if not login_successful:
-                logger.info("Attempting login...")
-                # _perform_login still uses self.driver directly, which is fine for now
-                login_attempt_success = await asyncio.to_thread(self._perform_login)
-                if login_attempt_success:
-                    login_successful = True
-                    await asyncio.sleep(3) 
-                    # Save cookies via manager
-                    await asyncio.to_thread(self.driver_manager.save_cookies)
-                else:
-                    logger.info("Please log in manually in the browser window (waiting 30s)...")
-                    await asyncio.sleep(30)
-                    login_verified = await asyncio.to_thread(self.driver_manager.is_logged_in)
-                    if login_verified:
-                        logger.info("Manual login detected.")
-                        login_successful = True
-                        await asyncio.to_thread(self.driver_manager.save_cookies)
-                    else:
-                        logger.error("Manual login timeout or failed.")
-                        return False
+            # Refresh to apply cookies/ensure logged in state
+            self.driver.refresh()
+            time.sleep(5)
 
-            if not login_successful:
-                logger.error("Failed to establish a logged-in session.")
+            chats = self.scroll_and_capture_chats()
+            if not chats:
+                logger.error("No chats captured")
                 return False
 
-            logger.info("Login successful, proceeding with scraping.")
-            # *** Await the async scroll_and_capture_chats method ***
-            chats_data = await self.scroll_and_capture_chats()
-
-            if not chats_data:
-                logger.error("No chats captured")
-                # return False # Optional
-
-            # Save data (synchronous file I/O is okay in thread)
+            # Save captured data
             try:
-                output_path = Path(output_file)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                # Use await asyncio.to_thread for file writing if it blocks significantly
-                def write_json(): 
-                    with open(output_path, "w", encoding='utf-8') as f:
-                        json.dump(chats_data, f, indent=2, ensure_ascii=False)
-                await asyncio.to_thread(write_json)
-                logger.info(f"Chat data saved to {output_file}")
+                os.makedirs(os.path.dirname(output_file), exist_ok=True)
+                with open(output_file, "w") as f:
+                    json.dump(chats, f, indent=2)
+                logger.info(f"Chats saved to {output_file}")
                 return True
-            except (IOError, TypeError) as e:
+            except IOError as e:
                 logger.error(f"Failed to save chat data: {str(e)}")
                 return False
 
-        except Exception as e:
-            logger.error(f"Scraper run failed: {str(e)}", exc_info=True)
-            return False
-        finally:
-            # Use the cleanup method which now calls manager.release_driver()
-            await asyncio.to_thread(self.cleanup)
-
-    @retry_on_exception(max_attempts=3, exceptions=(WebDriverException, NoSuchElementException, TimeoutException))
-    def scrape_single_chat(self, chat_url: str) -> Optional[Dict[str, Any]]:
-        """
-        Scrape a single chat conversation by navigating to its URL.
-
-        Args:
-            chat_url: URL of the specific chat conversation
-
-        Returns:
-            Dict[str, Any]: Dictionary containing chat title and messages, or None on failure
-        """
-        logger.info(f"Scraping chat: {chat_url}")
-        try:
-            self.driver.get(chat_url)
-            # Wait for messages to load
-            self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-message-id]')))
-            time.sleep(2) # Allow dynamic content to settle
-
-            # Extract title (if needed, might rely on previous scrape)
-            title = self.driver.title # or extract from a specific element if available
-
-            # Extract messages
-            messages_data = self.driver.execute_script("""
-                const messages = [];
-                document.querySelectorAll('div[data-message-id]').forEach(msg => {
-                    const role = msg.querySelector('img[alt], [data-message-author-role]')?.alt || msg.querySelector('[data-message-author-role]')?.getAttribute('data-message-author-role') || 'unknown';
-                    const contentElem = msg.querySelector('.markdown'); // Adjust selector based on actual structure
-                    const content = contentElem ? contentElem.innerText : '[Content not found]';
-                    messages.push({ role: role.toLowerCase(), content: content });
-                });
-                return messages;
-            """)
-
-            logger.info(f"Successfully scraped {len(messages_data)} messages from {chat_url}")
-            return {"title": title, "messages": messages_data}
-
-        except TimeoutException:
-            logger.error(f"Timeout waiting for messages on {chat_url}")
-            return None
         except WebDriverException as e:
-            logger.error(f"Error scraping chat {chat_url}: {str(e)}")
-            return None
+            logger.error(f"Scraper execution failed: {str(e)}")
+            return False
 
-    async def _scroll_history_to_top(self, timeout=60): # Add timeout for safety
-        """Executes JS to scroll the chat history pane to the top until stable."""
-        logger.info("Scrolling chat history to top...")
-        script = """
-            async function scrollToTopAndWaitForStability(containerSelector, timeout) {
-                const container = document.querySelector(containerSelector);
-                if (!container) {
-                    console.error('Scroll container not found:', containerSelector);
-                    return false;
-                }
+    # ---------- Live-Conversation Helpers (Dreamscape) ----------
 
-                let lastScrollTop = -1;
-                let stableCount = 0;
-                const startTime = Date.now();
+    def load_latest_conversation(self):
+        """Open the newest conversation in the sidebar."""
+        latest = self.wait.until(EC.element_to_be_clickable(SIDEBAR_CONVERSATION_LINK))
+        latest.click()
+        logger.info("Loaded latest conversation.")
 
-                // Scroll to bottom first to ensure we are in the right scroll context
-                container.scrollTo(0, container.scrollHeight);
-                await new Promise(resolve => setTimeout(resolve, 200)); 
-
-                while (stableCount < 3) {
-                    if (Date.now() - startTime > timeout * 1000) {
-                         console.error('Scrolling timed out after', timeout, 'seconds.');
-                         return false; // Timeout
-                    }
-                    
-                    const currentScrollTop = container.scrollTop;
-                    // Scroll up instead of down to reach the top of history
-                    container.scrollTo(0, 0); // Scroll to the top
-                    await new Promise(resolve => setTimeout(resolve, 500)); // Wait for render/load
-                    const newScrollTop = container.scrollTop;
-                    
-                    // Check if scroll position changed *after* scrolling up
-                    // If it didn't change (or is 0), we might be at the top
-                    if (newScrollTop === 0 || newScrollTop === currentScrollTop) {
-                        stableCount++;
-                        logger.debug(f"Scroll position stable ({stableCount}/3). scrollTop: {newScrollTop}")
-                    } else {
-                        stableCount = 0; // Reset if scroll position changed
-                    }
-                    lastScrollTop = newScrollTop; // Update for next check (though less relevant for scroll-to-top)
-                }
-                console.log('Scrolling finished and stable.');
-                return true;
-            }
-            // Use appropriate selector for the scrollable history pane
-            const containerSelector = '[aria-label="Chat history"]'; 
-            return await scrollToTopAndWaitForStability(containerSelector, arguments[0]);
-            """
+    def scroll_to_bottom(self):
+        """Scroll chat pane until no new content loads."""
+        logger.info("Scrolling to bottom of chat...")
         try:
-            # Execute async JS, passing the timeout
-            success = await asyncio.to_thread(self.driver.execute_async_script, script, timeout)
-            # success = self.driver.execute_async_script(script, timeout) # Might work directly depending on Selenium version/setup
-            if success:
-                 logger.info("Chat history scrolled to top successfully.")
-                 return True
+            pane = self.wait.until(EC.presence_of_element_located(CHAT_CONTAINER))
+            last_height = 0
+            attempts = 0
+            max_attempts = 5  # Prevent infinite loop
+
+            while attempts < max_attempts:
+                self.driver.execute_script(
+                    "arguments[0].scrollTop = arguments[0].scrollHeight", pane
+                )
+                time.sleep(0.7)  # Increased wait slightly
+                current_height = self.driver.execute_script(
+                    "return arguments[0].scrollHeight", pane
+                )
+                if current_height == last_height:
+                    logger.info("Scroll complete.")
+                    break
+                last_height = current_height
+                attempts += 1
+            if attempts == max_attempts:
+                logger.warning(
+                    "Max scroll attempts reached, might not be at absolute bottom."
+                )
+        except (TimeoutException, WebDriverException) as e:
+            logger.error(f"Error scrolling to bottom: {e}")
+
+    def send_message_and_wait(self, prompt: str):
+        """Send prompt and block until GPT finishes responding."""
+        logger.info(f"Sending prompt: '{prompt[:50]}...'")
+        try:
+            box = self.wait.until(EC.element_to_be_clickable(PROMPT_BOX))
+            box.clear()
+            box.send_keys(prompt)
+
+            send_button = self.wait.until(EC.element_to_be_clickable(SEND_BTN))
+            send_button.click()
+            logger.info("Prompt sent, waiting for response...")
+
+            self.wait.until_not(
+                EC.presence_of_element_located(SPINNER_SELECTOR),
+                message="Timed out waiting for GPT response (spinner did not disappear)",
+            )
+            logger.info("GPT response finished.")
+            time.sleep(0.5)  # Small buffer after response seems complete
+
+        except (TimeoutException, NoSuchElementException, WebDriverException) as e:
+            logger.error(f"Error sending message or waiting for response: {e}")
+            raise  # Re-raise for handling upstream
+
+    def extract_latest_reply(self) -> str:
+        """Return plaintext of newest assistant message block."""
+        logger.info("Extracting latest reply...")
+        try:
+            time.sleep(0.5)
+            nodes = self.wait.until(
+                EC.presence_of_all_elements_located(ASSISTANT_MARKDOWN)
+            )
+            if nodes:
+                reply_text = nodes[-1].text.strip()
+                logger.info(f"Extracted reply: '{reply_text[:50]}...'")
+                return reply_text
             else:
-                 logger.warning("Chat history scrolling did not complete successfully (JS returned false or timed out).")
-                 return False
-        except WebDriverException as e:
-            logger.error(f"Error executing scroll script: {e}")
-            return False
-        except Exception as e:
-            logger.error(f"Unexpected error during scroll execution: {e}", exc_info=True)
-            return False
-            
-    async def _wait_for_chat_items(self, timeout=15, min_count=1) -> Optional[List[Any]]:
-        """Waits dynamically for chat items to appear after scrolling."""
-        logger.info(f"Waiting for at least {min_count} chat item(s) to load (timeout: {timeout}s)...")
-        start_time = time.time()
-        last_error = None
-        selector = (By.CSS_SELECTOR, '[data-testid="conversation-item"]') # Use the defined selector
-        while time.time() - start_time < timeout:
-            try:
-                chats = self.driver.find_elements(*selector)
-                if len(chats) >= min_count:
-                    logger.info(f"Found {len(chats)} chat items.")
-                    return chats
-                else:
-                    logger.debug(f"Found {len(chats)} chats, waiting for more...")
-            except (NoSuchElementException, StaleElementReferenceException) as e:
-                # Ignore transient errors while waiting
-                logger.debug(f"Wait loop: Encountered {type(e).__name__}, retrying...")
-                last_error = str(e)
-            except WebDriverException as e:
-                 logger.error(f"WebDriver error during wait for chat items: {e}")
-                 last_error = str(e)
-                 break # Don't retry on fundamental WebDriver errors
-            
-            await asyncio.sleep(1) # Use asyncio sleep in async context
+                logger.warning("No assistant message markdown found.")
+                return ""
+        except (
+            TimeoutException,
+            NoSuchElementException,
+            StaleElementReferenceException,
+        ) as e:
+            logger.error(f"Error extracting latest reply: {e}")
+            return ""  # Return empty string on error
 
-        logger.error(f"Timeout waiting for chat items. Last count: {len(self.driver.find_elements(*selector)) if self.driver else 'N/A'}. Last error: {last_error}")
-        return None # Indicate timeout/failure
 
-    @retry_on_exception(max_attempts=3, exceptions=(WebDriverException, NoSuchElementException, TimeoutException))
-    async def scroll_and_capture_chats(self) -> List[Dict[str, str]]: # <<< Make async
-        """
-        Scroll through chat history and capture all chat metadata using dynamic waits.
-
-        Returns:
-            List[Dict[str, str]]: List of chat metadata dictionaries
-        """
-        # No longer injecting jQuery
-        # if not self.inject_jquery():
-        #     logger.error("Failed to inject jQuery, proceeding with basic scrolling")
-
-        logger.info("Starting stable chat capture")
-        chats_data = []
-
-        try:
-            # 1. Scroll history pane to top until stable
-            if not await self._scroll_history_to_top():
-                logger.warning("Scrolling history failed or timed out. Captured chats may be incomplete.")
-                # Continue anyway, try to capture what's visible
-
-            # 2. Wait dynamically for chat items to load
-            chat_tiles = await self._wait_for_chat_items(timeout=15, min_count=1) # Wait up to 15s for at least 1 item
-
-            if not chat_tiles:
-                 logger.error("No chat tiles found after scrolling and waiting.")
-                 return [] # Return empty list if none found
-
-            logger.info(f"Processing {len(chat_tiles)} chat tiles found...")
-            # 3. Extract data from found items
-            for tile in chat_tiles:
-                try:
-                    # Ensure the element is still valid
-                    title = tile.text.strip()
-                    link_elem = tile.find_element(By.TAG_NAME, 'a')
-                    url = link_elem.get_attribute('href')
-                    # Attempt to get timestamp, might not always be present
-                    timestamp = ""
-                    try:
-                         # Example: Check parent or specific child if timestamp isn't direct attribute
-                         time_elem = link_elem.find_element(By.XPATH, ".//div[contains(@class, 'text-xs')]") # Hypothetical selector
-                         timestamp = time_elem.text 
-                         # Or timestamp = link_elem.get_attribute('data-timestamp') if that exists
-                    except NoSuchElementException:
-                         logger.debug(f"Timestamp element not found for chat: {title[:30]}...")
-
-                    chat_data = {
-                        "title": title,
-                        "url": url,
-                        "timestamp": timestamp, # Store timestamp if found
-                        "captured_at": datetime.now().isoformat()
-                    }
-                    chats_data.append(chat_data)
-                except StaleElementReferenceException:
-                    logger.warning("Chat tile became stale during processing, skipping.")
-                    continue
-                except NoSuchElementException:
-                    logger.warning("Could not find expected sub-element (link) within chat tile, skipping.")
-                    continue
-                except Exception as inner_e:
-                    logger.error(f"Error processing individual chat tile: {inner_e}", exc_info=False)
-                    continue # Skip problematic tile
-
-            logger.info(f"Successfully captured {len(chats_data)} chats")
-            return chats_data
-
-        except WebDriverException as e:
-            logger.error(f"Error during chat capture: {str(e)}", exc_info=True)
-            return [] # Return empty list on major error
-        except Exception as e:
-            logger.error(f"Unexpected error during chat capture: {e}", exc_info=True)
-            return []
-
-def main():
-    """CLI entry point."""
-    with ChatGPTScraper() as scraper:
-        success = scraper.run_scraper(model_append="?model=gpt-4")
-        if success:
-            logger.info("Scraping completed successfully")
-        else:
-            logger.error("Scraping failed")
-            return 1
-    return 0
-
-if __name__ == "__main__":
-    exit(main()) 
+# Ensure the main block is removed or commented out if present
+# def main():
+# ...
+# if __name__ == "__main__":
+#    exit(main())

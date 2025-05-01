@@ -1,18 +1,22 @@
-import os
-import time
 import json
 import logging
+import os
 import threading
+import time
 from datetime import datetime
 
 # SERVICES
 from dreamos.chat_engine.chat_scraper_service import ChatScraperService
-from dreamos.chat_engine.prompt_execution_service import PromptExecutionService
-from dreamos.feedback.feedback_engine import FeedbackEngine
 from dreamos.chat_engine.discord_dispatcher import DiscordDispatcher
-
-# UTILS
-from dreamos.FileManager import FileManager
+from dreamos.chat_engine.prompt_execution_service import PromptExecutionService
+from dreamos.core.bus_utils import BusError, EventType, Message
+from dreamos.core.coordination.base_agent import BaseAgent
+from dreamos.core.coordination.message_patterns import (
+    create_event_message,
+    create_task_message,
+)
+from dreamos.feedback.feedback_engine import FeedbackEngine
+from dreamos.services.utils.chatgpt_scraper import ChatGPTScraper, ChatInteraction
 
 try:
     from chat_mate_config import Config
@@ -21,8 +25,10 @@ except ImportError:
     class Config:
         def __init__(self, path=None):
             pass
+
         def get(self, key, default=None):
             return default
+
 
 logger = logging.getLogger("ChatCycleController")
 logger.setLevel(logging.INFO)
@@ -42,7 +48,7 @@ class ChatCycleController:
         feedback_engine=None,
         discord_dispatcher=None,
         config_path="config.json",
-        output_callback=None
+        output_callback=None,
     ):
         logger.info("⚡ Initializing ChatCycleController...")
 
@@ -58,14 +64,16 @@ class ChatCycleController:
 
         # SERVICES (Override if provided)
         self.driver_manager = driver_manager
-        self.scraper = chat_scraper or ChatScraperService(headless=self.config.get("headless", True))
+        self.scraper = chat_scraper or ChatScraperService(
+            headless=self.config.get("headless", True)
+        )
         self.executor = prompt_executor or PromptExecutionService(model=self.model)
         self.feedback_engine = feedback_engine or FeedbackEngine(
             memory_file=self.config.get("memory_file", "memory/persistent_memory.json")
         )
         self.discord = discord_dispatcher or DiscordDispatcher(
             token=self.config.get("discord_token", ""),
-            default_channel_id=int(self.config.get("discord_channel_id", 0))
+            default_channel_id=int(self.config.get("discord_channel_id", 0)),
         )
 
         self.excluded_chats = set(self.config.get("excluded_chats", []))
@@ -144,7 +152,9 @@ class ChatCycleController:
 
         for prompt_name in prompt_names:
             logger.info(f"📝 Executing prompt: {prompt_name} on chat: {chat_title}")
-            self.append_output(f"📝 Executing prompt: {prompt_name} on chat: {chat_title}")
+            self.append_output(
+                f"📝 Executing prompt: {prompt_name} on chat: {chat_title}"
+            )
 
             try:
                 prompt_text = self.executor.get_prompt(prompt_name)
@@ -156,28 +166,38 @@ class ChatCycleController:
             response = self.executor.send_prompt_and_wait(prompt_text)
 
             if not response:
-                logger.warning(f"⚠️ No stable response for {prompt_name} in {chat_title}")
-                self.append_output(f"⚠️ No stable response for {prompt_name} in {chat_title}")
+                logger.warning(
+                    f"⚠️ No stable response for {prompt_name} in {chat_title}"
+                )
+                self.append_output(
+                    f"⚠️ No stable response for {prompt_name} in {chat_title}"
+                )
                 continue
 
-            chat_responses.append({
-                "prompt_name": prompt_name,
-                "response": response,
-                "timestamp": datetime.now().isoformat()
-            })
+            chat_responses.append(
+                {
+                    "prompt_name": prompt_name,
+                    "response": response,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
 
             # Save response
             self._save_prompt_response(chat_title, prompt_name, response)
 
             # Feedback Engine updates
-            memory_update = self.feedback_engine.parse_response_for_memory_update(response)
+            memory_update = self.feedback_engine.parse_response_for_memory_update(
+                response
+            )
             self.feedback_engine.update_memory(memory_update)
 
             # Discord dispatch (if dreamscape)
             if prompt_name.lower() == "dreamscape":
                 self.discord.dispatch_dreamscape_episode(chat_title, response)
             else:
-                self.discord.dispatch_general_response(chat_title, prompt_name, response)
+                self.discord.dispatch_general_response(
+                    chat_title, prompt_name, response
+                )
 
             time.sleep(1)
 
@@ -189,7 +209,7 @@ class ChatCycleController:
             "execution_time": f"{round(cycle_end_time - cycle_start_time, 2)}s",
             "chat_title": chat_title,
             "model": self.model,
-            "prompt_count": len(prompt_names)
+            "prompt_count": len(prompt_names),
         }
 
         self._save_run_summary(chat_title, chat_responses, run_metadata)
@@ -212,7 +232,9 @@ class ChatCycleController:
         """
         chat_title = chat_link.split("/")[-1] or "Untitled"
         logger.info(f"🔍 Running single prompt '{prompt_name}' on chat: {chat_title}")
-        self.append_output(f"🔍 Running single prompt '{prompt_name}' on chat: {chat_title}")
+        self.append_output(
+            f"🔍 Running single prompt '{prompt_name}' on chat: {chat_title}"
+        )
 
         self.scraper.load_chat(chat_link)
         time.sleep(2)
@@ -252,7 +274,11 @@ class ChatCycleController:
         """
         Saves individual prompt responses to file.
         """
-        prompt_dir = os.path.join(self.output_dir, sanitize_filename(chat_title), sanitize_filename(prompt_name))
+        prompt_dir = os.path.join(
+            self.output_dir,
+            sanitize_filename(chat_title),
+            sanitize_filename(prompt_name),
+        )
         os.makedirs(prompt_dir, exist_ok=True)
 
         filename = f"{sanitize_filename(chat_title)}_{sanitize_filename(prompt_name)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
@@ -275,10 +301,7 @@ class ChatCycleController:
         filename = f"{sanitize_filename(chat_title)}_full_run.json"
         file_path = os.path.join(summary_dir, filename)
 
-        full_run_data = {
-            "metadata": metadata,
-            "responses": chat_responses
-        }
+        full_run_data = {"metadata": metadata, "responses": chat_responses}
 
         try:
             with open(file_path, "w", encoding="utf-8") as f:
@@ -303,6 +326,7 @@ class ChatCycleController:
 # ---------------------------------------------------
 # MAIN ENTRY POINT
 # ---------------------------------------------------
+
 
 def sanitize_filename(name: str) -> str:
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)

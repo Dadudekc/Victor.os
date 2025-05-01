@@ -14,4 +14,4 @@ Instructions:
 
 Recommended Git Commit:
     git add .
-    git commit -m "Consolidate GUI into unified ui/ package; remove core/gui duplication; update imports and tests" 
+    git commit -m "Consolidate GUI into unified ui/ package; remove core/gui duplication; update imports and tests"

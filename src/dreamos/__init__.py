@@ -1,1 +1,3 @@
-# src/dreamos package 
+# src/dreamos package
+
+# Initialize dreamos package

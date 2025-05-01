@@ -1,10 +1,12 @@
-import discord
-import logging
 import asyncio
+import logging
+
+import discord
 from discord.ext import commands
 
 logger = logging.getLogger("DiscordDispatcher")
 logger.setLevel(logging.INFO)
+
 
 class DiscordDispatcher:
     """
@@ -21,7 +23,7 @@ class DiscordDispatcher:
         intents.messages = True
         intents.guilds = True
 
-        self.bot = commands.Bot(command_prefix='!', intents=intents)
+        self.bot = commands.Bot(command_prefix="!", intents=intents)
         self._setup_events()
 
         self.ready = False
@@ -49,7 +51,9 @@ class DiscordDispatcher:
             logger.warning("🚨 Discord bot not ready! Message not sent.")
             return
 
-        asyncio.run_coroutine_threadsafe(self._send_message(channel_id, message), self.bot.loop)
+        asyncio.run_coroutine_threadsafe(
+            self._send_message(channel_id, message), self.bot.loop
+        )
 
     async def _send_message(self, channel_id: int, message: str):
         """
@@ -87,7 +91,9 @@ class DiscordDispatcher:
         """
         Dispatches a Dreamscape episode to Discord.
         """
-        message = f"🛡️ **New Dreamscape Episode Released!**\n**Title**: {title}\n\n{content}"
+        message = (
+            f"🛡️ **New Dreamscape Episode Released!**\n**Title**: {title}\n\n{content}"
+        )
         self.send_message(message)
 
     def dispatch_feedback_loop(self, feedback_entry: dict):
@@ -132,4 +138,3 @@ class DiscordDispatcher:
             loop.call_soon_threadsafe(loop.stop)
         except Exception as e:
             logger.exception(f"❌ Failed to shutdown Discord bot cleanly: {e}")
-

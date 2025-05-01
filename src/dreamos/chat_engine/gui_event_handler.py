@@ -1,24 +1,56 @@
+import logging
 import sys
+
+from PyQt5.QtCore import QObject, pyqtSignal
+
 try:
-    from PyQt5 import QtWidgets, QtCore
-    from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QCheckBox, QTextEdit
+    from PyQt5 import QtCore, QtWidgets
+    from PyQt5.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QLabel,
+        QMainWindow,
+        QPushButton,
+        QTextEdit,
+    )
 except ImportError:
     # Stub Qt components for environments without PyQt5
-    class QtWidgets: pass
-    class QtCore: pass
+    class QtWidgets:
+        pass
+
+    class QtCore:
+        pass
+
     class QApplication:
-        def __init__(self, *args, **kwargs): pass
-        def exec_(self): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def exec_(self):
+            pass
+
     class QMainWindow:
-        def __init__(self, *args, **kwargs): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
     class QPushButton:
-        def __init__(self, *args, **kwargs): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
     class QLabel:
-        def __init__(self, *args, **kwargs): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
     class QCheckBox:
-        def __init__(self, *args, **kwargs): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
     class QTextEdit:
-        def __init__(self, *args, **kwargs): pass
+        def __init__(self, *args, **kwargs):
+            pass
+
+
+from dreamos.core.agent_bus import AgentBus
+
 
 class GUIEventHandler(QMainWindow):
     """
@@ -86,15 +118,21 @@ class GUIEventHandler(QMainWindow):
 
     def toggle_headless(self):
         self.config.headless = self.headless_checkbox.isChecked()
-        self.log(f"🟢 Headless mode {'enabled' if self.config.headless else 'disabled'}.")
+        self.log(
+            f"🟢 Headless mode {'enabled' if self.config.headless else 'disabled'}."
+        )
 
     def toggle_reverse(self):
         self.config.reverse_order = self.reverse_checkbox.isChecked()
-        self.log(f"🔄 Reverse chat order {'enabled' if self.config.reverse_order else 'disabled'}.")
+        self.log(
+            f"🔄 Reverse chat order {'enabled' if self.config.reverse_order else 'disabled'}."
+        )
 
     def toggle_archive(self):
         self.config.archive_enabled = self.archive_checkbox.isChecked()
-        self.log(f"📦 Archive after chat cycle {'enabled' if self.config.archive_enabled else 'disabled'}.")
+        self.log(
+            f"📦 Archive after chat cycle {'enabled' if self.config.archive_enabled else 'disabled'}."
+        )
 
     # -----------------------------
     # DISPATCHER CONTROL
@@ -138,6 +176,7 @@ class GUIEventHandler(QMainWindow):
 # -----------------------------
 # ENTRY POINT FOR GUI TESTING
 # -----------------------------
+
 
 def run_gui(config, dispatcher):
     app = QApplication(sys.argv)

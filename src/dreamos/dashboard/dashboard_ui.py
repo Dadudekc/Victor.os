@@ -1,330 +1,300 @@
 import logging
-import json
-from datetime import datetime
-import pyautogui
-from typing import Dict, Any, List, Tuple
+import os
+import sys
+from pathlib import Path
 
-from PyQt5.QtCore import Qt, QTimer, QModelIndex
-from PyQt5.QtGui import (
-    QColor, QIcon, QKeySequence, QPixmap, QPainter, QCursor, QPen,
-    QStandardItemModel, QStandardItem
-)
-from PyQt5.QtChart import (
-    QChart, QChartView, QBarSeries, QBarSet, QBarCategoryAxis, QValueAxis, QLineSeries,
-    QStackedBarSeries
-)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import (
-    QMainWindow, QApplication, QMessageBox, QInputDialog
+    QAction,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpacerItem,
+    QSplitter,
+    QTableView,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
-import dreamos.config as CFG
-from dreamos.utils.ui_helpers import _qcolor, _md, _avatar
-from dreamos.core.task_management import add_task, claim_task
-from dreamos.core.agent_coords import _load_coords, save_agent_spot, click_agent_spot
+from dreamos.coordination.agent_bus import AgentBus, EventType
+from dreamos.dashboard.models import AgentModel, MailboxModel, TaskModel
+
+logger = logging.getLogger(__name__)
+
 
 class Dashboard(QMainWindow):
-    # EDIT START: Phase 4 threshold constants
-    SUCCESS_THRESHOLD = 0.8  # threshold for chart overlay
-    FAILURE_THRESHOLD = 0.2  # threshold for chart overlay
-    # EDIT END: Phase 4 threshold constants 
-
-    def __init__(self):
+    def __init__(self, agent_bus: AgentBus = None):
         super().__init__()
-        self.agent_escalations: Dict[str, Dict[str, Any]] = {}  # EDIT START: track per-agent escalations
-        # EDIT START: initialize breach flags for agents threshold tracking
-        self.agent_breach_flags: Dict[str, bool] = {}
-        # EDIT END: initialize breach flags
+        # Allow running without an agent bus for standalone testing if needed
+        self.agent_bus = agent_bus
+        self.setWindowTitle("Dream.OS Dashboard")
+        self.resize(1200, 800)
 
-        # --- Placeholder: Initialize UI elements and potentially axes here ---
-        # Example: self._setup_charts()
-        self.health_chart = QChart() # Placeholder initialization
-        self.category_axis = QBarCategoryAxis() # Placeholder initialization
-        self.value_axis = QValueAxis() # Placeholder initialization
-        self.health_chart.addAxis(self.category_axis, Qt.AlignBottom) # Placeholder setup
-        self.health_chart.addAxis(self.value_axis, Qt.AlignLeft) # Placeholder setup
-        # --- End Placeholder ---
+        # Data Models
+        self.agent_model = AgentModel()
+        self.task_model = TaskModel()
+        self.mailbox_model = MailboxModel()
+
+        # Main Central Widget & Layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+
+        # Tabs
+        self.tabs = QTabWidget()
+        main_layout.addWidget(self.tabs)
+
+        # --- Overview Tab ---
+        self.overview_tab = QWidget()
+        overview_layout = QVBoxLayout(self.overview_tab)
+        overview_layout.setContentsMargins(10, 10, 10, 10)
+
+        # Agent Table
+        self.agent_table = QTableView()
+        self.agent_table.setModel(self.agent_model)
+        self.agent_table.setAlternatingRowColors(True)
+        self.agent_table.setSelectionBehavior(QTableView.SelectRows)
+        self.agent_table.setWordWrap(False)
+        # self.agent_table.horizontalHeader().setStretchLastSection(True) # Stretch last column
+        overview_layout.addWidget(QLabel("<b>Agent Status</b>"))
+        overview_layout.addWidget(self.agent_table, 2)  # Give agent table more stretch
+
+        # Health Summary Group
+        self.health_group = QGroupBox("Agent Health Summary")
+        health_grid_layout = QGridLayout()  # Use grid for better label alignment
+        self.agents_active_label = QLabel("Active: Pending...")
+        self.agents_breaching_label = QLabel("Breaching: Pending...")
+        self.avg_success_label = QLabel("Avg Success: Pending...")
+        health_grid_layout.addWidget(self.agents_active_label, 0, 0)
+        health_grid_layout.addWidget(self.agents_breaching_label, 0, 1)
+        health_grid_layout.addWidget(
+            self.avg_success_label, 1, 0, 1, 2
+        )  # Span across bottom
+        self.health_group.setLayout(health_grid_layout)
+        overview_layout.addWidget(self.health_group)
+
+        # Task Table
+        self.task_table = QTableView()
+        self.task_table.setModel(self.task_model)
+        self.task_table.setAlternatingRowColors(True)
+        self.task_table.setSelectionBehavior(QTableView.SelectRows)
+        # self.task_table.horizontalHeader().setStretchLastSection(True)
+        overview_layout.addWidget(QLabel("<b>Task List</b>"))
+        overview_layout.addWidget(self.task_table, 1)  # Give task table less stretch
+
+        # Task Injection Controls
+        task_injection_group = QGroupBox("Inject New Task")
+        task_injection_layout = QHBoxLayout()
+        self.task_in = QLineEdit()
+        self.task_in.setPlaceholderText("Enter Task Title...")
+        self.task_in.returnPressed.connect(self._inject_task)  # Allow Enter key press
+        self.inject_btn = QPushButton("Inject Task")
+        self.inject_btn.clicked.connect(self._inject_task)
+        self.task_status_label = QLabel("")  # Status feedback label
+        self.task_status_label.setStyleSheet("QLabel { padding-left: 10px; }")
+        task_injection_layout.addWidget(self.task_in)
+        task_injection_layout.addWidget(self.inject_btn)
+        task_injection_layout.addWidget(
+            self.task_status_label, 1
+        )  # Allow label to stretch
+        task_injection_group.setLayout(task_injection_layout)
+        overview_layout.addWidget(task_injection_group)
+
+        # Mailbox Table (Optional - uncomment if needed)
+        # self.mailbox_table = QTableView()
+        # self.mailbox_table.setModel(self.mailbox_model)
+        # self.mailbox_table.setAlternatingRowColors(True)
+        # overview_layout.addWidget(QLabel("<b>Mailbox Messages</b>"))
+        # overview_layout.addWidget(self.mailbox_table, 1)
+
+        # Add Overview Tab to TabWidget
+        self.tabs.addTab(self.overview_tab, "Overview")
+
+        # --- Chronicle Tab ---
+        self.chronicle_tab = QWidget()
+        chronicle_layout = QVBoxLayout(self.chronicle_tab)
+        chronicle_layout.setContentsMargins(10, 10, 10, 10)
+        self.chronicle_viewer = QTextEdit()
+        self.chronicle_viewer.setReadOnly(True)
+        self.chronicle_viewer.setLineWrapMode(QTextEdit.NoWrap)  # Prevent wrapping
+        chronicle_layout.addWidget(QLabel("<b>Dreamscape Chronicle</b>"))
+        chronicle_layout.addWidget(self.chronicle_viewer)
+
+        # Add Chronicle Tab to TabWidget
+        self.tabs.addTab(self.chronicle_tab, "Chronicle")
+
+        # Timers
+        # Timer to refresh data models & health summary
+        self.refresh_timer = QTimer()
+        self.refresh_timer.timeout.connect(self.refresh)
+        self.refresh_timer.start(2000)  # Refresh data every 2 seconds
+
+        # Timer to refresh Chronicle
+        self.chronicle_timer = QTimer()
+        self.chronicle_timer.timeout.connect(self._update_chronicle_viewer)
+        self.chronicle_timer.start(5000)  # Refresh chronicle every 5 seconds
+
+        # Initial data load
+        self.refresh()
+        self._update_chronicle_viewer()
 
     def refresh(self):
-        # --- EDIT START: Retrieve or Calculate required data ---
-        # Ensure chart and axes are valid (assuming setup in __init__ or elsewhere)
-        if not hasattr(self, 'health_chart') or not self.health_chart:
-             logging.error("Health chart not initialized before refresh.")
-             return
-        # Retrieve axes from chart if not guaranteed by init (safer)
-        # Assuming the axes were added with specific types during setup
-        self.category_axis = next((ax for ax in self.health_chart.axes(Qt.Horizontal) if isinstance(ax, QBarCategoryAxis)), None)
-        self.value_axis = next((ax for ax in self.health_chart.axes(Qt.Vertical) if isinstance(ax, QValueAxis)), None)
+        """Refresh the agent, task, and mailbox data models and health summary."""
+        try:
+            logger.debug("Refreshing dashboard data...")
+            self.agent_model.load_data()  # Assumes models handle data loading
+            self.task_model.load_data()
+            # self.mailbox_model.load_data()
+            self._refresh_health_summary()
+            logger.debug("Dashboard refresh complete.")
+        except Exception as e:
+            logger.error(f"Error during dashboard refresh: {e}", exc_info=True)
 
-        if not self.category_axis or not self.value_axis:
-            logging.error("Chart axes not found or not of expected type during refresh.")
-            return
-
-        # Placeholder: Fetch latest data needed for the refresh
-        # Replace these with actual data retrieval logic (e.g., from a data store/manager)
-        self.agent_scrape_stats: Dict[str, Dict[str, int]] = getattr(self, '_data_source', {}).get('agent_stats', {}) # Example fetch
-        self.agent_metadata: Dict[str, Dict[str, Any]] = getattr(self, '_data_source', {}).get('agent_metadata', {}) # Example fetch
-        agents_list: List[Tuple[str, str]] = getattr(self, '_data_source', {}).get('agents_list', []) # Example fetch (e.g., [('agent1', 'xy1'), ('agent2', 'xy2')])
-        self.health_agents: List[str] = [aid for aid, xy in agents_list] # Example derived list
-
-        # Calculate success/failure sets based on fetched stats
-        success_values = [self.agent_scrape_stats.get(aid, {}).get('success', 0) for aid in self.health_agents]
-        failure_values = [self.agent_scrape_stats.get(aid, {}).get('failure', 0) for aid in self.health_agents]
-        success_set = QBarSet("Success")
-        success_set.append(success_values)
-        failure_set = QBarSet("Failure")
-        failure_set.append(failure_values)
-        # --- EDIT END: Retrieve or Calculate required data ---
-
-        # Refresh series
-        self.health_chart.removeAllSeries()
-        series = QBarSeries()
-        # Apply stacked vs grouped mode
-        series.setStacked(getattr(self, '_stacked_mode', False))
-        series.append(success_set)
-        series.append(failure_set)
-        self.health_chart.addSeries(series)
-        # EDIT START: Phase 4 threshold lines
-        # Draw horizontal threshold lines across categories
-        cat_count = len(self.health_agents)
-        # Success threshold
-        st_line = QLineSeries()
-        st_line.setName("Success Threshold")
-        for x in range(cat_count):
-            st_line.append(x, self.SUCCESS_THRESHOLD)
-        pen_s = QPen(QColor(0, 200, 0))
-        pen_s.setStyle(Qt.DashLine)
-        pen_s.setWidth(2)
-        st_line.setPen(pen_s)
-        self.health_chart.addSeries(st_line)
-        st_line.attachAxis(self.category_axis)
-        st_line.attachAxis(self.value_axis)
-        # Failure threshold
-        ft_line = QLineSeries()
-        ft_line.setName("Failure Threshold")
-        for x in range(cat_count):
-            ft_line.append(x, self.FAILURE_THRESHOLD)
-        pen_f = QPen(QColor(200, 0, 0))
-        pen_f.setStyle(Qt.DashLine)
-        pen_f.setWidth(2)
-        ft_line.setPen(pen_f)
-        self.health_chart.addSeries(ft_line)
-        ft_line.attachAxis(self.category_axis)
-        ft_line.attachAxis(self.value_axis)
-        # EDIT END: Phase 4 threshold lines
-        # EDIT START: Phase 4.1 threshold breach tracking and warnings
-        breach_found = False
-        for aid, stats in self.agent_scrape_stats.items():
-            suc = stats.get('success', 0)
-            fail = stats.get('failure', 0)
-            # Determine breach state per agent
-            breach = (suc < self.SUCCESS_THRESHOLD) or (fail > self.FAILURE_THRESHOLD)
-            # Persist flag for badge column
-            self.agent_breach_flags[aid] = breach
-            # On first detected breach, flash dashboard
-            if breach and not breach_found:
-                QTimer.singleShot(0, lambda: self._flash_color(QColor(255, 255, 0)))
-                breach_found = True
-        # EDIT END: Phase 4.1 threshold breach tracking and warnings
-        # Update categories
-        self.category_axis.clear()
-        self.category_axis.append(self.health_agents)
-
-        # Now include Priority, Description, and Breach Badge columns
-        col_count = 6
-        mdl = QStandardItemModel(len(agents_list), col_count, self)
-        mdl.setHorizontalHeaderLabels(["Agent", "XY", "Scrapes ✅/❌", "Priority", "Description", "⚠️"])
-        for r, (aid, xy) in enumerate(agents_list):
-            # Ensure stats entry exists
-            stats = self.agent_scrape_stats.get(aid, {"success": 0, "failure": 0})
-            suc = stats.get("success", 0)
-            fail = stats.get("failure", 0)
-            scrape_str = f"✅{suc}/❌{fail}"
-            # Populate row
-            mdl.setItem(r, 0, QStandardItem(aid))
-            mdl.setItem(r, 1, QStandardItem(xy))
-            item = QStandardItem(scrape_str)
-            # Highlight if failures exceed threshold
-            if fail > 5:
-                item.setBackground(_qcolor(255, 255, 180))
-            mdl.setItem(r, 2, item)
-            # Priority column
-            prio = self.agent_metadata.get(aid, {}).get('priority')
-            mdl.setItem(r, 3, QStandardItem(str(prio) if prio is not None else ""))
-            # Description column
-            desc = self.agent_metadata.get(aid, {}).get('description', "")
-            mdl.setItem(r, 4, QStandardItem(desc))
-            # Breach badge column
-            breach_flag = self.agent_breach_flags.get(aid, False)
-            badge_item = QStandardItem("⚠️" if breach_flag else "")
-            mdl.setItem(r, 5, badge_item)
-        self.agent_tbl.setModel(mdl)
-        # EDIT START: Phase 4.2 persistent breach badges
-        # Hide badge column if no agents currently in breach
-        has_breach = any(self.agent_breach_flags.get(aid, False) for aid in self.health_agents)
-        self.agent_tbl.setColumnHidden(5, not has_breach)
-        # EDIT END: Phase 4.2 persistent breach badges 
-
-    # ───────── mailbox helpers ─────────
-    def _load_box(self, idx: QModelIndex) -> None:
-        self.cur_box = self.box_model.rows[self.box_tbl.model().mapToSource(idx).row()]
-        self._render_messages()
-
-    def _render_messages(self) -> None:
-        if not hasattr(self, "cur_box"):
-            return
-        html: List[str] = []
-        for m in self.cur_box["messages"]:
-            sender = m.get("sender", "?")
-            ts = m.get("timestamp", "")
-            content = _md(m.get("content", ""))
-            # determine bubble side
-            side = "left" if sender != CFG.default_agent and sender != "Dream.OS" else "right"
-            # avatar or emoji fallback
-            av = _avatar(sender)
-            if av:
-                avatar_html = f'<img src="{CFG.avatar_dir / f"{sender}.png"}" width="24"/>'
-            else:
-                avatar_html = "🐺" if side == "right" else "👤"
-            html.append(
-                f'<div class="bubble {side}">{avatar_html} ' +
-                f'<span class="meta">{sender} {ts}</span><br>{content}</div>'
+    def _inject_task(self):
+        """Inject a manual task via the AgentBus."""
+        title = self.task_in.text().strip()
+        if not title:
+            self.task_status_label.setText(
+                "<font color='orange'>⚠️ Enter task title.</font>"
             )
-        self.msg_view.setHtml("<br>".join(html))
-
-    def _send_reply(self) -> None:
-        if not hasattr(self, "cur_box") or not self.reply_in.text().strip():
             return
-        msg = {
-            "timestamp": datetime.now().strftime("%H:%M:%S"),
-            "sender": "Dream.OS",
-            "content": self.reply_in.text().strip(),
-        }
-        self.cur_box["messages"].append(msg)
-        self.cur_box["data"]["messages"] = self.cur_box["messages"]
-        self.cur_box["path"].write_text(json.dumps(self.cur_box["data"], indent=2))
-        self.reply_in.clear()
-        self.refresh()
-        self._render_messages()
 
-    def _ai_reply(self) -> None:
-        if not hasattr(self, "cur_box") or not self.responder:
+        if not self.agent_bus:
+            logger.warning("AgentBus not available, cannot inject task.")
+            self.task_status_label.setText(
+                "<font color='red'>❌ AgentBus unavailable.</font>"
+            )
             return
-        data = self.responder.respond_to_mailbox(self.cur_box["data"])
-        self.cur_box["data"] = data
-        self.cur_box["messages"] = data.get("messages", [])
-        self.cur_box["path"].write_text(json.dumps(data, indent=2))
-        self.refresh()
-        self._render_messages()
 
-    def _create_mailbox(self) -> None:
-        name, ok = QInputDialog.getText(self, "New Mailbox", "Mailbox name?")
-        if not ok or not name.strip():
-            return
-        owner, ok2 = QInputDialog.getText(self, "Owner", "Assign to agent (ID)?")
-        mbx = {"status": "idle", "owner": owner.strip(), "messages": []}
-        fpath = CFG.mailbox_root / f"mailbox_{name.strip()}.json"
-        fpath.write_text(json.dumps(mbx, indent=2))
-        self.refresh()
+        try:
+            task = {
+                "type": "manual_task",  # Standardized type
+                "payload": {"title": title},
+                "source": "dashboard_ui",
+            }
+            logger.info(f"Injecting task: {title}")
+            # Assume publish_event handles the logic or raises exceptions
+            self.agent_bus.publish_event(EventType.TASK_RECEIVED, task)
+            self.task_status_label.setText(
+                "<font color='green'>✅ Task injected!</font>"
+            )
+            self.task_in.clear()
+            # Clear status after a delay
+            QTimer.singleShot(3000, lambda: self.task_status_label.setText(""))
+        except Exception as e:
+            logger.error(f"Error injecting task: {e}", exc_info=True)
+            self.task_status_label.setText(
+                f"<font color='red'>❌ Injection failed: {e}</font>"
+            )
 
-    # ───────── tasks / agents helpers ─────────
-    def _inject_task(self) -> None:
-        txt = self.task_in.text().strip()
-        self.task_in.clear()
-        if not txt:
-            return
-        add_task(self.task_type.currentText(), txt)
-        self.refresh()
+    def _refresh_health_summary(self):
+        """Refresh the Agent Health Summary section based on AgentModel data."""
+        try:
+            agents = self.agent_model.get_all_agents()  # Use model's method
+            active_count = len(agents)
+            breaching_count = 0
+            total_success_rate = 0
+            valid_agents_for_rate = 0
 
-    def _claim_next(self) -> None:
-        if claim_task(CFG.default_agent) and self.auto_click:
-            try:
-                click_agent_spot(CFG.default_agent)
-            except Exception as e:
-                logging.warning("click failure %s", e)
-        self.refresh()
+            for agent in agents:
+                # Define breach criteria (example: status is failure or low success metric)
+                is_breaching = (
+                    agent.get("status", "").lower() == "failure"
+                )  # Simple example
+                # Add more complex breach logic if needed based on agent data fields
+                # e.g., if agent.get('success_rate', 1.0) < 0.5:
+                #          is_breaching = True
 
-    def _capture_spot(self) -> None:
-        QApplication.setOverrideCursor(Qt.CrossCursor)
-        QMessageBox.information(self, "Capture", "Place cursor, press OK")
-        x, y = pyautogui.position()
-        QApplication.restoreOverrideCursor()
-        # let user select existing agent or create new
-        coords = _load_coords()
-        items = list(coords.keys()) + ["< New Agent >"]
-        choice, ok = QInputDialog.getItem(self, "Agent ID", "Select agent or new:", items, editable=False)
-        if not ok:
-            return
-        if choice == "< New Agent >":
-            aid, ok2 = QInputDialog.getText(self, "Agent ID", "Enter new Agent ID:")
-            if not ok2 or not aid.strip():
-                return
-            agent_id = aid.strip()
-        else:
-            agent_id = choice
-        save_agent_spot(agent_id, (x, y))
-        logging.info("Spot saved %s → (%d,%d)", agent_id, x, y)
-        # set this agent as the default for future actions
-        CFG.default_agent = agent_id
-        QMessageBox.information(self, "Default Agent", f"Default agent set to {agent_id}")
-        # refresh views
-        self.refresh()
+                if is_breaching:
+                    breaching_count += 1
 
-    # ───────── dev / prod toggle ─────────
-    def _flip_mode(self, checked: bool) -> None:
-        self.dev_mode = checked
-        if self.responder:
-            self.responder.dev_mode = checked
+                # Calculate average success rate (requires a success metric in agent data)
+                success_rate = agent.get("success_rate")  # Example field
+                if success_rate is not None:
+                    total_success_rate += success_rate
+                    valid_agents_for_rate += 1
 
-    # ───────── hotkey passthrough ─────────
-    def keyPressEvent(self, e) -> None:
-        if e.matches(QKeySequence.InsertParagraphSeparator):
-            pyautogui.hotkey("ctrl", "enter")
-        elif e.matches(QKeySequence.DeleteStartOfWord):
-            pyautogui.hotkey("ctrl", "backspace")
-        elif e.key() == Qt.Key_F5:
-            self.refresh()
-        super().keyPressEvent(e)
+            avg_success_pc = (
+                (total_success_rate / valid_agents_for_rate * 100)
+                if valid_agents_for_rate > 0
+                else 0
+            )
 
-    # EDIT START: upgraded prompt event handlers are now managed by DashboardEventListener
-    # (Old handle_system_event definitions removed in favor of modular listener)
-    def handle_system_event(self, event_name: str, event_payload: dict) -> bool:
-        # stub: use modular listener callbacks instead
-        return False
+            self.agents_active_label.setText(f"Active: {active_count}")
+            breach_color = "red" if breaching_count > 0 else "green"
+            self.agents_breaching_label.setText(
+                f"<font color='{breach_color}'>Breaching: {breaching_count}</font>"
+            )
+            self.avg_success_label.setText(f"Avg Success: {avg_success_pc:.1f}%")
 
-    def _flash_color(self, color: QColor) -> None:
-        """Flash the dashboard background with the given color briefly."""
-        original = self.styleSheet()
-        self.setStyleSheet(f"background-color: rgba({color.red()},{color.green()},{color.blue()},100);")
-        QTimer.singleShot(300, lambda: self.setStyleSheet(original))
+        except Exception as e:
+            logger.error(f"Error updating health summary: {e}", exc_info=True)
+            self.agents_active_label.setText("Active: Error")
+            self.agents_breaching_label.setText("Breaching: Error")
+            self.avg_success_label.setText("Avg Success: Error")
 
-    def _show_bar_tooltip(self, bar_set, index, status):
-        """Show tooltip with agent name and count for hovered bar, color-coded and suppress zeros."""
-        if not status:
-            return
-        # Determine agent order from Health tab
-        agents = getattr(self, 'health_agents', list(self.agent_scrape_stats.keys()))
-        if index < 0 or index >= len(agents):
-            return
-        aid = agents[index]
-        count = bar_set.at(index)
-        # Suppress tooltip for zero-count bars
-        if count <= 0:
-            return
-        name = bar_set.label()
-        # Choose text color based on bar label
-        color = '#00AA00' if name.lower() == 'success' else '#AA0000'
-        text = f"{aid}: {name} {count}"
-        # Use HTML to color the tooltip text
-        QToolTip.showText(QCursor.pos(), f"<font color='{color}'>{text}</font>")
+    def _update_chronicle_viewer(self):
+        """Update the Chronicle Viewer by reading the specified markdown file."""
+        # Determine path relative to the project root
+        # Assume PROJECT_ROOT is correctly set or detectable
+        try:
+            # EDIT: More robust path finding (relative to this file)
+            project_root = Path(__file__).resolve().parents[2]
+            chronicle_path = (
+                project_root / "runtime" / "chronicle" / "dreamscape_chronicle.md"
+            )
+            if chronicle_path.exists():
+                with open(chronicle_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                # TODO: Potential Markdown rendering in future?
+                self.chronicle_viewer.setPlainText(content)
+                # Scroll to the bottom
+                self.chronicle_viewer.verticalScrollBar().setValue(
+                    self.chronicle_viewer.verticalScrollBar().maximum()
+                )
+            else:
+                self.chronicle_viewer.setPlainText(
+                    f"Chronicle file not found at: {chronicle_path}"
+                )
+        except Exception as e:
+            logger.error(f"Error updating chronicle viewer: {e}", exc_info=True)
+            self.chronicle_viewer.setPlainText(f"Error loading chronicle: {e}")
 
-    def _handle_stacked_toggle(self, state):
-        """Toggle between stacked and grouped bar view and refresh chart."""
-        self._stacked_mode = (state == Qt.Checked)
-        self.refresh()
 
-# ───────────────────────── bootstrap ───────────────────────
+# Bootstrap for running standalone (optional)
 if __name__ == "__main__":
+    # Basic logging setup for standalone test
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    # Ensure runtime/logs exists for chronicle file
+    if not os.path.exists(os.path.join("runtime", "logs")):
+        os.makedirs(os.path.join("runtime", "logs"))
+        # Create dummy chronicle file if it doesn't exist
+        with open(os.path.join("runtime", "logs", "dreamscape_chronicle.md"), "w") as f:
+            f.write("# Dreamscape Chronicle\nInitial entry.\n")
+
     app = QApplication(sys.argv)
-    win = Dashboard()
+    # Create dummy AgentBus if needed for testing
+    # class DummyAgentBus:
+    #     def publish_event(self, event_name, payload):
+    #         logger.info(f"Dummy Bus: Published {event_name} with {payload}")
+    # bus = DummyAgentBus()
+    win = Dashboard(agent_bus=None)  # Pass None or dummy bus
     win.show()
     sys.exit(app.exec_())

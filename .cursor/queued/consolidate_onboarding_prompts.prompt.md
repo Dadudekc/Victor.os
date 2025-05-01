@@ -8,4 +8,4 @@ Instructions:
   - Update each agent's `start_prompt.md` under `_agent_coordination/onboarding/agent_*` to reference the shared template and substitute their `agent_id` dynamically (e.g., via a simple include or placeholder replacement).
   - Remove duplicated hardcoded onboarding text from each agent folder's `start_prompt.md`.
   - Validate that rendering the templates for each agent produces the correct `start_prompt.md` with the appropriate agent ID.
-  - Commit message suggestion: "refactor: consolidate agent onboarding prompts into shared template with dynamic agent_id" 
+  - Commit message suggestion: "refactor: consolidate agent onboarding prompts into shared template with dynamic agent_id"

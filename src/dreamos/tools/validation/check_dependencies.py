@@ -1,7 +1,7 @@
 # src/dreamos/tools/validation/check_dependencies.py
-import shutil
 import logging
-from typing import Dict, Optional, List
+import shutil
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,10 @@ DEFAULT_TOOLS = [
     # Add other essential tools here if needed
 ]
 
-def check_cli_dependencies(tools_to_check: Optional[List[str]] = None) -> Dict[str, Optional[str]]:
+
+def check_cli_dependencies(
+    tools_to_check: Optional[List[str]] = None,
+) -> Dict[str, Optional[str]]:
     """
     Checks if specified CLI tools are installed and available in the system PATH.
 
@@ -40,15 +43,20 @@ def check_cli_dependencies(tools_to_check: Optional[List[str]] = None) -> Dict[s
         if found_path:
             logger.info(f"  ✅ Found '{tool}' at: {found_path}")
         else:
-            logger.warning(f"  ⚠️ Could not find '{tool}'. Some functionality might be unavailable.")
+            logger.warning(
+                f"  ⚠️ Could not find '{tool}'. Some functionality might be unavailable."
+            )
             all_found = False
 
     if all_found:
         logger.info("All checked dependencies were found.")
     else:
-        logger.warning("Some dependencies were not found. Please ensure they are installed and in the system PATH.")
+        logger.warning(
+            "Some dependencies were not found. Please ensure they are installed and in the system PATH."
+        )
 
     return results
+
 
 def main():
     """CLI entry point function."""
@@ -71,20 +79,7 @@ def main():
     else:
         print("\nAll checked dependencies found.")
 
+
 # Main execution block
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
-# Example usage:
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(message)s")
-    print("Running CLI dependency check...")
-    dependency_status = check_cli_dependencies()
-    print("\nDependency Status Report:")
-    for tool, path in dependency_status.items():
-        status = f"Found: {path}" if path else "NOT FOUND"
-        print(f"- {tool:<10}: {status}")
-
-    print("\nChecking for a specific tool:")
-    status_git = check_cli_dependencies(["git"])
-    print(f"- git: {status_git['git']}") 

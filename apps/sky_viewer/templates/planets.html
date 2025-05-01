@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Solar System</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    canvas { display: block; }
+    .label { color: #fff; font-family: sans-serif; font-size: 12px; pointer-events: none; text-shadow: 0 0 4px #000; }
+  </style>
+</head>
+<body>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+<script>
+// Scene & Camera
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 1, 10000);
+camera.position.set(0, 200, 600);
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+// Label Renderer
+const labelRenderer = new THREE.CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+document.body.appendChild(labelRenderer.domElement);
+// Controls
+const controls = new THREE.OrbitControls(camera, labelRenderer.domElement);
+controls.minDistance = 50; controls.maxDistance = 2000;
+
+// Sun
+actionLight = new THREE.PointLight(0xffffff, 2, 0);
+actionLight.position.set(0,0,0);
+scene.add(actionLight);
+const sunGeo = new THREE.SphereGeometry(50, 32, 32);
+const sunTexture = new THREE.TextureLoader().load('textures/sun.png');
+const sunMat = new THREE.MeshBasicMaterial({ map: sunTexture });
+const sun = new THREE.Mesh(sunGeo, sunMat);
+scene.add(sun);
+
+// 🌞 Sun Glow & Flare FX
+const glowTexture = new THREE.TextureLoader().load(
+  'https://threejs.org/examples/textures/sprites/lensflare0.png'
+);
+const glowMaterial = new THREE.SpriteMaterial({
+  map: glowTexture,
+  color: 0xffffaa,
+  blending: THREE.AdditiveBlending,
+  transparent: true,
+  opacity: 0.6
+});
+const glowSprite = new THREE.Sprite(glowMaterial);
+glowSprite.scale.set(200, 200, 1);
+sun.add(glowSprite);
+
+// 🌞 Add ambient light for textured planets
+scene.add(new THREE.AmbientLight(0x333333));
+
+// 🌌 Starscape Skydome (Milky Way background)
+const skyTexture = new THREE.TextureLoader().load('textures/milkyway.jpg');
+const skyGeo = new THREE.SphereGeometry(5000, 64, 64);
+const skyMat = new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide });
+const skyDome = new THREE.Mesh(skyGeo, skyMat);
+scene.add(skyDome);
+
+// Planet data: {name, size, distance, color, period}
+const planets = [
+  { name: 'Mercury', size: 4, distance: 80, color: 0xaaaaaa, period: 88 },
+  { name: 'Venus',   size: 7, distance:120, color: 0xffddaa, period:225 },
+  { name: 'Earth',   size: 8, distance:160, color: 0x2233ff, period:365 },
+  { name: 'Mars',    size: 6, distance:200, color: 0xff5500, period:687 },
+  { name: 'Jupiter', size:18, distance:280, color: 0xffaa88, period:4333 },
+  { name: 'Saturn',  size:16, distance:340, color: 0xffdd77, period:10759 },
+  { name: 'Uranus',  size:12, distance:400, color: 0x66ccff, period:30687 },
+  { name: 'Neptune', size:12, distance:460, color: 0x3366ff, period:60190 }
+];
+
+// Create planets and orbits
+const planetGroup = new THREE.Group();
+planets.forEach(p => {
+  // Orbit circle
+  const orbitGeo = new THREE.RingGeometry(p.distance - 0.5, p.distance + 0.5, 64);
+  const orbitMat = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
+  const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+  orbit.rotation.x = Math.PI/2;
+  scene.add(orbit);
+  // Planet mesh with texture
+  const geo = new THREE.SphereGeometry(p.size, 16, 16);
+  const texture = new THREE.TextureLoader().load(`textures/${p.name.toLowerCase()}.png`);
+  const mat = new THREE.MeshPhongMaterial({ map: texture, color: p.color });
+  const mesh = new THREE.Mesh(geo, mat);
+  // Add axial spin speed (randomized subtle spin)
+  mesh.userData = { ...p, spinSpeed: THREE.MathUtils.randFloat(0.005, 0.02) };
+  // Label
+  const div = document.createElement('div'); div.className='label'; div.textContent = p.name;
+  const label = new THREE.CSS2DObject(div);
+  mesh.add(label);
+  label.position.set(0, p.size+4, 0);
+  planetGroup.add(mesh);
+});
+scene.add(planetGroup);
+
+// Animation loop
+tick = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  tick += 0.1;
+  // Update planet positions
+  planetGroup.children.forEach((mesh,i) => {
+    // Orbit motion
+    const d = mesh.userData.distance;
+    const angle = tick / mesh.userData.period;
+    mesh.position.set(d * Math.cos(angle), 0, d * Math.sin(angle));
+    // Axial rotation
+    mesh.rotation.y += mesh.userData.spinSpeed;
+  });
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

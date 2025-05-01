@@ -1,3 +1,3 @@
-# src/dreamos/services package 
+# src/dreamos/services package
 
-# Package for Dream.OS service stubs and implementations 
+# Package for Dream.OS service stubs and implementations

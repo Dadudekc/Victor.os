@@ -1,5 +1,6 @@
 import queue
 
+
 class BaseDispatcher:
     """Base dispatcher that manages a task queue and processes tasks."""
 
@@ -33,5 +34,5 @@ class BaseDispatcher:
         return {
             "is_running": self.is_running,
             "queue_size": self.task_queue.qsize(),
-            "current_task": self.current_task
-        } 
+            "current_task": self.current_task,
+        }

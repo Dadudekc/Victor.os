@@ -15,7 +15,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "jscpd": "^4.0.5"
+    "jscpd": "^4.0.5",
+    "prettier": "^3.5.3"
   },
   "dependencies": {
     "acorn": "^7.4.1",

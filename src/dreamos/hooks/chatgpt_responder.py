@@ -1,6 +1,9 @@
-import uuid, time
-from datetime import datetime
 import sys
+
+# import time # F401 Unused
+import uuid
+from datetime import datetime
+
 
 class ChatGPTResponder:
     def __init__(self, dev_mode=False):
@@ -10,15 +13,19 @@ class ChatGPTResponder:
         if dev_mode:
             try:
                 from social.utils.chatgpt_scraper import ChatGPTScraper
+
                 self.scraper = ChatGPTScraper()
             except Exception as e:
+                # E501 Fix: Split long line
                 print(f"Warning: ChatGPTScraper init failed: {e}", file=sys.stderr)
                 self.scraper = None
         else:
             try:
                 from dream_os.adapters.openai_adapter import OpenAIAdapter
+
                 self.adapter = OpenAIAdapter()
             except Exception as e:
+                # E501 Fix: Split long line
                 print(f"Warning: OpenAIAdapter init failed: {e}", file=sys.stderr)
                 self.adapter = None
 
@@ -27,6 +34,7 @@ class ChatGPTResponder:
             if self.scraper:
                 return self.scraper.ask(message)
             else:
+                # E501 Fix: Split long line
                 raise RuntimeError("ChatGPTScraper not available in dev mode")
         else:
             if self.adapter:
@@ -52,7 +60,7 @@ class ChatGPTResponder:
             "message_id": uuid.uuid4().hex,
             "sender": "ChatGPTResponder",
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "content": response
+            "content": response,
         }
         messages.append(reply)
-        return mailbox_data 
+        return mailbox_data

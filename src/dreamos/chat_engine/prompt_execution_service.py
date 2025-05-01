@@ -1,9 +1,10 @@
-import time
 import logging
 import threading
+import time
 
 logger = logging.getLogger("PromptExecutor")
 logger.setLevel(logging.INFO)
+
 
 class PromptExecutionService:
     """
@@ -12,8 +13,15 @@ class PromptExecutionService:
     Now supports model switching, feedback integration, and parallel execution.
     """
 
-    def __init__(self, driver_manager, prompt_manager, feedback_engine=None,
-                 model="gpt-4o-mini", cycle_speed=2, stable_wait=10):
+    def __init__(
+        self,
+        driver_manager,
+        prompt_manager,
+        feedback_engine=None,
+        model="gpt-4o-mini",
+        cycle_speed=2,
+        stable_wait=10,
+    ):
         self.driver_manager = driver_manager
         self.prompt_manager = prompt_manager
         self.feedback_engine = feedback_engine
@@ -78,7 +86,9 @@ class PromptExecutionService:
         Executes a list of prompts in sequence on a single chat.
         Returns a list of responses.
         """
-        logger.info(f"🔁 Starting sequential prompt execution on a single chat ({len(prompt_list)} prompts)...")
+        logger.info(
+            f"🔁 Starting sequential prompt execution on a single chat ({len(prompt_list)} prompts)..."
+        )
         responses = []
 
         for prompt_name in prompt_list:
@@ -87,10 +97,7 @@ class PromptExecutionService:
             logger.info(f"📝 Sending prompt: {prompt_name}")
             response = self.execute_prompt_cycle(prompt_text)
 
-            responses.append({
-                "prompt_name": prompt_name,
-                "response": response
-            })
+            responses.append({"prompt_name": prompt_name, "response": response})
 
             time.sleep(self.cycle_speed)
 
@@ -101,7 +108,9 @@ class PromptExecutionService:
         """
         Launch prompt execution threads for a single chat (one thread per prompt).
         """
-        logger.info(f"🚀 Executing {len(prompt_list)} prompts concurrently on chat: {chat_link}")
+        logger.info(
+            f"🚀 Executing {len(prompt_list)} prompts concurrently on chat: {chat_link}"
+        )
 
         threads = []
 
@@ -111,8 +120,7 @@ class PromptExecutionService:
 
         for prompt_name in prompt_list:
             thread = threading.Thread(
-                target=self._execute_single_prompt_thread,
-                args=(chat_link, prompt_name)
+                target=self._execute_single_prompt_thread, args=(chat_link, prompt_name)
             )
             threads.append(thread)
             thread.start()
@@ -137,7 +145,9 @@ class PromptExecutionService:
         response = self.execute_prompt_cycle(prompt_text)
 
         if not response:
-            logger.warning(f"⚠️ [Thread] No response for prompt '{prompt_name}' on chat {chat_link}")
+            logger.warning(
+                f"⚠️ [Thread] No response for prompt '{prompt_name}' on chat {chat_link}"
+            )
             return
 
         # Feedback integration (if feedback engine provided)
@@ -183,13 +193,17 @@ class PromptExecutionService:
 
         try:
             # Locate the input text area
-            input_box = self.driver.find_element("xpath", "//textarea[@data-id='root-textarea']")
+            input_box = self.driver.find_element(
+                "xpath", "//textarea[@data-id='root-textarea']"
+            )
             input_box.clear()
             input_box.send_keys(prompt_text)
             time.sleep(1)  # Optional delay to simulate typing
 
             # Locate and click the send button
-            send_button = self.driver.find_element("xpath", "//button[@data-testid='send-button']")
+            send_button = self.driver.find_element(
+                "xpath", "//button[@data-testid='send-button']"
+            )
             send_button.click()
 
             logger.info("✅ Prompt sent successfully.")
@@ -204,7 +218,10 @@ class PromptExecutionService:
 
         try:
             # Find all message elements, select the last one
-            messages = self.driver.find_elements("xpath", "//div[contains(@class, 'prose') and not(contains(@class, 'markdown'))]")
+            messages = self.driver.find_elements(
+                "xpath",
+                "//div[contains(@class, 'prose') and not(contains(@class, 'markdown'))]",
+            )
             if not messages:
                 logger.warning("⚠️ No messages found.")
                 return ""

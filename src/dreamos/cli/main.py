@@ -1,102 +1,103 @@
-# TODO: Content should be copied from main_copy.py
-
-print("--- main.py started ---"); sys.stdout.flush() # Force output early + flush
 #!/usr/bin/env python3
 """Dream.OS Main Entry Point"""
 
-import sys
-import logging
-# Placeholder for AppConfig
-class AppConfig: pass 
-# ... existing imports ...
-# EDIT START: Add ConversationLogger import and initialization
-from ..coordination.agent_bus import AgentBus # Assuming AgentBus is available via singleton
-from ..hooks.conversation_logger import ConversationLogger
 # EDIT END
+import asyncio
+import logging
+import sys
+from pathlib import Path
+
+# EDIT START: Replace argparse with click
+# import argparse
+import click
+
+# Use canonical AppConfig and setup_logging from dreamos.config
+from dreamos.config import AppConfig, setup_logging
+from dreamos.core.orchestrator import Orchestrator
 
 # Initial basic logging config (will be overridden by setup_logging)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__) # Use __name__ for module-level logger
-sys.stdout.flush() # Flush after initial basicConfig
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)  # Use __name__ for module-level logger
+sys.stdout.flush()  # Flush after initial basicConfig
 
-# ... rest of the file ...
 
-def setup_logging(config: AppConfig):
-    """Configures the root logger based on the loaded configuration."""
-    log_level = getattr(logging, config.logging.level.upper(), logging.INFO)
-    log_format = '%(asctime)s - [%(levelname)s] - %(name)s - %(message)s'
-
-    root_logger = logging.getLogger() # Get root logger
-    # Remove existing handlers
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-
-    # Set level on root logger
-    root_logger.setLevel(log_level)
-
-    # Configure console handler (always add)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(logging.Formatter(log_format))
-    console_handler.setLevel(log_level) # Set level on handler too
-    root_logger.addHandler(console_handler)
-
-    # Configure file handler if specified
-    # ... (file handler code) ...
-
-    # Flush stdout again after setting up the main handler
-    sys.stdout.flush()
-
-def main(): # Assuming a main function exists or similar entry point
-    print("--- main() started ---"); sys.stdout.flush()
-    # Load configuration (replace with actual config loading)
-    config = AppConfig()
-    # ... (config loading logic) ...
-
-    # Setup logging based on the loaded config
-    setup_logging(config)
-    logger = logging.getLogger(__name__) # Re-get logger after setup if needed
-    sys.stdout.flush() # Flush after calling setup_logging
-
-    logger.info(f"Dream.OS starting...") # Simplified message
-    sys.stdout.flush() # Flush after first logger.info call
-
-    # EDIT START: Initialize AgentBus and ConversationLogger
+# EDIT START: Define click command group
+@click.group()
+@click.option(
+    "--config",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Path to the main configuration file (e.g., config.yaml)",
+)
+@click.pass_context
+def cli(ctx, config):
+    """DreamOS Command Line Interface"""
+    ctx.ensure_object(dict)
     try:
-        agent_bus = AgentBus() # Get singleton instance
-        logger.info("AgentBus obtained."); sys.stdout.flush()
+        # Instantiate AppConfig directly, passing CLI arg if provided
+        loaded_config = AppConfig(_config_file=config)
+        setup_logging(loaded_config)
+        ctx.obj["config"] = loaded_config
+        logger.info("DreamOS CLI starting...")
+        logger.info(f"Loaded configuration: {loaded_config.model_dump_json(indent=2)}")
+    except FileNotFoundError as e:
+        logger.error(f"Configuration file error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.exception(
+            f"An unexpected error occurred during configuration loading: {e}"
+        )
+        sys.exit(1)
 
-        conversation_logger = ConversationLogger(agent_bus=agent_bus)
-        logger.info("ConversationLogger initialized."); sys.stdout.flush()
 
-        conversation_logger.register_event_handlers()
-        logger.info("ConversationLogger handlers registered."); sys.stdout.flush()
+# Example subcommand - can be expanded
+@cli.command()
+@click.pass_context
+async def run(ctx):
+    """Initialize and run the main Orchestrator."""
+    config = ctx.obj["config"]
+    try:
+        orchestrator = Orchestrator(config)
+        logger.info("Orchestrator initialized.")
+        logger.info("Running Orchestrator... (Add main loop/task execution here)")
+        # Example: await orchestrator.start() or await orchestrator.run_task(...)
+        # For now, just log and exit gracefully
+        await asyncio.sleep(1)  # Placeholder for actual run logic
+        logger.info("Orchestrator run complete (placeholder). Exiting.")
 
     except Exception as e:
-        logger.critical(f"Failed to initialize AgentBus or ConversationLogger: {e}", exc_info=True)
-        sys.stdout.flush()
-        sys.exit(1) # Exit if core components fail
-    # EDIT END
+        logger.exception(
+            f"An unexpected error occurred during orchestrator execution: {e}"
+        )
+        sys.exit(1)
 
-    # ... (rest of application startup logic, e.g., starting services, UI) ...
-    logger.info("Dream.OS initialization complete."); sys.stdout.flush()
 
-    # Keep alive logic or start main loop
-    try:
-        # Replace with actual application run logic
-        print("Application running... Press Ctrl+C to exit.")
-        while True:
-            import time
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Shutdown signal received.")
-    finally:
-        # EDIT START: Ensure logger is closed on shutdown
-        if 'conversation_logger' in locals() and conversation_logger:
-            logger.info("Closing ConversationLogger database connection...")
-            conversation_logger.close()
-        # EDIT END
-        logger.info("Dream.OS shutdown complete.")
-        sys.stdout.flush()
+# EDIT END
+
+# EDIT START: Update main entry point for click and async
+# Removing unused main_async function as click handles async command invocation
+# async def main_async():
+#     # Click handles argument parsing directly
+#     # We need to run the async command if specified
+#     # This structure might need refinement based on how click async is best handled
+#     # For now, assume click handles invoking the async `run` command
+#     # The `cli()` function itself isn't async, but commands under it can be.
+#     # We might need `asyncio.run(cli(standalone_mode=False))` or similar depending on Click version
+#     pass # Click handles execution via the decorator typically
 
 if __name__ == "__main__":
-    main()
+    # Ensure the event loop is correctly managed, especially on Windows
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    try:
+        # Let Click handle the command invocation
+        cli()
+    except KeyboardInterrupt:
+        logger.info("DreamOS CLI terminated by user.")
+        sys.exit(0)
+    except Exception as e:
+        logger.exception(f"An unexpected error occurred during execution: {e}")
+        sys.exit(1)
+# EDIT END

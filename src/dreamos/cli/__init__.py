@@ -1,1 +1,1 @@
-# CLI commands for DreamOS 
+# CLI commands for DreamOS

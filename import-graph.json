@@ -1,0 +1,1516 @@
+{
+  "__init__.py": [],
+  "dreamos/__init__.py": [],
+  "dreamos/agents/agent2_infra_surgeon.py": [
+    "asyncio",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/agents/agent9_response_injector.py": [
+    "asyncio",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "time",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/agents/chatgpt_web_agent.py": [
+    "core",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "playwright",
+    "pydantic",
+    "re",
+    "selenium",
+    "time",
+    "typing"
+  ],
+  "dreamos/agents/context_router_agent.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "typing"
+  ],
+  "dreamos/agents/cursor_dispatcher.py": [
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "threading",
+    "time",
+    "utils",
+    "virtual_desktop_runner"
+  ],
+  "dreamos/agents/cursor_worker.py": [
+    "config",
+    "core",
+    "dreamos",
+    "logging",
+    "os",
+    "pathlib",
+    "pyautogui",
+    "pyperclip",
+    "sys",
+    "time"
+  ],
+  "dreamos/agents/recovery_coordinator.py": [
+    "__future__",
+    "asyncio",
+    "collections",
+    "datetime",
+    "dreamos",
+    "logging",
+    "typing"
+  ],
+  "dreamos/agents/supervisor_agent.py": [
+    "abc",
+    "asyncio",
+    "config",
+    "core",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "time"
+  ],
+  "dreamos/agents/task_feedback_router.py": [
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "shutil",
+    "time"
+  ],
+  "dreamos/agents/utils.py": [
+    "dreamos"
+  ],
+  "dreamos/agents/__init__.py": [],
+  "dreamos/agents/agents/task_executor_agent.py": [
+    "json",
+    "logging",
+    "os"
+  ],
+  "dreamos/agents/agents/tool_executor_agent.py": [
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/agents/agents/__init__.py": [],
+  "dreamos/agents/mixins/voting.py": [
+    "datetime",
+    "dreamos",
+    "logging",
+    "typing"
+  ],
+  "dreamos/agents/utils/agent1_taskboard_workaround.py": [
+    "datetime",
+    "filelock",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "tempfile",
+    "time",
+    "typing"
+  ],
+  "dreamos/agents/utils/agent_utils.py": [
+    "asyncio",
+    "core",
+    "datetime",
+    "dreamos",
+    "filelock",
+    "functools",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "queue",
+    "random",
+    "tempfile",
+    "time",
+    "traceback",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/agents/utils/onboarding_utils.py": [
+    "datetime",
+    "filelock",
+    "hashlib",
+    "logging",
+    "pathlib",
+    "yaml"
+  ],
+  "dreamos/apps/dreamscape/__init__.py": [],
+  "dreamos/apps/dreamscape/dreamscape_generator/main.py": [
+    "dreamos",
+    "logging",
+    "os",
+    "src",
+    "sys"
+  ],
+  "dreamos/apps/dreamscape/dreamscape_generator/__init__.py": [],
+  "dreamos/apps/dreamscape/dreamscape_generator/src/__init__.py": [
+    "generation_engine"
+  ],
+  "dreamos/apps/dreamscape/dreamscape_generator/src/core/__init__.py": [],
+  "dreamos/apps/dreamscape/dreamscape_generator/src/core/monitoring/__init__.py": [],
+  "dreamos/apps/dreamscape/dreamscape_generator/threads/__init__.py": [],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/build_tracker.py": [
+    "contextlib",
+    "hashlib",
+    "logging",
+    "os",
+    "pip",
+    "types",
+    "typing"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/metadata.py": [
+    "os",
+    "pip"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/metadata_editable.py": [
+    "os",
+    "pip"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/metadata_legacy.py": [
+    "logging",
+    "os",
+    "pip"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/wheel.py": [
+    "logging",
+    "os",
+    "pip",
+    "typing"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/wheel_editable.py": [
+    "logging",
+    "os",
+    "pip",
+    "typing"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/wheel_legacy.py": [
+    "logging",
+    "os",
+    "pip",
+    "typing"
+  ],
+  "dreamos/apps/dreamscape/venv_qt_test/Lib/site-packages/pip/_internal/operations/build/__init__.py": [],
+  "dreamos/automation/cursor_injector.py": [
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "pyautogui",
+    "pygetwindow",
+    "pyperclip",
+    "random",
+    "subprocess",
+    "sys",
+    "time",
+    "typing",
+    "utils"
+  ],
+  "dreamos/automation/cursor_orchestrator.py": [
+    "asyncio",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "pyautogui",
+    "pyperclip",
+    "selenium",
+    "tenacity",
+    "time",
+    "typing"
+  ],
+  "dreamos/automation/prompt_dispatcher.py": [
+    "asyncio",
+    "datetime",
+    "dreamos",
+    "logging",
+    "pathlib",
+    "random",
+    "time",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/automation/response_retriever.py": [
+    "json",
+    "logging",
+    "pathlib",
+    "pyautogui",
+    "pyperclip",
+    "subprocess",
+    "sys",
+    "time",
+    "typing",
+    "utils"
+  ],
+  "dreamos/automation/run_loop.py": [
+    "argparse",
+    "asyncio",
+    "cursor_orchestrator",
+    "dreamos",
+    "execution",
+    "logging",
+    "os",
+    "threading",
+    "time",
+    "typing"
+  ],
+  "dreamos/automation/run_orchestrator.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "pathlib",
+    "signal",
+    "sys"
+  ],
+  "dreamos/automation/execution/cursor_fleet_launcher.py": [
+    "os",
+    "pygetwindow",
+    "screeninfo",
+    "subprocess",
+    "time",
+    "win32con",
+    "win32gui"
+  ],
+  "dreamos/automation/execution/dream_mode_sleep.py": [
+    "agents",
+    "logging",
+    "os",
+    "pathlib",
+    "sys",
+    "threading",
+    "time"
+  ],
+  "dreamos/automation/execution/swarm_controller.py": [
+    "_agent_coordination",
+    "asyncio",
+    "channels",
+    "core",
+    "cursor_fleet_launcher",
+    "dreamos",
+    "logging",
+    "os",
+    "pathlib",
+    "platform",
+    "queue",
+    "subprocess",
+    "sys",
+    "threading",
+    "time",
+    "typing",
+    "virtual_desktop_runner"
+  ],
+  "dreamos/automation/execution/virtual_desktop_runner.py": [
+    "os",
+    "platform",
+    "pyautogui",
+    "pyvda",
+    "pyvirtualdisplay",
+    "subprocess",
+    "sys",
+    "time"
+  ],
+  "dreamos/channels/azure_blob_channel.py": [
+    "json"
+  ],
+  "dreamos/channels/azure_eventhub_channel.py": [
+    "azure",
+    "logging",
+    "os"
+  ],
+  "dreamos/channels/channel_loader.py": [
+    "dreamos",
+    "logging",
+    "typing"
+  ],
+  "dreamos/channels/local_blob_channel.py": [
+    "json",
+    "os"
+  ],
+  "dreamos/channels/__init__.py": [
+    "azure_blob_channel",
+    "local_blob_channel"
+  ],
+  "dreamos/chat_engine/base_chat_adapter.py": [
+    "abc",
+    "typing"
+  ],
+  "dreamos/chat_engine/chat_cycle_controller.py": [
+    "chat_mate_config",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "threading",
+    "time"
+  ],
+  "dreamos/chat_engine/chat_scraper_service.py": [
+    "logging",
+    "time"
+  ],
+  "dreamos/chat_engine/discord_dispatcher.py": [
+    "asyncio",
+    "discord",
+    "logging"
+  ],
+  "dreamos/chat_engine/driver_manager.py": [
+    "datetime",
+    "logging",
+    "os",
+    "pickle",
+    "platform",
+    "selenium",
+    "shutil",
+    "subprocess",
+    "sys",
+    "tempfile",
+    "threading",
+    "time",
+    "typing",
+    "undetected_chromedriver",
+    "webdriver_manager"
+  ],
+  "dreamos/chat_engine/feedback_engine.py": [
+    "concurrent",
+    "datetime",
+    "dreamos",
+    "logging",
+    "os",
+    "threading",
+    "typing"
+  ],
+  "dreamos/chat_engine/feedback_engine_v2.py": [
+    "asyncio",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/chat_engine/gui_event_handler.py": [
+    "PyQt5",
+    "dreamos",
+    "logging",
+    "sys"
+  ],
+  "dreamos/chat_engine/prompt_execution_service.py": [
+    "logging",
+    "threading",
+    "time"
+  ],
+  "dreamos/chat_engine/__init__.py": [
+    "feedback_engine_v2"
+  ],
+  "dreamos/cli/main.py": [
+    "asyncio",
+    "click",
+    "dreamos",
+    "logging",
+    "pathlib",
+    "sys"
+  ],
+  "dreamos/cli/manage_tasks.py": [
+    "click",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "sys",
+    "typing"
+  ],
+  "dreamos/cli/safe_edit_json_list.py": [
+    "click",
+    "filelock",
+    "json",
+    "jsonschema",
+    "logging",
+    "os",
+    "pathlib",
+    "sys",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/cli/safe_writer_cli.py": [
+    "click",
+    "dreamos",
+    "logging",
+    "os",
+    "pathlib",
+    "sys"
+  ],
+  "dreamos/cli/__init__.py": [],
+  "dreamos/config_files/__init__.py": [],
+  "dreamos/coordination/agent_bus.py": [
+    "asyncio",
+    "core",
+    "dataclasses",
+    "dreamos",
+    "enum",
+    "event_payloads",
+    "logging",
+    "message_patterns",
+    "pathlib",
+    "threading",
+    "time",
+    "traceback",
+    "typing",
+    "utils",
+    "uuid"
+  ],
+  "dreamos/coordination/dispatcher.py": [
+    "enum"
+  ],
+  "dreamos/coordination/governance_utils.py": [
+    "json"
+  ],
+  "dreamos/coordination/project_board_manager.py": [
+    "argparse",
+    "click",
+    "datetime",
+    "filelock",
+    "json",
+    "jsonschema",
+    "logging",
+    "os",
+    "pathlib",
+    "sys",
+    "tempfile",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/coordination/voting_coordinator.py": [
+    "agent_bus",
+    "asyncio",
+    "collections",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "pydantic",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/coordination/dispatchers/base_dispatcher.py": [
+    "dreamos"
+  ],
+  "dreamos/coordination/dispatchers/dispatchers/base_dispatcher.py": [
+    "queue"
+  ],
+  "dreamos/coordination/dispatchers/dispatchers/__init__.py": [],
+  "dreamos/coordination/tasks/task_utils.py": [
+    "comms",
+    "datetime",
+    "dreamos",
+    "enum",
+    "json",
+    "logging",
+    "math",
+    "pathlib",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/coordination/tasks/__init__.py": [],
+  "dreamos/core/config.py": [
+    "errors",
+    "logging",
+    "os",
+    "pathlib",
+    "pydantic",
+    "pydantic_settings",
+    "typing",
+    "yaml"
+  ],
+  "dreamos/core/errors.py": [],
+  "dreamos/core/validation_utils.py": [
+    "errors",
+    "logging",
+    "typing"
+  ],
+  "dreamos/core/__init__.py": [],
+  "dreamos/core/agents/capabilities/schema.py": [
+    "dataclasses",
+    "typing"
+  ],
+  "dreamos/core/awareness/context_manager.py": [],
+  "dreamos/core/bots/orchestrator_bot.py": [
+    "asyncio",
+    "automation",
+    "config",
+    "coordination",
+    "datetime",
+    "json",
+    "logging",
+    "pathlib",
+    "pyautogui",
+    "sys",
+    "time",
+    "traceback",
+    "uuid",
+    "watchdog"
+  ],
+  "dreamos/core/comms/mailbox.py": [
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "shutil",
+    "uuid"
+  ],
+  "dreamos/core/comms/mailbox_utils.py": [
+    "asyncio",
+    "config",
+    "datetime",
+    "errors",
+    "events",
+    "filelock",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "tempfile",
+    "typing",
+    "utils",
+    "uuid"
+  ],
+  "dreamos/core/coordination/agent_bus.py": [
+    "asyncio",
+    "collections",
+    "event_types",
+    "events",
+    "logging",
+    "pydantic",
+    "time",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/core/coordination/base_agent.py": [
+    "abc",
+    "asyncio",
+    "datetime",
+    "dreamos",
+    "event_payloads",
+    "event_types",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "queue",
+    "shlex",
+    "subprocess",
+    "sys",
+    "traceback",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/core/coordination/enums.py": [
+    "enum"
+  ],
+  "dreamos/core/coordination/event_payloads.py": [
+    "dataclasses",
+    "enum",
+    "enums",
+    "message_patterns",
+    "pydantic",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/core/coordination/event_types.py": [
+    "enum"
+  ],
+  "dreamos/core/coordination/message_patterns.py": [
+    "dataclasses",
+    "datetime",
+    "enum",
+    "pydantic",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/core/coordination/__init__.py": [],
+  "dreamos/core/coordination/schemas/voting_patterns.py": [
+    "event_types",
+    "pydantic",
+    "typing"
+  ],
+  "dreamos/core/errors/error_reporting.py": [
+    "logging"
+  ],
+  "dreamos/core/errors/exceptions.py": [],
+  "dreamos/core/errors/__init__.py": [
+    "exceptions"
+  ],
+  "dreamos/core/events/base_event.py": [
+    "coordination",
+    "datetime",
+    "pydantic",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/core/events/__init__.py": [],
+  "dreamos/core/feedback/thea_feedback_ingestor.py": [
+    "agents",
+    "argparse",
+    "datetime",
+    "dreamos",
+    "glob",
+    "json",
+    "logging",
+    "os",
+    "pathlib"
+  ],
+  "dreamos/core/health_checks/cursor_status_check.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "pprint",
+    "typing"
+  ],
+  "dreamos/core/health_checks/cursor_window_check.py": [
+    "json",
+    "logging",
+    "pathlib",
+    "pprint",
+    "pyautogui",
+    "typing"
+  ],
+  "dreamos/core/identity/agent_identity.py": [
+    "datetime",
+    "logging",
+    "pydantic",
+    "typing"
+  ],
+  "dreamos/core/identity/agent_identity_manager.py": [
+    "agent_identity",
+    "agent_identity_store",
+    "asyncio",
+    "datetime",
+    "logging",
+    "threading",
+    "typing"
+  ],
+  "dreamos/core/identity/agent_identity_store.py": [
+    "agent_identity",
+    "asyncio",
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "typing",
+    "utils"
+  ],
+  "dreamos/core/logging/swarm_logger.py": [
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/core/tasks/nexus/capability_registry.py": [
+    "dataclasses",
+    "datetime",
+    "dreamos",
+    "filelock",
+    "json",
+    "logging",
+    "os",
+    "threading",
+    "typing"
+  ],
+  "dreamos/core/tasks/nexus/task_nexus.py": [
+    "asyncio",
+    "capability_registry",
+    "collections",
+    "comms",
+    "config",
+    "filelock",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "time",
+    "typing"
+  ],
+  "dreamos/core/tools/script_runner.py": [
+    "config",
+    "errors",
+    "logging",
+    "os",
+    "pathlib",
+    "shutil",
+    "subprocess",
+    "sys",
+    "typing"
+  ],
+  "dreamos/core/utils/autonomy_governor.py": [
+    "comms",
+    "config",
+    "coordination",
+    "datetime",
+    "errors",
+    "json",
+    "logging",
+    "pathlib",
+    "subprocess",
+    "typing"
+  ],
+  "dreamos/core/utils/file_locking.py": [
+    "asyncio",
+    "contextlib",
+    "dreamos",
+    "filelock",
+    "logging",
+    "os",
+    "pathlib",
+    "tempfile",
+    "typing"
+  ],
+  "dreamos/core/utils/onboarding_utils.py": [
+    "asyncio",
+    "datetime",
+    "dreamos",
+    "hashlib",
+    "logging",
+    "os",
+    "pathlib",
+    "time",
+    "yaml"
+  ],
+  "dreamos/core/utils/safe_file_writer.py": [
+    "filelock",
+    "logging",
+    "os",
+    "pathlib",
+    "uuid"
+  ],
+  "dreamos/dashboard/dashboard_app.py": [
+    "datetime",
+    "flask",
+    "json",
+    "logging",
+    "pathlib"
+  ],
+  "dreamos/dashboard/dashboard_ui.py": [
+    "PyQt5",
+    "dreamos",
+    "logging",
+    "os",
+    "pathlib",
+    "sys"
+  ],
+  "dreamos/gui/main_window.py": [
+    "PyQt5",
+    "asyncio",
+    "dashboard",
+    "datetime",
+    "dreamos",
+    "fragment_forge_tab",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "sys",
+    "uuid"
+  ],
+  "dreamos/gui/supervisor_alert_viewer.py": [
+    "PyQt5",
+    "datetime",
+    "json",
+    "os",
+    "pathlib",
+    "sys"
+  ],
+  "dreamos/hooks/chatgpt_responder.py": [
+    "datetime",
+    "dream_os",
+    "social",
+    "sys",
+    "uuid"
+  ],
+  "dreamos/hooks/chronicle_logger.py": [
+    "datetime",
+    "dreamos",
+    "logging",
+    "pathlib",
+    "threading"
+  ],
+  "dreamos/hooks/conversation_logger.py": [
+    "config",
+    "coordination",
+    "datetime",
+    "events",
+    "identity",
+    "json",
+    "logging",
+    "pathlib",
+    "sqlite3",
+    "typing"
+  ],
+  "dreamos/hooks/stats_logger.py": [
+    "datetime",
+    "dreamos",
+    "json",
+    "pathlib",
+    "utils"
+  ],
+  "dreamos/hooks/__init__.py": [],
+  "dreamos/identity/models.py": [
+    "dataclasses",
+    "time",
+    "typing"
+  ],
+  "dreamos/identity/store.py": [
+    "json",
+    "logging",
+    "models",
+    "pathlib",
+    "threading",
+    "typing"
+  ],
+  "dreamos/integrations/azure_blob_client.py": [
+    "asyncio",
+    "azure",
+    "dreamos",
+    "logging",
+    "tenacity"
+  ],
+  "dreamos/integrations/browser_client.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "playwright",
+    "typing"
+  ],
+  "dreamos/integrations/discord_client.py": [
+    "aiohttp",
+    "asyncio",
+    "dreamos",
+    "json",
+    "logging",
+    "tenacity"
+  ],
+  "dreamos/integrations/openai_client.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "openai",
+    "tenacity"
+  ],
+  "dreamos/integrations/__init__.py": [],
+  "dreamos/integrations/agent_services/cursor_shadow_controller.py": [
+    "json",
+    "logging",
+    "pathlib",
+    "shutil",
+    "sys",
+    "time",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/integrations/cursor/cursor_prompt_controller.py": [
+    "logging",
+    "pyautogui",
+    "pyperclip",
+    "time",
+    "warnings"
+  ],
+  "dreamos/integrations/cursor/swarm_bootloader.py": [
+    "integrations",
+    "logging",
+    "pathlib",
+    "platform",
+    "pyvda",
+    "shutil",
+    "subprocess",
+    "sys",
+    "time",
+    "typing"
+  ],
+  "dreamos/integrations/cursor/utils.py": [
+    "core",
+    "datetime",
+    "logging",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/integrations/cursor/window_controller.py": [
+    "AppKit",
+    "Xlib",
+    "dataclasses",
+    "logging",
+    "os",
+    "platform",
+    "typing",
+    "win32con",
+    "win32gui",
+    "win32process"
+  ],
+  "dreamos/integrations/cursor/coordination/__init__.py": [],
+  "dreamos/integrations/social/core/__init__.py": [
+    "feedback_processor",
+    "mailbox",
+    "post_context_generator",
+    "social_media_agent"
+  ],
+  "dreamos/llm_bridge/bridge_adapters/base_adapter.py": [
+    "abc",
+    "dreamos",
+    "logging",
+    "typing"
+  ],
+  "dreamos/memory/compaction_utils.py": [
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "typing",
+    "zlib"
+  ],
+  "dreamos/memory/memory_manager.py": [
+    "__future__",
+    "cachetools",
+    "core",
+    "datetime",
+    "dreamos",
+    "jinja2",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "sqlite3",
+    "tempfile",
+    "threading",
+    "typing",
+    "zlib"
+  ],
+  "dreamos/memory/summarization_utils.py": [
+    "compaction_utils",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "typing",
+    "zlib"
+  ],
+  "dreamos/memory/summarizer.py": [
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "shutil",
+    "tempfile",
+    "typing"
+  ],
+  "dreamos/memory/__init__.py": [],
+  "dreamos/memory/layers/task_memory_layer.py": [
+    "json",
+    "logging",
+    "pathlib",
+    "threading",
+    "time",
+    "typing"
+  ],
+  "dreamos/monitoring/performance_logger.py": [
+    "contextlib",
+    "core",
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "typing"
+  ],
+  "dreamos/monitoring/prompt_execution_monitor.py": [
+    "asyncio",
+    "core",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "queue",
+    "threading",
+    "time",
+    "typing"
+  ],
+  "dreamos/rendering/template_engine.py": [
+    "jinja2",
+    "logging",
+    "typing"
+  ],
+  "dreamos/rendering/__init__.py": [],
+  "dreamos/reporting/scoring_analyzer.py": [
+    "collections",
+    "datetime",
+    "json",
+    "logging",
+    "pathlib",
+    "statistics",
+    "typing"
+  ],
+  "dreamos/schemas/__init__.py": [],
+  "dreamos/services/event_logger.py": [
+    "datetime",
+    "json",
+    "os",
+    "uuid"
+  ],
+  "dreamos/services/failed_prompt_archive.py": [
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "typing"
+  ],
+  "dreamos/services/memory_maintenance_service.py": [],
+  "dreamos/services/__init__.py": [],
+  "dreamos/services/utils/chatgpt_scraper.py": [
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "retry_utils",
+    "selenium",
+    "time",
+    "typing",
+    "undetected_chromedriver"
+  ],
+  "dreamos/services/utils/cursor.py": [
+    "dreamos",
+    "json",
+    "logging",
+    "logging_utils",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/services/utils/devlog_analyzer.py": [
+    "datetime",
+    "json",
+    "logging",
+    "pandas",
+    "pathlib",
+    "sqlite3",
+    "typing"
+  ],
+  "dreamos/services/utils/devlog_dispatcher.py": [
+    "dreamos",
+    "hashlib",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "queue",
+    "threading",
+    "time",
+    "typing",
+    "unittest",
+    "utils",
+    "watchdog"
+  ],
+  "dreamos/services/utils/devlog_generator.py": [
+    "config",
+    "core",
+    "dataclasses",
+    "datetime",
+    "frontmatter",
+    "jinja2",
+    "json",
+    "logging",
+    "logging_utils",
+    "os",
+    "pathlib",
+    "re",
+    "time",
+    "typing"
+  ],
+  "dreamos/services/utils/feedback_processor.py": [
+    "datetime",
+    "dreamforge",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "re",
+    "social",
+    "sys",
+    "uuid"
+  ],
+  "dreamos/services/utils/logging_utils.py": [
+    "datetime",
+    "json",
+    "logging",
+    "typing"
+  ],
+  "dreamos/services/utils/retry_utils.py": [
+    "functools",
+    "logging",
+    "time"
+  ],
+  "dreamos/services/utils/selenium_utils.py": [
+    "selenium",
+    "typing",
+    "utils"
+  ],
+  "dreamos/services/utils/__init__.py": [],
+  "dreamos/services/utils/content/post_context_generator.py": [
+    "dreamos",
+    "governance_memory_engine",
+    "json",
+    "os",
+    "re",
+    "sys",
+    "template_engine",
+    "traceback"
+  ],
+  "dreamos/social/__init__.py": [],
+  "dreamos/social/exceptions/__init__.py": [],
+  "dreamos/social/utils/__init__.py": [],
+  "dreamos/supervisor_tools/command_supervisor.py": [
+    "abc",
+    "asyncio",
+    "core",
+    "dataclasses",
+    "enum",
+    "json",
+    "logging",
+    "subprocess",
+    "threading",
+    "time",
+    "traceback",
+    "typing",
+    "utils",
+    "uuid"
+  ],
+  "dreamos/tools/thea_relay_agent.py": [
+    "asyncio",
+    "datetime",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "shutil",
+    "sys",
+    "time",
+    "typing"
+  ],
+  "dreamos/tools/__init__.py": [],
+  "dreamos/tools/analysis/dead_code.py": [
+    "logging",
+    "os",
+    "pathlib",
+    "re",
+    "shutil",
+    "subprocess",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/analyzer.py": [
+    "ast",
+    "logging",
+    "pathlib",
+    "tree_sitter",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/concurrency.py": [
+    "logging",
+    "pathlib",
+    "queue",
+    "threading",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/file_processor.py": [
+    "analyzer",
+    "hashlib",
+    "logging",
+    "os",
+    "pathlib",
+    "threading",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/project_scanner.py": [
+    "analyzer",
+    "argparse",
+    "ast",
+    "collections",
+    "concurrency",
+    "concurrent",
+    "file_processor",
+    "fnmatch",
+    "hashlib",
+    "jinja2",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "queue",
+    "report_generator",
+    "sys",
+    "threading",
+    "time",
+    "tree_sitter",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/report_generator.py": [
+    "collections",
+    "jinja2",
+    "json",
+    "logging",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/tools/analysis/project_scanner/__init__.py": [
+    "project_scanner"
+  ],
+  "dreamos/tools/calibration/recalibrate_coords.py": [
+    "argparse",
+    "dreamos",
+    "json",
+    "logging",
+    "pathlib",
+    "portalocker",
+    "pyautogui",
+    "sys",
+    "time"
+  ],
+  "dreamos/tools/coordination/broadcast_directive.py": [
+    "asyncio",
+    "dreamos",
+    "logging",
+    "typing",
+    "uuid"
+  ],
+  "dreamos/tools/discovery/archive_defunct_tests.py": [
+    "argparse",
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "shutil"
+  ],
+  "dreamos/tools/discovery/find_defunct_tests.py": [
+    "argparse",
+    "json",
+    "logging",
+    "os",
+    "pathlib"
+  ],
+  "dreamos/tools/discovery/find_todos.py": [
+    "argparse",
+    "datetime",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "re"
+  ],
+  "dreamos/tools/discovery/__init__.py": [],
+  "dreamos/tools/dreamos_utils/archive_agent_mailboxes.py": [
+    "datetime",
+    "logging",
+    "os",
+    "pathlib",
+    "shutil"
+  ],
+  "dreamos/tools/dreamos_utils/check_agent_pulse.py": [
+    "datetime",
+    "dreamos",
+    "os",
+    "pathlib",
+    "sys",
+    "yaml"
+  ],
+  "dreamos/tools/dreamos_utils/__init__.py": [],
+  "dreamos/tools/functional/context_planner_tool.py": [
+    "dreamos",
+    "logging",
+    "os",
+    "re",
+    "typing"
+  ],
+  "dreamos/tools/functional/gui_interaction.py": [
+    "logging",
+    "platform",
+    "pyautogui",
+    "pyperclip",
+    "time"
+  ],
+  "dreamos/tools/functional/__init__.py": [],
+  "dreamos/tools/validation/check_dependencies.py": [
+    "logging",
+    "shutil",
+    "typing"
+  ],
+  "dreamos/tools/_core/base.py": [
+    "abc",
+    "logging",
+    "typing"
+  ],
+  "dreamos/tools/_core/registry.py": [
+    "inspect",
+    "logging",
+    "typing"
+  ],
+  "dreamos/tools/_core/__init__.py": [
+    "base",
+    "registry"
+  ],
+  "dreamos/utils/common_utils.py": [
+    "asyncio",
+    "time",
+    "uuid"
+  ],
+  "dreamos/utils/gui_utils.py": [
+    "core",
+    "json",
+    "logging",
+    "pathlib",
+    "pygetwindow",
+    "subprocess",
+    "sys",
+    "typing"
+  ],
+  "dreamos/utils/protocol_compliance_utils.py": [
+    "filelock",
+    "hashlib",
+    "logging",
+    "pathlib",
+    "sys",
+    "typing",
+    "yaml"
+  ],
+  "dreamos/utils/schema_validator.py": [
+    "json",
+    "jsonschema",
+    "logging",
+    "pathlib",
+    "typing"
+  ],
+  "dreamos/utils/search.py": [
+    "logging",
+    "shutil",
+    "subprocess",
+    "typing"
+  ],
+  "dreamos/utils/text.py": [
+    "logging",
+    "re"
+  ],
+  "dreamos/utils/__init__.py": [
+    "core",
+    "file_io",
+    "gui_automation",
+    "project_root",
+    "schema_validator",
+    "search",
+    "text",
+    "validation"
+  ],
+  "dreamos/utils/dream_mode_utils/browser.py": [
+    "dreamos",
+    "json",
+    "logging",
+    "os",
+    "pathlib",
+    "selenium",
+    "sys",
+    "time",
+    "typing",
+    "undetected_chromedriver"
+  ],
+  "dreamos/utils/dream_mode_utils/channel_loader.py": [
+    "azure",
+    "dreamos",
+    "logging",
+    "os",
+    "typing"
+  ],
+  "dreamos/utils/dream_mode_utils/cursor_session_manager.py": [
+    "dreamos",
+    "logging",
+    "os",
+    "pathlib",
+    "subprocess",
+    "sys",
+    "time",
+    "typing",
+    "watchdog"
+  ],
+  "dreamos/utils/dream_mode_utils/html_parser.py": [
+    "logging",
+    "selenium"
+  ],
+  "dreamos/utils/dream_mode_utils/prompt_renderer.py": [
+    "jinja2",
+    "logging",
+    "pathlib"
+  ],
+  "dreamos/utils/dream_mode_utils/task_parser.py": [
+    "json",
+    "logging",
+    "re"
+  ],
+  "dreamos/utils/dream_mode_utils/__init__.py": [],
+  "dreamscape/__init__.py": [],
+  "dreamscape/agents/planner_agent.py": [
+    "asyncio",
+    "core",
+    "datetime",
+    "dreamos",
+    "logging",
+    "openai",
+    "traceback",
+    "typing"
+  ],
+  "dreamscape/agents/writer_agent.py": [
+    "asyncio",
+    "core",
+    "datetime",
+    "dreamos",
+    "logging",
+    "openai",
+    "traceback",
+    "typing"
+  ],
+  "dreamscape/agents/__init__.py": [],
+  "dreamscape/core/content_models.py": [
+    "pydantic",
+    "typing"
+  ],
+  "dreamscape/core/__init__.py": [],
+  "dreamscape/events/event_types.py": [
+    "enum"
+  ],
+  "dreamscape/events/__init__.py": [],
+  "dreamscape/schemas/event_schemas.py": [
+    "core",
+    "pydantic",
+    "typing"
+  ],
+  "dreamscape/schemas/__init__.py": [],
+  "dreamscape/utils/__init__.py": []
+}

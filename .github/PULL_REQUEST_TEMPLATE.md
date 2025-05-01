@@ -33,4 +33,4 @@
 - [ ] I have added tests that prove my fix is effective or that my feature works.
 - [ ] New and existing unit tests pass locally with my changes (`pytest`).
 - [ ] My commit messages follow the [Conventional Commits](CONTRIBUTING.md#commit-message-format) format.
-- [ ] I have checked my code and corrected any misspellings. 
+- [ ] I have checked my code and corrected any misspellings.

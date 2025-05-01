@@ -1,14 +1,16 @@
-import os
-import json
-import threading
 import logging
-from datetime import datetime
+import os
+import threading
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Any, Optional
+from datetime import datetime
+from typing import Any, List
+
+from dreamos.integrations.openai_client import OpenAIClient
 
 # Setup logger
 logger = logging.getLogger("FeedbackEngine")
 logger.setLevel(logging.INFO)
+
 
 class FeedbackEngine:
     """
@@ -16,7 +18,11 @@ class FeedbackEngine:
     tracks reinforcement loops, and evolves Victor.OS intelligence.
     """
 
-    def __init__(self, memory_file: str = "memory/persistent_memory.json", feedback_log_file: str = "memory/feedback_log.json"):
+    def __init__(
+        self,
+        memory_file: str = "memory/persistent_memory.json",
+        feedback_log_file: str = "memory/feedback_log.json",
+    ):
         self.memory_file = memory_file
         self.feedback_log_file = feedback_log_file
         self.memory_state = {}
@@ -24,13 +30,15 @@ class FeedbackEngine:
         self.context_memory = {
             "recent_responses": [],
             "user_profiles": {},
-            "platform_memories": {}
+            "platform_memories": {},
         }
 
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=2)
 
-        logger.info(f"🧠 FeedbackEngine initializing with memory file: {self.memory_file}")
+        logger.info(
+            f"🧠 FeedbackEngine initializing with memory file: {self.memory_file}"
+        )
         self._load_memory()
 
     # ---------------------------------------------------
@@ -39,12 +47,14 @@ class FeedbackEngine:
     def _load_memory(self):
         """Load persistent memory state from file."""
         if not os.path.exists(self.memory_file):
-            logger.warning(f"⚠️ No memory file found at {self.memory_file}. Starting with empty memory state.")
+            logger.warning(
+                f"⚠️ No memory file found at {self.memory_file}. Starting with empty memory state."
+            )
             self.memory_state = {}
             return
 
         try:
-            with open(self.memory_file, 'r', encoding='utf-8') as f:
+            with open(self.memory_file, "r", encoding="utf-8") as f:
                 self.memory_state = json.load(f)
             logger.info(f"✅ Memory loaded from {self.memory_file}")
         except Exception as e:
@@ -56,7 +66,7 @@ class FeedbackEngine:
         with self._lock:
             try:
                 os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
-                with open(self.memory_file, 'w', encoding='utf-8') as f:
+                with open(self.memory_file, "w", encoding="utf-8") as f:
                     json.dump(self.memory_state, f, indent=4, ensure_ascii=False)
                 logger.info(f"💾 Memory saved to {self.memory_file}")
             except Exception as e:
@@ -82,7 +92,9 @@ class FeedbackEngine:
 
         try:
             memory_block = ai_response.split("MEMORY_UPDATE")[-1].strip()
-            json_block = memory_block[memory_block.find("{"):memory_block.rfind("}") + 1]
+            json_block = memory_block[
+                memory_block.find("{") : memory_block.rfind("}") + 1
+            ]
 
             updates = json.loads(json_block)
             logger.info(f"✅ Parsed MEMORY_UPDATE: {updates}")
@@ -114,7 +126,9 @@ class FeedbackEngine:
     # ---------------------------------------------------
     # FEEDBACK LOOP TRACKING
     # ---------------------------------------------------
-    def log_feedback(self, prompt_name: str, score: float, hallucination: bool, notes: str = ""):
+    def log_feedback(
+        self, prompt_name: str, score: float, hallucination: bool, notes: str = ""
+    ):
         """
         Logs reinforcement learning feedback per prompt execution.
         """
@@ -123,7 +137,7 @@ class FeedbackEngine:
             "prompt_name": prompt_name,
             "score": score,
             "hallucination": hallucination,
-            "notes": notes
+            "notes": notes,
         }
 
         logger.info(f"📝 Logging feedback: {feedback_entry}")
@@ -136,7 +150,7 @@ class FeedbackEngine:
         with self._lock:
             try:
                 os.makedirs(os.path.dirname(self.feedback_log_file), exist_ok=True)
-                with open(self.feedback_log_file, 'w', encoding='utf-8') as f:
+                with open(self.feedback_log_file, "w", encoding="utf-8") as f:
                     json.dump(self.feedback_log, f, indent=4, ensure_ascii=False)
                 logger.info(f"📤 Feedback log exported to {self.feedback_log_file}")
             except Exception as e:
@@ -154,7 +168,8 @@ class FeedbackEngine:
 
         low_score_threshold = 0.5
         problem_prompts = [
-            f["prompt_name"] for f in self.feedback_log
+            f["prompt_name"]
+            for f in self.feedback_log
             if f["score"] < low_score_threshold or f["hallucination"]
         ]
 
@@ -184,7 +199,9 @@ class FeedbackEngine:
         Updates internal contextual memory with a new interaction.
         Includes user profiles, platform-specific memories, and recent responses.
         """
-        logger.info(f"🔁 Feedback loop processing new entry for user {new_entry.get('user', 'unknown')}...")
+        logger.info(
+            f"🔁 Feedback loop processing new entry for user {new_entry.get('user', 'unknown')}..."
+        )
 
         user = new_entry.get("user", "unknown")
         platform = new_entry.get("platform", "general")
@@ -196,11 +213,15 @@ class FeedbackEngine:
 
             # Update user profiles
             if user != "unknown":
-                profile = self.context_memory["user_profiles"].setdefault(user, {"last_interactions": []})
+                profile = self.context_memory["user_profiles"].setdefault(
+                    user, {"last_interactions": []}
+                )
                 profile["last_interactions"].append(new_entry)
 
             # Update platform memories
-            self.context_memory["platform_memories"].setdefault(platform, []).append(ai_output)
+            self.context_memory["platform_memories"].setdefault(platform, []).append(
+                ai_output
+            )
 
         logger.info(f"✅ Feedback loop updated for {user}.")
         self.save_context_memory_async()
@@ -214,7 +235,7 @@ class FeedbackEngine:
         with self._lock:
             try:
                 os.makedirs(os.path.dirname(context_file), exist_ok=True)
-                with open(context_file, 'w', encoding='utf-8') as f:
+                with open(context_file, "w", encoding="utf-8") as f:
                     json.dump(self.context_memory, f, indent=4, ensure_ascii=False)
                 logger.info(f"💾 Context memory saved to {context_file}")
             except Exception as e:

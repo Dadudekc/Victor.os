@@ -12,15 +12,26 @@ __pycache__/
 .pytest_cache/
 
 # Runtime directory (contains instance-specific data, logs, etc.)
-# Uncomment if you want to exclude the entire runtime directory
-# runtime/
-# Or exclude specific common runtime files/patterns:
-runtime/**/inbox/*
-runtime/**/outbox/*
-runtime/**/*.log
-runtime/**/*.json # Be careful, might exclude config if stored here
-!runtime/governance_memory.jsonl # Example: Keep this specific log
-!runtime/rulebook.md # Example: Keep the canonical runtime rulebook
+# Ignore all runtime files by default
+/runtime/*
+
+# But specifically keep the directory structure markers
+!/runtime/**/.keep
+
+# Keep the README explaining the structure
+!/runtime/README.md
+
+# Optionally keep essential runtime configuration if needed
+# !/runtime/config/agent_coords.json
+# !/runtime/config/other_runtime_config.yaml
+
+# Remove old specific runtime ignores as they are covered by /runtime/*
+# runtime/**/inbox/*
+# runtime/**/outbox/*
+# runtime/**/*.log
+# runtime/**/*.json
+# !runtime/governance_memory.jsonl
+# !runtime/rulebook.md
 
 # Analysis outputs (optional, depends on workflow)
 # analysis/temp_*
@@ -50,14 +61,17 @@ secrets/
 # Virtual environment directories
 **/.venv/
 
+# MyPy cache
+.mypy_cache/
+
+# DreamOS specific cache in reports
+reports/.dreamos_cache/
+
+# Coverage reports
+htmlcov/
+
+# Node.js dependencies
+node_modules/
+
 # Ignore stray root script
 r.py
-
-# Added JSON files
-runtime/chatgpt_project_context.json
-runtime/dependency_cache.json
-runtime/project_analysis.json
-runtime/master_task_list.json
-
-# Runtime logs & artifacts
-runtime/logs/dreamscape_chronicle.md

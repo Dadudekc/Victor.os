@@ -172,4 +172,4 @@ This iterative process of discovery, hypothesis, targeted analysis, and adaptati
         *   Uses `sys._getframe` to default `name` to the calling module's name.
         *   Optionally wraps logger in `LoggerAdapter` to add `component` context to JSON logs.
 *   **Inference:** Provides a robust, centralized, and configurable logging system emphasizing structured (JSON) logging for better machine readability and analysis.
-*   **Next Step Options:** Analyze `core/utils/metrics.py`, other core modules, or another agent (e.g., `agent_2`). 
+*   **Next Step Options:** Analyze `core/utils/metrics.py`, other core modules, or another agent (e.g., `agent_2`).

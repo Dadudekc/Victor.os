@@ -1,31 +1,34 @@
 """Base test class for strategy tests."""
 
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
-from typing import Dict, Any
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from typing import Any, Dict
+from unittest.mock import Mock, patch
 
-from dreamos.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
+import pytest
+from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+
 from dreamos.exceptions.strategy_exceptions import StrategyError
+from dreamos.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
+
 
 class MockStrategy(BaseStrategy):
     """Mock strategy for testing base functionality."""
-    
+
     def login(self) -> bool:
         return True
-        
+
     def post_content(self, content: str, media_files=None) -> bool:
         return True
-        
+
     def scrape_mentions(self, since=None):
         return []
 
+
 class BaseStrategyTest:
     """Base test class for all strategy tests."""
-    
+
     @pytest.fixture
     def mock_config(self) -> Dict[str, Any]:
         """Fixture for mock configuration."""
@@ -39,19 +42,19 @@ class BaseStrategyTest:
                     "api_key": "test_key",
                     "api_secret": "test_secret",
                     "access_token": "test_token",
-                    "access_token_secret": "test_token_secret"
+                    "access_token_secret": "test_token_secret",
                 },
                 "facebook": {
                     "app_id": "test_app_id",
                     "app_secret": "test_app_secret",
-                    "access_token": "test_token"
+                    "access_token": "test_token",
                 },
                 "linkedin": {
                     "client_id": "test_client_id",
                     "client_secret": "test_client_secret",
-                    "access_token": "test_token"
-                }
-            }
+                    "access_token": "test_token",
+                },
+            },
         }
 
     @pytest.fixture
@@ -86,7 +89,7 @@ class BaseStrategyTest:
         file2 = tmp_path / "test2.png"
         file1.write_text("test1")
         file2.write_text("test2")
-        
+
         files = [str(file1), str(file2)]
         valid_files = strategy._validate_media_files(files)
         assert valid_files == files
@@ -136,7 +139,9 @@ class BaseStrategyTest:
         assert strategy._safe_send_keys(By.ID, "test_id", "test_text")
         mock_element.send_keys.assert_called_once_with("test_text")
 
-    def test_safe_send_keys_retry_success(self, strategy: BaseStrategy, mock_driver: Mock):
+    def test_safe_send_keys_retry_success(
+        self, strategy: BaseStrategy, mock_driver: Mock
+    ):
         """Test successful key sending after retry."""
         mock_element = Mock()
         mock_element.send_keys.side_effect = [WebDriverException(), None]
@@ -152,25 +157,29 @@ class BaseStrategyTest:
         assert not strategy._safe_send_keys(By.ID, "test_id", "test_text")
         assert mock_element.send_keys.call_count == strategy.max_retries
 
-    def test_extract_error_details_success(self, strategy: BaseStrategy, mock_driver: Mock):
+    def test_extract_error_details_success(
+        self, strategy: BaseStrategy, mock_driver: Mock
+    ):
         """Test successful error details extraction."""
         mock_driver.title = "Error Page"
         mock_driver.current_url = "https://test.com/error"
         mock_driver.page_source = "<html>Error message</html>"
         mock_driver.find_elements.return_value = [
             Mock(text="Error 1"),
-            Mock(text="Error 2")
+            Mock(text="Error 2"),
         ]
-        
+
         message, details = strategy._extract_error_details()
         assert "Error 1 | Error 2" == message
         assert "Error Page" == details["title"]
         assert "https://test.com/error" == details["url"]
         assert len(details["error_messages"]) == 2
 
-    def test_extract_error_details_failure(self, strategy: BaseStrategy, mock_driver: Mock):
+    def test_extract_error_details_failure(
+        self, strategy: BaseStrategy, mock_driver: Mock
+    ):
         """Test error details extraction with WebDriver exception."""
         mock_driver.title.side_effect = WebDriverException("Driver error")
         message, details = strategy._extract_error_details()
         assert "Driver error" == message
-        assert "traceback" in details 
+        assert "traceback" in details

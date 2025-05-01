@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dream.OS Agent Status</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f8f9fa; }
+        h1 { color: #343a40; border-bottom: 1px solid #dee2e6; padding-bottom: 0.5em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; background-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 0.75em; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #e9ecef; color: #495057; }
+        tr:hover { background-color: #f1f3f5; }
+        .status-EXECUTING { color: #007bff; font-weight: bold; }
+        .status-IDLE { color: #6c757d; }
+        .status-COMPLETE { color: #28a745; font-weight: bold; }
+        .status-BLOCKED { color: #dc3545; font-weight: bold; }
+        .status-ERROR { color: #dc3545; font-weight: bold; }
+        .status-ONBOARDING_COMPLETE { color: #17a2b8; }
+        .status-PHASE2_STATUS { color: #ffc107; }
+        .status-STANDBY { color: #6c757d; }
+        /* Add more status styles as needed */
+        .error-message { color: #dc3545; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 0.75rem 1.25rem; margin-bottom: 1rem; border-radius: 0.25rem; }
+        footer { margin-top: 2em; font-size: 0.8em; color: #6c757d; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Dream.OS Agent Status Dashboard</h1>
+
+    {% if read_error %}
+        <div class="error-message">Error reading task board: {{ read_error }}</div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Agent ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Task ID</th>
+                <th>Details</th>
+                <th>Last Update (UTC)</th>
+                <th>Task Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agent in agents %}
+            <tr>
+                <td>{{ agent.agent_id }}</td>
+                <td>{{ agent.get('agent_name', 'N/A') }}</td>
+                <td><span class="status-{{ agent.get('status', '') }}">{{ agent.get('status', 'UNKNOWN') }}</span></td>
+                <td>{{ agent.get('current_task_id', 'N/A') }}</td>
+                <td>{{ agent.get('status_details', 'N/A') }}</td>
+                <td>{{ agent.get('last_status_update_utc', 'N/A') }}</td>
+                <td>{{ agent.get('assigned_task_description', 'N/A') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center;">No agent data found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <footer>
+        Dashboard generated at: {{ current_time }} | Last task board update: {{ last_updated }}
+    </footer>
+
+</body>
+</html>

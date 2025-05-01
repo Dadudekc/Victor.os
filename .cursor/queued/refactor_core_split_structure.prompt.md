@@ -23,4 +23,4 @@ Instructions:
   - Run `pip install -e .` to validate installation.
   - Run `pytest` to ensure tests pass post-move.
   - Commit changes with:
-    `git commit -m "Restructure core/ into organized src/dreamos/ subfolders; update imports project-wide; finalize modular packaging"` 
+    `git commit -m "Restructure core/ into organized src/dreamos/ subfolders; update imports project-wide; finalize modular packaging"`

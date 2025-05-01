@@ -1,8 +1,0 @@
-openai
-jinja2
-tqdm
-selenium
-# Add other specific dependencies if needed, e.g., for web scraping (playwright), history management, etc.
-# Add other specific dependencies if needed, e.g., for chat_manager, response_handler implementations
-# openai # Removed
-# jinja2 # Removed 

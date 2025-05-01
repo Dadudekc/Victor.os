@@ -25,4 +25,4 @@ jobs:
         run: npm ci
 
       - name: Run duplicate code scan
-        run: npm run scan:dup 
+        run: npm run scan:dup

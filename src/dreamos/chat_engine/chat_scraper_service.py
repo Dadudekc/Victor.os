@@ -1,9 +1,10 @@
 # chat_scraper_service.py
 
-import time
 import logging
+import time
 
 logger = logging.getLogger("ChatScraper")
+
 
 class ChatScraperService:
     """
@@ -25,8 +26,10 @@ class ChatScraperService:
         logger.info("🔎 Scraping all chats from sidebar...")
         try:
             time.sleep(2)  # Give time for elements to load
-            chat_elements = self.driver.find_elements("xpath", "//a[contains(@class, 'group') and contains(@href, '/c/')]")
-            
+            chat_elements = self.driver.find_elements(
+                "xpath", "//a[contains(@class, 'group') and contains(@href, '/c/')]"
+            )
+
             if not chat_elements:
                 logger.warning("⚠️ No chats found in the sidebar.")
                 return []
@@ -55,10 +58,7 @@ class ChatScraperService:
         all_chats = self.get_all_chats()
         logger.info(f"🔍 Filtering {len(all_chats)} chats...")
 
-        filtered = [
-            chat for chat in all_chats
-            if chat["title"] not in self.exclusions
-        ]
+        filtered = [chat for chat in all_chats if chat["title"] not in self.exclusions]
 
         logger.info(f"✅ {len(filtered)} chats after exclusion filter.")
 
@@ -74,7 +74,9 @@ class ChatScraperService:
         """
         logger.info("🔐 Validating OpenAI chat login status...")
         try:
-            sidebar = self.driver.find_element("xpath", "//nav[contains(@class, 'flex h-full')]")
+            sidebar = self.driver.find_element(
+                "xpath", "//nav[contains(@class, 'flex h-full')]"
+            )
             if sidebar:
                 logger.info("✅ User is logged in.")
                 return True
@@ -94,4 +96,3 @@ class ChatScraperService:
             logger.info("🔄 Waiting for login...")
 
         logger.info("✅ Login detected! Proceeding with chat scraping.")
-

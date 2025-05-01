@@ -1,8 +1,10 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QToolBar, QLineEdit
+
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QAction
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl
+from PySide6.QtWidgets import QApplication, QLineEdit, QMainWindow, QToolBar
+
 
 class BrowserMainWindow(QMainWindow):
     def __init__(self):
@@ -41,8 +43,9 @@ class BrowserMainWindow(QMainWindow):
             url = "http://" + url
         self.web_view.load(QUrl(url))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = BrowserMainWindow()
     window.show()
-    sys.exit(app.exec()) 
+    sys.exit(app.exec())

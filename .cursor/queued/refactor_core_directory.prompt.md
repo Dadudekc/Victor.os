@@ -30,4 +30,4 @@ Instructions:
   - Update any external project-wide imports that reference core/ files.
   - Remove orphaned files or legacy stubs after consolidation (optional stretch goal).
   - Validate that all modules and imports are functioning after refactor.
-  - Prepare a clean git commit summarizing the entire move. 
+  - Prepare a clean git commit summarizing the entire move.

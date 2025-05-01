@@ -1,22 +1,24 @@
 """Base test class for social media strategy tests."""
 
-import os
 import json
+import os
+from typing import Any, Dict, Optional, Type
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, Any, Optional, Type
 
 from dreamos.exceptions.strategy_exceptions import StrategyError
 from dreamos.services.feedback_engine import FeedbackEngine
 
+
 class BaseStrategyTest:
     """Base test class for all social media strategy tests."""
-    
+
     # To be overridden by subclasses
     strategy_class = None
     platform_name = None
     required_credentials = []
-    
+
     @pytest.fixture
     def mock_config(self):
         """Fixture for valid configuration."""
@@ -77,30 +79,36 @@ class BaseStrategyTest:
     def test_feedback_on_rate_limit(self, strategy):
         """Test feedback is properly recorded on rate limit."""
         strategy.api.create_tweet.side_effect = Exception("Rate limit exceeded")
-        
+
         try:
             strategy.post_tweet("Test message")
         except StrategyError:
             pass
-        
+
         feedback_data = strategy.feedback_engine.feedback_data
         assert len(feedback_data) == 1
         assert feedback_data[0]["strategy"] == self.platform_name
         assert feedback_data[0]["severity"] == "high"
         assert feedback_data[0]["message"] == "Rate limit exceeded"
 
-    def verify_template_rendering(self, strategy, template_data: Dict[str, Any], 
-                                snapshot_name: str, snapshot_dir: str) -> None:
+    def verify_template_rendering(
+        self,
+        strategy,
+        template_data: Dict[str, Any],
+        snapshot_name: str,
+        snapshot_dir: str,
+    ) -> None:
         """Helper method to verify template rendering with snapshots."""
         result = strategy.render_template(template_data)
-        
+
         # Compare with snapshot
         snapshot = self.load_snapshot(snapshot_dir, snapshot_name)
         if snapshot is None:
-            self.save_snapshot(snapshot_dir, snapshot_name, {
-                "template_data": template_data,
-                "expected_output": result
-            })
+            self.save_snapshot(
+                snapshot_dir,
+                snapshot_name,
+                {"template_data": template_data, "expected_output": result},
+            )
         else:
             assert result == snapshot["expected_output"]
-            assert template_data == snapshot["template_data"] 
+            assert template_data == snapshot["template_data"]
