@@ -78,8 +78,6 @@ from .event_types import EventType
 # REMOVED obsolete config manager imports
 
 
-
-
 # EDIT START: Remove obsolete TODO comment & import
 # EDIT END
 

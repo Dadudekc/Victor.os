@@ -408,13 +408,8 @@ class MemoryMaintenanceService:
             except Exception as e:
                 logger.critical(f"Unexpected critical error during atomic replacement for {agent_id}: {e}", exc_info=True)
                 # Add similar rollback logic here if appropriate?
-        elif error_count > 0:
-            logger.warning(f"Skipping replacement for agent {agent_id} due to {error_count} processing errors.")
-        else: # processed_count == 0
-            logger.info(f"Skipping replacement for agent {agent_id} as no files were processed.")
-            replacement_successful = True # Consider it successful as no change was needed
 
-        # --- 5. Cleanup ---
+        # --- 5. Cleanup (associated with the replacement attempt) ---
         finally:
              # Always clean up snapshot if it wasn't successfully moved
              if snapshot_dir.exists():
@@ -432,6 +427,25 @@ class MemoryMaintenanceService:
                       logger.error(f"Error removing backup directory {backup_dir}: {e}")
              elif not replacement_successful and backup_dir and backup_dir.exists():
                   logger.warning(f"Replacement failed or was skipped. Backup directory retained: {backup_dir}")
+
+        # --- Handle cases where replacement wasn't attempted ---
+        elif error_count > 0:
+            logger.warning(f"Skipping replacement for agent {agent_id} due to {error_count} processing errors.")
+            # Clean up snapshot if it exists even if replacement wasn't attempted due to errors
+            if snapshot_dir.exists():
+                 logger.info(f"Cleaning up unused snapshot directory (due to processing errors): {snapshot_dir}")
+                 try: shutil.rmtree(snapshot_dir)
+                 except OSError as e: logger.error(f"Error removing snapshot directory {snapshot_dir} after processing errors: {e}")
+
+        else: # processed_count == 0 or snapshot_dir didn't exist initially or had no segments
+            logger.info(f"Skipping replacement for agent {agent_id} as no files needed processing or snapshot was empty/missing.")
+            # Clean up the snapshot directory if it exists but wasn't used for replacement
+            if snapshot_dir.exists():
+                logger.info(f"Cleaning up unused snapshot directory (no files processed/needed): {snapshot_dir}")
+                try:
+                    shutil.rmtree(snapshot_dir)
+                except OSError as e:
+                     logger.error(f"Error removing unused snapshot directory {snapshot_dir}: {e}")
 
     async def _process_segment_file(self, segment_file_path: Path,
                                     compaction_policy: Optional[CompactionPolicyConfig],

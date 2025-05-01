@@ -50,7 +50,6 @@ from .message_patterns import TaskStatus
 # from dreamos.config import PROJECT_ROOT  # Use PROJECT_ROOT defined in config
 
 
-
 logger = logging.getLogger("AgentBus")
 
 

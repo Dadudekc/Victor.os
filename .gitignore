@@ -75,3 +75,8 @@ node_modules/
 
 # Ignore stray root script
 r.py
+
+# Temporary/artifact files
+*.isorted
+*.tmp
+*.bak

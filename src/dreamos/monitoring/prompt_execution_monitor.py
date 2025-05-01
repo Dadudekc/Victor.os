@@ -24,7 +24,6 @@ from ..core.coordination.base_agent import AgentState, TaskStatus
 # if the dispatcher and memory components are fully async-compatible.
 
 
-
 logger = logging.getLogger(__name__)
 
 
