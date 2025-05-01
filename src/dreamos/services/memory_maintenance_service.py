@@ -409,7 +409,7 @@ class MemoryMaintenanceService:
                 logger.critical(f"Unexpected critical error during atomic replacement for {agent_id}: {e}", exc_info=True)
                 # Add similar rollback logic here if appropriate?
 
-        # --- 5. Cleanup (associated with the replacement attempt) ---
+        # --- Cleanup (associated with the replacement attempt) ---
         finally:
              # Always clean up snapshot if it wasn't successfully moved
              if snapshot_dir.exists():
@@ -434,8 +434,10 @@ class MemoryMaintenanceService:
             # Clean up snapshot if it exists even if replacement wasn't attempted due to errors
             if snapshot_dir.exists():
                  logger.info(f"Cleaning up unused snapshot directory (due to processing errors): {snapshot_dir}")
-                 try: shutil.rmtree(snapshot_dir)
-                 except OSError as e: logger.error(f"Error removing snapshot directory {snapshot_dir} after processing errors: {e}")
+                 try:
+                     shutil.rmtree(snapshot_dir)
+                 except OSError as e:
+                     logger.error(f"Error removing snapshot directory {snapshot_dir} after processing errors: {e}")
 
         else: # processed_count == 0 or snapshot_dir didn't exist initially or had no segments
             logger.info(f"Skipping replacement for agent {agent_id} as no files needed processing or snapshot was empty/missing.")
