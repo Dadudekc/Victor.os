@@ -1,5 +1,10 @@
 """Core data validation utilities."""
 
+# NOTE (Captain-Agent-5): These utilities provide basic manual validation.
+# Consider reviewing their usage in relation to Pydantic models, which offer
+# more comprehensive, declarative validation based on type hints and validators.
+# These might be most useful for validating raw data before Pydantic parsing.
+
 import logging
 from typing import Any, Dict, List, Type
 

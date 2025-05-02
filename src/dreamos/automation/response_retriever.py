@@ -30,6 +30,10 @@ except ImportError:
     pyperclip = None
     PYAUTOGUI_AVAILABLE = False
 
+# EDIT START: Add path for GUI snippets
+GUI_SNIPPETS_DIR = PROJECT_ROOT / "runtime" / "assets" / "gui_snippets"
+# EDIT END
+
 # --- Configuration ---
 # Use the project root finder if available
 try:
@@ -87,16 +91,63 @@ class ResponseRetriever:
         )
 
         while recalibration_attempts <= RECALIBRATION_RETRIES:
-            if current_full_coordinates is None:
-                logger.error(
-                    f"Initial coordinate load failed or coordinates became None. Cannot proceed."
-                )
-                return None
+            coords = None
+            found_via_image = False
 
-            coords = get_specific_coordinate(identifier, current_full_coordinates)
+            # EDIT START: Try image recognition first
+            if element_key == "copy_button":  # Only try image for copy button for now
+                try:
+                    image_path = GUI_SNIPPETS_DIR / "cursor_copy_code_button.png"
+                    if image_path.exists():
+                        # Use grayscale and confidence for robustness
+                        center = pyautogui.locateCenterOnScreen(
+                            str(image_path), confidence=0.8, grayscale=True
+                        )
+                        if center:
+                            coords = (center.x, center.y)
+                            found_via_image = True
+                            logger.info(
+                                f"Located '{identifier}' via image recognition at {coords}"
+                            )
+                        else:
+                            logger.warning(
+                                f"Image recognition failed to find '{identifier}' using {image_path.name}. Falling back to coordinates."
+                            )
+                    else:
+                        logger.warning(
+                            f"Reference image not found: {image_path}. Cannot use image recognition."
+                        )
+                except pyautogui.ImageNotFoundException:
+                    logger.warning(
+                        f"Image recognition (pyautogui) raised ImageNotFoundException for '{identifier}'. Falling back to coordinates."
+                    )
+                except Exception as img_err:
+                    logger.error(
+                        f"Unexpected error during image recognition for '{identifier}': {img_err}",
+                        exc_info=True,
+                    )
+            # EDIT END
+
+            # EDIT START: Fallback to coordinate loading if image recognition failed or wasn't applicable
+            if not coords:
+                if current_full_coordinates is None:
+                    logger.error(
+                        f"Initial coordinate load failed or coordinates became None. Cannot proceed."
+                    )
+                    return None
+                coords = get_specific_coordinate(identifier, current_full_coordinates)
+            # EDIT END
 
             if not coords:
-                logger.error(f"No coordinates found for identifier: {identifier}")
+                # EDIT START: Modify message based on whether image recognition was tried
+                log_prefix = (
+                    "Coordinates missing"
+                    if not found_via_image
+                    else "Fallback coordinates missing"
+                )
+                logger.error(f"{log_prefix} for identifier: {identifier}")
+                # EDIT END
+
                 if recalibration_attempts < RECALIBRATION_RETRIES:
                     logger.info(
                         f"Coordinates missing for {identifier}, attempting recalibration..."

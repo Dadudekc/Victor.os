@@ -28,14 +28,6 @@ except ImportError as e:
     UI_AUTOMATION_AVAILABLE = False
 
 import tenacity  # Assuming tenacity was added by Agent 4
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    TimeoutException,
-    WebDriverException,
-)
-
-# EDIT END
-from selenium.webdriver.support import expected_conditions as EC
 
 # Local imports (assuming sibling modules)
 # from .response_retriever import ResponseRetriever # Logic will be integrated
@@ -49,14 +41,35 @@ from dreamos.coordination.event_payloads import (
 )
 from dreamos.core.config import AppConfig
 
-# EDIT START: Import core ToolError
+# EDIT START: Import core ToolError and new wait utility
 from dreamos.core.errors import ToolError as CoreToolError
+from dreamos.utils.gui_utils import wait_for_element
 
-# Configuration
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-CONFIG_DIR = PROJECT_ROOT / "config"
-INPUT_COORDS_FILE = CONFIG_DIR / "cursor_agent_coords.json"
-COPY_COORDS_FILE = CONFIG_DIR / "cursor_agent_copy_coords.json"
+# EDIT START: Remove unused Selenium imports
+# from selenium.common.exceptions import (
+#     NoSuchElementException,
+#     TimeoutException,
+#     WebDriverException,
+# )
+# from selenium.webdriver.support import expected_conditions as EC
+# EDIT END
+
+
+
+# EDIT START: Remove import of find_project_root - use AppConfig
+# from dreamos.utils.project_root import find_project_root
+# EDIT END
+
+# EDIT START: Import pygetwindow if available for recovery checks
+try:
+    import pygetwindow
+
+    PYGETWINDOW_AVAILABLE = True
+except ImportError:
+    pygetwindow = None
+    PYGETWINDOW_AVAILABLE = False
+    # Warning already logged during main import attempts
+# EDIT END
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +121,6 @@ class CursorOrchestrator:
     def __init__(
         self,
         config: AppConfig,  # Require AppConfig
-        input_coords_path: Optional[Path] = None,
-        copy_coords_path: Optional[Path] = None,
         agent_bus: Optional[AgentBus] = None,
     ):
         """Initializes the CursorOrchestrator singleton instance.
@@ -119,8 +130,6 @@ class CursorOrchestrator:
 
         Args:
             config: The loaded AppConfig instance containing settings.
-            input_coords_path: Path to input coordinates JSON. Defaults to value in config dir.
-            copy_coords_path: Path to copy coordinates JSON. Defaults to value in config dir.
             agent_bus: Optional AgentBus instance. If None, gets the default singleton.
 
         Raises:
@@ -138,17 +147,16 @@ class CursorOrchestrator:
         if hasattr(self, "_initialized") and self._initialized:
             return
 
-        self.config = config.cursor_orchestrator  # Store nested config
-        # Use provided paths or default relative to config dir
-        self.input_coords_path = input_coords_path or INPUT_COORDS_FILE
-        self.copy_coords_path = copy_coords_path or COPY_COORDS_FILE
+        self._app_config = config  # Store the full config
+        self.config = config.gui_automation  # Keep direct access to relevant section
+        self.input_coords_path = self.config.input_coords_file_path.resolve()
+        self.copy_coords_path = self.config.copy_coords_file_path.resolve()
         self.agent_bus = agent_bus or AgentBus()
         self.input_coordinates: Dict[str, Tuple[int, int]] = {}
         self.copy_coordinates: Dict[str, Tuple[int, int]] = {}
         self.agent_status: Dict[str, AgentStatus] = {}
         self._load_all_coordinates()
         self._initialize_agent_status()
-        self._listener_task: Optional[asyncio.Task] = None
         self._initialized = True
         logger.info("CursorOrchestrator initialized with config.")
 
@@ -267,36 +275,31 @@ class CursorOrchestrator:
         timeout: Optional[float] = None,
         correlation_id: Optional[str] = None,
     ) -> bool:
-        """Injects a prompt into the specified agent's Cursor chat input window.
+        """Injects a prompt into the specified agent's Cursor window.
 
-        Handles moving the mouse, clicking, clearing, pasting/typing the prompt,
-        and submitting (pressing Enter).
+        Handles agent status updates, coordinates loading, retries, and events.
+        Retrieves target window title from AppConfig.
 
         Args:
             agent_id: The ID of the target agent's Cursor window.
-            prompt: The text content of the prompt to inject.
-            timeout: (Currently unused) Timeout duration for the operation.
+            prompt: The text prompt to inject.
+            timeout: (Currently unused) Timeout duration.
             correlation_id: Optional correlation ID for event tracking.
 
         Returns:
-            True if the injection sequence completed without raising an exception,
-            False otherwise (e.g., missing coordinates, agent not IDLE, pyautogui error).
+            True if injection sequence completed without raising retryable errors,
+            False otherwise.
 
         Raises:
-            CursorOrchestratorError: Can be raised indirectly if UI automation fails critically.
-
-        Notes:
-            - Requires the agent status to be "IDLE" to proceed.
-            - Sets agent status to "INJECTING", then "AWAITING_RESPONSE" on success,
-              or "ERROR" on failure.
-            - Emits AgentBus events (CURSOR_INJECT_SUCCESS/FAILURE).
+            CursorOrchestratorError: If non-retryable errors occur (e.g., no coords).
         """
         if agent_id not in self.input_coordinates:
             logger.error(f"inject_prompt: No input coordinates for {agent_id}")
+            # Publish failure event
             failure_payload = CursorResultPayload(
                 operation="inject",
                 status="FAILURE",
-                message="Missing coordinates",
+                message="Missing input coordinates",
                 correlation_id=correlation_id,
             )
             failure_event = CursorResultEvent(
@@ -305,6 +308,7 @@ class CursorOrchestrator:
                 data=failure_payload,
             )
             try:
+                # Use create_task for fire-and-forget dispatch
                 asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
             except Exception as e:
                 logger.error(
@@ -314,56 +318,57 @@ class CursorOrchestrator:
             return False
 
         current_status = await self.get_agent_status(agent_id)
-        if current_status != "IDLE":
+        if current_status not in ["IDLE", "ERROR", "UNRESPONSIVE", "UNKNOWN"]:
             logger.warning(
-                f"inject_prompt: Agent {agent_id} is not IDLE (status: {current_status}). Aborting injection."
+                f"inject_prompt: Agent {agent_id} is not IDLE/ERROR/UNKNOWN (status: {current_status}). Aborting injection."
             )
-            failure_payload = CursorResultPayload(
-                operation="inject",
-                status="FAILURE",
-                message=f"Agent not IDLE (status: {current_status})",
-                correlation_id=correlation_id,
-            )
-            failure_event = CursorResultEvent(
-                event_type=EventType.CURSOR_INJECT_FAILURE,
-                source_id="CursorOrchestrator",
-                data=failure_payload,
-            )
-            try:
-                asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
-            except Exception as e:
-                logger.error(
-                    f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"
-                )
-            await self._set_agent_status(agent_id, "ERROR")
             return False
 
         x, y = self.input_coordinates[agent_id]
-        logger.info(
-            f"Injecting prompt for {agent_id} at ({x}, {y}). Length: {len(prompt)}"
-        )
-        await self._set_agent_status(
-            agent_id,
-            "INJECTING",
-            EventType.CURSOR_ACTION_START,
-            {"operation": "inject", "correlation_id": correlation_id},
+        success = False
+        error_reason = "Unknown error during injection sequence"
+
+        # Get target window title from config
+        target_window_title = self.config.target_window_title
+        logger.debug(
+            f"Retrieved target window title from config: '{target_window_title}'"
         )
 
         try:
-            # TODO: Implement window focus check before performing sequence
-            logger.debug(
-                f"[State Check] Proceeding with injection for {agent_id} - assumes window focused."
+            await self._set_agent_status(
+                agent_id,
+                "INJECTING",
+                event_type=EventType.CURSOR_INJECT_REQUEST,  # TODO: Add payload?
             )
+            # Use tenacity for retries
+            retryer = tenacity.AsyncRetrying(
+                stop=tenacity.stop_after_attempt(self.config.retry_attempts),
+                wait=tenacity.wait_fixed(self.config.retry_delay_seconds),
+                retry=tenacity.retry_if_exception_type(RETRYABLE_UI_EXCEPTIONS),
+                before_sleep=self._log_retry_attempt,  # Log before sleeping
+                reraise=True,  # Reraise the exception after max attempts
+            )
+
             # Call the sequence using asyncio.to_thread for blocking IO
-            await asyncio.to_thread(
-                self._perform_injection_sequence, x, y, prompt, agent_id
+            await retryer.call(
+                lambda: asyncio.to_thread(
+                    self._perform_injection_sequence,
+                    x,
+                    y,
+                    prompt,
+                    agent_id,
+                    target_window_title,  # MODIFIED: Pass title from config
+                )
             )
             logger.info(f"Injection sequence seemingly completed for {agent_id}.")
-            await self._set_agent_status(agent_id, "AWAITING_RESPONSE")
 
-            # Dispatch success event
+            # If sequence completed without raising retryable error, assume success for now
+            await self._set_agent_status(agent_id, "AWAITING_RESPONSE")
+            # Publish success event
             success_payload = CursorResultPayload(
-                operation="inject", status="SUCCESS", correlation_id=correlation_id
+                operation="inject",
+                status="SUCCESS",
+                correlation_id=correlation_id,
             )
             success_event = CursorResultEvent(
                 event_type=EventType.CURSOR_INJECT_SUCCESS,
@@ -376,30 +381,161 @@ class CursorOrchestrator:
                 logger.error(
                     f"Failed to dispatch event {EventType.CURSOR_INJECT_SUCCESS}: {e}"
                 )
-            return True
-        except Exception as e:
-            logger.exception(
-                f"Generic error during injection sequence for {agent_id}: {e}"
+            success = True
+
+        except tenacity.RetryError as e:
+            # Retries exhausted
+            final_error = e.last_attempt.exception()
+            error_reason = (
+                f"Failed after {self.config.retry_attempts} retries: {final_error}"
             )
-            # Re-raise to be caught by the calling method
-            raise CursorOrchestratorError(f"Injection sequence failed: {e}") from e
+            logger.error(
+                f"inject_prompt failed for {agent_id} after retries: {error_reason}",
+                exc_info=final_error,
+            )
+            # Don't set status here, let finally block handle it
+        except Exception as e:
+            # Catch other unexpected errors (like non-retryable CursorOrchestratorError)
+            error_reason = f"Unexpected Error: {type(e).__name__}: {e}"
+            logger.error(
+                f"inject_prompt failed for {agent_id}: {error_reason}", exc_info=True
+            )
+            # Don't set status here, let finally block handle it
+
         finally:
-            logger.debug(f"_perform_injection_sequence for {agent_id} finished.")
+            if not success:
+                logger.warning(
+                    f"Finalizing inject_prompt for {agent_id} with status ERROR due to: {error_reason}"
+                )
+                # Publish failure event
+                failure_payload = CursorResultPayload(
+                    operation="inject",
+                    status="FAILURE",
+                    message=str(error_reason)[:200],  # Truncate long messages
+                    correlation_id=correlation_id,
+                )
+                failure_event = CursorResultEvent(
+                    event_type=EventType.CURSOR_INJECT_FAILURE,
+                    source_id="CursorOrchestrator",
+                    data=failure_payload,
+                )
+                try:
+                    asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
+                except Exception as e:
+                    logger.error(
+                        f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"
+                    )
+                # Set final status to ERROR
+                await self._set_agent_status(agent_id, "ERROR")
+
+        return success
+
+    # EDIT START: Add helper for focus check and recovery
+    def _check_and_recover_focus(
+        self, target_title: str, agent_id_for_log: str
+    ) -> bool:
+        """Checks if the target window is active, attempts recovery if not."""
+        if not PYGETWINDOW_AVAILABLE or pygetwindow is None:
+            logger.warning(
+                f"[{agent_id_for_log}] Cannot check window focus: pygetwindow not available."
+            )
+            return True  # Assume focus is okay if we cannot check
+
+        try:
+            active_window = pygetwindow.getActiveWindow()
+            if active_window and target_title.lower() in active_window.title.lower():
+                logger.debug(
+                    f"[{agent_id_for_log}] Window focus confirmed: {active_window.title}"
+                )
+                return True  # Focus is correct
+            else:
+                active_title = active_window.title if active_window else "None"
+                logger.warning(
+                    f"[{agent_id_for_log}] Target window '{target_title}' not active. Current: '{active_title}'. Attempting recovery (ESC)..."
+                )
+                # Attempt recovery (simple ESC press)
+                if pyautogui:
+                    pyautogui.press("esc")
+                    time.sleep(0.3)  # Short pause after recovery attempt
+                    # Re-check focus
+                    active_window = pygetwindow.getActiveWindow()
+                    if (
+                        active_window
+                        and target_title.lower() in active_window.title.lower()
+                    ):
+                        logger.info(
+                            f"[{agent_id_for_log}] Recovery successful. Target window now active."
+                        )
+                        return True
+                    else:
+                        active_title = active_window.title if active_window else "None"
+                        logger.error(
+                            f"[{agent_id_for_log}] Recovery failed. Active window still '{active_title}'."
+                        )
+                        return False
+                else:
+                    logger.error(
+                        f"[{agent_id_for_log}] Cannot attempt recovery: pyautogui not available."
+                    )
+                    return False  # Recovery impossible
+        except Exception as e:
+            logger.error(
+                f"[{agent_id_for_log}] Error during window focus check/recovery: {e}",
+                exc_info=True,
+            )
+            return False  # Assume failure on error
+
+    # EDIT END
 
     def _perform_injection_sequence(
-        self, x: int, y: int, text: str, agent_id_for_log: str
+        self, x: int, y: int, text: str, agent_id_for_log: str, target_window_title: str
     ):
         """Executes the PyAutoGUI sequence for injecting text.
+
+        Checks for window existence/focus before acting.
         Handles potential UI automation exceptions.
         """
         if not pyautogui:
             raise CursorOrchestratorError("PyAutoGUI is not available")
 
         logger.debug(f"_perform_injection_sequence for {agent_id_for_log} starting.")
+
+        # --- ADDED: Window Focus/Existence Check ---
+        try:
+            target_windows = pyautogui.getWindowsWithTitle(target_window_title)
+            if not target_windows:
+                raise CursorOrchestratorError(
+                    f"Target window '{target_window_title}' not found."
+                )
+
+            window = target_windows[0]  # Assume first match is the correct one
+            if not window.isActive:
+                logger.warning(
+                    f"Target window '{target_window_title}' found but not active. Attempting to activate."
+                )
+                try:
+                    window.activate()
+                    time.sleep(0.5)  # Give time for activation
+                    if not window.isActive:
+                        raise CursorOrchestratorError(
+                            f"Failed to activate target window '{target_window_title}'."
+                        )
+                except Exception as act_err:
+                    raise CursorOrchestratorError(
+                        f"Error activating target window '{target_window_title}': {act_err}"
+                    )
+            logger.debug(f"Target window '{target_window_title}' is active.")
+        except Exception as win_err:
+            logger.error(f"Window check failed for '{target_window_title}': {win_err}")
+            raise CursorOrchestratorError(
+                f"Window check failed: {win_err}"
+            ) from win_err
+        # --- END Window Check ---
+
         # Configurable delays
-        move_delay = self.config.get("move_delay", 0.1)
-        click_delay = self.config.get("click_delay", 0.1)
-        type_interval = self.config.type_interval_seconds  # Use config
+        move_delay = self.config.min_pause_seconds
+        click_delay = self.config.min_pause_seconds
+        type_interval = self.config.type_interval_seconds
         try:
             logger.debug(f"[{agent_id_for_log}] Moving mouse to ({x}, {y})")
             pyautogui.moveTo(x, y, duration=move_delay)
@@ -426,19 +562,73 @@ class CursorOrchestrator:
                 )
                 pyautogui.write(text, interval=type_interval)
             time.sleep(click_delay)
+
+            # EDIT START: Check focus before pressing Enter
+            if not self._check_and_recover_focus(target_window_title, agent_id_for_log):
+                raise CursorOrchestratorError(
+                    f"Window focus lost or recovery failed before sending Enter."
+                )
+            # EDIT END
+
             logger.debug(f"[{agent_id_for_log}] Submitting (Enter)")
             pyautogui.press("enter")
-            time.sleep(click_delay * 2)
+
+            # EDIT START: Replace fixed sleep with explicit wait for readiness indicator
+            # time.sleep(0.1) # REMOVED fixed sleep
+            if (
+                not self._app_config
+                or not self._app_config.paths
+                or not self._app_config.paths.project_root
+            ):
+                raise CursorOrchestratorError(
+                    "AppConfig or project_root path missing for GUI snippets."
+                )
+            snippets_dir = (
+                self._app_config.paths.project_root
+                / "runtime"
+                / "assets"
+                / "gui_snippets"
+            )
+            readiness_image = snippets_dir / "cursor_response_ready_indicator.png"
+            if readiness_image.exists():
+                logger.info(
+                    f"[{agent_id_for_log}] Waiting for response readiness indicator..."
+                )
+                wait_result = wait_for_element(
+                    readiness_image, timeout=15.0
+                )  # Increased timeout
+                if wait_result:
+                    logger.info(
+                        f"[{agent_id_for_log}] Response readiness indicator found."
+                    )
+                else:
+                    logger.warning(
+                        f"[{agent_id_for_log}] Timeout waiting for response readiness indicator. Proceeding cautiously."
+                    )
+                    # Consider raising an error or different handling if indicator is critical
+            else:
+                logger.warning(
+                    f"[{agent_id_for_log}] Readiness indicator image not found ({readiness_image.name}). Falling back to short fixed delay."
+                )
+                time.sleep(
+                    1.0
+                )  # Use a slightly longer fallback delay than original 0.1s
+            # EDIT END
+
+        except (
+            FailSafeException,
+            PyperclipException,
+            CursorOrchestratorError,
+        ) as e:  # Added CursorOrchestratorError
+            logger.error(
+                f"[{agent_id_for_log}] UI interaction failed during injection: {e}"
+            )
+            raise CursorOrchestratorError(f"Injection sequence error: {e}")
         except Exception as e:
             logger.exception(
-                f"Generic error during injection sequence for {agent_id_for_log}: {e}"
+                f"[{agent_id_for_log}] Unexpected error during injection: {e}"
             )
-            # Re-raise to be caught by the calling method
-            raise CursorOrchestratorError(f"Injection sequence failed: {e}") from e
-        finally:
-            logger.debug(
-                f"_perform_injection_sequence for {agent_id_for_log} finished."
-            )
+            raise CursorOrchestratorError(f"Unexpected injection error: {e}")
 
     async def retrieve_response(
         self,
@@ -595,69 +785,158 @@ class CursorOrchestrator:
     def _perform_copy_sequence(
         self, x: int, y: int, agent_id_for_log: str
     ) -> Optional[str]:
-        """Executes the PyAutoGUI sequence for copying text.
+        """Executes the PyAutoGUI sequence for copying text, including validation and retries.
         Handles potential UI automation exceptions.
         """
         if not pyautogui or not pyperclip:
             raise CursorOrchestratorError("PyAutoGUI or Pyperclip is not available")
 
         logger.debug(f"_perform_copy_sequence for {agent_id_for_log} starting.")
-        original_clipboard = ""
-        try:
-            # Clear clipboard first for better reliability
-            if pyperclip:
-                logger.debug(f"[{agent_id_for_log}] Clearing clipboard")
-                pyperclip.copy("")
-            else:
-                logger.error(
-                    f"Cannot perform copy sequence for {agent_id_for_log}: pyperclip is not available."
-                )
-                # Raise a specific error if pyperclip is missing, making it potentially non-retryable
-                # depending on how RETRYABLE_UI_EXCEPTIONS is defined.
-                raise CursorOrchestratorError("Pyperclip dependency is not available.")
+        original_pos = pyautogui.position()
+        clipboard_placeholder = f"_dreamos_clear_{time.time()}_"  # Unique placeholder
+        # EDIT START: Use config value for max attempts
+        # MAX_COPY_ATTEMPTS = 2 # Initial attempt + 1 retry # OLD Hardcoded value
+        max_copy_attempts = self.config.copy_attempts
+        # EDIT END
+        clipboard_content = None
 
-            logger.debug(f"[{agent_id_for_log}] Moving mouse to Copy button ({x}, {y})")
+        try:
+            # Move mouse only once
+            logger.debug(
+                f"[{agent_id_for_log}] Moving mouse to Copy button ({x}, {y})..."
+            )
             pyautogui.moveTo(x, y, duration=0.1)
             time.sleep(0.1)
-            logger.debug(f"[{agent_id_for_log}] Clicking Copy button")
-            pyautogui.click()
-            time.sleep(0.2)
 
-            logger.debug(f"[{agent_id_for_log}] Pasting from clipboard")
-            response_text = pyperclip.paste()
-
-            if not response_text:
-                logger.warning(
-                    f"Clipboard empty after copy click for agent {agent_id_for_log}."
+            for attempt in range(max_copy_attempts):  # EDIT: Use variable
+                logger.info(
+                    f"[{agent_id_for_log}] Copy attempt {attempt + 1}/{max_copy_attempts}..."
                 )
-                # Decide if empty clipboard should cause a retry. If so, raise an exception here.
-                # For now, returning empty string means success but no content.
-                # Example if retry needed: raise TransientClipboardError("Clipboard empty after copy")
-                return ""
-            return response_text
-        except (
-            FailSafeException,
-            PyperclipException,
-        ) as ui_error:  # Catch specific known exceptions
-            logger.exception(
-                f"UI/Clipboard error in _perform_copy_sequence for agent {agent_id_for_log}: {ui_error}"
+                clipboard_content = None  # Reset for this attempt
+
+                # EDIT START: Check focus before clicking Copy
+                # Assume self.config.gui_automation.target_window_title holds the expected title
+                target_window_title = self.config.target_window_title
+                if not self._check_and_recover_focus(
+                    target_window_title, agent_id_for_log
+                ):
+                    logger.warning(
+                        f"[{agent_id_for_log}] Window focus lost or recovery failed before Copy click (attempt {attempt+1}). Skipping click."
+                    )
+                    # Don't click if focus is wrong, let retry loop handle it
+                    if attempt < max_copy_attempts - 1:  # EDIT: Use variable
+                        time.sleep(0.5)  # Pause before retry
+                        continue  # Go to next attempt
+                    else:
+                        break  # Max attempts reached
+                # EDIT END
+
+                # -- Clear clipboard --
+                try:
+                    pyperclip.copy(clipboard_placeholder)
+                    time.sleep(0.05)  # Ensure clipboard system processes clear
+                    if pyperclip.paste() != clipboard_placeholder:
+                        logger.warning(
+                            f"[{agent_id_for_log}] Clipboard clear verification failed (attempt {attempt+1})."
+                        )
+                except PyperclipException as clear_err:
+                    logger.error(
+                        f"[{agent_id_for_log}] Failed to clear clipboard (attempt {attempt+1}): {clear_err}"
+                    )
+                    break  # Exit retry loop
+
+                # -- Click Copy --
+                logger.debug(
+                    f"[{agent_id_for_log}] Clicking Copy button (attempt {attempt+1})..."
+                )
+                pyautogui.click()  # Click at current location (already moved)
+
+                # -- Poll Clipboard --
+                wait_start_time = time.time()
+                clipboard_timeout = 2.0  # seconds
+                poll_interval = 0.1  # seconds
+                polled_content = None
+                while time.time() - wait_start_time < clipboard_timeout:
+                    try:
+                        current_clipboard = pyperclip.paste()
+                        if current_clipboard != clipboard_placeholder:
+                            polled_content = current_clipboard
+                            logger.debug(
+                                f"[{agent_id_for_log}] Clipboard content changed after {(time.time() - wait_start_time):.2f}s (attempt {attempt+1})."
+                            )
+                            break  # Content acquired for validation
+                    except PyperclipException as clip_err:
+                        logger.warning(
+                            f"[{agent_id_for_log}] Error reading clipboard while polling (attempt {attempt+1}): {clip_err}"
+                        )
+                        break  # Exit polling loop on error
+                    time.sleep(poll_interval)
+
+                if polled_content is None:
+                    logger.warning(
+                        f"[{agent_id_for_log}] Clipboard content did not change from placeholder within {clipboard_timeout}s (attempt {attempt+1})."
+                    )
+                    # Continue to next retry attempt if any remain
+                    if attempt < max_copy_attempts - 1:  # EDIT: Use variable
+                        time.sleep(0.5)  # Pause before retry
+                    else:
+                        break  # Max attempts reached
+
+                # -- Validate Clipboard Content --
+                if (
+                    polled_content and polled_content.strip()
+                ):  # Check not None and not just whitespace
+                    # Optional: Add more specific checks like startswith('```') if needed
+                    # if polled_content.strip().startswith("```"):
+                    logger.info(
+                        f"[{agent_id_for_log}] Clipboard content validated (non-empty) (attempt {attempt+1})."
+                    )
+                    clipboard_content = polled_content  # Assign valid content
+                    break  # Exit retry loop, content is valid
+                    # else:
+                    #    logger.warning(f"[{agent_id_for_log}] Clipboard content validation failed: Did not start with expected pattern (attempt {attempt+1}).")
+                else:
+                    logger.warning(
+                        f"[{agent_id_for_log}] Clipboard content validation failed: Content is None or empty/whitespace (attempt {attempt+1})."
+                    )
+
+                # If validation failed, pause and continue to next retry attempt if any remain
+                if attempt < max_copy_attempts - 1:  # EDIT: Use variable
+                    logger.info(f"[{agent_id_for_log}] Retrying copy operation...")
+                    time.sleep(0.5)  # Pause before retry
+                # else: loop finishes, final failure logged below
+
+            # -- End of Retry Loop --
+
+            if clipboard_content:
+                logger.info(
+                    f"[{agent_id_for_log}] Successfully retrieved and validated clipboard content (length: {len(clipboard_content)})."
+                )
+                # Restore mouse position before returning success
+                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
+                return clipboard_content
+            else:
+                logger.error(
+                    f"[{agent_id_for_log}] Failed to retrieve valid content from clipboard after {max_copy_attempts} attempts."
+                )
+                # Restore mouse position before returning failure
+                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
+                return None
+
+        except (FailSafeException, PyperclipException) as e:
+            logger.error(
+                f"[{agent_id_for_log}] UI interaction failed during copy sequence: {e}"
             )
-            raise  # Re-raise to be caught by tenacity
+            # Restore mouse position on error
+            pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
+            raise CursorOrchestratorError(f"Copy sequence error: {e}")
         except Exception as e:
             logger.exception(
-                f"Unexpected error in _perform_copy_sequence for agent {agent_id_for_log}: {e}"
+                f"[{agent_id_for_log}] Unexpected error during copy sequence: {e}"
             )
-            raise  # Re-raise other errors too
-        finally:
-            # Restore mouse position (best effort)
-            try:
-                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
-            except Exception:
-                pass  # Ignore errors during restore
-            # Restore original clipboard content
-            if original_clipboard:
-                pyperclip.copy(original_clipboard)
-            logger.debug(f"_perform_copy_sequence for {agent_id_for_log} finished.")
+            # Restore mouse position on error
+            pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
+            raise CursorOrchestratorError(f"Unexpected copy error: {e}")
 
     @retry_on_exception(max_attempts=2, exceptions=(FailSafeException,), delay=0.5)
     def _perform_health_check_click(self, x: int, y: int, agent_id_for_log: str):
@@ -739,30 +1018,40 @@ class CursorOrchestrator:
             logger.error("Cannot start listener: AgentBus not provided.")
             return
 
-        if self._listener_task and not self._listener_task.done():
-            logger.warning("Listener task already running.")
-            return
+        # EDIT START: Remove listener task logic, store handlers for unsubscription
+        # if self._listener_task and not self._listener_task.done():
+        #     logger.warning(\"Listener task already running.\")
+        #     return
+        self._subscribed_handlers = (
+            []
+        )  # Initialize list to store (topic, handler) tuples
+        # EDIT END
 
         try:
             # Subscribe to specific request events
-            # Consider using a pattern like "cursor.*.request" if many related events
-            await self.agent_bus.subscribe(
-                EventType.CURSOR_INJECT_REQUEST.value, self._handle_cursor_action_event
-            )
-            await self.agent_bus.subscribe(
-                EventType.CURSOR_RETRIEVE_REQUEST.value,
-                self._handle_cursor_action_event,
-            )
+            inject_topic = EventType.CURSOR_INJECT_REQUEST.value
+            retrieve_topic = EventType.CURSOR_RETRIEVE_REQUEST.value
+            handler = self._handle_cursor_action_event
+
+            await self.agent_bus.subscribe(inject_topic, handler)
+            self._subscribed_handlers.append((inject_topic, handler))
+
+            await self.agent_bus.subscribe(retrieve_topic, handler)
+            self._subscribed_handlers.append((retrieve_topic, handler))
+
             logger.info(
-                "Subscribed to CURSOR_INJECT_REQUEST and CURSOR_RETRIEVE_REQUEST events."
+                f"Subscribed handler to {inject_topic} and {retrieve_topic} events."
             )
             # We don't need a separate task loop if subscribe handles callbacks directly
             # If subscribe requires polling, a task loop would be needed here.
             # Assuming subscribe sets up direct callbacks/awaitables.
-            self._listener_task = (
-                asyncio.current_task()
-            )  # Or None if subscribe doesn't need a task
+            # REMOVED: self._listener_task assignment
+            # self._listener_task = (
+            #     asyncio.current_task()
+            # )  # Or None if subscribe doesn't need a task
 
+        except BusError as e:  # Catch specific bus errors if defined
+            logger.exception(f"AgentBus error during subscription: {e}")
         except Exception as e:
             logger.exception(f"Failed to subscribe to cursor events: {e}")
 
@@ -806,17 +1095,50 @@ class CursorOrchestrator:
         pass
 
     async def shutdown(self):
-        """Performs cleanup actions, such as stopping the AgentBus listener."""
+        """Performs cleanup actions, such as unsubscribing AgentBus handlers."""
         logger.info("CursorOrchestrator shutting down...")
-        # TODO: Implement proper unsubscription if AgentBus supports it
-        # REMOVED - Implemented via ENHANCE-AGENTBUS-001
-        if self._listener_task and not self._listener_task.done():
-            logger.info("Cancelling listener task.")
-            self._listener_task.cancel()
-            try:
-                await self._listener_task
-            except asyncio.CancelledError:
-                pass
+
+        # EDIT START: Implement unsubscription
+        if hasattr(self, "_subscribed_handlers") and self._subscribed_handlers:
+            logger.info(
+                f"Unsubscribing {len(self._subscribed_handlers)} AgentBus handlers..."
+            )
+            unsubscribe_tasks = []
+            for topic, handler in self._subscribed_handlers:
+                try:
+                    # Assume agent_bus.unsubscribe exists and takes topic, handler
+                    unsubscribe_tasks.append(self.agent_bus.unsubscribe(topic, handler))
+                except AttributeError:
+                    logger.error(
+                        "AgentBus does not support 'unsubscribe'. Cannot clean up handlers."
+                    )
+                    break  # Stop trying if method is missing
+                except Exception as e:
+                    logger.error(f"Error initiating unsubscribe for {topic}: {e}")
+
+            if unsubscribe_tasks:
+                results = await asyncio.gather(
+                    *unsubscribe_tasks, return_exceptions=True
+                )
+                for (topic, _), result in zip(self._subscribed_handlers, results):
+                    if isinstance(result, Exception):
+                        logger.error(f"Failed to unsubscribe from {topic}: {result}")
+                    else:
+                        logger.debug(f"Successfully unsubscribed from {topic}")
+            self._subscribed_handlers = []  # Clear the list
+        else:
+            logger.info("No subscribed handlers found to unsubscribe.")
+        # EDIT END
+
+        # EDIT START: Remove old listener task cancellation logic
+        # if self._listener_task and not self._listener_task.done():
+        #     logger.info(\"Cancelling listener task.\")
+        #     self._listener_task.cancel()
+        #     try:
+        #         await self._listener_task
+        #     except asyncio.CancelledError:
+        #         pass
+        # EDIT END
         logger.info("CursorOrchestrator shut down.")
         pass
 

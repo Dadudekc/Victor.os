@@ -5,6 +5,7 @@ import json  # Added json
 import logging
 import subprocess  # Added subprocess
 import sys  # Added sys
+import time
 from pathlib import Path  # Added Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -130,6 +131,18 @@ except ImportError:
         "pygetwindow not found. Window focus check may be unreliable or disabled."
     )
 
+# Attempt PyAutoGUI import here as well for wait_for_element
+try:
+    import pyautogui
+
+    PYAUTOGUI_AVAILABLE = True  # Assume it's available if import succeeds
+except ImportError:
+    pyautogui = None
+    # Keep PYAUTOGUI_AVAILABLE based on earlier check potentially?
+    # For simplicity, if it fails here, assume not available for wait_for_element
+    PYAUTOGUI_AVAILABLE = False
+    logger.warning("pyautogui not found for wait_for_element. Visual waits disabled.")
+
 
 def is_window_focused(target_title_substring: str) -> bool:
     """Checks if the currently active window's title contains the target substring.
@@ -180,43 +193,49 @@ def is_window_focused(target_title_substring: str) -> bool:
 
 # --- Recalibration Utility ---
 
-# Define path relative to this file (utils/gui_utils.py -> utils -> core -> dreamos -> src -> tools)
-# Or rely on PROJECT_ROOT if imported from config
-try:
-    from ...core.config import PROJECT_ROOT  # Use config value
-except ImportError:
-    logger.error(
-        "Cannot import PROJECT_ROOT from dreamos.core.config. Recalibration script path may be incorrect."
-    )
-    PROJECT_ROOT = (
-        Path(__file__).resolve().parents[2]
-    )  # Fallback: utils -> core -> dreamos -> src
-
-RECALIBRATION_SCRIPT_PATH = (
-    PROJECT_ROOT / "src" / "tools" / "calibration" / "recalibrate_coords.py"
-)
+# EDIT START: Remove local PROJECT_ROOT calculation
+# # Define path relative to this file (utils/gui_utils.py -> utils -> core -> dreamos -> src -> tools)
+# # Replicate PROJECT_ROOT definition locally to avoid problematic cross-module import
+# GUI_UTILS_DIR = Path(__file__).resolve().parent
+# PROJECT_ROOT = GUI_UTILS_DIR.parents[2] # utils -> core -> dreamos -> src
+#
+# RECALIBRATION_SCRIPT_PATH = (
+#     PROJECT_ROOT / "src" / "tools" / "calibration" / "recalibrate_coords.py"
+# )
+# EDIT END
 
 
-def trigger_recalibration(identifier: str, coords_file_path: Path | str) -> bool:
+# EDIT START: Update function signature
+def trigger_recalibration(
+    identifier: str, coords_file_path: Path | str, project_root: Path
+) -> bool:
+    # EDIT END
     """Triggers the external recalibration script for a specific coordinate identifier.
 
     Args:
         identifier: The identifier that failed verification (e.g., 'agent_01.copy_button').
         coords_file_path: The path to the coordinate file that needs updating.
+        project_root: The root path of the project.
 
     Returns:
         True if the script executed successfully (return code 0), False otherwise.
     """
-    if not RECALIBRATION_SCRIPT_PATH.exists():
+    # EDIT START: Define script path using project_root argument
+    recalibration_script_path = (
+        project_root / "src" / "tools" / "calibration" / "recalibrate_coords.py"
+    )
+    # EDIT END
+
+    if not recalibration_script_path.exists():
         logger.error(
-            f"Recalibration script not found at: {RECALIBRATION_SCRIPT_PATH}. Cannot recalibrate."
+            f"Recalibration script not found at: {recalibration_script_path}. Cannot recalibrate."
         )
         return False
 
     python_exe = sys.executable  # Use the same python that's running this
     command = [
         python_exe,
-        str(RECALIBRATION_SCRIPT_PATH),
+        str(recalibration_script_path),
         "--identifier",
         identifier,
         "--coords-file",
@@ -235,7 +254,9 @@ def trigger_recalibration(identifier: str, coords_file_path: Path | str) -> bool
             capture_output=True,
             text=True,
             check=False,  # Don't raise exception on non-zero exit code
-            cwd=PROJECT_ROOT,  # Run from project root for consistent relative paths in script
+            # EDIT START: Use project_root argument for cwd
+            cwd=project_root,
+            # EDIT END
         )
 
         if process.returncode == 0:
@@ -270,3 +291,74 @@ def trigger_recalibration(identifier: str, coords_file_path: Path | str) -> bool
 
 
 # def trigger_recalibration(...)
+
+
+# EDIT START: Add wait_for_element utility (Correct Implementation)
+def wait_for_element(
+    image_path: Path | str,
+    timeout: float = 10.0,
+    poll_interval: float = 0.5,
+    confidence: float = 0.8,
+    grayscale: bool = True,
+) -> Optional[Tuple[int, int]]:
+    """Waits for a visual element (image) to appear on screen.
+
+    Polls using pyautogui.locateCenterOnScreen until the element is found
+    or the timeout is reached.
+
+    Args:
+        image_path: Path to the reference image file.
+        timeout: Maximum time to wait in seconds.
+        poll_interval: Time between checks in seconds.
+        confidence: Confidence level for image matching (0.0 to 1.0).
+        grayscale: Use grayscale matching for robustness.
+
+    Returns:
+        Tuple (x, y) of the center coordinates if found, None otherwise.
+    """
+    if not PYAUTOGUI_AVAILABLE or pyautogui is None:
+        logger.error("wait_for_element cannot run: pyautogui not available.")
+        return None
+
+    start_time = time.time()
+    img_path_str = str(image_path)
+    img_filename = Path(img_path_str).name
+    logger.debug(f"Waiting up to {timeout:.1f}s for element: {img_filename}")
+
+    while time.time() - start_time < timeout:
+        try:
+            # Ensure pyautogui has screen access (can fail in some environments)
+            center = pyautogui.locateCenterOnScreen(
+                img_path_str, confidence=confidence, grayscale=grayscale
+            )
+            if center:
+                logger.info(
+                    f"Element {img_filename} found at ({center.x}, {center.y}) after {time.time() - start_time:.2f}s."
+                )
+                # Return as plain tuple
+                return (center.x, center.y)
+            # else: # No need to log 'not found yet' every poll interval, too verbose
+            #     logger.debug(f"Element {img_filename} not found yet, polling...")
+        except pyautogui.ImageNotFoundException:
+            # This is expected if the image isn't there yet
+            logger.debug(
+                f"Element {img_filename} not found (ImageNotFoundException), polling..."
+            )
+        except Exception as e:
+            # Log other errors, but continue polling unless it's fatal
+            logger.error(
+                f"Unexpected error during locateCenterOnScreen for {img_filename}: {e}",
+                # exc_info=True, # Maybe too verbose for polling loop
+            )
+            # Consider adding specific error handling if needed (e.g., permissions)
+
+        # Wait before next poll
+        time.sleep(poll_interval)
+
+    logger.warning(
+        f"Timeout waiting for element {img_filename} after {timeout:.1f} seconds."
+    )
+    return None
+
+
+# EDIT END

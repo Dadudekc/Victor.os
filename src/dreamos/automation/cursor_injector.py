@@ -1,4 +1,5 @@
 # src/dreamos/automation/cursor_injector.py
+import argparse
 import json
 import logging
 import os
@@ -59,7 +60,7 @@ DEFAULT_COORDS_PATH = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords
 #     PROJECT_ROOT / "src" / "tools" / "calibration" / "recalibrate_coords.py"
 # )
 # Example: Target window title - this should ideally come from config
-TARGET_WINDOW_TITLE = "Agent Chat Window"  # Placeholder - NEEDS CONFIGURATION
+# TARGET_WINDOW_TITLE = "Agent Chat Window"  # Placeholder - NEEDS CONFIGURATION
 DEFAULT_QUEUE_PATH = PROJECT_ROOT / "runtime" / "cursor_queue"
 DEFAULT_PROCESSED_PATH = PROJECT_ROOT / "runtime" / "cursor_processed"
 MIN_PAUSE = 0.10  # Minimum pause between pyautogui actions
@@ -123,11 +124,18 @@ def inject_prompt(
     prompt_text: str,
     full_coordinates: Dict[str, Any],
     coords_file_path: Path,  # Still needed to pass to trigger_recalibration if it doesn't use default
+    target_window_title: str,  # ADDED: Required argument for window title
     element_key: str = "input_box",
     use_paste: bool = True,
     random_offset: int = 3,
 ) -> bool:
-    """Injects a single prompt, with verification and recalibration attempt."""
+    """Injects a single prompt, using the specified target window title.
+
+    Args:
+        # ... (other args) ...
+        target_window_title: The exact title of the target window to check focus.
+        # ... (other args) ...
+    """
 
     identifier = f"{agent_id}.{element_key}"
     recalibration_attempts = 0
@@ -176,7 +184,7 @@ def inject_prompt(
             target_y += offset_y
 
         logger.info(
-            f"Injecting prompt for {identifier} at ({target_x}, {target_y}) (Attempt {recalibration_attempts + 1})..."
+            f"Injecting prompt for {identifier} at ({target_x}, {target_y}) into window '{target_window_title}' (Attempt {recalibration_attempts + 1})..."
         )
 
         try:
@@ -189,10 +197,10 @@ def inject_prompt(
             time.sleep(random.uniform(MIN_PAUSE, MAX_PAUSE))
 
             # --- Verification Step ---
-            # Use shared is_window_focused
-            if not is_window_focused(TARGET_WINDOW_TITLE):
+            # Use shared is_window_focused with the passed title
+            if not is_window_focused(target_window_title):  # MODIFIED: Use argument
                 logger.warning(
-                    f"Click verification failed for {identifier} (window focus check)."
+                    f"Click verification failed for {identifier} (window '{target_window_title}' not focused)."
                 )
                 if recalibration_attempts < RECALIBRATION_RETRIES:
                     logger.info(f"Attempting recalibration for {identifier}...")
@@ -221,7 +229,9 @@ def inject_prompt(
                     )
                     return False
             # --- Verification Passed ---
-            logger.debug(f"Click verified for {identifier}. Proceeding with injection.")
+            logger.debug(
+                f"Click verified for {identifier} in window '{target_window_title}'. Proceeding with injection."
+            )
 
             # 3. Clear field (Simulate Ctrl+A, Delete)
             pyautogui.hotkey("ctrl", "a")
@@ -258,19 +268,19 @@ def inject_prompt(
             logger.info(f"Prompt submitted for {identifier}.")
             time.sleep(random.uniform(MIN_PAUSE, MAX_PAUSE))  # Small pause after enter
 
-            return True  # Successful injection
+            return True  # Injection successful
 
         except Exception as e:
             logger.error(
-                f"PyAutoGUI error during injection attempt {recalibration_attempts + 1} for {identifier}: {e}",
+                f"Error during injection attempt {recalibration_attempts + 1} for {identifier}: {e}",
                 exc_info=True,
             )
-            # General errors fail immediately without triggering recalibration
-            return False
+            # Optional: break here if error is not likely recoverable by recalibration
+            return False  # Or handle specific exceptions if needed
 
-    # Loop finished without success
+    # If loop finishes without success after retries
     logger.error(
-        f"Injection for {identifier} failed after {recalibration_attempts} recalibration attempts."
+        f"Injection failed for {identifier} after {RECALIBRATION_RETRIES + 1} attempts."
     )
     return False
 
@@ -318,6 +328,7 @@ def run_injection_loop(
                     prompt_text,
                     current_coords_for_cycle,
                     coords_path,
+                    target_window_title="Agent Chat Window",
                     element_key="input_box",
                 )
                 if success:
@@ -359,27 +370,57 @@ def run_injection_loop(
             time.sleep(max(0.1, cycle_pause / 5))
 
 
+# --- Main Execution (Example/Test) ---
+
 if __name__ == "__main__":
-    # Example of running the loop directly
-    # Configure logging
-    log_format = "%(asctime)s - %(levelname)-8s - %(name)s - %(message)s"
-    logging.basicConfig(level=logging.INFO, format=log_format)
-
-    # Ensure queue/processed directories exist for testing
-    test_agents = ["agent_01", "agent_02"]
-    for aid in test_agents:
-        (DEFAULT_QUEUE_PATH / aid).mkdir(parents=True, exist_ok=True)
-        # Create dummy prompt file for agent_01
-        if aid == "agent_01":
-            (DEFAULT_QUEUE_PATH / aid / "001_test_prompt.txt").write_text(
-                "This is a test prompt for agent_01 from main.", encoding="utf-8"
-            )
-
-    print(
-        "Starting example injection loop (runs indefinitely)... Press Ctrl+C to stop."
+    # Basic setup for testing
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
+    parser = argparse.ArgumentParser(description="Inject prompts into agent windows.")
+    parser.add_argument("agent_id", help="ID of the agent to inject prompts for.")
+    # ADDED: Require window title for testing
+    parser.add_argument("target_window_title", help="Exact title of the target window.")
+    parser.add_argument(
+        "--coords",
+        default=str(DEFAULT_COORDS_PATH),
+        help="Path to coordinates JSON file.",
     )
-    # Assumes config/cursor_agent_coords.json exists with coords for agent_01, agent_02
-    try:
-        run_injection_loop(agent_ids=test_agents)
-    except KeyboardInterrupt:
-        print("\nInjection loop stopped by user.")
+    # Add other arguments as needed (queue path, cycle pause, etc.)
+    args = parser.parse_args()
+
+    coords_file = Path(args.coords)
+    if not coords_file.is_file():
+        logger.critical(f"Coordinates file not found: {coords_file}")
+        sys.exit(1)
+
+    logger.info(f"Starting injector test loop for Agent: {args.agent_id}")
+    logger.info(f"Using Coordinates: {coords_file}")
+    logger.info(f"Targeting Window: {args.target_window_title}")
+
+    # Load initial coordinates
+    initial_coords = load_coordinates(coords_file)
+    if not initial_coords:
+        logger.critical("Failed to load initial coordinates. Exiting.")
+        sys.exit(1)
+
+    # Example: Inject one prompt and exit (modify loop as needed for continuous test)
+    prompt_content, prompt_path = get_next_prompt(args.agent_id)
+    if prompt_content and prompt_path:
+        logger.info(f"Found prompt: {prompt_path.name}")
+        success = inject_prompt(
+            args.agent_id,
+            prompt_content,
+            initial_coords,
+            coords_file,
+            args.target_window_title,  # MODIFIED: Pass the argument
+            element_key="input_box",  # Or make this configurable too
+        )
+        if success:
+            logger.info("Injection successful (test run).")
+            mark_prompt_processed(prompt_path)
+        else:
+            logger.error("Injection failed (test run).")
+            sys.exit(1)  # Exit with error on failure for testing
+    else:
+        logger.info("No prompts found in queue for test run.")
+
+    logger.info("Injector test finished.")

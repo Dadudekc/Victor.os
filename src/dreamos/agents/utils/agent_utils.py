@@ -22,6 +22,7 @@ from dreamos.core.config import AppConfig
 from dreamos.core.coordination.event_payloads import (  # Import the payload
     SupervisorAlertPayload,
 )
+from dreamos.core.coordination.event_types import EventType
 from dreamos.core.coordination.message_patterns import (
     TaskMessage,
     TaskPriority,
@@ -39,9 +40,6 @@ from dreamos.core.utils.performance_logger import PerformanceLogger
 from dreamos.utils.common_utils import get_utc_iso_timestamp
 
 from ...core.errors import ConfigurationError
-from ..core.coordination.event_types import (  # Corrected import from canonical source
-    EventType,
-)
 
 # Setup a logger for utility functions
 util_logger = logging.getLogger("core.utils")

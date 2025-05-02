@@ -3,6 +3,8 @@
 import json
 import os
 import shutil  # For cleaning up test artifacts
+import sys
+import time
 from pathlib import Path
 from unittest import mock
 from unittest.mock import patch
@@ -10,12 +12,24 @@ from unittest.mock import patch
 import filelock
 import jsonschema  # Import for exception type
 import pytest
+from pyfakefs.fake_filesystem_unittest import Patcher
+
+# Add src directory to path for imports
+SRC_DIR = Path(__file__).resolve().parents[2] / "src"
+sys.path.insert(0, str(SRC_DIR))
 
 # Module to test
 from dreamos.coordination.project_board_manager import (
     BoardLockError,
     ProjectBoardManager,
     ProjectBoardManagerError,
+    TaskNotFoundError,
+    TaskValidationError,
+)
+from dreamos.core.config import AppConfig, PathsConfig
+from dreamos.core.errors import (
+    BoardLockError,
+    ProjectBoardError,
     TaskNotFoundError,
     TaskValidationError,
 )
@@ -56,7 +70,121 @@ class MockFileLock:
 # --- Test Fixtures ---
 
 
-# Example fixture to create a temporary test directory
+@pytest.fixture
+def mock_app_config(tmp_path: Path) -> AppConfig:
+    """Provides a mock AppConfig pointing to a temporary directory."""
+    runtime_path = tmp_path / "runtime"
+    boards_path = runtime_path / "agent_comms" / "central_task_boards"
+    logs_path = runtime_path / "logs"
+    schema_path = SRC_DIR / "dreamos" / "coordination" / "tasks" / "task-schema.json"
+
+    # Create a dummy schema file if it doesn't exist in the source
+    # (pyfakefs won't see the real one unless explicitly added)
+    schema_dir = schema_path.parent
+    schema_dir.mkdir(parents=True, exist_ok=True)  # Ensure dir exists
+    if not schema_path.exists():
+        # Create a minimal valid schema for testing basic validation
+        schema_content = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "DreamOS Task",
+            "description": "Schema for a task managed by DreamOS",
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string", "description": "Unique task identifier"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "status": {"type": "string"},
+                # Add other core properties as needed for tests
+            },
+            "required": [
+                "task_id",
+                "name",
+                "description",
+                "status",
+            ],  # Example requirements
+        }
+        with open(schema_path, "w") as f:
+            json.dump(schema_content, f)
+
+    # Ensure paths used by PBM exist within the mock config
+    boards_path.mkdir(parents=True, exist_ok=True)
+
+    # Create a basic config structure
+    config = AppConfig(
+        paths=PathsConfig(
+            runtime=runtime_path,
+            logs=logs_path,
+            agent_comms=runtime_path / "agent_comms",
+            central_task_boards=boards_path,
+            task_schema=schema_path,
+            project_root=tmp_path,
+        )
+    )
+    setattr(config, "config_file_path", tmp_path / "runtime/config/dummy_config.yaml")
+    return config
+
+
+@pytest.fixture
+def pbm(mock_app_config: AppConfig, fs):  # Add fs fixture from pyfakefs
+    """Provides a PBM instance initialized with mock config and fake filesystem."""
+    # Ensure the schema file exists in the fake filesystem *before* PBM init
+    if not fs.exists(mock_app_config.paths.task_schema):
+        schema_content = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "DreamOS Task",
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "status": {"type": "string"},
+            },
+            "required": ["task_id", "name", "description", "status"],
+        }
+        fs.create_file(
+            mock_app_config.paths.task_schema, contents=json.dumps(schema_content)
+        )
+
+    # Ensure the base boards directory exists in the fake filesystem
+    fs.create_dir(mock_app_config.paths.central_task_boards)
+
+    # Disable file locking for tests unless specifically testing locking
+    with patch("dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False):
+        # Need to create the instance *after* fs has potentially created schema
+        manager = ProjectBoardManager(config=mock_app_config)
+        yield manager  # Use yield for setup/teardown if needed
+
+
+@pytest.fixture
+def sample_task_1() -> dict:
+    """A sample valid task dictionary."""
+    return {
+        "task_id": "test-task-001",
+        "name": "Test Task One",
+        "description": "Description for test task 1",
+        "priority": "MEDIUM",
+        "status": "PENDING",
+        "assigned_agent": None,
+        "created_by": "pytest-fixture",
+        "timestamp_created_utc": time.time(),
+    }
+
+
+@pytest.fixture
+def sample_task_2() -> dict:
+    """Another sample valid task dictionary."""
+    return {
+        "task_id": "test-task-002",
+        "name": "Test Task Two",
+        "description": "Description for test task 2",
+        "priority": "HIGH",
+        "status": "PENDING",
+        "assigned_agent": None,
+        "created_by": "pytest-fixture",
+        "timestamp_created_utc": time.time(),
+    }
+
+
 @pytest.fixture
 def temp_test_dir(tmp_path):  # tmp_path is a pytest fixture
     test_dir = tmp_path / "pbm_test"
@@ -697,15 +825,142 @@ def test_load_schema_invalid_json(temp_test_dir):  # Needs custom setup
     assert manager._task_schema is None  # Should be None due to load failure
 
 
-# --- TODO: Add more tests for: ---
-# Ensure this comment block is correctly indented at the module level
-# - Deleting task with locking issues (requires mocking)
-# - Verify update_task tests thoroughly (read timed out)
-# - Verify claim_task rollback logic tests
-# - Listing tasks (empty, with filters)
-# - Getting tasks (found, not found)
-# - Error handling (locking errors - requires mocking filelock)
-# ... (rest of TODOs) ...
+# --- Tests for claim_ready_task ---
+def test_claim_ready_task_success(
+    self, pbm: ProjectBoardManager, sample_task_1: dict, fs
+):
+    """Test claiming a task from the ready queue."""
+    agent_id = "agent-test-claim"
+    # Setup: Add task to ready queue
+    fs.create_file(pbm.ready_queue_path, contents=json.dumps([sample_task_1]))
+
+    claimed = pbm.claim_ready_task(sample_task_1["task_id"], agent_id)
+    assert claimed is True
+
+    # Verify ready queue is empty
+    with open(pbm.ready_queue_path, "r") as f:
+        ready_data = json.load(f)
+    assert len(ready_data) == 0
+
+    # Verify working tasks has the task
+    assert fs.exists(pbm.working_tasks_path)
+    with open(pbm.working_tasks_path, "r") as f:
+        working_data = json.load(f)
+    assert len(working_data) == 1
+    task_in_working = working_data[0]
+    assert task_in_working["task_id"] == sample_task_1["task_id"]
+    assert task_in_working["status"] == "CLAIMED"
+    assert task_in_working["claimed_by"] == agent_id
+    assert task_in_working["assigned_agent"] == agent_id
+    assert "timestamp_claimed_utc" in task_in_working
+
+
+def test_claim_task_not_in_ready(self, pbm: ProjectBoardManager, fs):
+    """Test claiming a task not in the ready queue."""
+    fs.create_file(pbm.ready_queue_path, contents="[]")
+    agent_id = "agent-test-claim-fail"
+
+    with pytest.raises(TaskNotFoundError):
+        pbm.claim_ready_task("nonexistent-task-id", agent_id)
+    assert not fs.exists(pbm.working_tasks_path)
+
+
+# --- Tests for move_task_to_completed ---
+def test_move_task_to_completed_success(
+    self, pbm: ProjectBoardManager, sample_task_1: dict, fs
+):
+    """Test moving a task from working to completed."""
+    agent_id = "agent-test-complete"
+    working_task = sample_task_1.copy()
+    working_task["status"] = "IN_PROGRESS"  # Assume it was being worked on
+    working_task["claimed_by"] = agent_id
+    working_task["assigned_agent"] = agent_id
+    fs.create_file(pbm.working_tasks_path, contents=json.dumps([working_task]))
+
+    final_updates = {
+        "status": "COMPLETED",
+        "completion_summary": "Task finished successfully.",
+        "completed_by": agent_id,  # PBM should add this
+    }
+    moved = pbm.move_task_to_completed(working_task["task_id"], final_updates)
+    assert moved is True
+
+    # Verify working is empty
+    with open(pbm.working_tasks_path, "r") as f:
+        working_data = json.load(f)
+    assert len(working_data) == 0
+
+    # Verify completed has the task
+    assert fs.exists(pbm.completed_tasks_path)
+    with open(pbm.completed_tasks_path, "r") as f:
+        completed_data = json.load(f)
+    assert len(completed_data) == 1
+    task_in_completed = completed_data[0]
+    assert task_in_completed["task_id"] == working_task["task_id"]
+    assert task_in_completed["status"] == "COMPLETED"
+    assert (
+        task_in_completed["completion_summary"] == final_updates["completion_summary"]
+    )
+    assert task_in_completed["completed_by"] == agent_id
+    assert "timestamp_completed_utc" in task_in_completed
+    assert "timestamp_updated" in task_in_completed
+
+
+def test_move_task_to_completed_not_found(self, pbm: ProjectBoardManager, fs):
+    """Test moving a task not in the working board."""
+    fs.create_file(pbm.working_tasks_path, contents="[]")
+    agent_id = "agent-test-complete-fail"
+    final_updates = {"status": "COMPLETED", "completed_by": agent_id}
+
+    with pytest.raises(TaskNotFoundError):
+        pbm.move_task_to_completed("nonexistent-task-id", final_updates)
+    assert not fs.exists(pbm.completed_tasks_path)
+
+
+# --- Tests for get_task ---
+def test_get_task_success(
+    self, pbm: ProjectBoardManager, sample_task_1: dict, sample_task_2: dict, fs
+):
+    """Test getting a task from various boards."""
+    # Setup
+    task1_working = sample_task_1.copy()
+    task1_working["status"] = "CLAIMED"
+    task2_ready = sample_task_2.copy()
+    fs.create_file(pbm.working_tasks_path, contents=json.dumps([task1_working]))
+    fs.create_file(pbm.ready_queue_path, contents=json.dumps([task2_ready]))
+
+    # Get from working
+    retrieved_task1 = pbm.get_task(sample_task_1["task_id"], board="working")
+    assert retrieved_task1 is not None
+    assert retrieved_task1["task_id"] == sample_task_1["task_id"]
+
+    # Get from ready
+    retrieved_task2 = pbm.get_task(sample_task_2["task_id"], board="ready")
+    assert retrieved_task2 is not None
+    assert retrieved_task2["task_id"] == sample_task_2["task_id"]
+
+    # Get using 'any'
+    retrieved_task1_any = pbm.get_task(sample_task_1["task_id"], board="any")
+    assert retrieved_task1_any is not None
+    assert retrieved_task1_any["task_id"] == sample_task_1["task_id"]
+    retrieved_task2_any = pbm.get_task(sample_task_2["task_id"], board="any")
+    assert retrieved_task2_any is not None
+    assert retrieved_task2_any["task_id"] == sample_task_2["task_id"]
+
+
+def test_get_task_not_found(self, pbm: ProjectBoardManager, fs):
+    """Test getting a non-existent task."""
+    fs.create_file(pbm.working_tasks_path, contents="[]")
+    fs.create_file(pbm.ready_queue_path, contents="[]")
+    fs.create_file(pbm.backlog_path, contents="[]")
+    fs.create_file(pbm.completed_tasks_path, contents="[]")
+
+    assert pbm.get_task("nonexistent-task-id", board="any") is None
+    assert pbm.get_task("nonexistent-task-id", board="working") is None
+
+
+# TODO: Add tests for update_working_task
+# TODO: Add tests mocking file locking
 
 # Note: Removed erroneous __main__ block from previous edits
 # if __name__ == '__main__':

@@ -5,6 +5,30 @@ import time
 import pyautogui
 import pyperclip
 
+# EDIT: Import OrchestratorBot
+try:
+    # Assuming script is run such that src/ is importable or OrchestratorBot is installed
+    from dreamos.core.bots.orchestrator_bot import OrchestratorBot
+except ImportError:
+    print(
+        "ERROR: Could not import OrchestratorBot. Ensure src/ is in PYTHONPATH or adjust import path."
+    )
+
+    # Fallback: Define a dummy class
+    class OrchestratorBot:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def typewrite(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+        def press(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+        def hotkey(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+
 # Basic configuration
 logging.basicConfig(
     level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s"
@@ -18,6 +42,13 @@ TYPING_INTERVAL = 0.05  # Delay between keystrokes
 WINDOW_ACTIVATION_DELAY = 1.5  # Time to wait for window activation
 RESPONSE_WAIT_TIMEOUT = 30  # Max seconds to wait for Cursor response
 RESPONSE_CHECK_INTERVAL = 1  # Seconds between response checks
+
+# EDIT: Instantiate OrchestratorBot
+try:
+    bot = OrchestratorBot(config=None, agent_id="GuiInteractionTool")
+except Exception as e:
+    logging.error(f"Failed to initialize OrchestratorBot: {e}. GUI actions will fail.")
+    bot = OrchestratorBot()  # Use dummy if init fails
 
 # --- Core Interaction Function ---
 
@@ -84,13 +115,13 @@ def type_prompt_and_send(prompt: str):
         # Assume input field is focused after activation, or add click logic if needed
         # pyautogui.click(x=100, y=200) # Example: Click coordinates if needed
         time.sleep(STANDARD_DELAY)
-        pyautogui.write(prompt, interval=TYPING_INTERVAL)
+        bot.typewrite(prompt, interval=TYPING_INTERVAL)
         time.sleep(STANDARD_DELAY)
-        pyautogui.press("enter")
+        bot.press("enter")
         logger.info("Prompt entered and sent.")
         return True
     except Exception as e:
-        logger.error(f"Error typing or sending prompt: {e}")
+        logger.error(f"Error typing or sending prompt via OrchestratorBot: {e}")
         return False
 
 
@@ -101,13 +132,13 @@ def copy_cursor_response() -> str | None:
         time.sleep(STANDARD_DELAY * 2)  # Give UI time to settle
         # Use standard select-all and copy hotkeys
         if OS_PLATFORM == "Darwin":  # macOS
-            pyautogui.hotkey("command", "a")
+            bot.hotkey("command", "a")
             time.sleep(STANDARD_DELAY)
-            pyautogui.hotkey("command", "c")
+            bot.hotkey("command", "c")
         else:  # Windows/Linux
-            pyautogui.hotkey("ctrl", "a")
+            bot.hotkey("ctrl", "a")
             time.sleep(STANDARD_DELAY)
-            pyautogui.hotkey("ctrl", "c")
+            bot.hotkey("ctrl", "c")
 
         time.sleep(STANDARD_DELAY)  # Wait for clipboard operation
         response = pyperclip.paste()

@@ -1,0 +1,350 @@
+# src/tools/validation/validate_gui_coords.py
+import argparse
+import json
+import logging
+import time
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+try:
+    import pyautogui
+    import pyperclip
+except ImportError:
+    print(
+        "ERROR: pyautogui and pyperclip are required. Install with `pip install pyautogui pyperclip`"
+    )
+    exit(1)
+
+# EDIT: Import OrchestratorBot
+try:
+    # Adjust path based on actual location relative to tools/validation
+    from dreamos.core.bots.orchestrator_bot import OrchestratorBot
+except ImportError:
+    print(
+        "ERROR: Could not import OrchestratorBot. Ensure src/ is in PYTHONPATH or adjust import path."
+    )
+
+    # Fallback: Define a dummy class to allow script structure to run, but fail at runtime
+    class OrchestratorBot:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def move_to(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+        def click(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+        def hotkey(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+        def press(self, *args, **kwargs):
+            raise NotImplementedError("OrchestratorBot dummy")
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# --- Configuration ---
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_COORDS_PATH = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
+DEFAULT_OUTPUT_PATH = (
+    PROJECT_ROOT / "runtime" / "validation" / "gui_coord_validation_results.json"
+)
+
+TEST_PROMPT = "Ping from Dream.OS Validator"
+RESPONSE_WAIT_SECONDS = 5  # Time to wait after injection before trying to copy response
+ACTION_DELAY = 0.5  # Small delay between pyautogui actions
+
+# EDIT: Instantiate OrchestratorBot (assuming no critical config needed for basic actions)
+# For a real scenario, config might be needed and passed via args or loaded
+try:
+    bot = OrchestratorBot(
+        config=None, agent_id="ValidatorTool"
+    )  # Pass None config for now
+except Exception as e:
+    logging.error(f"Failed to initialize OrchestratorBot: {e}. GUI actions will fail.")
+    bot = OrchestratorBot()  # Use dummy if init fails
+
+
+def load_coords(filepath: Path) -> Optional[Dict[str, Any]]:
+    """Loads coordinates from the JSON file."""
+    if not filepath.exists():
+        logging.error(f"Coordinates file not found: {filepath}")
+        return None
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        logging.error(f"Error decoding JSON from {filepath}.")
+        return None
+    except Exception as e:
+        logging.error(f"Error reading {filepath}: {e}")
+        return None
+
+
+def find_and_activate_window(window_title: str):
+    """Finds and attempts to activate the target window."""
+    try:
+        target_windows = pyautogui.getWindowsWithTitle(window_title)
+        if not target_windows:
+            logging.error(f"Target window '{window_title}' not found.")
+            return False
+        window = target_windows[0]
+        if not window.isActive:
+            logging.warning(
+                f"Target window '{window_title}' found but not active. Attempting to activate."
+            )
+            try:
+                window.activate()
+                time.sleep(0.7)  # Increase activation wait slightly
+                if not window.isActive:
+                    logging.error(f"Failed to activate target window '{window_title}'.")
+                    return False
+            except Exception as act_err:
+                logging.error(
+                    f"Error activating target window '{window_title}': {act_err}"
+                )
+                return False
+        logging.debug(f"Target window '{window_title}' is active.")
+        return True
+    except Exception as win_err:
+        logging.error(f"Window check failed for '{window_title}': {win_err}")
+        return False
+
+
+def inject_test_prompt(
+    agent_id: str, coords: Dict[str, int], window_title: str, force_unsafe_clicks: bool
+) -> bool:
+    """Injects the test prompt into the input box."""
+    element = "input_box"
+    if element not in coords:
+        logging.error(
+            f"Missing '{element}' coordinates for agent '{agent_id}'. Cannot inject."
+        )
+        return False
+
+    x, y = coords[element]["x"], coords[element]["y"]
+    logging.info(f"[{agent_id}] Injecting test prompt at ({x}, {y})...")
+
+    if not force_unsafe_clicks:
+        if not find_and_activate_window(window_title):
+            return False
+    else:
+        logging.warning(
+            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."
+        )
+
+    try:
+        # EDIT: Replace pyautogui calls with OrchestratorBot calls
+        # Note: Assuming OrchestratorBot handles necessary waits/delays
+        bot.move_to(x=x, y=y, duration=0.2)
+        # time.sleep(ACTION_DELAY) # Delay likely handled by bot or not needed
+        bot.click()
+        # time.sleep(ACTION_DELAY * 2) # Delay likely handled by bot or not needed
+        bot.hotkey("ctrl", "a")
+        # time.sleep(ACTION_DELAY / 2) # Delay likely handled by bot or not needed
+        bot.press("delete")
+        # time.sleep(ACTION_DELAY) # Delay likely handled by bot or not needed
+        pyperclip.copy(TEST_PROMPT)  # Keep pyperclip for now
+        # time.sleep(ACTION_DELAY / 2) # Delay likely handled by bot or not needed
+        bot.hotkey("ctrl", "v")
+        # time.sleep(ACTION_DELAY) # Delay likely handled by bot or not needed
+        bot.press("enter")
+        logging.info(f"[{agent_id}] Test prompt injected.")
+        return True
+    except Exception as e:
+        # Catch specific bot exceptions if defined, otherwise general Exception
+        logging.error(f"[{agent_id}] Error during injection via OrchestratorBot: {e}")
+        return False
+
+
+def retrieve_response(
+    agent_id: str, coords: Dict[str, int], window_title: str, force_unsafe_clicks: bool
+) -> Optional[str]:
+    """Clicks the copy button and retrieves clipboard content."""
+    element = "copy_button"
+    if element not in coords:
+        logging.error(
+            f"Missing '{element}' coordinates for agent '{agent_id}'. Cannot retrieve response."
+        )
+        return None
+
+    x, y = coords[element]["x"], coords[element]["y"]
+    logging.info(
+        f"[{agent_id}] Attempting to copy response via button at ({x}, {y})..."
+    )
+
+    if not force_unsafe_clicks:
+        if not find_and_activate_window(window_title):
+            return None
+    else:
+        logging.warning(
+            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."
+        )
+
+    original_clipboard = ""
+    try:
+        original_clipboard = (
+            pyperclip.paste()
+        )  # Store original to restore later if needed
+        pyperclip.copy("")  # Clear clipboard
+        # time.sleep(ACTION_DELAY / 2) # Delay likely handled by bot or not needed
+
+        # EDIT: Replace pyautogui calls with OrchestratorBot calls
+        bot.move_to(x=x, y=y, duration=0.2)
+        # time.sleep(ACTION_DELAY) # Delay likely handled by bot or not needed
+        bot.click()
+        time.sleep(
+            RESPONSE_WAIT_SECONDS
+        )  # EDIT: Keep explicit wait for response generation / clipboard update
+
+        response = pyperclip.paste()  # Keep pyperclip for now
+        if response:
+            logging.info(
+                f"[{agent_id}] Successfully retrieved response from clipboard."
+            )
+        else:
+            logging.warning(
+                f"[{agent_id}] Clipboard was empty after clicking copy button."
+            )
+        return response
+
+    except Exception as e:
+        # Catch specific bot exceptions if defined, otherwise general Exception
+        logging.error(
+            f"[{agent_id}] Error during response retrieval via OrchestratorBot: {e}"
+        )
+        return None
+    finally:
+        # Attempt to restore original clipboard content (best effort)
+        try:
+            if original_clipboard:
+                pyperclip.copy(original_clipboard)
+        except Exception:
+            pass
+
+
+def save_results(filepath: Path, results: Dict[str, Optional[str]]):
+    """Saves the validation results to a JSON file."""
+    try:
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=4)
+        logging.info(f"Validation results saved to {filepath}")
+    except Exception as e:
+        logging.error(f"Failed to save validation results: {e}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Validate GUI coordinates by injecting a test prompt and retrieving the response."
+    )
+    parser.add_argument(
+        "agent_ids",
+        help="Comma-separated list of agent IDs to validate (e.g., Agent-1,Agent-2).",
+    )
+    parser.add_argument(
+        "target_window_title",
+        help="Exact title of the target Cursor window(s). Used unless --force-unsafe-clicks is set.",
+    )
+    parser.add_argument(
+        "--coords_file",
+        default=str(DEFAULT_COORDS_PATH),
+        help=f"Path to the coordinates JSON file (default: {DEFAULT_COORDS_PATH})",
+    )
+    parser.add_argument(
+        "--output_file",
+        default=str(DEFAULT_OUTPUT_PATH),
+        help=f"Path to save the validation results JSON (default: {DEFAULT_OUTPUT_PATH})",
+    )
+    parser.add_argument(
+        "--wait",
+        type=int,
+        default=RESPONSE_WAIT_SECONDS,
+        help=f"Seconds to wait for response after injection (default: {RESPONSE_WAIT_SECONDS})",
+    )
+    parser.add_argument(
+        "--force-unsafe-clicks",
+        action="store_true",
+        help="Bypass window title activation/check before clicking coordinates.",
+    )
+
+    args = parser.parse_args()
+
+    agent_ids_list = [
+        agent_id.strip() for agent_id in args.agent_ids.split(",") if agent_id.strip()
+    ]
+    if not agent_ids_list:
+        print("ERROR: No valid agent IDs provided.")
+        exit(1)
+
+    coords_filepath = Path(args.coords_file)
+    output_filepath = Path(args.output_file)
+    window_title = args.target_window_title
+    wait_seconds = args.wait
+    force_unsafe = args.force_unsafe_clicks
+
+    print("\n=== Dream.OS GUI Coordinate Validation Tool ===")
+    print(f"Validating Agents: {', '.join(agent_ids_list)}")
+    if force_unsafe:
+        print(
+            "WARNING: Running with --force-unsafe-clicks. Window activation checks bypassed!"
+        )
+    else:
+        print(f"Target Window Title: '{window_title}'")
+    print(f"Using Coordinates: {coords_filepath}")
+    print(f"Saving Results To: {output_filepath}")
+    print(f"Waiting {wait_seconds}s for response after injection.")
+
+    all_coords = load_coords(coords_filepath)
+    if all_coords is None:
+        print("Exiting due to coordinate loading error.")
+        exit(1)
+
+    validation_results = {}
+
+    for agent_id in agent_ids_list:
+        print("-" * 30)
+        logging.info(f"Processing Agent: {agent_id}")
+        validation_results[agent_id] = None  # Default to None
+
+        agent_coords = all_coords.get(agent_id)
+        if not agent_coords:
+            logging.error(f"No coordinates found for agent '{agent_id}'. Skipping.")
+            continue
+
+        # 1. Inject Prompt
+        inject_success = inject_test_prompt(
+            agent_id, agent_coords, window_title, force_unsafe
+        )
+        if not inject_success:
+            logging.error(
+                f"Injection failed for agent '{agent_id}'. Skipping response retrieval."
+            )
+            continue
+
+        # 2. Wait for Response
+        logging.info(f"[{agent_id}] Waiting {wait_seconds} seconds for response...")
+        time.sleep(wait_seconds)
+
+        # 3. Retrieve Response
+        response = retrieve_response(agent_id, agent_coords, window_title, force_unsafe)
+        validation_results[agent_id] = (
+            response  # Store response (even if None or empty)
+        )
+        if response is None:
+            logging.error(f"[{agent_id}] Failed to retrieve response.")
+        else:
+            logging.info(f"[{agent_id}] Response retrieved (may be empty).")
+
+    # 4. Save Results
+    save_results(output_filepath, validation_results)
+
+    print("\n=== Validation Complete ===")
+
+
+if __name__ == "__main__":
+    main()

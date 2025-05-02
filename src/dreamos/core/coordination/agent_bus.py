@@ -1,3 +1,5 @@
+# --- Simple Pub/Sub Implementation ---
+
 import asyncio
 import logging
 import time
@@ -43,21 +45,22 @@ class MessageValidationError(BusError):
     """Raised when message validation fails."""
 
 
-class AgentBus:
-    """
-    An asynchronous event bus for inter-agent and system communication.
+# DELETE START: Remove duplicate/obsolete AgentBus skeleton
+# class AgentBus:
+#     """
+#     An asynchronous event bus for inter-agent and system communication.
+#
+#     Handles event subscription, publishing, and basic error handling.
+#     Uses asyncio for non-blocking operations.
+#
+#     Core Concepts:
+#         - Topics: Hierarchical strings (e.g., "agent.status.online", "task.lifecycle.created").
+#         - Events: Pydantic models inheriting from BaseEvent, containing data.
+#         - Subscribers: Coroutine functions that handle specific event types on topics.
+#         - Wildcards: Supports single-level (#) and multi-level (*) wildcards in topic subscriptions.
+#     """
+#
+#     # ... existing code ...
+# DELETE END
 
-    Handles event subscription, publishing, and basic error handling.
-    Uses asyncio for non-blocking operations.
-
-    Core Concepts:
-        - Topics: Hierarchical strings (e.g., "agent.status.online", "task.lifecycle.created").
-        - Events: Pydantic models inheriting from BaseEvent, containing data.
-        - Subscribers: Coroutine functions that handle specific event types on topics.
-        - Wildcards: Supports single-level (#) and multi-level (*) wildcards in topic subscriptions.
-    """
-
-    # ... existing code ...
-
-
-# ... (rest of the file) ...
+# --- Simple Pub/Sub Implementation ---

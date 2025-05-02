@@ -13,6 +13,7 @@ from threading import RLock
 from typing import Any, Dict, List, Optional
 
 from filelock import FileLock, Timeout
+from pydantic import ValidationError
 
 from dreamos.core.agents.capabilities.schema import AgentCapability
 
@@ -91,8 +92,10 @@ class CapabilityRegistry:
                         agent_caps = {}
                         for cap_id, cap_data in caps.items():
                             try:
-                                agent_caps[cap_id] = AgentCapability.from_dict(cap_data)
-                            except (TypeError, KeyError) as e:
+                                agent_caps[cap_id] = AgentCapability.model_validate(
+                                    cap_data
+                                )
+                            except (TypeError, KeyError, ValidationError) as e:
                                 logger.error(
                                     f"Failed to load capability {cap_id} for agent {agent_id}: Invalid data - {e}"
                                 )
@@ -128,7 +131,7 @@ class CapabilityRegistry:
         with self._memory_lock:
             for agent_id, caps in self._capabilities.items():
                 serializable_data[agent_id] = {
-                    cap_id: cap.to_dict() for cap_id, cap in caps.items()
+                    cap_id: cap.model_dump(mode="json") for cap_id, cap in caps.items()
                 }
 
         try:
@@ -211,10 +214,12 @@ class CapabilityRegistry:
 
         self._save_registry()
 
-        # EDIT START: Dispatch event using Enum
-        payload = CapabilityRegisteredPayload(capability_data=capability.to_dict())
+        # EDIT START: Dispatch event using Enum and correct Pydantic serialization
+        payload = CapabilityRegisteredPayload(
+            capability_data=capability.model_dump(mode="json")
+        )
         self._dispatch_registry_event(
-            EventType.SYSTEM_CAPABILITY_REGISTERED, payload.__dict__
+            EventType.SYSTEM_CAPABILITY_REGISTERED, payload.model_dump()
         )
         # EDIT END
 
@@ -247,12 +252,12 @@ class CapabilityRegistry:
 
         if removed:
             self._save_registry()
-            # EDIT START: Dispatch event using Enum
+            # EDIT START: Dispatch event using Enum and correct Pydantic serialization
             payload = CapabilityUnregisteredPayload(
                 agent_id=agent_id, capability_id=capability_id
             )
             self._dispatch_registry_event(
-                EventType.SYSTEM_CAPABILITY_UNREGISTERED, payload.__dict__
+                EventType.SYSTEM_CAPABILITY_UNREGISTERED, payload.model_dump()
             )
             # EDIT END
 

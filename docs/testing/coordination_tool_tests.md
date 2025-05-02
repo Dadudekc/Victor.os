@@ -10,7 +10,7 @@
 
 This document outlines test cases for the core coordination mechanisms currently observed in the Dream.OS system, focusing on task board management and inter-agent communication via mailboxes.
 
-## 1. ProjectBoardManager (`src/dreamos/core/comms/project_board.py`)
+## 1. ProjectBoardManager (`src/dreamos/coordination/project_board_manager.py`)
 
 ### 1.1 `claim_future_task(task_id, agent_id)`
 
@@ -82,34 +82,34 @@ This document outlines test cases for the core coordination mechanisms currently
     *   **Action:** Agent B reads and validates the message against the expected schema (requires a validation utility).
     *   **Expected:** Validation fails. Agent logs error/warning, skips processing (or moves to error folder).
 
-## 3. Simple Task Handler Script (`scripts/utils/simple_task_updater.py`)
+## 3. Task Management CLI (`src/dreamos/cli/manage_tasks.py`)
 
 *   **Test Case 3.1 (Claim - Success):**
     *   **Setup:** Task `T1` exists in `future_tasks.json`.
-    *   **Action:** Run `python simple_task_updater.py claim T1 Agent1`.
+    *   **Action:** Run `python manage_tasks.py claim T1 Agent1`.
     *   **Expected:** Script exits 0. Logs success. Task `T1` moved to `working_tasks.json`, assigned to `Agent1`.
 *   **Test Case 3.2 (Claim - Failure - Not Found):**
     *   **Setup:** Task `T_NotFound` does not exist in `future_tasks.json`.
-    *   **Action:** Run `python simple_task_updater.py claim T_NotFound Agent1`.
+    *   **Action:** Run `python manage_tasks.py claim T_NotFound Agent1`.
     *   **Expected:** Script exits non-zero. Logs error (task not found).
 *   **Test Case 3.3 (Update Working - Success):**
     *   **Setup:** Task `T1` exists in `working_tasks.json`.
-    *   **Action:** Run `python simple_task_updater.py update T1 IN_PROGRESS --notes "Making progress"`.
+    *   **Action:** Run `python manage_tasks.py update T1 IN_PROGRESS --notes "Making progress"`.
     *   **Expected:** Script exits 0. Logs success. Task `T1` in `working_tasks.json` updated with status `IN_PROGRESS` and new notes.
 *   **Test Case 3.4 (Update Completed - Success):**
     *   **Setup:** Task `T1` exists in `working_tasks.json`.
-    *   **Action:** Run `python simple_task_updater.py update T1 COMPLETED --notes "All done"`.
+    *   **Action:** Run `python manage_tasks.py update T1 COMPLETED --notes "All done"`.
     *   **Expected:** Script exits 0. Logs success (task moved). Task `T1` removed from `working_tasks.json` and added to `completed_tasks.json` with status `COMPLETED` and notes.
 *   **Test Case 3.5 (Update - Failure - Not Found):**
     *   **Setup:** Task `T_NotFound` does not exist in `working_tasks.json`.
-    *   **Action:** Run `python simple_task_updater.py update T_NotFound FAILED`.
+    *   **Action:** Run `python manage_tasks.py update T_NotFound FAILED`.
     *   **Expected:** Script exits non-zero. Logs error (task not found).
 *   **Test Case 3.6 (Invalid Action):**
-    *   **Action:** Run `python simple_task_updater.py invalid_action T1 ...`.
+    *   **Action:** Run `python manage_tasks.py invalid_action T1 ...`.
     *   **Expected:** Script exits non-zero. Shows argparse error about invalid choice.
 *   **Test Case 3.7 (Missing Args - Claim):**
-    *   **Action:** Run `python simple_task_updater.py claim T1`.
+    *   **Action:** Run `python manage_tasks.py claim T1`.
     *   **Expected:** Script exits non-zero. Shows argparse error about missing `agent_id`.
 *   **Test Case 3.8 (Missing Args - Update):**
-    *   **Action:** Run `python simple_task_updater.py update T1`.
+    *   **Action:** Run `python manage_tasks.py update T1`.
     *   **Expected:** Script exits non-zero. Shows argparse error about missing `status`.

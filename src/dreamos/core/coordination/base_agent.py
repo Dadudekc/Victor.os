@@ -6,13 +6,11 @@ import logging  # Added for standard logger
 import os  # Added for potential environment variable use
 import shlex  # Added for safe command construction
 import subprocess  # Added for running external validation tools
-import sys
+import sys  # EDIT: Added sys import
 import traceback
-import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
-from queue import Empty, Queue
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 # REMOVED obsolete dreamforge comments/imports
@@ -33,8 +31,10 @@ from dreamos.coordination.agent_bus import (  # CORRECTED PATH
     AgentBus,
     BaseEvent,
     BusError,
-    Message,
 )
+
+# EDIT START: Import PBM
+from dreamos.coordination.project_board_manager import ProjectBoardManager
 
 # EDIT END
 from dreamos.core.config import AppConfig  # EDIT: Import AppConfig from config.py
@@ -47,9 +47,6 @@ from dreamos.core.coordination.message_patterns import (
     TaskStatus,
     create_task_message,
     update_task_status,
-)
-from dreamos.core.logging.swarm_logger import (  # Import swarm logger for detailed events
-    log_agent_event,
 )
 
 # from dreamos.core.memory.governance_memory_engine import log_event
@@ -74,6 +71,14 @@ from .event_payloads import (
 
 # EDIT START: Import EventType from canonical source
 from .event_types import EventType
+
+# from dreamos.core.logging.swarm_logger import (  # Removed unused import
+#     log_agent_event,
+# )
+
+
+
+
 
 # REMOVED obsolete config manager imports
 
@@ -101,33 +106,41 @@ from .event_types import EventType
 # EDIT END
 
 
+# EDIT END
+
+
 class BaseAgent(ABC):
     """Base class for all Dream.OS agents providing common functionality."""
 
-    # Update __init__ signature and logic
-    # def __init__(self, agent_id: str, agent_bus: AgentBus):
+    # EDIT START: Modify __init__ signature and logic
     def __init__(
         self,
         agent_id: str,
-        agent_bus: AgentBus,
-        config: AppConfig,  # Require AppConfig instance
-        task_list_path: Optional[Path] = None,
-        project_root: Optional[Path] = None,
+        config: AppConfig,  # EDIT: Moved mandatory config before optional args
+        pbm: ProjectBoardManager,  # Require PBM
+        agent_bus: Optional[AgentBus] = None,
+        # project_root: Path = Path("."), # Now derived from AppConfig
+        # task_list_path: Optional[Path] = None, # EDIT: Removed obsolete
+        # capabilities: Optional[List[str]] = None, # EDIT: Removed capabilities
     ):
-        """Initialize the base agent.
+        """Initializes the BaseAgent.
 
         Args:
-            agent_id: Unique identifier for this agent instance.
-            agent_bus: The shared AgentBus instance.
-            config: The loaded AppConfig instance.
-            task_list_path: Optional path to the persistent task list file.
-                          Defaults to 'task_list.json' in the project root.
-            project_root: Optional explicit Path to the project root.
-                        If not provided, attempts to find via env var or config.
+            agent_id: Unique identifier for the agent.
+            config: Application configuration object.
+            pbm: Project Board Manager instance.
+            agent_bus: An instance of AgentBus for communication.
+            # project_root: Root directory for resolving relative paths. Now derived from AppConfig.
+            # task_list_path: Optional path to the persistent task list file. # EDIT: Removed obsolete
+            # capabilities: List of capabilities this agent possesses. # EDIT: Removed capabilities doc
         """
         self.logger = logging.getLogger(agent_id)
         self.agent_id = agent_id
-        self.agent_bus = agent_bus
+        self.config = config
+        # EDIT START: Store PBM
+        self.pbm = pbm
+        # EDIT END
+        self.agent_bus = agent_bus or self._get_default_agent_bus()
         self._subscription_id = None
         self._running = False
         self._active_tasks = {}
@@ -137,45 +150,58 @@ class BaseAgent(ABC):
         ] = {}
         self.logger.debug(f"Initializing BaseAgent for {agent_id}")
 
-        self.config = config  # Store the AppConfig instance
+        # EDIT START: Use config directly and validate it exists
+        if not config or not config.paths or not config.paths.project_root:
+            from ..core.errors import ConfigurationError
 
-        # EDIT START: Robust project root determination
-        if project_root:
-            self._project_root = project_root.resolve()
-            self.logger.info(f"Using provided project root: {self._project_root}")
-        else:
-            # Try environment variable
-            env_root = os.environ.get("DREAMOS_PROJECT_ROOT")
-            if env_root:
-                self._project_root = Path(env_root).resolve()
-                self.logger.info(
-                    f"Using project root from DREAMOS_PROJECT_ROOT env var: {self._project_root}"
-                )
-            # Try ConfigManager if available
-            elif config:
-                cfg_root = config.paths.project_root
-                if cfg_root:
-                    self._project_root = Path(cfg_root).resolve()
-                    self.logger.info(
-                        f"Using project root from config: {self._project_root}"
-                    )
-                else:
-                    # Fallback: Search upwards for a marker file (e.g., pyproject.toml)
-                    self._project_root = self._find_project_root()
-                    self.logger.warning(
-                        f"Project root not specified via param/env/config. Found via marker search: {self._project_root}"
-                    )
-            else:
-                # Final fallback: Search upwards
-                self._project_root = self._find_project_root()
-                self.logger.warning(
-                    f"Project root not specified and config manager unavailable. Found via marker search: {self._project_root}"
-                )
-        # EDIT END
+            raise ConfigurationError(
+                "AppConfig must provide a valid project_root path."
+            )
+        self._project_root = config.paths.project_root.resolve()
+        self.logger.info(f"Using project root from config: {self._project_root}")
+        # EDIT END: Remove old project root logic
+
+        # OLD Logic - Removed
+        # # EDIT START: Robust project root determination
+        # if config:
+        #     self._project_root = config.paths.project_root
+        #     self.logger.info(f"Using provided project root: {self._project_root}")
+        # else:
+        #     # Try environment variable
+        #     env_root = os.environ.get("DREAMOS_PROJECT_ROOT")
+        #     if env_root:
+        #         self._project_root = Path(env_root).resolve()
+        #         self.logger.info(
+        #             f"Using project root from DREAMOS_PROJECT_ROOT env var: {self._project_root}"
+        #         )
+        #     # Try ConfigManager if available
+        #     elif config: # This check is redundant now
+        #         cfg_root = config.paths.project_root
+        #         if cfg_root:
+        #             self._project_root = Path(cfg_root).resolve()
+        #             self.logger.info(
+        #                 f"Using project root from config: {self._project_root}"
+        #             )
+        #         else:
+        #             # Fallback: Search upwards for a marker file (e.g., pyproject.toml)
+        #             self._project_root = self._find_project_root()
+        #             self.logger.warning(
+        #                 f"Project root not specified via param/env/config. Found via marker search: {self._project_root}"
+        #             )
+        #     else:
+        #         # Final fallback: Search upwards
+        #         self._project_root = self._find_project_root()
+        #         self.logger.warning(
+        #             f"Project root not specified and config manager unavailable. Found via marker search: {self._project_root}"
+        #         )
+        # # EDIT END
 
         self.logger.debug("Initializing PerformanceLogger...")
         try:
-            self.perf_logger = PerformanceLogger(agent_id)
+            # Pass project root to Perf Logger if needed, or ensure it finds it
+            self.perf_logger = PerformanceLogger(
+                agent_id
+            )  # Assuming it doesn't need explicit root path
             self.logger.info(
                 f"PerformanceLogger initialized. Log path: {self.perf_logger.log_path}"
             )
@@ -185,29 +211,19 @@ class BaseAgent(ABC):
             )
             self.perf_logger = None
 
-        # Determine project root dynamically for default path calculation - REMOVED OLD METHOD
-        # project_root_old = Path(__file__).resolve().parents[4] # REMOVED
+        # Remove comments/logic related to capabilities and obsolete task_list_path
+        # self.capabilities = set(capabilities) if capabilities else set()
+        # Capability registration now handled via CapabilityRegistry
 
+        # EDIT START: Remove obsolete task_list_path logic comment
         # TODO: Refactor/Remove: This task_list_path logic seems outdated due to PBM/dual-queue.
-        # Set the task list path: use provided path or default relative to determined root
-        self.task_list_path = task_list_path or (self._project_root / "task_list.json")
-        self.logger.info(f"Using persistent task list: {self.task_list_path}")
+        # self.task_list_path = task_list_path or (self._project_root / "task_list.json")
+        # self.logger.info(f"Using persistent task list: {self.task_list_path}")
+        # EDIT END
 
-    # EDIT START: Added helper method to find project root
-    def _find_project_root(self, marker: str = "pyproject.toml") -> Path:
-        """Searches upward from the current file for a marker file to find the project root."""
-        current_dir = Path(__file__).resolve().parent
-        while current_dir != current_dir.parent:
-            if (current_dir / marker).exists():
-                return current_dir
-            current_dir = current_dir.parent
-        # Fallback if marker not found (e.g., running from unexpected location)
-        self.logger.error(
-            f"Could not find project root marker '{marker}'. Falling back to CWD."
-        )
-        return Path.cwd()
-
-    # EDIT END
+        self.agent_bus = agent_bus or self._get_default_agent_bus()
+        # self.capabilities = set(capabilities) if capabilities else set() # EDIT: Removed capabilities assignment
+        # Capability registration now handled via CapabilityRegistry
 
     @with_error_handling(AgentError)
     async def start(self):
@@ -696,11 +712,6 @@ class BaseAgent(ABC):
     ):
         """Process a single task from the queue."""
         self.logger.info(f"Processing task {task.task_id}: {task.command_type}")
-        # log_event(
-        #     "TASK_PROCESSING_START",
-        #     self.agent_id,
-        #     {"task_id": task.task_id, "command": task.command_type},
-        # )
         log_agent_event(
             self.agent_id,
             "TASK_PROCESSING_START",
@@ -712,75 +723,174 @@ class BaseAgent(ABC):
         if not handler:
             error_msg = f"No handler registered for command type '{task.command_type}'"
             self.logger.error(error_msg)
+            # EDIT START: Persist failure
+            try:
+                await self.pbm.update_working_task(
+                    task.task_id,
+                    {"status": TaskStatus.FAILED.value, "error_details": error_msg},
+                )
+                self.logger.info(
+                    f"Persisted FAILED status for task {task.task_id} (no handler). "
+                )
+            except Exception as persist_err:
+                self.logger.error(
+                    f"Failed to persist FAILED status for task {task.task_id} (no handler): {persist_err}"
+                )
+                # Continue to publish event anyway?
+            # EDIT END
             await self.publish_task_failed(
-                task, error=error_msg, is_final=True, correlation_id=correlation_id
-            )
-            # Persist final failure status
-            await persist_task_update(
-                task.task_id, TaskStatus.FAILED, details=error_msg
+                task,
+                error=error_msg,
+                is_final=True,  # No handler means permanent failure
             )
             return
 
+        result = None
         try:
-            # Mark task as active before starting
-            self._active_tasks[task.task_id] = asyncio.current_task()
-            await self.publish_task_started(task)
             # Persist working status
-            await persist_task_update(task.task_id, TaskStatus.WORKING)
+            try:
+                await self.pbm.update_working_task(
+                    task.task_id, {"status": TaskStatus.WORKING.value}
+                )
+                self.logger.info(f"Persisted WORKING status for task {task.task_id}. ")
+            except Exception as persist_err:
+                self.logger.error(
+                    f"Failed to persist WORKING status for task {task.task_id}: {persist_err}"
+                )
+                # Should we proceed if we can't update status?
+                # For now, log and continue, but publish failure later if needed.
+
+            await self.publish_task_started(task)
 
             # Execute the handler
             result = await handler(task)
             self.logger.info(f"Task {task.task_id} handler completed.")
 
             # Validate the result before marking as complete
-            # {{ EDIT START: Enhance validation call }}
             is_valid, validation_details = await self._validate_task_completion(
-                task, result, result.get("modified_files", [])  # Pass modified files
+                task, result, result.get("modified_files", [])
             )
-            # {{ EDIT END }}
+
             if not is_valid:
                 self.logger.warning(
                     f"Task {task.task_id} validation failed: {validation_details}"
                 )
+                # EDIT START: Persist validation failure
+                try:
+                    await self.pbm.update_working_task(
+                        task.task_id,
+                        {
+                            "status": TaskStatus.VALIDATION_FAILED.value,
+                            "validation_details": validation_details,
+                        },
+                    )
+                    self.logger.info(
+                        f"Persisted VALIDATION_FAILED status for task {task.task_id}. "
+                    )
+                except Exception as persist_err:
+                    self.logger.error(
+                        f"Failed to persist VALIDATION_FAILED status for task {task.task_id}: {persist_err}"
+                    )
+                    # Continue to publish event anyway?
+                # EDIT END
                 await self.publish_validation_failed(task, validation_details)
-                # Status already set to VALIDATION_FAILED in _validate_task_completion
-                # Persist the final state
-                # TODO: Replace with PBM update call when available
-                # try:
-                #     self.persist_task_update(task.task_id, {"status": STATUS_VALIDATION_FAILED, "validation_notes": validation_details})
-                # except Exception as persist_err:
-                #     self.logger.error(f"Failed to persist VALIDATION_FAILED status for task {task.task_id}: {persist_err}")
-                return  # Stop processing this task
+                return
 
             # If validation passed, proceed to completion
-            # ... existing code ...
+            # EDIT START: Persist completion via move
+            try:
+                move_success = await self.pbm.move_task_to_completed(
+                    task.task_id,
+                    final_updates={
+                        "status": TaskStatus.COMPLETED.value,  # Ensure status is set
+                        "result_summary": result.get(
+                            "summary", "Completed without summary."
+                        ),  # Example: store summary
+                        "result": result,  # Store full result if desired/schema allows
+                    },
+                )
+                if move_success:
+                    self.logger.info(
+                        f"Successfully persisted COMPLETION for task {task.task_id} via PBM move."
+                    )
+                    await self.publish_task_completed(task, result)
+                else:
+                    # This case shouldn't happen if move_task_to_completed raises errors on failure
+                    self.logger.error(
+                        f"PBM.move_task_to_completed returned False for task {task.task_id}. Persistence failed."
+                    )
+                    # Publish failure because persistence failed
+                    await self.publish_task_failed(
+                        task,
+                        error="Failed to persist completion status.",
+                        is_final=True,
+                    )
+
+            except Exception as persist_err:
+                self.logger.error(
+                    f"Failed to persist COMPLETION status for task {task.task_id} via PBM move: {persist_err}",
+                    exc_info=True,
+                )
+                # Publish failure because persistence failed
+                await self.publish_task_failed(
+                    task,
+                    error=f"Failed to persist completion status: {persist_err}",
+                    is_final=True,
+                )
+            # EDIT END
 
         except asyncio.CancelledError:
             self.logger.warning(f"Task {task.task_id} was cancelled.")
-            await handle_task_cancellation(task, self.agent_id)
-            # Persist cancelled status
-            await persist_task_update(task.task_id, TaskStatus.CANCELLED)
+            # EDIT START: Persist cancellation
+            try:
+                await self.pbm.update_working_task(
+                    task.task_id, {"status": TaskStatus.CANCELLED.value}
+                )
+                self.logger.info(
+                    f"Persisted CANCELLED status for task {task.task_id}. "
+                )
+            except Exception as persist_err:
+                self.logger.error(
+                    f"Failed to persist CANCELLED status for task {task.task_id}: {persist_err}"
+                )
+            # EDIT END
+            await handle_task_cancellation(task, self.agent_id)  # Keep existing helper
             log_agent_event(
                 self.agent_id, "TASK_CANCELLED", task_id=task.task_id
             )  # Swarm logger
 
         except Exception as e:
             error_msg = f"Error processing task {task.task_id}: {e}"
-            self.logger.exception(error_msg)  # Log full traceback
+            self.logger.exception(error_msg)
+            # EDIT START: Persist failure from handler exception
+            try:
+                await self.pbm.update_working_task(
+                    task.task_id,
+                    {
+                        "status": TaskStatus.FAILED.value,
+                        "error_details": error_msg,
+                        "traceback": traceback.format_exc(),
+                    },
+                )
+                self.logger.info(
+                    f"Persisted FAILED status for task {task.task_id} (handler error). "
+                )
+            except Exception as persist_err:
+                self.logger.error(
+                    f"Failed to persist FAILED status for task {task.task_id} (handler error): {persist_err}"
+                )
+                # Continue to publish event anyway?
+            # EDIT END
             # Publish specific agent error event
             await self.publish_agent_error(
                 error_message=error_msg,
                 task_id=task.task_id,
                 correlation_id=correlation_id,
                 details={"traceback": traceback.format_exc()},
-                exc_info=True,  # Include exc_info for potentially richer logging
+                exc_info=True,
             )
-            # Publish generic task failure event
-            # await self.publish_task_failed(task, error=str(e), is_final=True, correlation_id=correlation_id)
-            # Persist final failure status
-            await persist_task_update(
-                task.task_id, TaskStatus.FAILED, details=error_msg
-            )
+            # Publish generic task failure event (now redundant if agent error is published?)
+            # await self.publish_task_failed(task, error=str(e), is_final=True)
             log_agent_event(
                 self.agent_id,
                 "TASK_PROCESSING_ERROR",
@@ -790,9 +900,6 @@ class BaseAgent(ABC):
             )
 
         finally:
-            # Remove task from active tasks regardless of outcome
-            if task.task_id in self._active_tasks:
-                del self._active_tasks[task.task_id]
             self.logger.debug(f"Finished processing task {task.task_id}.")
             log_task_performance(self.perf_logger, "process_single_task", task.task_id)
 

@@ -1,18 +1,31 @@
 import asyncio
 import json
 import logging
-import uuid  # Needed for correlation ID
-from pathlib import Path  # noqa E402
-from typing import Any, Dict
+import uuid
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
-from dreamos.coordination.agent_bus import AgentBus, EventType
+from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 
-# Import the standardized event publisher
+# --- Core DreamOS Imports ---
+from dreamos.coordination.base_agent import BaseAgent
+
+# EDIT START: Import PBM
+from dreamos.coordination.project_board_manager import (
+    ProjectBoardManager,
+    TaskClaimError,
+    TaskStatus,
+)
+from dreamos.core.comms.mailbox_utils import (
+    delete_message,
+    list_mailbox_messages,
+    read_message,
+)
+from dreamos.core.config import AppConfig
+from dreamos.core.coordination.message_patterns import TaskMessage
 from dreamos.core.eventing.publishers import publish_cursor_inject_event
 
-# Remove direct orchestrator import
-# from dreamos.automation.cursor_orchestrator import get_cursor_orchestrator, CursorOrchestratorError
-
+# EDIT END
 
 # Configure basic logging
 logging.basicConfig(
@@ -20,95 +33,545 @@ logging.basicConfig(
 )
 logger = logging.getLogger("Agent2InfraSurgeon")
 
-AGENT_ID = "Agent2"  # Define the agent ID used in coordinate files
-# DEFAULT_RESPONSE_WAIT_TIME = 15.0 # No longer needed, response is async via bus
+AGENT_ID = "Agent-2"
+DEFAULT_RESPONSE_TIMEOUT = 60.0  # Timeout in seconds for waiting for cursor response
 
 
-async def run_agent2_task(task_prompt: str):
+# --- Agent Class Definition ---
+class Agent2InfraSurgeon(BaseAgent):
     """
-    Runs a single task by PUBLISHING an event requesting prompt injection
-    via the AgentBus.
-    Does NOT wait for or retrieve the response directly.
+    Agent responsible for executing infrastructure-related tasks via GUI automation (Cursor).
+    Interacts primarily by publishing CURSOR_INJECT_REQUEST events and listening for
+    CURSOR_RETRIEVE_SUCCESS/FAILURE responses.
     """
-    # Removed orchestrator instantiation and status check - relies on bus now
-    try:
-        logger.info(f"Attempting task via AgentBus event: '{task_prompt}'")
-        correlation_id = str(uuid.uuid4())  # Generate ID to track request/response
 
-        # --- Publish Injection Request Event ---
-        logger.info(
-            f"Publishing cursor inject request for {AGENT_ID} (CorrID: {correlation_id})..."
-        )
-        success = await publish_cursor_inject_event(
-            target_agent_id=AGENT_ID,
-            prompt=task_prompt,
-            source_agent_id=AGENT_ID,  # Self-identifying as source
-            correlation_id=correlation_id,
-        )
-
-        if not success:
-            logger.error(
-                f"Failed to publish cursor inject event for {AGENT_ID}. Aborting task."
+    def __init__(
+        self,
+        agent_id: str = AGENT_ID,
+        config: Optional[AppConfig] = None,
+        pbm: Optional[ProjectBoardManager] = None,
+        agent_bus: Optional[AgentBus] = None,
+    ):
+        """Initialize the Agent 2 Infra Surgeon."""
+        if not config:
+            raise ValueError("AppConfig instance is required for Agent2InfraSurgeon")
+        if not pbm:
+            raise ValueError(
+                "ProjectBoardManager instance is required for Agent2InfraSurgeon"
             )
-            # Retry logic is handled by RecoveryCoordinatorAgent (Agent4) based on TASK_FAILED events.
-            return False  # Indicate publishing failure
 
-        logger.info(
-            f"Cursor inject request published successfully (CorrID: {correlation_id})."
+        super().__init__(agent_id=agent_id, config=config, pbm=pbm, agent_bus=agent_bus)
+        logger.info(f"Agent {self.agent_id} (Infra Surgeon) initializing...")
+
+        # Dictionary to track pending requests: {correlation_id: (asyncio.Event, Optional[Dict])}
+        # The Optional[Dict] will store the response data when received.
+        self._pending_cursor_requests: Dict[
+            str, Tuple[asyncio.Event, Optional[Dict]]
+        ] = {}
+
+        # Subscribe to response events if agent_bus is available
+        if self.agent_bus:
+            self.agent_bus.subscribe(
+                EventType.CURSOR_RETRIEVE_SUCCESS, self._handle_cursor_response
+            )
+            self.agent_bus.subscribe(
+                EventType.CURSOR_RETRIEVE_FAILURE,
+                self._handle_cursor_response,  # Use the same handler for simplicity
+            )
+            logger.info(
+                f"[{self.agent_id}] Subscribed to CURSOR_RETRIEVE_SUCCESS and CURSOR_RETRIEVE_FAILURE events."
+            )
+        else:
+            logger.warning(
+                f"[{self.agent_id}] AgentBus not provided. Cannot subscribe to cursor response events."
+            )
+
+        logger.info(f"Agent {self.agent_id} initialized.")
+
+    async def _load_config(self):
+        """Load agent-specific configuration if needed."""
+        # Example: Load specific coordinates or settings for Agent 2 if required
+        # await super()._load_config() # Call parent if it has loading logic
+        logger.debug(f"[{self.agent_id}] Loading agent-specific configuration...")
+        # Add specific config loading here if needed in the future
+        logger.debug(f"[{self.agent_id}] Agent-specific configuration loaded.")
+
+    async def _process_message(self, message: Dict[str, Any]):
+        """Process incoming mailbox messages (directives, info, etc.)."""
+        # Currently, Agent 2 primarily gets tasks via PBM, but can handle directives
+        await super()._process_message(message)  # Leverage base class message handling
+
+    async def _perform_task(self, task_details: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Executes a task by publishing a CURSOR_INJECT_REQUEST and waiting for a response.
+        """
+        task_id = task_details.get("task_id", "UNKNOWN_TASK")
+        prompt = task_details.get("prompt")  # Assuming task has a 'prompt' field
+        if not prompt:
+            prompt = task_details.get("description")
+            if not prompt:
+                logger.error(
+                    f"[{self.agent_id}] Task {task_id} has no 'prompt' or 'description'. Cannot execute."
+                )
+                return {
+                    "success": False,
+                    "summary": "Missing prompt/description in task details.",
+                }
+
+        logger.info(f"[{self.agent_id}] Starting task {task_id}: '{prompt[:50]}...'")
+
+        if not self.agent_bus:
+            logger.error(
+                f"[{self.agent_id}] AgentBus not available. Cannot execute task {task_id}."
+            )
+            return {
+                "success": False,
+                "summary": "AgentBus not available for event publishing.",
+            }
+
+        correlation_id = str(uuid.uuid4())
+        response_event = asyncio.Event()  # Event to wait for the specific response
+        self._pending_cursor_requests[correlation_id] = (
+            response_event,
+            None,
+        )  # Store event, init response data=None
+        response_data = None  # Variable to hold the received response
+
+        try:
+            logger.info(
+                f"[{self.agent_id}] Publishing cursor inject request for CorrID: {correlation_id}..."
+            )
+            # Use the instance's agent_bus
+            success = await publish_cursor_inject_event(
+                target_agent_id=self.agent_id,
+                prompt=prompt,
+                source_agent_id=self.agent_id,
+                correlation_id=correlation_id,
+                agent_bus=self.agent_bus,
+            )
+
+            if not success:
+                logger.error(
+                    f"[{self.agent_id}] Failed to publish cursor inject event (CorrID: {correlation_id}). Aborting task {task_id}."
+                )
+                # Clean up before returning
+                del self._pending_cursor_requests[correlation_id]
+                return {
+                    "success": False,
+                    "summary": "Failed to publish inject event to AgentBus.",
+                }
+
+            logger.info(
+                f"[{self.agent_id}] Cursor inject request published (CorrID: {correlation_id}). Waiting for response (timeout: {DEFAULT_RESPONSE_TIMEOUT}s)..."
+            )
+
+            # Wait for the response event to be set by the handler
+            try:
+                await asyncio.wait_for(
+                    response_event.wait(), timeout=DEFAULT_RESPONSE_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                logger.error(
+                    f"[{self.agent_id}] Timeout waiting for cursor response for CorrID: {correlation_id} (Task: {task_id})."
+                )
+                return {
+                    "success": False,
+                    "summary": f"Timeout waiting for cursor response ({DEFAULT_RESPONSE_TIMEOUT}s).",
+                }
+
+            # Retrieve the response data stored by the handler
+            _event, response_data = self._pending_cursor_requests.get(
+                correlation_id, (None, None)
+            )
+
+            if response_data is None:
+                # Should not happen if event was set, but safety check
+                logger.error(
+                    f"[{self.agent_id}] Response event triggered but no data found for CorrID: {correlation_id}."
+                )
+                return {
+                    "success": False,
+                    "summary": "Internal error: Response event set, but no data retrieved.",
+                }
+
+            # Process the received response data
+            logger.info(
+                f"[{self.agent_id}] Received response for CorrID: {correlation_id}."
+            )
+            # Assuming response_data contains keys like 'success', 'output', 'error'
+            task_success = response_data.get("success", False)
+            task_output = response_data.get("output", "")
+            task_error = response_data.get("error")
+
+            summary = f"Task {task_id} completed."
+            if task_output:
+                summary += f" Output: {str(task_output)[:100]}..."
+            if task_error:
+                summary += f" Error: {task_error}"
+
+            return {
+                "success": task_success,
+                "summary": summary,
+                "output": task_output,
+            }  # Include full output if needed
+
+        except Exception as e:
+            logger.exception(
+                f"[{self.agent_id}] Unexpected error during task {task_id} (CorrID: {correlation_id}): {e}"
+            )
+            return {"success": False, "summary": f"Unexpected error: {e}"}
+        finally:
+            # Ensure cleanup even if errors occur
+            if correlation_id in self._pending_cursor_requests:
+                del self._pending_cursor_requests[correlation_id]
+                logger.debug(
+                    f"[{self.agent_id}] Cleaned up pending request for CorrID: {correlation_id}."
+                )
+
+    async def _handle_cursor_response(self, event: BaseEvent):
+        """
+        Handles incoming CURSOR_RETRIEVE_SUCCESS and CURSOR_RETRIEVE_FAILURE events.
+        Matches correlation ID and sets the corresponding asyncio Event.
+        """
+        correlation_id = event.data.get("correlation_id")
+        logger.debug(
+            f"[{self.agent_id}] Received event {event.event_type} with CorrID: {correlation_id}"
         )
-        logger.info(
-            "Agent task complete (publish only). Response handling requires separate listener."
+
+        if correlation_id and correlation_id in self._pending_cursor_requests:
+            response_event, _ = self._pending_cursor_requests[correlation_id]
+
+            # Store the relevant data from the event
+            response_data = {
+                "success": event.event_type == EventType.CURSOR_RETRIEVE_SUCCESS,
+                "output": event.data.get("output"),
+                "error": event.data.get("error"),
+                "correlation_id": correlation_id,  # Include for verification if needed
+            }
+
+            # Update the stored tuple with the response data
+            self._pending_cursor_requests[correlation_id] = (
+                response_event,
+                response_data,
+            )
+
+            logger.info(
+                f"[{self.agent_id}] Matched response for CorrID: {correlation_id}. Signaling waiting task."
+            )
+            response_event.set()  # Signal the waiting _perform_task
+        else:
+            logger.warning(
+                f"[{self.agent_id}] Received cursor response event with unknown or missing CorrID: {correlation_id}. Event data: {event.data}"
+            )
+
+    # --- Main Autonomous Loop ---
+    async def run_autonomous_loop(self):
+        """Main operational loop following UNIVERSAL_AGENT_LOOP v2.1."""
+        self.logger.info(f"[{self.agent_id}] Starting autonomous loop...")
+        self._running = True
+
+        while self._running:
+            try:
+                self.logger.debug(f"[{self.agent_id}] Starting new loop iteration.")
+
+                # 1. Mailbox Scan (Placeholder)
+                await self._scan_and_process_mailbox()
+
+                # 2. Working Tasks (Check if BaseAgent handles this)
+                # BaseAgent._process_task_queue likely handles tasks added internally.
+                # We need to check if we *have* an active task from a previous claim.
+                # TODO: Check self._active_tasks or BaseAgent mechanism for ongoing task
+                has_active_task = False  # Placeholder
+                if has_active_task:
+                    self.logger.debug(
+                        f"[{self.agent_id}] Currently processing an active task. Skipping queue check."
+                    )
+                    await asyncio.sleep(5)  # Wait before next check
+                    continue
+
+                # 3. Self-Assigned Tasks (Inbox - Placeholder)
+                # Agent 2 primarily takes tasks from central queue for now.
+
+                # 4. Central Task Queue Check (if idle)
+                self.logger.debug(
+                    f"[{self.agent_id}] Checking central ready queue for tasks..."
+                )
+                ready_tasks = await self.pbm.get_tasks_by_status(TaskStatus.READY)
+
+                if not ready_tasks:
+                    self.logger.info(
+                        f"[{self.agent_id}] No tasks found in the ready queue. Checking blockers/idling."
+                    )
+                    # 5. Blocker Resolution (Placeholder)
+                    await self._check_for_blockers()
+                    await asyncio.sleep(
+                        self.config.agent_settings.get("idle_sleep_interval", 30)
+                    )  # Idle sleep
+                    continue
+
+                # Filter for suitable GUI tasks
+                # TODO: Define a clearer tag/field for GUI tasks
+                gui_tasks = [
+                    t
+                    for t in ready_tasks
+                    if t.get("task_type") == "GUI_AUTOMATION"
+                    or "GUI" in t.get("name", "").upper()
+                ]
+
+                if not gui_tasks:
+                    self.logger.info(
+                        f"[{self.agent_id}] No suitable GUI tasks found in the ready queue."
+                    )
+                    await asyncio.sleep(
+                        self.config.agent_settings.get("idle_sleep_interval", 15)
+                    )  # Shorter sleep if tasks exist but aren't suitable
+                    continue
+
+                # Attempt to claim the highest priority suitable task (simple approach)
+                # TODO: Implement more sophisticated task selection if needed
+                task_to_claim = gui_tasks[0]  # Simplest: take the first one
+                task_id_to_claim = task_to_claim.get("task_id")
+
+                if not task_id_to_claim:
+                    self.logger.error(
+                        f"[{self.agent_id}] Found suitable task missing a task_id: {task_to_claim.get('name')}. Skipping."
+                    )
+                    continue
+
+                self.logger.info(
+                    f"[{self.agent_id}] Attempting to claim task: {task_id_to_claim} ('{task_to_claim.get('name')}')"
+                )
+                try:
+                    claimed_task_details = await self.pbm.claim_task(
+                        task_id_to_claim, self.agent_id
+                    )
+                    if claimed_task_details:
+                        self.logger.info(
+                            f"[{self.agent_id}] Successfully claimed task {task_id_to_claim}."
+                        )
+                        # Add to internal processing queue or call processing method
+                        # Option A: Use BaseAgent's queue (if appropriate)
+                        # priority = self._get_priority_value(claimed_task_details.priority)
+                        # await self._task_queue.put((priority, claimed_task_details))
+
+                        # Option B: Call _process_single_task directly (potentially simpler)
+                        # Requires converting dict -> TaskMessage if needed by _process_single_task
+                        task_message = TaskMessage(
+                            **claimed_task_details
+                        )  # Assuming direct conversion works
+                        await self._process_single_task(
+                            task=task_message, correlation_id=None
+                        )
+                        # _process_single_task should handle status updates (COMPLETED/FAILED)
+                    else:
+                        # This case shouldn't happen if claim_task doesn't raise error, but safety check
+                        self.logger.warning(
+                            f"[{self.agent_id}] Claim successful for {task_id_to_claim} but no details returned?"
+                        )
+
+                except TaskClaimError as e:
+                    self.logger.warning(
+                        f"[{self.agent_id}] Failed to claim task {task_id_to_claim}: {e}"
+                    )
+                    # Task was likely claimed by another agent, continue loop
+                    await asyncio.sleep(1)  # Small delay before checking again
+                    continue
+                except Exception as e:
+                    self.logger.exception(
+                        f"[{self.agent_id}] Unexpected error during task claim for {task_id_to_claim}: {e}"
+                    )
+                    await asyncio.sleep(5)
+                    continue
+
+                # Short sleep after potentially processing a task or failing to claim
+                await asyncio.sleep(1)
+
+            except asyncio.CancelledError:
+                self.logger.info(f"[{self.agent_id}] Autonomous loop cancelled.")
+                self._running = False
+                break
+            except Exception as e:
+                self.logger.exception(
+                    f"[{self.agent_id}] Unhandled error in autonomous loop: {e}"
+                )
+                # Avoid tight loop on persistent error
+                await asyncio.sleep(60)
+
+        self.logger.info(f"[{self.agent_id}] Autonomous loop finished.")
+
+    async def _scan_and_process_mailbox(self):
+        """Scan agent's inbox and process messages."""
+        self.logger.debug(f"[{self.agent_id}] Scanning mailbox...")
+        try:
+            mailbox_path = (
+                self.config.paths.get_agent_mailbox_path(self.agent_id) / "inbox"
+            )
+            if not await asyncio.to_thread(mailbox_path.exists):
+                self.logger.warning(
+                    f"[{self.agent_id}] Mailbox inbox directory not found: {mailbox_path}"
+                )
+                return
+
+            messages = await list_mailbox_messages(mailbox_path)
+            if not messages:
+                self.logger.debug(f"[{self.agent_id}] Mailbox empty.")
+                return
+
+            self.logger.info(
+                f"[{self.agent_id}] Found {len(messages)} messages in inbox."
+            )
+            for msg_file in messages:
+                msg_path = mailbox_path / msg_file
+                try:
+                    message_content = await read_message(msg_path)
+                    if message_content:
+                        self.logger.debug(
+                            f"[{self.agent_id}] Processing message: {msg_file}"
+                        )
+                        # Call BaseAgent's message processing logic
+                        await self._process_message(message_content)
+                        # Delete after successful processing
+                        await delete_message(msg_path)
+                        self.logger.info(
+                            f"[{self.agent_id}] Processed and deleted message: {msg_file}"
+                        )
+                    else:
+                        self.logger.warning(
+                            f"[{self.agent_id}] Failed to read message content from {msg_file}. Skipping."
+                        )
+                        # Optionally delete corrupted/unreadable messages?
+                        # await delete_message(msg_path)
+                except Exception as msg_proc_err:
+                    self.logger.error(
+                        f"[{self.agent_id}] Error processing message {msg_file}: {msg_proc_err}",
+                        exc_info=True,
+                    )
+                    # Decide whether to delete or leave the problematic message
+
+        except Exception as scan_err:
+            self.logger.error(
+                f"[{self.agent_id}] Error scanning mailbox: {scan_err}", exc_info=True
+            )
+
+    async def _check_for_blockers(self):
+        """Placeholder for blocker checking logic. Agent 2 primarily focuses on executing claimed GUI tasks."""
+        # TODO: Implement scanning task boards for blockers/corruption if needed for Agent 2 specifically.
+        # For now, assume other agents (like Captains) handle systemic board health.
+        self.logger.debug(
+            f"[{self.agent_id}] Checking for blockers (Agent 2 - Placeholder/No specific checks implemented)."
         )
-        return True  # Indicate publishing success
+        await asyncio.sleep(0.1)  # Prevent tight loop if called repeatedly
 
-        # --- Removed direct interaction logic ---
-        # logger.info(f"Injecting prompt into {AGENT_ID}...")
-        # success = await orchestrator.inject_prompt(AGENT_ID, task_prompt)
-        # ... removed sleep and retrieve_response ...
+    # --- Overrides / Adaptations from BaseAgent ---
+    # We need to ensure _process_single_task calls our _perform_task
+    # OPTION 1: Override _process_single_task entirely (more control, more maintenance)
+    # OPTION 2: Leverage existing _process_single_task but customize parts (less clear how)
 
-    # Keep broad exception handling, but remove CursorOrchestratorError
-    except Exception as e:
-        logger.exception(
-            f"An unexpected error occurred during Agent 2 task execution (publishing): {e}"
-        )
-        return False  # Indicate failure
-    # Removed finally block as orchestrator state is no longer managed here
+    # Let's try overriding _process_single_task for clarity
+    @with_error_handling(TaskProcessingError)
+    @with_performance_tracking("process_single_task_agent2")
+    async def _process_single_task(
+        self, task: TaskMessage, correlation_id: Optional[str]
+    ):
+        """Process a single task claimed by Agent 2 (GUI Infra Surgeon)."""
+        task_id = task.task_id
+        self.logger.info(f"[{self.agent_id}] Starting processing for task: {task_id}")
+        # await self.publish_task_started(task)
+
+        result = None
+        status = TaskStatus.FAILED  # Default to failure
+        completion_summary = "Task processing failed internally."
+
+        try:
+            # Convert TaskMessage back to dict for existing _perform_task
+            task_details = task.model_dump()  # Use Pydantic v2 method
+
+            # Execute the core GUI logic via _perform_task
+            perf_task_result = await self._perform_task(task_details)
+
+            # Map result from _perform_task to BaseAgent expectations
+            task_succeeded = perf_task_result.get("success", False)
+            completion_summary = perf_task_result.get("summary", "No summary provided.")
+            result = perf_task_result  # Pass the whole result dict
+
+            if task_succeeded:
+                status = TaskStatus.COMPLETED
+                self.logger.info(
+                    f"[{self.agent_id}] Task {task_id} completed successfully via GUI interaction."
+                )
+                # Validation for GUI tasks IS the success flag from orchestrator
+                # We can skip flake8/py_compile validation steps here
+                validation_passed = True
+                validation_details = "GUI task success reported by orchestrator."
+            else:
+                status = TaskStatus.FAILED
+                self.logger.error(
+                    f"[{self.agent_id}] Task {task_id} failed during GUI interaction: {completion_summary}"
+                )
+                validation_passed = False  # Explicitly mark validation as failed
+                validation_details = f"GUI task failed: {completion_summary}"
+
+            # Update PBM (handle potential errors)
+            try:
+                await self.pbm.update_task_status(
+                    task_id, status, self.agent_id, completion_summary
+                )
+                self.logger.info(
+                    f"[{self.agent_id}] Updated task {task_id} status to {status.value} in PBM."
+                )
+            except Exception as pbm_e:
+                self.logger.error(
+                    f"[{self.agent_id}] Failed to update PBM status for {task_id} to {status.value}: {pbm_e}",
+                    exc_info=True,
+                )
+                # Task might be stuck in CLAIMED state
+
+            # Publish events (even if PBM update failed, report what happened)
+            if status == TaskStatus.COMPLETED:
+                await self.publish_task_completed(task, result)
+            else:
+                # Use validation_details as the error message for failure reporting
+                await self.publish_task_failed(
+                    task, error=validation_details, is_final=True
+                )
+                if not validation_passed:
+                    # Also publish specific validation failure event
+                    await self.publish_validation_failed(task, validation_details)
+
+        except Exception as e:
+            self.logger.exception(
+                f"[{self.agent_id}] Unhandled error processing task {task_id}: {e}"
+            )
+            completion_summary = (
+                f"Unhandled exception during processing: {str(e)[:100]}..."
+            )
+            status = TaskStatus.FAILED
+            try:
+                # Attempt to mark as failed in PBM
+                await self.pbm.update_task_status(
+                    task_id, TaskStatus.FAILED, self.agent_id, completion_summary
+                )
+            except Exception as pbm_e:
+                self.logger.error(
+                    f"[{self.agent_id}] Also failed to update PBM status to FAILED for {task_id} after exception: {pbm_e}",
+                    exc_info=True,
+                )
+            # Publish failure event
+            await self.publish_task_failed(
+                task, error=completion_summary, is_final=True
+            )
+            # Optionally publish agent error
+            await self.publish_agent_error(
+                f"Unhandled exception processing task {task_id}",
+                details={"exception": str(e), "traceback": traceback.format_exc()},
+                task_id=task_id,
+            )
+        finally:
+            # TODO: Clean up active task tracking if BaseAgent doesn't do it automatically
+            self.logger.debug(f"[{self.agent_id}] Finished processing task {task_id}.")
 
 
-async def main():
-    """Main entry point for testing the agent task runner (publish only)."""
-    # Example task - replace with actual task generation logic later
-    test_prompt = (
-        "List all python files in the src/dreamos/agents directory using AgentBus."
-    )
-
-    logger.info(
-        "--- Starting Agent 2 Test Task --- AgentBus Event Cycle --- Publish Only --- CIL"
-    )
-    # Run the task publisher
-    published_ok = await run_agent2_task(test_prompt)
-
-    if published_ok:
-        logger.info("--- Agent 2 Test Task Publishing Completed Successfully ---")
-    else:
-        logger.error("--- Agent 2 Test Task Publishing Failed ---")
-
-
-if __name__ == "__main__":
-    # No longer need PyAutoGUI delay, but keep imports clean
-    # time.sleep(1)
-    try:
-        asyncio.run(main())
-    # Remove CursorOrchestratorError catch
-    except ImportError as e:
-        logger.critical(f"Missing critical dependency for Agent 2: {e}")
-    except KeyboardInterrupt:
-        logger.info("Agent 2 execution interrupted by user.")
-
-    # EDIT START: Increase sleep duration
-    # await asyncio.sleep(5) # Check every 5 seconds
-    # EDIT END: Increase sleep duration
-
-    # Keep broad exception handling, but remove CursorOrchestratorError
-    except Exception as e:
-        logger.error(f"Error during mailbox check: {e}", exc_info=True)
+# --- Remove old standalone script logic ---
+# async def run_agent2_task(task_prompt: str): ...
+# async def main(): ...
+# if __name__ == "__main__": ...

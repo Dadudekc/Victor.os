@@ -3,18 +3,20 @@
 import asyncio
 import logging
 import traceback  # Added for error details
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Type
+
+# from datetime import datetime, timezone # Removed unused import
+from typing import Any, Dict, Optional  # Removed Type
 
 # EDIT START: Add missing imports
 import openai  # Though not used directly if client abstracts it
 
 from dreamos.core.config import AppConfig  # Updated import
-from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.agent_bus import AgentBus  # Removed BaseEvent, EventType
 
 # {{ EDIT START: Updated Imports }}
 from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus
-from dreamos.core.utils.llm_provider import BaseLLMProvider, OpenAILLMProvider
+
+# from dreamos.core.utils.llm_provider import BaseLLMProvider, OpenAILLMProvider # Removed unused import
 from dreamos.integrations.openai_client import (  # Import the specific client
     OpenAIClient,
     OpenAIClientError,

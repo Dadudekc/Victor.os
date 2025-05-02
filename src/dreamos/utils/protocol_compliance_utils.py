@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Utility to check agent compliance with onboarding protocols."""
 
+import ast  # EDIT: Added import
 import hashlib
 import logging
 import sys
@@ -57,6 +58,235 @@ logging.basicConfig(
     level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s"
 )
 logger = logging.getLogger("ProtocolComplianceCheck")
+
+
+# EDIT START: AST Visitor for AgentBus Checks
+class AgentBusAstVisitor(ast.NodeVisitor):
+    def __init__(self, agent_id):
+        self.agent_id = agent_id
+        self.inherits_base_agent = False
+        self.subscribes = False
+        self.publishes_event = False
+        self.uses_event_type_enum = False
+        self.details = []
+
+    def visit_ClassDef(self, node):
+        # Check for inheritance from BaseAgent
+        for base in node.bases:
+            if isinstance(base, ast.Name) and base.id == "BaseAgent":
+                self.inherits_base_agent = True
+                self.details.append(f"Class inherits from BaseAgent.")
+                break
+            elif (
+                isinstance(base, ast.Attribute) and base.attr == "BaseAgent"
+            ):  # Handle module.BaseAgent
+                self.inherits_base_agent = True
+                self.details.append(f"Class inherits from BaseAgent (qualified name).")
+                break
+        if not self.inherits_base_agent:
+            self.details.append(
+                f"WARNING: Class does not appear to inherit from BaseAgent."
+            )
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # Check for subscribe calls
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr == "subscribe":
+                # Check if it's called on self.agent_bus or similar
+                if (
+                    isinstance(node.func.value, ast.Attribute)
+                    and node.func.value.attr == "agent_bus"
+                ):
+                    self.subscribes = True
+                    self.details.append(f"Found call to self.agent_bus.subscribe(...)")
+                elif (
+                    isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "agent_bus"
+                ):  # Direct var
+                    self.subscribes = True
+                    self.details.append(f"Found call to agent_bus.subscribe(...)")
+
+            # Check for publish calls (BaseAgent helper or direct)
+            if node.func.attr == "_publish_event":
+                if (
+                    isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "self"
+                ):
+                    self.publishes_event = True
+                    self.details.append(f"Found call to self._publish_event(...)")
+            elif node.func.attr.startswith("publish_") and node.func.attr.endswith(
+                "_event"
+            ):
+                # Could be BaseAgent helper or direct AgentBus call
+                self.publishes_event = True
+                self.details.append(
+                    f"Found call to publish helper: {node.func.attr}(...)"
+                )
+            elif (
+                node.func.attr == "publish"
+                and isinstance(node.func.value, ast.Attribute)
+                and node.func.value.attr == "agent_bus"
+            ):
+                self.publishes_event = True
+                self.details.append(f"Found direct call to self.agent_bus.publish(...)")
+
+            # Check for EventType usage in args/keywords
+            for arg in node.args:
+                if (
+                    isinstance(arg, ast.Attribute)
+                    and isinstance(arg.value, ast.Name)
+                    and arg.value.id == "EventType"
+                ):
+                    self.uses_event_type_enum = True
+                    break
+            if not self.uses_event_type_enum:
+                for kw in node.keywords:
+                    if (
+                        isinstance(kw.value, ast.Attribute)
+                        and isinstance(kw.value.value, ast.Name)
+                        and kw.value.value.id == "EventType"
+                    ):
+                        self.uses_event_type_enum = True
+                        break
+
+        self.generic_visit(node)
+
+    def report(self) -> Tuple[bool, List[str]]:
+        if not self.uses_event_type_enum and self.publishes_event:
+            self.details.append(
+                "WARNING: Event publishing detected, but usage of EventType enum could not be confirmed."
+            )
+        is_compliant = (
+            self.inherits_base_agent
+            and self.subscribes
+            and self.publishes_event
+            and self.uses_event_type_enum
+        )
+        if not is_compliant:
+            if not self.inherits_base_agent:
+                self.details.append("FAIL: Missing BaseAgent inheritance.")
+            if not self.subscribes:
+                self.details.append("FAIL: No agent_bus.subscribe() calls found.")
+            if not self.publishes_event:
+                self.details.append("FAIL: No event publishing calls found.")
+            # Only flag enum usage if publishing was found
+            if not self.uses_event_type_enum and self.publishes_event:
+                self.details.append("FAIL: EventType enum usage not confirmed.")
+
+        final_details = [f"AgentBus Usage AST Check ({self.agent_id}):"] + self.details
+        return is_compliant, final_details
+
+
+# EDIT END: AST Visitor
+
+
+# EDIT START: AST Visitor for Task Status Checks
+class TaskStatusAstVisitor(ast.NodeVisitor):
+    def __init__(self, agent_id):
+        self.agent_id = agent_id
+        self.uses_valid_status = True  # Assume true unless invalid found
+        self.details = []
+        self.found_status_assignment = False
+
+    def visit_Assign(self, node):
+        # Check for assignments like task['status'] = '...'
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Subscript):
+            subscript = node.targets[0]
+            if (
+                isinstance(subscript.slice, ast.Constant)
+                and subscript.slice.value == "status"
+            ):
+                self.found_status_assignment = True
+                if isinstance(node.value, ast.Constant) and isinstance(
+                    node.value.value, str
+                ):
+                    status_value = node.value.value.upper()
+                    if status_value not in VALID_TASK_STATUSES:
+                        self.uses_valid_status = False
+                        self.details.append(
+                            f"Found direct status assignment with potentially invalid status '{node.value.value}' at line {node.lineno}."
+                        )
+                    else:
+                        self.details.append(
+                            f"Found direct status assignment with valid status '{node.value.value}' at line {node.lineno}."
+                        )
+                else:
+                    self.details.append(
+                        f"WARNING: Found non-constant status assignment task['status'] = ... at line {node.lineno}. Cannot verify value."
+                    )
+
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # Check for calls to PBM CLI (simplistic check)
+        # TODO: Enhance to check specific CLI commands and args
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr == "run_terminal_cmd"
+        ):
+            if (
+                len(node.args) > 0
+                and isinstance(node.args[0], ast.Constant)
+                and isinstance(node.args[0].value, str)
+            ):
+                cmd_str = node.args[0].value
+                if (
+                    "manage_tasks.py complete" in cmd_str
+                    or "manage_tasks.py update" in cmd_str
+                ):
+                    self.found_status_assignment = (
+                        True  # Found potential status update via CLI
+                    )
+                    self.details.append(
+                        f"Found potential status update via PBM CLI call at line {node.lineno}."
+                    )
+                    # Cannot easily verify status value from CLI string here
+
+        # Check for calls to update_task_status or similar PBM methods
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr == "update_task_status":
+                self.found_status_assignment = True
+                self.details.append(
+                    f"Found call to update_task_status at line {node.lineno}."
+                )
+                # Check status keyword arg if possible
+                for kw in node.keywords:
+                    if (
+                        kw.arg == "status"
+                        and isinstance(kw.value, ast.Constant)
+                        and isinstance(kw.value.value, str)
+                    ):
+                        status_value = kw.value.value.upper()
+                        if status_value not in VALID_TASK_STATUSES:
+                            self.uses_valid_status = False
+                            self.details.append(
+                                f" -> Call uses potentially invalid status '{kw.value.value}'."
+                            )
+                        else:
+                            self.details.append(
+                                f" -> Call uses valid status '{kw.value.value}'."
+                            )
+                        break  # Found status kwarg
+
+        self.generic_visit(node)
+
+    def report(self) -> Tuple[bool, List[str]]:
+        if not self.found_status_assignment:
+            self.details.append(
+                "WARNING: No direct status assignments or PBM CLI calls detected. Manual verification needed."
+            )
+            # Assume compliant if no assignments found? Or fail?
+            # Let's assume compliant for now, but flag the warning.
+            self.uses_valid_status = True
+
+        final_details = [
+            f"Task Status Usage AST Check ({self.agent_id}):"
+        ] + self.details
+        return self.uses_valid_status, final_details
+
+
+# EDIT END: AST Visitor
 
 # Define known valid task statuses based on observation and documentation
 VALID_TASK_STATUSES = {
@@ -161,49 +391,96 @@ def check_mailbox_structure(agent_id: str) -> Tuple[bool, str]:
     return is_compliant, " ".join(details)
 
 
-def check_agent_bus_usage(agent_id: str) -> Tuple[bool, str]:
-    """Checks if agents *could* use standard AgentBus patterns.
+def _find_agent_source_file(agent_id: str) -> Path | None:
+    """Attempts to locate the source file for a given agent ID.
 
-    Note: This is currently a limited check. Verifying actual runtime usage
-    and correct implementation requires static code analysis (AST).
-    This placeholder acknowledges the need for this check.
+    Placeholder: Assumes a convention like src/dreamos/agents/<agent_id_lower>.py
+    TODO: Replace with a more robust mechanism (e.g., config lookup, registry).
     """
-    # TODO: Implement static analysis (e.g., using `ast` module) to check:
-    #   - Agent class inherits from BaseAgent or has expected methods.
-    #   - Calls to `_publish_event` and `_handle_event` patterns.
-    #   - Proper subscription setup (`self.agent_bus.subscribe`).
-    #   - Avoidance of direct `AgentBus.get_instance().publish` where BaseAgent suffices.
-    #   - Handling/usage of standard `EventType` enums.
-    # TODO: Need a reliable way to locate agent source code from agent_id for analysis.
-    logger.debug(f"Limited AgentBus usage check for {agent_id}.")
-    details = (
-        f"AgentBus usage check: Requires AST analysis of agent source code (not implemented). "
-        f"Key checks include BaseAgent inheritance, event publishing/handling patterns, "
-        f"and correct subscription setup."
-    )
-    # Assume compliant for now, as the check isn't implemented.
-    return True, details
+    # Simple convention guess
+    agent_file_name = f"{agent_id.lower().replace('-', '_')}.py"
+    potential_path = project_root_found / "src" / "dreamos" / "agents" / agent_file_name
+    if potential_path.exists():
+        logger.debug(f"Found potential source file for {agent_id} at: {potential_path}")
+        return potential_path
+    else:
+        logger.warning(
+            f"Could not find source file for {agent_id} using convention: {potential_path}"
+        )
+        # Try checking common subdirs like 'agents'
+        potential_path_subdir = (
+            project_root_found
+            / "src"
+            / "dreamos"
+            / "agents"
+            / "agents"
+            / agent_file_name
+        )
+        if potential_path_subdir.exists():
+            logger.debug(
+                f"Found potential source file for {agent_id} in subdir: {potential_path_subdir}"
+            )
+            return potential_path_subdir
+        logger.error(f"Agent source file location for '{agent_id}' unknown.")
+        return None
+
+
+def check_agent_bus_usage(agent_id: str) -> Tuple[bool, str]:
+    """Checks if agents *could* use standard AgentBus patterns via AST analysis."""
+    # EDIT START: Use AST Visitor
+    agent_file = _find_agent_source_file(agent_id)
+    if not agent_file:
+        return (
+            False,
+            f"AgentBus Usage Check ({agent_id}): FAIL - Source file not found.",
+        )
+
+    try:
+        source_code = agent_file.read_text(encoding="utf-8")
+        tree = ast.parse(source_code)
+        visitor = AgentBusAstVisitor(agent_id)
+        visitor.visit(tree)
+        is_compliant, details_list = visitor.report()
+        details_str = "\n - ".join(details_list)
+        return is_compliant, details_str
+    except Exception as e:
+        logger.error(
+            f"Error analyzing {agent_file} for AgentBus usage: {e}", exc_info=True
+        )
+        return (
+            False,
+            f"AgentBus Usage Check ({agent_id}): FAIL - Error during AST analysis: {e}",
+        )
+    # EDIT END
 
 
 def check_task_status_reporting(agent_id: str) -> Tuple[bool, str]:
-    """Checks if agents *could* use standard task statuses.
+    """Checks if agents *could* use standard task statuses via AST analysis."""
+    # EDIT START: Use AST Visitor
+    agent_file = _find_agent_source_file(agent_id)
+    if not agent_file:
+        return (
+            False,
+            f"Task Status Usage Check ({agent_id}): FAIL - Source file not found.",
+        )
 
-    Note: This is currently a limited check. Verifying actual runtime usage
-    would require analyzing agent code (AST), board update logs, or PBM interactions.
-    This check confirms the utility is *aware* of the standard statuses.
-    """
-    # TODO: Enhance with AST analysis of agent source code to find where/how
-    #       task statuses are set and compare against VALID_TASK_STATUSES.
-    # TODO: Consider integrating with logging or PBM hooks to monitor actual
-    #       status changes reported by agents at runtime.
-    logger.debug(f"Limited task status reporting check for {agent_id}.")
-    details = (
-        f"Task status reporting check: Utility is aware of valid statuses: "
-        f"{', '.join(sorted(VALID_TASK_STATUSES))}. "
-        f"Actual agent usage requires AST analysis or runtime monitoring (not implemented)."
-    )
-    # For now, assume compliant unless a future check proves otherwise.
-    return True, details
+    try:
+        source_code = agent_file.read_text(encoding="utf-8")
+        tree = ast.parse(source_code)
+        visitor = TaskStatusAstVisitor(agent_id)
+        visitor.visit(tree)
+        is_compliant, details_list = visitor.report()
+        details_str = "\n - ".join(details_list)
+        return is_compliant, details_str
+    except Exception as e:
+        logger.error(
+            f"Error analyzing {agent_file} for Task Status usage: {e}", exc_info=True
+        )
+        return (
+            False,
+            f"Task Status Usage Check ({agent_id}): FAIL - Error during AST analysis: {e}",
+        )
+    # EDIT END
 
 
 def check_compliance() -> Tuple[Dict[str, Dict[str, Any]], str | None]:

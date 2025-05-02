@@ -36,6 +36,9 @@ try:
     # from dreamos.core.comms.project_board import (
     from dreamos.coordination.project_board_manager import ProjectBoardManager
 
+    # Import AppConfig for initialization
+    from dreamos.core.config import AppConfig
+
     # Import TaskStatus from correct location
     from dreamos.core.coordination.message_patterns import TaskStatus
 
@@ -43,7 +46,8 @@ try:
     from dreamos.core.errors import ProjectBoardError
 
     # Use core timestamp utility
-    # from dreamos.utils.common_utils import get_utc_iso_timestamp
+    from dreamos.utils.common_utils import get_utc_iso_timestamp
+
 except ImportError as e:
     # Provide a more informative error if core components are missing
     sys.stderr.write(f"\nError: Failed to import core 'dreamos' components. \n")
@@ -63,32 +67,47 @@ TASK_READY_QUEUE_FILENAME = "task_ready_queue.json"
 
 
 # --- Helper ---
-def _now() -> str:
-    """Returns the current UTC time as an ISO 8601 string."""
-    # return get_utc_iso_timestamp()
-    return (
-        datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds")
-        + "Z"
-    )
+# Removed temporary _now() function
+# def _now() -> str:
+#     """Returns the current UTC time as an ISO 8601 string."""
+#     # return get_utc_iso_timestamp()
+#     return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds') + "Z"
 
 
 # --- CLI Definition ---
 @click.group()
 @click.option(
-    "--boards-dir",
-    default=str(DEFAULT_BOARDS_BASE_DIR),
-    help=f"Base directory for task boards (default: {DEFAULT_BOARDS_BASE_DIR})",
-    type=click.Path(file_okay=False, dir_okay=True, exists=True, path_type=Path),
+    "--config-path",
+    default=None,
+    help="Path to the application config file (e.g., config.yaml)",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True, path_type=Path),
 )
 @click.pass_context
-def cli(ctx, boards_dir):
+def cli(ctx, config_path):
     """Manage DreamOS Task Boards via the ProjectBoardManager."""
     ctx.ensure_object(dict)
     try:
-        ctx.obj = ProjectBoardManager(boards_base_dir=boards_dir.resolve())
-        # print(f"DEBUG: ProjectBoardManager initialized with {boards_dir.resolve()}") # Keep for debug if needed
+        app_config = AppConfig.load(config_file=config_path)
+        ctx.obj = ProjectBoardManager(config=app_config)
+        click.echo(
+            f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",
+            err=True,
+        )
+        config_display_path = getattr(app_config, "config_file_path", None)
+        if not config_display_path and config_path:
+            config_display_path = config_path
+        elif not config_display_path:
+            config_display_path = (
+                app_config.paths.project_root / "runtime/config/config.yaml"
+            )
+        click.echo(
+            f"ProjectBoardManager initialized using config: {config_display_path}",
+            err=True,
+        )
     except Exception as e:
-        click.echo(f"Error initializing ProjectBoardManager: {e}", err=True)
+        click.echo(
+            f"Error initializing ProjectBoardManager or loading config: {e}", err=True
+        )
         sys.exit(1)
 
 
@@ -142,7 +161,10 @@ def update(
     add_output: tuple[str],
 ):
     """Update status, notes, or add outputs for a task in the Working Tasks board."""
-    updates = {"timestamp_updated": _now(), "last_updated_by": agent_id}
+    updates = {
+        "timestamp_updated": get_utc_iso_timestamp(),
+        "last_updated_by": agent_id,
+    }
     needs_update = False
 
     if status:
@@ -211,11 +233,11 @@ def complete(
     add_output: tuple[str],
 ):
     """Mark a task as completed (or failed) and move it to the Completed board."""
+    now = get_utc_iso_timestamp()
     final_updates = {
         "status": final_status.upper(),
-        # Changed timestamp_completed to timestamp_completed_utc for consistency
-        "timestamp_completed_utc": _now(),
-        "timestamp_updated": _now(),
+        "timestamp_completed_utc": now,
+        "timestamp_updated": now,
         "completed_by": agent_id,
     }
     if completion_summary:
@@ -361,11 +383,12 @@ def add(board_manager: ProjectBoardManager, task_definition, agent_id: str):
         sys.exit(1)
 
     # Add metadata
+    now = get_utc_iso_timestamp()
     new_task_data["task_id"] = new_task_data.get(
         "task_id", board_manager._generate_task_id()
     )
-    new_task_data["timestamp_created"] = _now()
-    new_task_data["timestamp_updated"] = _now()
+    new_task_data["timestamp_created"] = now
+    new_task_data["timestamp_updated"] = now
     new_task_data["created_by"] = agent_id
     # Set initial status for backlog
     new_task_data["status"] = new_task_data.get(
@@ -380,7 +403,7 @@ def add(board_manager: ProjectBoardManager, task_definition, agent_id: str):
 
     try:
         # Assumes PBM has add_task_to_backlog method after REFACTOR-PBM-DUAL-QUEUE-001
-        if board_manager.add_task_to_backlog(new_task_data):
+        if board_manager.add_task_to_backlog(new_task_data, agent_id):
             click.echo(
                 f"Task '{new_task_data['task_id']}' added to backlog by '{agent_id}'."
             )

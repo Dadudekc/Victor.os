@@ -3,13 +3,10 @@
 import asyncio
 import json
 import logging
-import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from queue import Empty, Queue
-from threading import Lock, Thread
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.core.coordination.event_payloads import (
@@ -18,7 +15,7 @@ from dreamos.core.coordination.event_payloads import (
 )
 from dreamos.services.failed_prompt_archive import FailedPromptArchiveService
 
-from ..core.coordination.base_agent import AgentState, TaskStatus
+from ..core.coordination.base_agent import TaskStatus
 
 # TODO: Evaluate replacing threading with asyncio tasks for the monitor loop
 # if the dispatcher and memory components are fully async-compatible.
@@ -159,7 +156,6 @@ class PromptExecutionMonitor:
             try:
                 time.sleep(10)
                 now = datetime.now(timezone.utc)
-                expired = []
                 self._lock.acquire()
                 try:
                     active_copy = list(self.active_prompts.items())

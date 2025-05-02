@@ -390,10 +390,22 @@
     },
     "src\\dreamos\\agents\\agent2_infra_surgeon.py": {
         "language": ".py",
-        "functions": [],
-        "classes": {},
+        "functions": [
+            "__init__"
+        ],
+        "classes": {
+            "Agent2InfraSurgeon": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Agent responsible for executing infrastructure-related tasks via GUI automation (Cursor).\nInteracts primarily by publishing CURSOR_INJECT_REQUEST events and listening for\nCURSOR_RETRIEVE_SUCCESS/FAILURE responses.",
+                "base_classes": [
+                    "BaseAgent"
+                ]
+            }
+        },
         "routes": [],
-        "complexity": 0,
+        "complexity": 2,
         "agent_role": "potential_agent"
     },
     "scripts\\auditing\\classify_domains.py": {
@@ -549,7 +561,7 @@
                     "__init__",
                     "_load_routing_rules"
                 ],
-                "docstring": "Dynamically routes incoming requests (e.g., scraped prompts) \nto specific target agents based on context metadata.",
+                "docstring": "Dynamically routes incoming requests (e.g., scraped prompts)\nto specific target agents based on context metadata.",
                 "base_classes": [
                     "BaseAgent"
                 ]
@@ -764,10 +776,15 @@
         "functions": [
             "__init__",
             "start",
+            "shutdown",
+            "_spawn_thread",
             "_worker_loop",
+            "_maybe_launch_headless_cursor",
             "_route_loop",
             "_handle_result",
-            "shutdown",
+            "_run_feedback_engine",
+            "_persist_lore_metadata",
+            "_compile_lore",
             "_start_stats_autologger",
             "_stats_loop"
         ],
@@ -776,19 +793,24 @@
                 "methods": [
                     "__init__",
                     "start",
+                    "shutdown",
+                    "_spawn_thread",
                     "_worker_loop",
+                    "_maybe_launch_headless_cursor",
                     "_route_loop",
                     "_handle_result",
-                    "shutdown",
+                    "_run_feedback_engine",
+                    "_persist_lore_metadata",
+                    "_compile_lore",
                     "_start_stats_autologger",
                     "_stats_loop"
                 ],
-                "docstring": "Controls a fleet of Cursor agents using LocalBlobChannel for task/result exchange.",
+                "docstring": "Top-level coordinator for Cursor agents (GUI & headless).",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 16
+        "complexity": 26
     },
     "src\\dreamos\\automation\\execution\\cursor_fleet_launcher.py": {
         "language": ".py",
@@ -810,10 +832,6 @@
             "with_performance_tracking",
             "log_task_performance",
             "format_agent_report",
-            "validate_mailbox_message_schema",
-            "create_mailbox_message",
-            "get_agent_mailbox_path",
-            "validate_agent_mailbox_path",
             "decorator",
             "decorator"
         ],
@@ -841,7 +859,7 @@
             }
         },
         "routes": [],
-        "complexity": 10,
+        "complexity": 6,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\chat_engine\\discord_dispatcher.py": {
@@ -1316,7 +1334,7 @@
                 "methods": [
                     "__init__"
                 ],
-                "docstring": "Specific event for agent errors.",
+                "docstring": "Specific event type for agent or system error events.",
                 "base_classes": [
                     "BaseEvent"
                 ]
@@ -1528,19 +1546,21 @@
     "src\\dreamos\\coordination\\voting_coordinator.py": {
         "language": ".py",
         "functions": [
-            "__init__"
+            "__init__",
+            "reset_session"
         ],
         "classes": {
             "VotingCoordinator": {
                 "methods": [
-                    "__init__"
+                    "__init__",
+                    "reset_session"
                 ],
                 "docstring": "Manages voting sessions initiated within the Dream.OS swarm using standard pub/sub.\n\nListens for events on VOTE_INITIATED_TOPIC, collects votes from VOTE_CAST_TOPIC,\ntallies results based on timeout or quorum, and publishes results to VOTE_RESULTS_TOPIC.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 2,
+        "complexity": 4,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\automation\\execution\\dream_mode_sleep.py": {
@@ -1866,10 +1886,12 @@
     },
     "src\\dreamos\\cli\\main.py": {
         "language": ".py",
-        "functions": [],
+        "functions": [
+            "cli"
+        ],
         "classes": {},
         "routes": [],
-        "complexity": 0
+        "complexity": 1
     },
     "src\\dreamos\\core\\coordination\\events.py": {
         "language": ".py",
@@ -1964,9 +1986,7 @@
         "language": ".py",
         "functions": [
             "create_task_message",
-            "update_task_status",
-            "to_dict",
-            "from_dict"
+            "update_task_status"
         ],
         "classes": {
             "TaskStatus": {
@@ -1984,16 +2004,20 @@
                 ]
             },
             "TaskMessage": {
-                "methods": [
-                    "to_dict",
-                    "from_dict"
-                ],
+                "methods": [],
                 "docstring": "Standard task message format, used as the 'data' field in AgentBus messages.",
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "Config": {
+                "methods": [],
+                "docstring": null,
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 6
+        "complexity": 2
     },
     "src\\dreamos\\core\\coordination\\base_agent.py": {
         "language": ".py",
@@ -2039,48 +2063,39 @@
     },
     "src\\dreamos\\core\\coordination\\schemas\\voting_patterns.py": {
         "language": ".py",
-        "functions": [
-            "validate_vote_message"
-        ],
+        "functions": [],
         "classes": {
             "VoteQuestion": {
                 "methods": [],
                 "docstring": "Structure for a single question within a vote.",
                 "base_classes": [
-                    "TypedDict"
+                    "BaseModel"
                 ]
             },
             "VoteInitiated": {
                 "methods": [],
                 "docstring": "Message schema published to initiate an agent vote.",
                 "base_classes": [
-                    "TypedDict"
+                    "BaseModel"
                 ]
             },
             "AgentVote": {
                 "methods": [],
                 "docstring": "Message schema published by an agent casting its vote.",
                 "base_classes": [
-                    "TypedDict"
-                ]
-            },
-            "VoteResultsSummary": {
-                "methods": [],
-                "docstring": "Structure holding the tallied results for a vote (adapt structure as needed).",
-                "base_classes": [
-                    "TypedDict"
+                    "BaseModel"
                 ]
             },
             "VoteResults": {
                 "methods": [],
                 "docstring": "Message schema published by the coordinator with the outcome of a vote.",
                 "base_classes": [
-                    "TypedDict"
+                    "BaseModel"
                 ]
             }
         },
         "routes": [],
-        "complexity": 1
+        "complexity": 0
     },
     "src\\dreamos\\core\\health_checks\\cursor_status_check.py": {
         "language": ".py",
@@ -2093,32 +2108,21 @@
         "language": ".py",
         "functions": [
             "__init__",
-            "_ensure_store_exists",
-            "_load_data",
-            "_save_data",
-            "save",
-            "load",
-            "get_all",
-            "delete"
+            "write_sync",
+            "read_sync",
+            "write_empty_json"
         ],
         "classes": {
             "AgentIdentityStore": {
                 "methods": [
-                    "__init__",
-                    "_ensure_store_exists",
-                    "_load_data",
-                    "_save_data",
-                    "save",
-                    "load",
-                    "get_all",
-                    "delete"
+                    "__init__"
                 ],
                 "docstring": "Handles persistence of AgentIdentity objects to a JSON file.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 16,
+        "complexity": 5,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\core\\health_checks\\cursor_window_check.py": {
@@ -2162,25 +2166,33 @@
         "language": ".py",
         "functions": [],
         "classes": {
-            "SystemAgentErrorPayload": {
+            "ErrorEventPayload": {
                 "methods": [],
-                "docstring": "Payload for SYSTEM_ERROR events.",
-                "base_classes": []
+                "docstring": "Unified payload for system or agent-specific error events. Replaces SystemAgentErrorPayload and AgentErrorPayload.",
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
-            "AgentStatusChangePayload": {
+            "AgentStatusEventPayload": {
                 "methods": [],
-                "docstring": "Payload for SYSTEM_AGENT_STATUS_CHANGE events.",
-                "base_classes": []
+                "docstring": "Unified payload for various agent status update events. Replaces AgentStatusChangePayload and AgentStatusPayload.",
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "AgentRegistrationPayload": {
                 "methods": [],
                 "docstring": "Payload for SYSTEM_AGENT_REGISTERED / UNREGISTERED events.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "TaskEventPayload": {
                 "methods": [],
-                "docstring": "Standard payload for Task Lifecycle events (TASK_*).",
-                "base_classes": []
+                "docstring": "Base payload for Task Lifecycle events. Contains only common fields.",
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "TaskProgressPayload": {
                 "methods": [],
@@ -2206,77 +2218,93 @@
             "ToolCallPayload": {
                 "methods": [],
                 "docstring": "Payload for TOOL_CALL events.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "ToolResultPayload": {
                 "methods": [],
                 "docstring": "Payload for TOOL_RESULT events.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "MemoryEventData": {
                 "methods": [],
                 "docstring": null,
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CursorInjectRequestPayload": {
                 "methods": [],
                 "docstring": null,
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CursorRetrieveRequestPayload": {
                 "methods": [],
                 "docstring": null,
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CursorResultPayload": {
                 "methods": [],
                 "docstring": null,
-                "base_classes": []
-            },
-            "AgentErrorPayload": {
-                "methods": [],
-                "docstring": "Payload for AGENT_ERROR event.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "AgentContractStatusPayload": {
                 "methods": [],
                 "docstring": "Payload for AGENT_CONTRACT_STATUS event (response to query).",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "RouteInjectPayload": {
                 "methods": [],
                 "docstring": "Payload for ROUTE_INJECTION_REQUEST event.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CursorEventPayload": {
                 "methods": [],
                 "docstring": "Standard payload for Cursor Interaction events (CURSOR_*).",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "ScrapedDataPayload": {
                 "methods": [],
                 "docstring": "Payload for CHATGPT_RESPONSE_SCRAPED event.",
-                "base_classes": []
-            },
-            "AgentStatusPayload": {
-                "methods": [],
-                "docstring": "Payload for AGENT_STATUS_UPDATE, AGENT_STARTED, AGENT_STOPPED, AGENT_BLOCKED, AGENT_UNBLOCKED events.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "ApprovalRequestPayload": {
                 "methods": [],
                 "docstring": "Payload for SUPERVISOR_APPROVAL_REQUESTED event.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "ApprovalResponsePayload": {
                 "methods": [],
                 "docstring": "Payload for SUPERVISOR_APPROVAL_RESPONSE event.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "SupervisorAlertPayload": {
                 "methods": [],
                 "docstring": null,
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "TaskValidationFailedPayload": {
                 "methods": [],
@@ -2288,11 +2316,20 @@
             "CapabilityRegisteredPayload": {
                 "methods": [],
                 "docstring": "Payload for SYSTEM_CAPABILITY_REGISTERED event.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CapabilityUnregisteredPayload": {
                 "methods": [],
                 "docstring": "Payload for SYSTEM_CAPABILITY_UNREGISTERED event.",
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "Config": {
+                "methods": [],
+                "docstring": null,
                 "base_classes": []
             }
         },
@@ -2336,14 +2373,14 @@
         "classes": {
             "LockAcquisitionError": {
                 "methods": [],
-                "docstring": "Raised when a file lock cannot be acquired within the specified timeout.",
+                "docstring": "Raised when a file lock cannot be acquired within the specified timeout.\n\nThis typically occurs if another process or thread holds the lock for too\nlong. The original `filelock.Timeout` exception is chained for context.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "LockDirectoryError": {
                 "methods": [],
-                "docstring": "Raised when the directory for the lock file cannot be created or accessed.",
+                "docstring": "Raised when the directory for the lock file cannot be created or accessed.\n\nThis usually indicates a filesystem permission issue or an invalid base\npath. The original `OSError` is chained for context.",
                 "base_classes": [
                     "DreamOSError"
                 ]
@@ -2384,14 +2421,8 @@
     "src\\dreamos\\core\\identity\\agent_identity_manager.py": {
         "language": ".py",
         "functions": [
-            "get_agent_identity_manager",
             "__new__",
-            "__init__",
-            "register_agent",
-            "update_agent",
-            "get_identity",
-            "get_all_identities",
-            "delete_agent"
+            "__init__"
         ],
         "classes": {
             "AgentIdentityError": {
@@ -2404,19 +2435,14 @@
             "AgentIdentityManager": {
                 "methods": [
                     "__new__",
-                    "__init__",
-                    "register_agent",
-                    "update_agent",
-                    "get_identity",
-                    "get_all_identities",
-                    "delete_agent"
+                    "__init__"
                 ],
-                "docstring": "Manages agent identities, including registration and updates.",
+                "docstring": "Manages agent identities, including registration and updates.\n\nNOTE: This class uses an async initialization pattern.\nObtain the singleton instance using AgentIdentityManager()\nand then call `await instance.initialize()` before using other methods.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 15,
+        "complexity": 4,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\hooks\\stats_logger.py": {
@@ -2441,7 +2467,8 @@
     "src\\dreamos\\core\\tasks\\nexus\\task_nexus.py": {
         "language": ".py",
         "functions": [
-            "__init__"
+            "__init__",
+            "get_priority"
         ],
         "classes": {
             "TaskNexus": {
@@ -2453,7 +2480,7 @@
             }
         },
         "routes": [],
-        "complexity": 2
+        "complexity": 3
     },
     "src\\dreamos\\core\\logging\\swarm_logger.py": {
         "language": ".py",
@@ -2513,10 +2540,13 @@
     },
     "src\\dreamos\\core\\utils\\onboarding_utils.py": {
         "language": ".py",
-        "functions": [],
+        "functions": [
+            "write_yaml_sync",
+            "read_yaml_sync"
+        ],
         "classes": {},
         "routes": [],
-        "complexity": 0
+        "complexity": 2
     },
     "src\\dreamos\\identity\\store.py": {
         "language": ".py",
@@ -2750,6 +2780,7 @@
     "src\\dreamos\\integrations\\cursor\\cursor_prompt_controller.py": {
         "language": ".py",
         "functions": [
+            "__init__",
             "_activate_cursor_window",
             "_focus_chat_input",
             "send_prompt_to_chat"
@@ -2757,16 +2788,17 @@
         "classes": {
             "CursorPromptController": {
                 "methods": [
+                    "__init__",
                     "_activate_cursor_window",
                     "_focus_chat_input",
                     "send_prompt_to_chat"
                 ],
-                "docstring": "Uses pyautogui to send prompts to the Cursor chat interface.",
+                "docstring": "DEPRECATED: Uses fragile pyautogui to send prompts. Use AgentBus events instead.\n\nUses pyautogui to send prompts to the Cursor chat interface.\nWARNING: This approach is highly unreliable and prone to breaking with UI changes,\n         timing issues, or focus stealing. It should only be used as a last resort\n         if the AgentBus event mechanism is unavailable.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 6
+        "complexity": 8
     },
     "src\\dreamos\\integrations\\browser_client.py": {
         "language": ".py",
@@ -3098,6 +3130,7 @@
             "activate_window",
             "get_window_by_id",
             "print_window_map",
+            "close",
             "enum_callback",
             "get_window_info"
         ],
@@ -3114,14 +3147,15 @@
                     "detect_all_instances",
                     "activate_window",
                     "get_window_by_id",
-                    "print_window_map"
+                    "print_window_map",
+                    "close"
                 ],
                 "docstring": "Controls multiple Cursor window instances.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 14
+        "complexity": 16
     },
     "src\\dreamos\\reporting\\scoring_analyzer.py": {
         "language": ".py",
@@ -3470,7 +3504,6 @@
     "src\\dreamos\\services\\utils\\chatgpt_scraper.py": {
         "language": ".py",
         "functions": [
-            "main",
             "__init__",
             "__enter__",
             "__exit__",
@@ -3478,9 +3511,13 @@
             "cleanup",
             "save_cookies",
             "load_cookies",
-            "_perform_login",
-            "scrape_single_chat",
-            "write_json"
+            "inject_jquery",
+            "scroll_and_capture_chats",
+            "run_scraper",
+            "load_latest_conversation",
+            "scroll_to_bottom",
+            "send_message_and_wait",
+            "extract_latest_reply"
         ],
         "classes": {
             "ChatGPTScraper": {
@@ -3492,15 +3529,20 @@
                     "cleanup",
                     "save_cookies",
                     "load_cookies",
-                    "_perform_login",
-                    "scrape_single_chat"
+                    "inject_jquery",
+                    "scroll_and_capture_chats",
+                    "run_scraper",
+                    "load_latest_conversation",
+                    "scroll_to_bottom",
+                    "send_message_and_wait",
+                    "extract_latest_reply"
                 ],
-                "docstring": "Manages ChatGPT web scraping operations with session persistence and AgentBus integration.",
+                "docstring": "Manages ChatGPT web scraping operations with session persistence.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 20
+        "complexity": 28
     },
     "src\\dreamos\\services\\utils\\selenium_utils.py": {
         "language": ".py",
@@ -4060,11 +4102,20 @@
     "src\\dreamos\\utils\\coords.py": {
         "language": ".py",
         "functions": [
+            "get_specific_coordinate",
             "get_specific_coordinate"
         ],
-        "classes": {},
+        "classes": {
+            "Coordinates": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "dict"
+                ]
+            }
+        },
         "routes": [],
-        "complexity": 1
+        "complexity": 2
     },
     "src\\dreamos\\tools\\_core\\base.py": {
         "language": ".py",
@@ -4342,13 +4393,47 @@
             "calculate_file_sha256",
             "load_yaml_registry",
             "check_mailbox_structure",
+            "_find_agent_source_file",
             "check_agent_bus_usage",
             "check_task_status_reporting",
-            "check_compliance"
+            "check_compliance",
+            "__init__",
+            "visit_ClassDef",
+            "visit_Call",
+            "report",
+            "__init__",
+            "visit_Assign",
+            "visit_Call",
+            "report"
         ],
-        "classes": {},
+        "classes": {
+            "AgentBusAstVisitor": {
+                "methods": [
+                    "__init__",
+                    "visit_ClassDef",
+                    "visit_Call",
+                    "report"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "ast.NodeVisitor"
+                ]
+            },
+            "TaskStatusAstVisitor": {
+                "methods": [
+                    "__init__",
+                    "visit_Assign",
+                    "visit_Call",
+                    "report"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "ast.NodeVisitor"
+                ]
+            }
+        },
         "routes": [],
-        "complexity": 6
+        "complexity": 23
     },
     "src\\dreamos\\utils\\project_root.py": {
         "language": ".py",
@@ -4416,21 +4501,12 @@
     "src\\dreamos\\utils\\validation.py": {
         "language": ".py",
         "functions": [
-            "validate_required_fields",
-            "validate_field_type",
-            "validate_payload"
+            "is_valid_uuid",
+            "validate_task_data"
         ],
-        "classes": {
-            "ValidationError": {
-                "methods": [],
-                "docstring": "Custom exception raised when data validation fails.",
-                "base_classes": [
-                    "CoreValidationError"
-                ]
-            }
-        },
+        "classes": {},
         "routes": [],
-        "complexity": 3
+        "complexity": 2
     },
     "src\\dreamscape\\agents\\writer_agent.py": {
         "language": ".py",
@@ -4507,13 +4583,6 @@
         "functions": [],
         "classes": {
             "DreamscapeEventType": {
-                "methods": [],
-                "docstring": null,
-                "base_classes": [
-                    "Enum"
-                ]
-            },
-            "AgentStatus": {
                 "methods": [],
                 "docstring": null,
                 "base_classes": [
@@ -5613,91 +5682,91 @@
         "classes": {
             "DreamOSError": {
                 "methods": [],
-                "docstring": "Base class for all Dream.OS specific exceptions.",
+                "docstring": "Base class for all custom exceptions raised within the Dream.OS framework.\n\nCatching this exception allows handling of any error originating specifically\nfrom Dream.OS components, distinguishing them from standard Python errors\nor errors from external libraries.",
                 "base_classes": [
                     "Exception"
                 ]
             },
             "ConfigurationError": {
                 "methods": [],
-                "docstring": "Errors related to configuration loading or validation.",
+                "docstring": "Indicates an error related to system configuration.\n\nThis could involve issues loading configuration files, missing required\nsettings, or invalid configuration values.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "ToolError": {
                 "methods": [],
-                "docstring": "Errors related to external tool execution or interaction.",
+                "docstring": "Indicates an error during the execution or interaction with an external tool.\n\nThis is used when a command-line tool, API call, or other external dependency\nfails or returns an unexpected result.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "CommunicationError": {
                 "methods": [],
-                "docstring": "Errors related to inter-agent communication (Mailbox, AgentBus).",
+                "docstring": "Indicates an error in inter-agent or system communication mechanisms.\n\nExamples include issues with the Agent Mailbox system, the AgentBus,\nor other message passing components.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "MemoryError": {
                 "methods": [],
-                "docstring": "Errors related to memory component operations.",
+                "docstring": "Indicates an error related to an agent's memory component operations.\n\nThis could involve failures in reading from, writing to, or managing\nthe agent's short-term or long-term memory stores.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "TaskBoardError": {
                 "methods": [],
-                "docstring": "Errors related to task board operations (distinct from PBM implementation errors).",
+                "docstring": "Indicates a conceptual or data integrity issue with a Task Board.\n\nThis is distinct from file I/O errors (covered by `ProjectBoardError`)\nand relates more to the structure, content, or state transitions of tasks\non the board (e.g., invalid status update, missing required field).",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "LockError": {
                 "methods": [],
-                "docstring": "Base class for file locking related errors.",
+                "docstring": "Base class for errors related to file or resource locking mechanisms.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "LockTimeoutError": {
                 "methods": [],
-                "docstring": "Error raised when acquiring a lock times out.",
+                "docstring": "Raised specifically when acquiring a resource lock times out.",
                 "base_classes": [
                     "LockError"
                 ]
             },
             "ValidationError": {
                 "methods": [],
-                "docstring": "Errors related to data validation.",
+                "docstring": "Indicates that data failed a validation check.\n\nUsed when input data, configuration, or internal state does not conform\nto expected rules or constraints.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "ProjectBoardError": {
                 "methods": [],
-                "docstring": "Errors related to ProjectBoardManager operations.",
+                "docstring": "Indicates an operational error within the ProjectBoardManager.\n\nThis typically relates to file system operations like reading/writing\nboard files, handling file locks specifically for the board manager,\nor JSON parsing errors related to board data.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "CursorOrchestratorError": {
                 "methods": [],
-                "docstring": "Errors specifically from the Cursor Orchestrator.",
+                "docstring": "Represents an error reported by the Cursor Orchestrator component.\n\nUsed to wrap or signify errors originating from interactions with the\nprimary orchestrator controlling the agent's execution within the IDE.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "CoordinateError": {
                 "methods": [],
-                "docstring": "Errors related to coordinate parsing or retrieval.",
+                "docstring": "Indicates an error related to parsing or handling file coordinates.\n\nUsed when coordinate strings are malformed, cannot be resolved to actual\nfile locations, or are otherwise invalid.",
                 "base_classes": [
                     "DreamOSError"
                 ]
             },
             "ArchivingError": {
                 "methods": [],
-                "docstring": "Errors related to archiving files or data.",
+                "docstring": "Indicates an error during archiving or unarchiving operations.\n\nUsed for failures related to creating, reading, or managing archive files\n(e.g., zip, tar) used within the system.",
                 "base_classes": [
                     "DreamOSError"
                 ]
@@ -5788,7 +5857,14 @@
             "test_claim_not_found",
             "test_claim_already_working",
             "test_move_success",
-            "test_move_not_found"
+            "test_move_not_found",
+            "test_update_success",
+            "test_update_not_found",
+            "test_lock_timeout_on_read",
+            "test_write_failure_on_update",
+            "test_validation_calls_flake8",
+            "test_validation_fails_on_flake8_error",
+            "test_validation_handles_flake8_not_found"
         ],
         "classes": {
             "TestClaimFutureTask": {
@@ -5807,10 +5883,42 @@
                 ],
                 "docstring": null,
                 "base_classes": []
+            },
+            "TestUpdateTask": {
+                "methods": [
+                    "test_update_success",
+                    "test_update_not_found"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "TestErrorConditions": {
+                "methods": [
+                    "test_lock_timeout_on_read",
+                    "test_write_failure_on_update"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "TestValidationLogic": {
+                "methods": [
+                    "test_validation_calls_flake8",
+                    "test_validation_fails_on_flake8_error",
+                    "test_validation_handles_flake8_not_found"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "ProjectBoardError": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "Exception"
+                ]
             }
         },
         "routes": [],
-        "complexity": 16
+        "complexity": 30
     },
     "tests\\coordination\\test_project_board_manager.py": {
         "language": ".py",
@@ -5993,10 +6101,79 @@
     },
     "src\\dreamos\\core\\config.py": {
         "language": ".py",
-        "functions": [],
-        "classes": {},
+        "functions": [
+            "setup_logging",
+            "load"
+        ],
+        "classes": {
+            "LoggingConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "PathsConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "DreamscapePlannerAgentConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "DreamscapeWriterAgentConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "DreamscapeConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "OpenAIConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "ChatGPTScraperConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "GuiAutomationConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "AppConfig": {
+                "methods": [
+                    "load"
+                ],
+                "docstring": "Main application configuration loaded from environment variables and/or config file.",
+                "base_classes": [
+                    "BaseSettings"
+                ]
+            }
+        },
         "routes": [],
-        "complexity": 0
+        "complexity": 3
     },
     "src\\dreamos\\core\\coordination\\__init__.py": {
         "language": ".py",
@@ -6013,7 +6190,7 @@
         "classes": {
             "SafeWriteError": {
                 "methods": [],
-                "docstring": "Custom exception for errors during safe file writing.",
+                "docstring": "Custom exception raised for errors during the safe file writing process.\n\nThis includes errors related to:\n- Invalid input parameters (path, content type).\n- Failure to acquire the file lock within the timeout period.\n- IOErrors during temporary file writing or final file replacement.\n- Unexpected exceptions during the write/rename process.",
                 "base_classes": [
                     "IOError"
                 ]
@@ -6029,15 +6206,7 @@
             "validate_field_type",
             "validate_payload"
         ],
-        "classes": {
-            "ValidationError": {
-                "methods": [],
-                "docstring": "Custom exception raised when data validation fails.",
-                "base_classes": [
-                    "CoreValidationError"
-                ]
-            }
-        },
+        "classes": {},
         "routes": [],
         "complexity": 3
     },
@@ -6050,10 +6219,12 @@
     },
     "src\\dreamos\\utils\\common_utils.py": {
         "language": ".py",
-        "functions": [],
+        "functions": [
+            "get_utc_iso_timestamp"
+        ],
         "classes": {},
         "routes": [],
-        "complexity": 0
+        "complexity": 1
     },
     "src\\dreamos\\channels\\__init__.py": {
         "language": ".py",
@@ -6079,24 +6250,26 @@
     "src\\dreamos\\cli\\manage_tasks.py": {
         "language": ".py",
         "functions": [
-            "_now",
             "cli",
             "claim",
             "update",
             "complete",
-            "list_future",
+            "list_backlog",
+            "list_ready",
             "list_working",
+            "list_completed",
             "get",
-            "add"
+            "add",
+            "promote"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 9
+        "complexity": 11
     },
     "src\\dreamos\\cli\\safe_writer_cli.py": {
         "language": ".py",
         "functions": [
-            "main"
+            "safe_write_cli"
         ],
         "classes": {},
         "routes": [],
@@ -6105,70 +6278,40 @@
     "src\\dreamos\\coordination\\project_board_manager.py": {
         "language": ".py",
         "functions": [
-            "cli",
-            "add",
-            "claim",
-            "update",
-            "complete",
-            "list_future",
-            "list_working",
-            "get",
             "__init__",
             "_resolve_path",
             "_get_lock",
             "_load_file",
             "_read_board_file",
-            "load_boards",
+            "_load_backlog",
+            "_load_ready_queue",
+            "_load_working_tasks",
+            "_load_completed_tasks",
+            "_save_backlog",
+            "_save_ready_queue",
+            "_save_working_tasks",
+            "_save_completed_tasks",
             "_load_schema",
             "_validate_task",
+            "_find_task_index",
             "_atomic_write",
             "_save_file",
-            "save_boards",
             "get_task",
-            "list_future_tasks",
+            "list_backlog_tasks",
+            "list_ready_queue_tasks",
             "list_working_tasks",
-            "_add_history",
-            "_find_task_index",
             "add_task",
-            "update_task",
-            "claim_task",
-            "_attempt_claim_rollback",
-            "complete_task",
+            "add_task_to_backlog",
+            "_get_utc_timestamp",
+            "_generate_task_id",
+            "update_working_task",
             "delete_task",
             "move_task_to_completed",
-            "convert",
-            "__enter__",
-            "__exit__"
+            "claim_ready_task",
+            "promote_task_to_ready",
+            "_create_from_cli_args"
         ],
         "classes": {
-            "ProjectBoardManagerError": {
-                "methods": [],
-                "docstring": "Custom exception for ProjectBoardManager errors.",
-                "base_classes": [
-                    "Exception"
-                ]
-            },
-            "TaskNotFoundError": {
-                "methods": [],
-                "docstring": "Raised when a task ID is not found on the expected board.",
-                "base_classes": [
-                    "ProjectBoardManagerError"
-                ]
-            },
-            "TaskValidationError": {
-                "methods": [],
-                "docstring": "Raised when task data fails validation.",
-                "base_classes": [
-                    "ProjectBoardManagerError"
-                ]
-            },
-            "BoardLockError": {
-                "methods": [],
-                "docstring": "Raised when a file lock cannot be acquired.",
-                "base_classes": [
-                    "ProjectBoardManagerError"
-                ]
-            },
             "ProjectBoardManager": {
                 "methods": [
                     "__init__",
@@ -6176,48 +6319,40 @@
                     "_get_lock",
                     "_load_file",
                     "_read_board_file",
-                    "load_boards",
+                    "_load_backlog",
+                    "_load_ready_queue",
+                    "_load_working_tasks",
+                    "_load_completed_tasks",
+                    "_save_backlog",
+                    "_save_ready_queue",
+                    "_save_working_tasks",
+                    "_save_completed_tasks",
                     "_load_schema",
                     "_validate_task",
+                    "_find_task_index",
                     "_atomic_write",
                     "_save_file",
-                    "save_boards",
                     "get_task",
-                    "list_future_tasks",
+                    "list_backlog_tasks",
+                    "list_ready_queue_tasks",
                     "list_working_tasks",
-                    "_add_history",
-                    "_find_task_index",
                     "add_task",
-                    "update_task",
-                    "claim_task",
-                    "_attempt_claim_rollback",
-                    "complete_task",
+                    "add_task_to_backlog",
+                    "_get_utc_timestamp",
+                    "_generate_task_id",
+                    "update_working_task",
                     "delete_task",
-                    "move_task_to_completed"
+                    "move_task_to_completed",
+                    "claim_ready_task",
+                    "promote_task_to_ready",
+                    "_create_from_cli_args"
                 ],
-                "docstring": "Manages loading, saving, and modifying tasks on JSON-based project boards.\nEnsures safe concurrent access via file locking.\n\nCore Task Manipulation Methods:\n    - add_task: Adds a new task to future or working board.\n    - claim_task: Atomically moves a task from future to working board.\n    - update_task: Updates fields of a task on the working board.\n    - delete_task: Deletes a task from the future or working board.\n    - complete_task: Helper method to update a task's status to COMPLETED.\n    - get_task: Retrieves a single task by ID from any board.\n    - list_future_tasks: Lists tasks on the future board, with optional filtering.\n    - list_working_tasks: Lists tasks on the working board, with optional filtering.\n\nInternal helpers manage file I/O (_load_file, _save_file, _atomic_write),\nlocking (_get_lock), schema validation (_load_schema, _validate_task), \nand state management.",
-                "base_classes": []
-            },
-            "JsonParamType": {
-                "methods": [
-                    "convert"
-                ],
-                "docstring": null,
-                "base_classes": [
-                    "click.ParamType"
-                ]
-            },
-            "_dummy_lock": {
-                "methods": [
-                    "__enter__",
-                    "__exit__"
-                ],
-                "docstring": null,
+                "docstring": "Manages loading, saving, and modifying tasks on JSON-based project boards.\nEnsures safe concurrent access via file locking.\n\nSupports Backlog, Ready Queue, Working, and Completed boards.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 60
+        "complexity": 64
     },
     "src\\dreamos\\tools\\thea_relay_agent.py": {
         "language": ".py",
@@ -6259,5 +6394,498 @@
         "routes": [],
         "complexity": 17,
         "agent_role": "potential_agent"
+    },
+    "scripts\\generate_dreamscape_from_session.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "scripts\\maintenance\\migrate_future_tasks_to_split.py": {
+        "language": ".py",
+        "functions": [
+            "ensure_file"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\automation\\run_orchestrator.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\cli\\calibrate_gui_coords.py": {
+        "language": ".py",
+        "functions": [
+            "load_coords",
+            "save_coords",
+            "calibrate_coordinates",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\cli\\safe_edit_json_list.py": {
+        "language": ".py",
+        "functions": [
+            "_atomic_write_json",
+            "safe_edit_json_list"
+        ],
+        "classes": {
+            "SafeEditError": {
+                "methods": [],
+                "docstring": "Custom exception for errors during safe JSON list editing.",
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\core\\comms\\mailbox_utils.py": {
+        "language": ".py",
+        "functions": [
+            "validate_mailbox_message_schema",
+            "create_mailbox_message",
+            "get_agent_mailbox_path",
+            "validate_agent_mailbox_path",
+            "glob_sync",
+            "write_sync",
+            "read_sync"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 7
+    },
+    "src\\dreamos\\core\\coordination\\enums.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "AgentStatus": {
+                "methods": [],
+                "docstring": "Represents the possible operational statuses of an Agent.",
+                "base_classes": [
+                    "Enum"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\core\\errors\\exceptions.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "__str__"
+        ],
+        "classes": {
+            "DreamOSError": {
+                "methods": [
+                    "__init__",
+                    "__str__"
+                ],
+                "docstring": "Base class for all custom exceptions in Dream.OS.",
+                "base_classes": [
+                    "Exception"
+                ]
+            },
+            "ConfigurationError": {
+                "methods": [],
+                "docstring": "Raised when there is an error related to configuration loading or validation.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "AgentError": {
+                "methods": [],
+                "docstring": "Base class for errors originating from agents.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "TaskError": {
+                "methods": [],
+                "docstring": "Base class for errors related to task processing.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "ToolError": {
+                "methods": [],
+                "docstring": "Base class for errors related to tool execution.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "ProjectBoardError": {
+                "methods": [],
+                "docstring": "Base class for errors related to Project Board Manager operations.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "CoordinateError": {
+                "methods": [],
+                "docstring": "Raised for errors related to coordinate handling or lookup.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "TaskNotFoundError": {
+                "methods": [],
+                "docstring": "Raised when a task ID is not found on the expected board.",
+                "base_classes": [
+                    "ProjectBoardError"
+                ]
+            },
+            "TaskValidationError": {
+                "methods": [],
+                "docstring": "Raised when task data fails validation.",
+                "base_classes": [
+                    "ProjectBoardError"
+                ]
+            },
+            "BoardLockError": {
+                "methods": [],
+                "docstring": "Raised when a file lock cannot be acquired.",
+                "base_classes": [
+                    "ProjectBoardError"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\core\\errors\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\core\\events\\base_event.py": {
+        "language": ".py",
+        "functions": [
+            "get_utc_iso_timestamp"
+        ],
+        "classes": {
+            "BaseDreamEvent": {
+                "methods": [],
+                "docstring": "Base Pydantic model for all events dispatched via the AgentBus.",
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "Config": {
+                "methods": [],
+                "docstring": "Pydantic config settings.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\core\\events\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\core\\utils\\autonomy_governor.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "check_operational_status",
+            "get_next_action_suggestion",
+            "validate_task_completion_checklist",
+            "log_compliance_event"
+        ],
+        "classes": {
+            "AgentAutonomyGovernor": {
+                "methods": [
+                    "__init__",
+                    "check_operational_status",
+                    "get_next_action_suggestion",
+                    "validate_task_completion_checklist",
+                    "log_compliance_event"
+                ],
+                "docstring": "Provides checks and guidance based on AUTONOMOUS_LOOP principles (v2.1 Inbox-Centric).",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 10
+    },
+    "src\\dreamos\\services\\memory_maintenance_service.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_get_policy_for_file"
+        ],
+        "classes": {
+            "MemoryMaintenanceService": {
+                "methods": [
+                    "__init__",
+                    "_get_policy_for_file"
+                ],
+                "docstring": "Manages background memory maintenance tasks like compaction and summarization.\nUses APScheduler for scheduling.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\services\\utils\\retry_utils.py": {
+        "language": ".py",
+        "functions": [
+            "retry_selenium_action",
+            "decorator",
+            "wrapper"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "src\\dreamos\\utils\\gui_utils.py": {
+        "language": ".py",
+        "functions": [
+            "get_specific_coordinate",
+            "load_coordinates",
+            "is_window_focused",
+            "trigger_recalibration"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\tools\\calibration\\calibrate_agent_gui.py": {
+        "language": ".py",
+        "functions": [
+            "load_existing_coords",
+            "save_coords",
+            "calibrate_element",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4,
+        "agent_role": "potential_agent"
+    },
+    "src\\tools\\validation\\validate_gui_coords.py": {
+        "language": ".py",
+        "functions": [
+            "load_coords",
+            "find_and_activate_window",
+            "inject_test_prompt",
+            "retrieve_response",
+            "save_results",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 6
+    },
+    "tests\\cli\\test_safe_edit_json_list.py": {
+        "language": ".py",
+        "functions": [
+            "runner",
+            "mock_filelock",
+            "temp_json_file",
+            "test_add_item_success",
+            "test_add_item_to_empty_file",
+            "test_remove_item_success",
+            "test_remove_item_not_found",
+            "test_update_item_success",
+            "test_update_item_not_found",
+            "test_invalid_json_item_data",
+            "test_item_data_not_dict",
+            "test_missing_item_id_for_remove",
+            "test_missing_item_data_for_add",
+            "test_target_file_not_list",
+            "test_target_file_invalid_json",
+            "acquire_side_effect",
+            "release_side_effect",
+            "_create_file"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 18
+    },
+    "_archive\\scripts\\auditing\\classify_domains.py": {
+        "language": ".py",
+        "functions": [
+            "classify_path",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "_archive\\scripts\\auditing\\analyze_asset_usage.py": {
+        "language": ".py",
+        "functions": [
+            "find_code_files",
+            "get_asset_files",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "_archive\\scripts\\auditing\\find_unused_assets.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\auditing\\find_orphaned_files.py": {
+        "language": ".py",
+        "functions": [
+            "find_orphaned_modules",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "_archive\\scripts\\auditing\\generate_summary.py": {
+        "language": ".py",
+        "functions": [
+            "read_json_file",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "_archive\\scripts\\auditing\\generate_import_graph.py": {
+        "language": ".py",
+        "functions": [
+            "find_python_files",
+            "get_imports_from_file",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "_archive\\scripts\\dev\\test_scraper_live_chat.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\dreamscape_conversation_sync.py": {
+        "language": ".py",
+        "functions": [
+            "safe_name"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\testing\\auto_claim_tasks_agent_002.py": {
+        "language": ".py",
+        "functions": [
+            "auto_claim_tasks"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1,
+        "agent_role": "potential_agent"
+    },
+    "_archive\\scripts\\testing\\claim_one_task_agent_002.py": {
+        "language": ".py",
+        "functions": [
+            "claim_one_task"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1,
+        "agent_role": "potential_agent"
+    },
+    "_archive\\scripts\\utility\\hello_world_script.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\testing\\load_generator_recovery_test.py": {
+        "language": ".py",
+        "functions": [
+            "create_fail_test_task"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\testing\\_internal_test_loop.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\testing\\test_task_timeout.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\utils\\claim_task.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\testing\\test_cursor_orchestrator.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "CursorOrchestrator": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\utils\\affirm_onboarding_contract.py": {
+        "language": ".py",
+        "functions": [
+            "calculate_sha256",
+            "get_current_utc_iso",
+            "update_contract_yaml",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "_archive\\scripts\\utils\\simple_task_updater.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
     }
 }

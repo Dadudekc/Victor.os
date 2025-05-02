@@ -1,14 +1,26 @@
 import asyncio
+import collections
+import datetime
 import json
 import logging
 import os
 import time
+import uuid
 from collections import Counter
+from datetime import timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import filelock
 from filelock import Timeout as LockAcquisitionError
+
+# EDIT: Import relevant exceptions
+from dreamos.core.errors import (
+    BoardLockError,
+    ProjectBoardError,
+    TaskNotFoundError,
+    TaskValidationError,
+)
 
 from ....config import AppConfig
 from ...comms.project_board import ProjectBoardError, ProjectBoardManager
@@ -84,6 +96,9 @@ class TaskNexus:
                 "capability_registry_file",
                 state_base / os.path.basename(DEFAULT_CAPABILITY_REGISTRY_PATH),
             )
+        )
+        logger.info(
+            f"TaskNexus initialized using Capability Registry: {self.capability_registry_path_str}"
         )
         # EDIT END
 
@@ -311,192 +326,229 @@ class TaskNexus:
     # --- Methods needing refactor for multi-board ---
     async def get_next_task(self, agent_id=None, type_filter=None):
         """
-        Claim and return the next pending task, optionally filtered by type.
+        Claim and return the next available task from the Ready Queue,
+        considering priority and dependencies.
         Delegates the atomic move operation to ProjectBoardManager.
         """
-        # Remove direct file manipulation and locking logic.
-        # The ProjectBoardManager should handle atomicity.
+        # REMOVED: Direct file manipulation logic.
 
-        # TODO: Add priority sorting and dependency checking logic before attempting claim.
-        # This requires loading future_tasks (perhaps via a read-only method in PBM?)
-        # and analyzing dependencies against a completed task list.
-        # For now, this simplified version attempts to claim the *first* suitable PENDING task found.
+        # TODO: Add dependency checking logic.
+
+        if not self.board_manager:
+            logger.error("ProjectBoardManager not initialized, cannot get next task.")
+            return None
+
+        if not agent_id:
+            logger.warning("agent_id not provided to get_next_task. Cannot claim.")
+            return None
 
         claimed_task_data = None
 
-        # 1. Get potential tasks (needs a read method in PBM or load directly - less ideal)
-        # WORKAROUND: Loading future_tasks directly (read-only) for candidate selection.
-        # A dedicated PBM method `get_pending_future_tasks(type_filter)` would be better.
-        future_tasks = []
         try:
-            # Use PBM's helper to get path, but read directly for now (no lock needed for just reading)
-            future_tasks_path = self.board_manager._get_global_task_file_path(
-                ProjectBoardManager.FUTURE_TASKS_FILENAME
+            # 1. Get potential tasks from the Ready Queue
+            # Use PBM method to list pending tasks in the ready queue
+            ready_tasks = await asyncio.to_thread(
+                self.board_manager.list_ready_queue_tasks, status="PENDING"
             )
-            if await asyncio.to_thread(future_tasks_path.exists):
-                content = await asyncio.to_thread(
-                    future_tasks_path.read_text, encoding="utf-8"
-                )
-                if content.strip():
-                    loaded_data = json.loads(content)
-                    if isinstance(loaded_data, list):
-                        future_tasks = loaded_data
-                    else:
-                        logger.warning(
-                            f"Future tasks file {future_tasks_path} did not contain a list."
-                        )
-        except Exception as e:
-            logger.error(
-                f"Error reading future tasks for candidate selection: {e}",
-                exc_info=True,
-            )
-            # Proceed without candidates, claim will likely fail or be empty
-            pass
 
-        # EDIT START: Add capability check logic
-        agent_capabilities_set = None  # Lazy load agent capabilities
-        # EDIT END
+            if not ready_tasks:
+                logger.debug("No PENDING tasks found in the ready queue.")
+                return None
 
-        # 2. Find the first suitable candidate task ID
-        candidate_task_id = None
-        for task in future_tasks:
-            if isinstance(task, dict) and task.get("status") == "PENDING":
-                # Standard Filters
-                if type_filter and task.get("task_type") != type_filter:
+            # 2. Filter by type (if provided)
+            if type_filter:
+                ready_tasks = [
+                    t for t in ready_tasks if t.get("task_type") == type_filter
+                ]
+                if not ready_tasks:
+                    logger.debug(
+                        f"No PENDING tasks found with type '{type_filter}' in ready queue."
+                    )
+                    return None
+
+            # 3. Sort by Priority (assuming lower number is higher priority)
+            # Handle missing or non-integer priorities gracefully
+            def get_priority(task):
+                p = task.get("priority")
+                if isinstance(p, int):
+                    return p
+                # Basic mapping for string priorities (adjust as needed)
+                if isinstance(p, str):
+                    p_upper = p.upper()
+                    if p_upper == "CRITICAL":
+                        return -100
+                    if p_upper == "HIGH":
+                        return -50
+                    if p_upper == "MEDIUM":
+                        return 0
+                    if p_upper == "LOW":
+                        return 50
+                return 999  # Default to lowest priority if unknown/missing
+
+            ready_tasks.sort(key=get_priority)
+            logger.debug(f"Sorted {len(ready_tasks)} ready tasks by priority.")
+
+            # 4. Iterate through sorted tasks, check dependencies, and attempt claim
+            agent_capabilities_set = None  # Lazy load agent capabilities
+
+            for task in ready_tasks:
+                candidate_task_id = task.get("task_id")
+                if not candidate_task_id:
+                    logger.warning(f"Skipping task with missing task_id: {task}")
                     continue
 
-                # EDIT START: Capability Check
+                # --- Capability Check (Existing logic) ---
+                # (Keep existing capability check logic here...)
                 required_capabilities = task.get("required_capabilities")
                 if (
                     required_capabilities
                     and isinstance(required_capabilities, list)
                     and required_capabilities
                 ):
-                    # If requirements exist, check agent capabilities
                     if not self.capability_registry:
                         logger.warning(
-                            f"Task {task.get('id', 'unknown')} requires capabilities, but registry is unavailable. Skipping."
+                            f"Task {candidate_task_id} requires capabilities, but registry is unavailable. Skipping."
                         )
-                        continue  # Cannot verify, skip task
-
-                    # Lazy load agent's capabilities
+                        continue
                     if agent_capabilities_set is None:
                         try:
                             agent_caps_list = await self.get_agent_capabilities(
                                 agent_id
                             )
-                            # Store as a set of capability_ids for efficient lookup
                             agent_capabilities_set = {
                                 cap.capability_id
                                 for cap in agent_caps_list
                                 if cap.is_active
                             }
-                            logger.debug(
-                                f"Agent {agent_id} has active capabilities: {agent_capabilities_set}"
-                            )
                         except Exception as e_caps:
                             logger.error(
                                 f"Failed to retrieve capabilities for agent {agent_id}: {e_caps}. Skipping capability check."
                             )
-                            agent_capabilities_set = (
-                                set()
-                            )  # Treat as having no capabilities on error
+                            agent_capabilities_set = set()
 
-                    # Check if agent has all required capabilities
                     if not set(required_capabilities).issubset(agent_capabilities_set):
                         logger.debug(
-                            f"Agent {agent_id} missing capabilities for task {task.get('id', 'unknown')}. Required: {required_capabilities}, Has: {agent_capabilities_set}. Skipping."
+                            f"Agent {agent_id} missing capabilities for task {candidate_task_id}. Required: {required_capabilities}, Has: {agent_capabilities_set}. Skipping."
                         )
-                        continue  # Agent does not meet requirements
+                        continue
                     else:
                         logger.debug(
-                            f"Agent {agent_id} meets capability requirements for task {task.get('id', 'unknown')}."
+                            f"Agent {agent_id} meets capability requirements for task {candidate_task_id}."
                         )
-                # EDIT END
+                # --- End Capability Check ---
 
-                # Basic check passed, select this one
-                candidate_task_id = task.get("id") or task.get("task_id")
-                logger.info(f"Found suitable candidate task: {candidate_task_id}")
-                break
-
-        if candidate_task_id and agent_id:
-            logger.info(
-                f"Agent {agent_id} attempting to claim candidate task: {candidate_task_id}"
-            )
-            # 3. Attempt atomic claim using ProjectBoardManager
-            if not self.board_manager:
-                logger.error("ProjectBoardManager not initialized, cannot claim task.")
-                return None
-
-            try:
-                claim_successful = await asyncio.to_thread(
-                    self.board_manager.claim_future_task, candidate_task_id, agent_id
-                )
-
-                if claim_successful:
-                    logger.info(
-                        f"Agent {agent_id} successfully claimed task {candidate_task_id} via ProjectBoardManager."
+                # --- Dependency Check ---
+                dependencies = task.get("dependencies", [])
+                if dependencies:
+                    logger.debug(
+                        f"Checking {len(dependencies)} dependencies for task {candidate_task_id}..."
                     )
-                    # Need to retrieve the *updated* task data from working_tasks
-                    # WORKAROUND: Read working_tasks directly after successful claim.
-                    # A better PBM.claim_future_task could return the claimed task data.
-                    working_tasks = []
-                    try:
-                        working_tasks_path = (
-                            self.board_manager._get_global_task_file_path(
-                                ProjectBoardManager.WORKING_TASKS_FILENAME
-                            )
+                    dependencies_met = await self._check_dependencies_met(dependencies)
+                    if not dependencies_met:
+                        logger.debug(
+                            f"Dependencies not met for task {candidate_task_id}. Skipping."
                         )
-                        if await asyncio.to_thread(working_tasks_path.exists):
-                            content = await asyncio.to_thread(
-                                working_tasks_path.read_text, encoding="utf-8"
-                            )
-                            if content.strip():
-                                loaded_data = json.loads(content)
-                                if isinstance(loaded_data, list):
-                                    working_tasks = loaded_data
-                        # Find the claimed task in the working list
-                        for task in working_tasks:
-                            t_id = task.get("id") or task.get("task_id")
-                            if (
-                                t_id == candidate_task_id
-                                and task.get("assigned_agent") == agent_id
-                            ):
-                                claimed_task_data = task
-                                break
+                        continue  # Skip to next task if dependencies not met
+                    else:
+                        logger.debug(f"Dependencies met for task {candidate_task_id}.")
+                # -----------------------
+
+                logger.info(
+                    f"Agent {agent_id} attempting to claim highest priority available task: {candidate_task_id}"
+                )
+                # 5. Attempt atomic claim using the correct PBM method
+                try:
+                    claim_successful = await asyncio.to_thread(
+                        self.board_manager.claim_ready_task, candidate_task_id, agent_id
+                    )
+
+                    if claim_successful:
+                        logger.info(
+                            f"Agent {agent_id} successfully claimed task {candidate_task_id} via ProjectBoardManager."
+                        )
+                        # Retrieve the claimed task data directly from PBM if possible, or re-read working
+                        claimed_task_data = await asyncio.to_thread(
+                            self.board_manager.get_task,
+                            candidate_task_id,
+                            board="working",
+                        )
                         if not claimed_task_data:
                             logger.error(
-                                f"Claim reported success, but task {candidate_task_id} not found in working tasks after claim!"
+                                f"Claim reported success, but task {candidate_task_id} could not be retrieved from working board!"
                             )
-                    except Exception as e_read_working:
-                        logger.error(
-                            f"Error reading working tasks after successful claim to retrieve task data: {e_read_working}"
+                        # Stop searching and return the claimed task
+                        break  # <<< Exit loop once a task is claimed
+                    else:
+                        logger.warning(
+                            f"Agent {agent_id} failed to claim task {candidate_task_id} (likely already claimed or lock timeout). Continuing search..."
                         )
-                        # Return None as we couldn't confirm/get the data
-                        claimed_task_data = None
-                else:
+                        # Continue to the next task in the priority list
+
+                except (ProjectBoardError, TaskNotFoundError) as e_claim:
+                    # Log expected errors during claim (e.g., not found because another agent claimed it first)
                     logger.warning(
-                        f"Agent {agent_id} failed to claim task {candidate_task_id} via ProjectBoardManager (likely already claimed or lock timeout)."
+                        f"Claim attempt failed for {candidate_task_id}: {e_claim}. Continuing search..."
                     )
-                    claimed_task_data = None
-            except ProjectBoardError as e_claim:
-                logger.error(
-                    f"ProjectBoardError during task claim for {candidate_task_id}: {e_claim}"
+                    continue  # Continue to the next task
+                except Exception as e_unexp_claim:
+                    logger.error(
+                        f"Unexpected error during task claim for {candidate_task_id}: {e_unexp_claim}",
+                        exc_info=True,
+                    )
+                    # Decide whether to stop or continue on unexpected errors
+                    continue  # Continue for now
+
+            # End of loop - if claimed_task_data is still None, no claimable task was found
+            if not claimed_task_data:
+                logger.debug(
+                    f"No claimable tasks found for agent {agent_id} after checking {len(ready_tasks)} candidates."
                 )
-                claimed_task_data = None
-            except Exception as e_unexp_claim:
-                logger.error(
-                    f"Unexpected error during task claim for {candidate_task_id}: {e_unexp_claim}",
-                    exc_info=True,
-                )
-                claimed_task_data = None
-        else:
-            logger.debug(
-                f"No suitable PENDING tasks found or agent_id missing for claim (Type filter: {type_filter})."
+
+        except Exception as e_outer:
+            logger.error(
+                f"Error during get_next_task execution: {e_outer}", exc_info=True
             )
             claimed_task_data = None
 
         return claimed_task_data
+
+    # --- Dependency Check Helper (Placeholder) ---
+    async def _check_dependencies_met(self, dependency_ids: List[str]) -> bool:
+        """Checks if all dependency tasks are marked COMPLETED."""
+        if not dependency_ids:
+            return True  # No dependencies means they are met
+
+        if not self.board_manager:
+            logger.error(
+                "Cannot check dependencies: ProjectBoardManager not available."
+            )
+            return False  # Fail safe
+
+        try:
+            # Check status of each dependency
+            for dep_id in dependency_ids:
+                # Use PBM get_task which checks all relevant boards
+                dep_task = await asyncio.to_thread(self.board_manager.get_task, dep_id)
+                if not dep_task:
+                    logger.warning(f"Dependency task {dep_id} not found on any board.")
+                    return False  # Dependency not found
+                # Only consider tasks explicitly COMPLETED
+                if dep_task.get("status", "").upper() != "COMPLETED":
+                    logger.debug(
+                        f"Dependency task {dep_id} is not COMPLETED (status: {dep_task.get('status')})."
+                    )
+                    return False  # Dependency not met
+
+            # If loop completes, all dependencies were found and COMPLETED
+            logger.debug(f"All dependencies met: {dependency_ids}")
+            return True
+        except Exception as e:
+            logger.error(
+                f"Error checking dependencies {dependency_ids}: {e}", exc_info=True
+            )
+            return False  # Fail safe on error
+
+    # --- End Dependency Check Helper ---
 
     async def add_task(self, task_dict):
         """

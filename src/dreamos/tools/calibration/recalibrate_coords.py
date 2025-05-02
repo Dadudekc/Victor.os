@@ -11,17 +11,19 @@ from pathlib import Path
 import portalocker  # Import portalocker for file locking
 import pyautogui
 
-# Assume project root is 3 levels up from src/tools/calibration
-# Use the utility if available, otherwise fallback
-try:
-    from dreamos.utils import find_project_root
-
-    PROJECT_ROOT = find_project_root(__file__)
-except ImportError:
-    logger.warning(
-        "Could not import find_project_root, using relative path calculation."
-    )
-    PROJECT_ROOT = Path(__file__).resolve().parents[3]
+# EDIT START: Remove find_project_root import and calculate root directly
+# # Assume project root is 3 levels up from src/tools/calibration
+# # Use the utility if available, otherwise fallback
+# try:
+#     from dreamos.utils import find_project_root
+#     PROJECT_ROOT = find_project_root(__file__)
+# except ImportError:
+#     logger.warning(
+#         "Could not import find_project_root, using relative path calculation."
+#     )
+#     PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Calculate directly
+# EDIT END
 
 # NOTE: Assumes a potentially nested structure like { "agent_id": { "element_key": [X, Y] } }
 #       or a flat structure { "agent_id.element_key": [X, Y] }.

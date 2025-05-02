@@ -2,14 +2,10 @@ import asyncio
 import json
 import logging
 import time
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 from dreamos.channels.local_blob_channel import LocalBlobChannel
-from dreamos.coordination.agent_bus import AgentBus
-from dreamos.coordination.base_agent import BaseAgent
-
-from ..config import AppConfig
+from dreamos.core.config import AppConfig
 
 logger = logging.getLogger("SupervisorAgent")
 
@@ -19,24 +15,64 @@ class SupervisorAgent:
 
     def __init__(self, config: AppConfig):
         self.config = config
-        default_directive = Path("runtime/human_directive.json")
-        default_results = Path("runtime/supervisor_results.json")
-        default_blob_storage = Path("runtime/local_blob")
+        # Default paths defined here for clarity if needed, but prefer direct access
+        # default_directive = Path("runtime/human_directive.json")
+        # default_results = Path("runtime/supervisor_results.json")
+        # default_blob_storage = Path("runtime/local_blob")
 
-        directive_rel_path = getattr(config.paths, "human_directive", default_directive)
-        results_rel_path = getattr(config.paths, "supervisor_results", default_results)
-        blob_rel_path = getattr(
-            config.paths, "local_blob_storage", default_blob_storage
-        )
+        # Direct access to config paths, handle potential errors
+        try:
+            project_root = config.paths.project_root  # Assume project_root is essential
+            # Try accessing specific paths, falling back only if absolutely necessary
+            # Or better: define these paths explicitly in AppConfig.paths
+            directive_rel_path = config.paths.human_directive  # Example direct access
+            results_rel_path = config.paths.supervisor_results  # Example direct access
+            blob_rel_path = config.paths.local_blob_storage  # Example direct access
 
-        self.directive_path = str(config.project_root / directive_rel_path)
-        self.results_output_path = str(config.project_root / results_rel_path)
-        local_blob_path = str(config.project_root / blob_rel_path)
+            self.directive_path = str(project_root / directive_rel_path)
+            self.results_output_path = str(project_root / results_rel_path)
+            local_blob_path = str(project_root / blob_rel_path)
+            logger.info(f"SupervisorAgent using directive path: {self.directive_path}")
+            logger.info(
+                f"SupervisorAgent using results path: {self.results_output_path}"
+            )
+            logger.info(f"SupervisorAgent using blob storage path: {local_blob_path}")
 
-        self.channel = LocalBlobChannel(base_dir=local_blob_path)
+        except AttributeError as e:
+            logger.error(
+                f"SupervisorAgent configuration error: Missing required path in AppConfig.paths: {e}. Supervisor may not function correctly."
+            )
+            # Decide on fallback behavior: raise error? Use hardcoded defaults? Set paths to None?
+            # For now, let's set paths to None to prevent operations on invalid paths.
+            self.directive_path = None
+            self.results_output_path = None
+            local_blob_path = None  # Affects channel init
+            # Consider raising the error or returning status if init fails critically
+            # raise ConfigurationError(f"SupervisorAgent missing config path: {e}") from e
+        except Exception as e:
+            logger.error(
+                f"Unexpected error initializing SupervisorAgent paths: {e}",
+                exc_info=True,
+            )
+            self.directive_path = None
+            self.results_output_path = None
+            local_blob_path = None
+
+        # Initialize channel, handle potential None path
+        if local_blob_path:
+            self.channel = LocalBlobChannel(base_dir=local_blob_path)
+        else:
+            logger.error(
+                "SupervisorAgent cannot initialize LocalBlobChannel: Blob storage path not configured."
+            )
+            self.channel = None  # Ensure channel is None if path fails
+
         self.dispatched = set()
 
     def load_directives(self):
+        if not self.directive_path:
+            logger.error("Cannot load directives: Directive path not configured.")
+            return []
         try:
             with open(self.directive_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -91,9 +127,7 @@ class SupervisorAgent:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     try:
-        from ..core.config import load_app_config
-
-        config = load_app_config()
+        config = AppConfig.load()
         if not config:
             raise ValueError(
                 "Failed to load AppConfig for SupervisorAgent standalone run."

@@ -26,24 +26,33 @@ import time
 import traceback  # IMPORT ADDED FOR ERROR PAYLOAD
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Type, Union
+from enum import Enum
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
-from dreamos.core.config import PROJECT_ROOT  # Updated import
-
-from ..core.errors import DreamOSError
 from ..utils.logging_utils import log_handler_exception
 
+# Imports moved from lower in the file to fix E402
 # {{ EDIT START: Add Payload Imports }}
 from .event_payloads import ErrorEventPayload  # EDIT: Replace AgentErrorPayload
 from .event_payloads import (  # AgentStatusChangePayload, # EDIT: Remove - Replaced by AgentStatusEventPayload (which isn't used directly here)
     AgentRegistrationPayload,
+    CursorInjectRequestPayload,
+    CursorResultPayload,
+    CursorRetrieveRequestPayload,
+    MemoryEventData,
+    TaskEventPayload,
+    ToolCallPayload,
+    ToolResultPayload,
 )
+
+# from dreamos.core.config import PROJECT_ROOT  # Explicitly comment out PROJECT_ROOT
+
+
 
 # {{ EDIT END }}
 # {{ EDIT START: Import TaskStatus for payload definition }}
-from .message_patterns import TaskStatus
+# from .message_patterns import TaskStatus # Explicitly comment out TaskStatus
+
 
 # from dreamos.coordination.config import WORKSPACE_ROOT # Removed - Config location changed
 # from dreamos.config import WORKSPACE_ROOT # WORKSPACE_ROOT not defined here
@@ -205,7 +214,7 @@ class BaseEvent:
 
 
 # Import from event_payloads instead
-from .event_payloads import MemoryEventData
+# from .event_payloads import MemoryEventData # Moved to top
 
 
 class MemoryEvent(BaseEvent):
@@ -226,18 +235,16 @@ class MemoryEvent(BaseEvent):
         super().__init__(event_type=event_type, source_id=source_id, data=vars(data))
 
 
-# {{ EDIT START: Add Specific Event Classes using Payload Dataclasses }}
-
 # Import necessary payload types
 # from .event_payloads import AgentErrorPayload  # EDIT: Remove this import
-from .event_payloads import (
-    CursorInjectRequestPayload,
-    CursorResultPayload,
-    CursorRetrieveRequestPayload,
-    TaskEventPayload,
-    ToolCallPayload,
-    ToolResultPayload,
-)
+# from .event_payloads import ( # Moved to top
+#     CursorInjectRequestPayload,
+#     CursorResultPayload,
+#     CursorRetrieveRequestPayload,
+#     TaskEventPayload,
+#     ToolCallPayload,
+#     ToolResultPayload,
+# )
 
 
 class TaskEvent(BaseEvent):

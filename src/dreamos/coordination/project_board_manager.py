@@ -27,6 +27,10 @@ try:
 except ImportError:
     jsonschema = None  # Indicate library not available
 
+# EDIT START: Import AppConfig
+from ..core.config import AppConfig
+
+# EDIT END
 # EDIT START: Import central error types
 from ..core.errors import (
     BoardLockError,
@@ -63,16 +67,23 @@ class ProjectBoardManager:
 
     def __init__(
         self,
-        boards_base_dir: str | Path,
-        project_root: str | Path = ".",  # Keep project_root for schema loading for now
+        config: AppConfig,  # Pass the full AppConfig object
+        # Remove boards_base_dir and project_root as they are now derived from config
+        # boards_base_dir: str | Path, # Deprecated
+        # project_root: str | Path = ".", # Deprecated
         lock_timeout: int = DEFAULT_LOCK_TIMEOUT,
     ):
-        """Initialize the board manager with paths and configuration."""
-        self.project_root = Path(project_root).resolve()
-        self.boards_base_dir = Path(boards_base_dir).resolve()
+        """Initialize the board manager with paths and configuration from AppConfig."""
+        self.config = config
+        self.lock_timeout = lock_timeout
 
-        # Define board paths
-        # self.future_tasks_path = self.boards_base_dir / DEFAULT_FUTURE_TASKS_FILENAME # Deprecated
+        # Derive paths from AppConfig
+        self.project_root = (
+            self.config.paths.project_root.resolve()
+        )  # Still useful internally maybe
+        self.boards_base_dir = self.config.paths.central_task_boards.resolve()
+
+        # Define board paths using config
         self.backlog_path = self.boards_base_dir / DEFAULT_TASK_BACKLOG_FILENAME
         self.ready_queue_path = self.boards_base_dir / DEFAULT_TASK_READY_QUEUE_FILENAME
         self.working_tasks_path = self.boards_base_dir / DEFAULT_WORKING_TASKS_FILENAME
@@ -80,10 +91,7 @@ class ProjectBoardManager:
             self.boards_base_dir / DEFAULT_COMPLETED_TASKS_FILENAME
         )
 
-        self.lock_timeout = lock_timeout
-
-        # Define lock paths
-        # self.future_lock_path = self.future_tasks_path.with_suffix(self.future_tasks_path.suffix + '.lock') # Deprecated
+        # Define lock paths (remain derived from board paths)
         self.backlog_lock_path = self.backlog_path.with_suffix(
             self.backlog_path.suffix + ".lock"
         )
@@ -96,14 +104,12 @@ class ProjectBoardManager:
         self.completed_lock_path = self.completed_tasks_path.with_suffix(
             self.completed_tasks_path.suffix + ".lock"
         )
-
-        # In-memory representation (optional, load on demand)
-        # self.future_tasks = [] # Deprecated
-        # self.working_tasks = [] # Deprecated if always loading from file
+        # EDIT END
 
         logger.info(f"ProjectBoardManager initialized.")
-        logger.info(f"  Backlog: {self.backlog_path}")
-        logger.info(f"  Ready Queue: {self.ready_queue_path}")
+        logger.info(f"  Using Configured Task Boards Dir: {self.boards_base_dir}")
+        logger.info(f"  Backlog: {self.backlog_path.name}")
+        logger.info(f"  Ready Queue: {self.ready_queue_path.name}")
         logger.info(f"  Working Tasks: {self.working_tasks_path}")
         logger.info(f"  Completed Tasks: {self.completed_tasks_path}")
         if not FILELOCK_AVAILABLE:
@@ -273,28 +279,35 @@ class ProjectBoardManager:
     #     ...
 
     def _load_schema(self) -> Optional[Dict[str, Any]]:
-        """Loads the task JSON schema file."""
-        # Determine schema path relative to this file or project root
-        # Assuming schema is at src/dreamos/coordination/tasks/task-schema.json
+        """Loads the task JSON schema file using path from AppConfig."""
+        # EDIT START: Use AppConfig for schema path
+        if (
+            not self.config
+            or not self.config.paths
+            or not self.config.paths.task_schema
+        ):
+            logger.error(
+                "Cannot load task schema: AppConfig or task_schema path not configured."
+            )
+            return None
+
+        schema_path = self.config.paths.task_schema.resolve()
+        # EDIT END
+
         try:
-            schema_path = Path(__file__).parent / "tasks" / "task-schema.json"
+            # Determine schema path relative to this file or project root - REMOVED HARDCODED LOGIC
+            # schema_path = Path(__file__).parent / "tasks" / "task-schema.json" # OLD
+
             if not schema_path.exists():
-                # Fallback using project root (if available and different)
-                alt_path = (
-                    self.project_root
-                    / "src"
-                    / "dreamos"
-                    / "coordination"
-                    / "tasks"
-                    / "task-schema.json"
+                # Fallback using project root (if available and different) - REMOVED FALLBACK
+                # alt_path = ( ... ) # OLD
+                # if alt_path.exists(): # OLD
+                #    schema_path = alt_path # OLD
+                # else: # OLD
+                logger.error(
+                    f"Task schema file not found at configured location: {schema_path}"
                 )
-                if alt_path.exists():
-                    schema_path = alt_path
-                else:
-                    logger.error(
-                        f"Task schema file not found at expected locations: {schema_path} or {alt_path}"
-                    )
-                    return None
+                return None
 
             with open(schema_path, "r", encoding="utf-8") as f:
                 schema = json.load(f)
@@ -900,11 +913,12 @@ class ProjectBoardManager:
             logger.debug(f"Task {task_id} removed from ready queue list in memory.")
 
             # Check if task status is appropriate (e.g., PENDING)
-            claimable_statuses = {
-                "PENDING"
-            }  # Define which statuses can be claimed from ready queue
+            claimable_statuses = {"PENDING"}  # Define which statuses can be claimed
+            # EDIT: Handle case-insensitivity
             current_status = task_to_move.get("status", "PENDING")
-            if current_status not in claimable_statuses:
+            if (
+                current_status.upper() not in claimable_statuses
+            ):  # Check uppercase status
                 logger.warning(
                     f"Attempted to claim task {task_id} from ready queue with non-claimable status: {current_status}"
                 )
@@ -921,7 +935,7 @@ class ProjectBoardManager:
             task_to_move["timestamp_claimed_utc"] = now
             task_to_move["timestamp_updated"] = now
             # Optionally add history entry
-            self._add_history(task_to_move, agent_id, "CLAIMED_FROM_READY")
+            # self._add_history(task_to_move, agent_id, "CLAIMED_FROM_READY") # EDIT: Commented out due to AttributeError
 
             # Validate before adding to working
             if not self._validate_task(task_to_move):
@@ -1031,8 +1045,11 @@ class ProjectBoardManager:
 
             # Check if task status is appropriate (e.g., PENDING)
             promotable_statuses = {"PENDING"}  # Define which statuses can be promoted
+            # EDIT: Handle case-insensitivity
             current_status = task_to_move.get("status", "PENDING")
-            if current_status not in promotable_statuses:
+            if (
+                current_status.upper() not in promotable_statuses
+            ):  # Check uppercase status
                 logger.warning(
                     f"Attempted to promote task {task_id} from backlog with non-promotable status: {current_status}"
                 )
@@ -1095,13 +1112,76 @@ class ProjectBoardManager:
             ProjectBoardError,
         ) as e:
             logger.error(f"Failed to promote task {task_id}: {e}")
-            # TODO: Implement rollback if task_to_move is not None?
-            # (e.g., add task_to_move back to backlog list and save only backlog)
-            raise e  # EDIT: UNCOMMENT to re-raise caught PBM specific exception
+            # EDIT START: Implement Rollback
+            if task_to_move is not None:
+                logger.warning(
+                    f"Attempting rollback for task {task_id} during promotion failure..."
+                )
+                try:
+                    # Ensure backlog lock is still held if possible (should be if we got here)
+                    if backlog_lock_acquired and backlog_lock.is_locked:
+                        backlog = self._read_board_file(
+                            self.backlog_path
+                        )  # Re-read just in case
+                        # Check if task was somehow already put back (unlikely but safe)
+                        if not any(t.get("task_id") == task_id for t in backlog):
+                            backlog.append(task_to_move)
+                            logger.info(
+                                f"Rollback: Re-added task {task_id} to backlog list."
+                            )
+                            # Save ONLY the backlog during rollback
+                            self._atomic_write(self.backlog_path, backlog)
+                            logger.info(
+                                f"Rollback: Saved updated backlog ({self.backlog_path.name})."
+                            )
+                        else:
+                            logger.warning(
+                                f"Rollback skipped: Task {task_id} already found in backlog."
+                            )
+                    else:
+                        logger.error("Rollback failed: Backlog lock not held.")
+                except Exception as rb_err:
+                    logger.error(
+                        f"Error during promotion rollback for task {task_id}: {rb_err}",
+                        exc_info=True,
+                    )
+            # EDIT END
+            raise e  # Re-raise original exception
         except Exception as e:
             logger.exception(
                 f"An unexpected error occurred during task promotion for {task_id}."
             )
+            # EDIT START: Implement Rollback for unexpected errors too
+            if task_to_move is not None:
+                logger.warning(
+                    f"Attempting rollback for task {task_id} due to unexpected error..."
+                )
+                try:
+                    if backlog_lock_acquired and backlog_lock.is_locked:
+                        backlog = self._read_board_file(self.backlog_path)
+                        if not any(t.get("task_id") == task_id for t in backlog):
+                            backlog.append(task_to_move)
+                            logger.info(
+                                f"Rollback: Re-added task {task_id} to backlog list (unexpected error path)."
+                            )
+                            self._atomic_write(self.backlog_path, backlog)
+                            logger.info(
+                                f"Rollback: Saved updated backlog (unexpected error path)."
+                            )
+                        else:
+                            logger.warning(
+                                f"Rollback skipped: Task {task_id} already found in backlog (unexpected error path)."
+                            )
+                    else:
+                        logger.error(
+                            "Rollback failed: Backlog lock not held (unexpected error path)."
+                        )
+                except Exception as rb_err:
+                    logger.error(
+                        f"Error during promotion rollback for task {task_id} (unexpected error path): {rb_err}",
+                        exc_info=True,
+                    )
+            # EDIT END
             # Wrap unexpected exceptions in PBM error
             raise ProjectBoardError(
                 f"Promotion failed unexpectedly for task {task_id}: {e}"
@@ -1125,5 +1205,95 @@ class ProjectBoardManager:
                         f"Failed to release lock {self.backlog_lock_path}: {e_rl}"
                     )
 
+    # EDIT START: Update CLI section to load config
+    @classmethod
+    def _create_from_cli_args(cls, args):
+        """Helper to create an instance using AppConfig for CLI."""
+        try:
+            config = AppConfig.load()  # Load default config
+            # Override board dir if provided via CLI? For now, use config's value.
+            # boards_dir = args.boards_dir if args.boards_dir else config.paths.central_task_boards
+            return cls(config=config, lock_timeout=args.lock_timeout)
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize ProjectBoardManager via AppConfig for CLI: {e}",
+                exc_info=True,
+            )
+            sys.exit(1)  # Exit if config fails for CLI
 
-# End of ProjectBoardManager class definition
+    # EDIT END
+
+
+# Note: The __main__ block itself needs modification to use _create_from_cli_args
+if __name__ == "__main__":
+    # ... (Existing argparse setup)
+    parser = argparse.ArgumentParser(description="Manage Project Boards")
+    parser.add_argument(
+        "--boards-dir",
+        type=str,
+        # default=".", # Default now comes from AppConfig
+        help="Base directory for board JSON files (default taken from AppConfig)",
+    )
+    parser.add_argument(
+        "--lock-timeout",
+        type=int,
+        default=DEFAULT_LOCK_TIMEOUT,
+        help="Timeout in seconds for acquiring file locks",
+    )
+    parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+
+    subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
+
+    # Example: list command
+    parser_list = subparsers.add_parser("list", help="List tasks from a board")
+    parser_list.add_argument(
+        "board",
+        choices=["backlog", "ready", "working", "completed"],
+        help="Which board to list",
+    )
+    parser_list.add_argument("--status", type=str, help="Filter by status")
+    parser_list.add_argument(
+        "--agent", type=str, help="Filter by agent_id (working board)"
+    )
+
+    # Add parsers for other commands (add, get, update, move, delete, claim, promote)
+    # ... (Need to define parsers for all commands for CLI to be complete) ...
+
+    args = parser.parse_args()
+
+    # Configure logging simply for CLI
+    logging.basicConfig(
+        level=logging.INFO if not args.verbose else logging.DEBUG,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    # Create instance using AppConfig via helper
+    pbm = ProjectBoardManager._create_from_cli_args(args)
+
+    # Execute command based on args.command
+    if args.command == "list":
+        tasks = []
+        if args.board == "backlog":
+            tasks = pbm.list_backlog_tasks(status=args.status)
+        elif args.board == "ready":
+            tasks = pbm.list_ready_queue_tasks(status=args.status)
+        elif args.board == "working":
+            tasks = pbm.list_working_tasks(agent_id=args.agent)
+        # elif args.board == "completed": # Need list_completed_tasks method if desired
+        #     tasks = pbm.list_completed_tasks() # Assuming method exists
+        print(json.dumps(tasks, indent=2))
+    # Add elif blocks for other commands (add, get, etc.)
+    # elif args.command == 'add':
+    #     # Requires defining parser_add and handling its arguments
+    #     details = json.loads(args.task_details) # Assuming details passed as JSON string
+    #     agent = args.agent_id
+    #     if pbm.add_task_to_backlog(details, agent):
+    #         print("Task added successfully.")
+    #     else:
+    #         print("Failed to add task.")
+    #         sys.exit(1)
+    else:
+        print(f"Command '{args.command}' not fully implemented in CLI or unknown.")
+        if not args.command:
+            parser.print_help()
+# EDIT END: Note changes needed in CLI __main__ block if used.

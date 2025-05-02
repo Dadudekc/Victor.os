@@ -1,22 +1,42 @@
-import asyncio
 import json
 import logging
 import sys
 import time
-import traceback
-import uuid  # Needed for potential fallback message_id
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, List, Optional, Tuple
 
 # NOTE: ChatGPTScraper is conceptual - represents this AI's response generation
 # from chatgptscraper import ChatGPTScraper
-import pyautogui  # Dependency: pip install pyautogui
+
+# Dependency: pip install pyautogui
+try:
+    import pyautogui
+
+    PYAUTOGUI_AVAILABLE = True
+except ImportError:
+    PYAUTOGUI_AVAILABLE = False
+    # Logged later in OrchestratorBot init
+
+# EDIT START: Add pyperclip dependency check
+try:
+    import pyperclip
+
+    PYPERCLIP_AVAILABLE = True
+except ImportError:
+    PYPERCLIP_AVAILABLE = False
+    # Logged later in OrchestratorBot init
+# EDIT END
+
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from ..automation.cursor_orchestrator import CursorOrchestrator, CursorOrchestratorError
+# Removed incorrect import of CursorOrchestrator here, assuming it's used elsewhere if needed
+# from ..automation.cursor_orchestrator import CursorOrchestrator, CursorOrchestratorError
 from ..config import AppConfig  # Adjusted relative import
-from ..coordination.agent_bus import AgentBus, BaseEvent
+
+# from ..coordination.agent_bus import AgentBus, BaseEvent # F401 Unused
 
 # Configure logging
 logging.basicConfig(
@@ -36,6 +56,7 @@ ORCHESTRATOR_CAPABILITIES = [
     "TASK_ORCHESTRATION",
     "AGENT_MONITORING",
     "SYSTEM_REPORTING",
+    "GUI_INTERACTION",  # EDIT: Added capability
 ]
 # EDIT END
 
@@ -51,6 +72,334 @@ PROCESSED = set()
 #   "timestamp_utc": "iso_timestamp_string" // REQUIRED
 # }
 # --- End Schema ---
+
+
+# EDIT START: Define OrchestratorBot Class
+class OrchestratorBot:
+    """Provides centralized methods for GUI interaction via PyAutoGUI."""
+
+    def __init__(self, config: Optional[AppConfig], agent_id: str = "OrchestratorBot"):
+        self.config = config
+        self.agent_id = agent_id
+        if not PYAUTOGUI_AVAILABLE:
+            logger.error("PyAutoGUI library not found. GUI interactions will fail.")
+            # Optionally raise an error or set a flag
+            self.gui_enabled = False
+        else:
+            self.gui_enabled = True
+            logger.info(
+                f"OrchestratorBot [{self.agent_id}] initialized for GUI interaction."
+            )
+        # EDIT START: Add check for pyperclip
+        if not PYPERCLIP_AVAILABLE:
+            logger.warning(
+                "Pyperclip library not found. Clipboard operations will fail."
+            )
+            self.clipboard_enabled = False
+        else:
+            self.clipboard_enabled = True
+        # EDIT END
+
+    def _check_enabled(self):
+        if not self.gui_enabled:
+            raise RuntimeError(
+                "OrchestratorBot GUI capabilities disabled (PyAutoGUI not installed)"
+            )
+
+    # EDIT START: Add specific check for clipboard
+    def _check_clipboard_enabled(self):
+        if not self.clipboard_enabled:
+            raise RuntimeError(
+                "OrchestratorBot clipboard capabilities disabled (Pyperclip not installed)"
+            )
+
+    # EDIT END
+
+    def typewrite(self, text: str, interval: float = 0.01):
+        """Types the given text with a specified interval between keys."""
+        self._check_enabled()
+        try:
+            pyautogui.typewrite(text, interval=interval)
+            logger.debug(f"[{self.agent_id}] Executed typewrite.")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI typewrite failed: {e}", exc_info=True
+            )
+            return False
+
+    def press(self, keys: str | List[str]):
+        """Presses the specified key(s)."""
+        self._check_enabled()
+        try:
+            pyautogui.press(keys)
+            logger.debug(f"[{self.agent_id}] Executed press: {keys}")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI press failed for keys '{keys}': {e}",
+                exc_info=True,
+            )
+            return False
+
+    def hotkey(self, *keys: str):
+        """Presses the specified keys simultaneously (hotkey)."""
+        self._check_enabled()
+        try:
+            pyautogui.hotkey(*keys)
+            logger.debug(f"[{self.agent_id}] Executed hotkey: {keys}")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI hotkey failed for keys '{keys}': {e}",
+                exc_info=True,
+            )
+            return False
+
+    def click(
+        self,
+        x: Optional[int] = None,
+        y: Optional[int] = None,
+        button: str = "left",
+        clicks: int = 1,
+        interval: float = 0.1,
+    ):
+        """Performs a mouse click."""
+        self._check_enabled()
+        try:
+            pyautogui.click(x=x, y=y, button=button, clicks=clicks, interval=interval)
+            logger.debug(
+                f"[{self.agent_id}] Executed click at ({x},{y}), button={button}, clicks={clicks}."
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI click failed at ({x},{y}): {e}",
+                exc_info=True,
+            )
+            return False
+
+    def scroll(self, amount: int):
+        """Scrolls the mouse wheel."""
+        self._check_enabled()
+        try:
+            pyautogui.scroll(amount)
+            logger.debug(f"[{self.agent_id}] Executed scroll: {amount}")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI scroll failed: {e}", exc_info=True
+            )
+            return False
+
+    def move_to(self, x: int, y: int, duration: float = 0.1):
+        """Moves the mouse cursor to the specified coordinates."""
+        self._check_enabled()
+        try:
+            pyautogui.moveTo(x, y, duration=duration)
+            logger.debug(f"[{self.agent_id}] Executed moveto: ({x}, {y})")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI move_to failed for ({x},{y}): {e}",
+                exc_info=True,
+            )
+            return False
+
+    def screenshot(
+        self,
+        region: Optional[Tuple[int, int, int, int]] = None,
+        save_path: Optional[str | Path] = None,
+    ):
+        """Takes a screenshot, optionally of a specific region, and optionally saves it."""
+        self._check_enabled()
+        try:
+            image = pyautogui.screenshot(region=region)
+            logger.debug(f"[{self.agent_id}] Executed screenshot.")
+            if save_path:
+                save_path = Path(save_path)
+                save_path.parent.mkdir(parents=True, exist_ok=True)
+                image.save(str(save_path))
+                logger.info(f"[{self.agent_id}] Screenshot saved to {save_path}")
+            return image  # Returns PIL image object
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI screenshot failed: {e}", exc_info=True
+            )
+            return None
+
+    def get_windows_by_title(self, title: str) -> List[Any]:
+        """Finds windows matching the given title substring. Returns a list of window objects (type depends on platform)."""
+        self._check_enabled()
+        try:
+            windows = pyautogui.getWindowsWithTitle(title)
+            logger.debug(
+                f"[{self.agent_id}] Found {len(windows)} window(s) with title containing '{title}'."
+            )
+            return windows
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI getWindowsWithTitle failed for title '{title}': {e}",
+                exc_info=True,
+            )
+            return []
+
+    def locate_center_on_screen(
+        self, image_path: str | Path, confidence: float = 0.9, grayscale: bool = False
+    ) -> Optional[Tuple[int, int]]:
+        """Locates the center coordinates of an image on the screen."""
+        self._check_enabled()
+        try:
+            location = pyautogui.locateCenterOnScreen(
+                str(image_path), confidence=confidence, grayscale=grayscale
+            )
+            if location:
+                logger.debug(
+                    f"[{self.agent_id}] Located image '{image_path}' at center {location}."
+                )
+                return (location.x, location.y)  # Return as tuple
+            else:
+                logger.debug(
+                    f"[{self.agent_id}] Image '{image_path}' not found on screen."
+                )
+                return None
+        except pyautogui.ImageNotFoundException:
+            logger.warning(
+                f"[{self.agent_id}] Image '{image_path}' not found on screen (ImageNotFoundException)."
+            )
+            return None
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI locateCenterOnScreen failed for image '{image_path}': {e}",
+                exc_info=True,
+            )
+            return None
+
+    # EDIT START: Add locate_on_screen method
+    def locate_on_screen(
+        self, image_path: str | Path, confidence: float = 0.9, grayscale: bool = False
+    ) -> Optional[Any]:
+        """Locates an image on the screen, returning the bounding box (PyAutoGUI Box object) or None."""
+        self._check_enabled()
+        try:
+            # Note: Returns a Box(left, top, width, height) object or None
+            location = pyautogui.locateOnScreen(
+                str(image_path), confidence=confidence, grayscale=grayscale
+            )
+            if location:
+                logger.debug(
+                    f"[{self.agent_id}] Located image '{image_path}' at {location}."
+                )
+            else:
+                logger.debug(
+                    f"[{self.agent_id}] Image '{image_path}' not found on screen."
+                )
+            return location
+        except pyautogui.ImageNotFoundException:
+            logger.warning(
+                f"[{self.agent_id}] Image '{image_path}' not found on screen (ImageNotFoundException)."
+            )
+            return None
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] PyAutoGUI locateOnScreen failed for image '{image_path}': {e}",
+                exc_info=True,
+            )
+            return None
+
+    # EDIT END
+
+    # EDIT START: Add activate_window method
+    def activate_window(self, title: str, timeout: int = 5) -> bool:
+        """Attempts to find and activate a window by its title."""
+        self._check_enabled()
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                windows = self.get_windows_by_title(title)
+                if windows:
+                    win = windows[0]  # Attempt with the first match
+                    if win.isMinimized:
+                        win.restore()
+                        time.sleep(0.2)  # Give time for restore
+                    # Sometimes activate needs a small delay or retry
+                    win.activate()
+                    time.sleep(0.5)  # Give time for activation
+                    if win.isActive:
+                        logger.info(
+                            f"[{self.agent_id}] Successfully activated window with title containing '{title}'."
+                        )
+                        return True
+                    else:
+                        # Try bringing to front as another method
+                        # Note: bringToFront might not be available on all platforms/pyautogui versions
+                        try:
+                            win.bringToFront()
+                            time.sleep(0.5)
+                            if win.isActive:
+                                logger.info(
+                                    f"[{self.agent_id}] Successfully activated window (via bringToFront) '{title}'."
+                                )
+                                return True
+                        except AttributeError:
+                            logger.warning(
+                                f"[{self.agent_id}] win.bringToFront() not available."
+                            )
+                        except Exception as bring_e:
+                            logger.warning(
+                                f"[{self.agent_id}] Error during bringToFront for '{title}': {bring_e}"
+                            )
+
+                logger.debug(
+                    f"[{self.agent_id}] Window '{title}' not active yet, retrying..."
+                )
+            except Exception as e:
+                logger.error(
+                    f"[{self.agent_id}] Error finding/activating window '{title}': {e}",
+                    exc_info=True,
+                )
+                # Don't retry immediately on error, wait for loop
+            time.sleep(0.5)  # Wait before retrying search/activation
+
+        logger.error(
+            f"[{self.agent_id}] Failed to activate window '{title}' within {timeout} seconds."
+        )
+        return False
+
+    # EDIT END
+
+    # EDIT START: Add clipboard methods
+    def get_clipboard_content(self) -> Optional[str]:
+        """Gets the current content of the clipboard."""
+        self._check_clipboard_enabled()
+        try:
+            content = pyperclip.paste()
+            logger.debug(f"[{self.agent_id}] Got clipboard content.")
+            return content
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] Failed to get clipboard content: {e}", exc_info=True
+            )
+            return None
+
+    def copy_to_clipboard(self, text: str) -> bool:
+        """Copies the given text to the clipboard."""
+        self._check_clipboard_enabled()
+        try:
+            pyperclip.copy(text)
+            logger.debug(f"[{self.agent_id}] Copied text to clipboard.")
+            return True
+        except Exception as e:
+            logger.error(
+                f"[{self.agent_id}] Failed to copy text to clipboard: {e}",
+                exc_info=True,
+            )
+            return False
+
+    # EDIT END
+
+
+# EDIT END: Define OrchestratorBot Class
 
 
 class NewMsgHandler(FileSystemEventHandler):
@@ -86,6 +435,10 @@ def handle_message(msg_path: Path):
     data = None
     sender_agent_id = "UNKNOWN_SENDER"
     message_id = None  # Initialize message_id
+    # EDIT: Instantiate bot here temporarily for direct calls below
+    # Proper implementation would involve a central bot instance or service
+    bot = OrchestratorBot(config=None, agent_id=f"MessageHandler_{BOT_AGENT_ID}")
+
     try:
         logger.info(f"Handling message: {msg_path.name}")
         raw_text = msg_path.read_text(encoding="utf-8")
@@ -142,28 +495,24 @@ def handle_message(msg_path: Path):
         # --- Step 2: Execute PyAutoGUI Action ---
         execution_status = "PENDING"  # Start with pending
         execution_details = f"Attempting action '{action_type}'."
+        execution_success = False  # Track success
 
         try:
-            # TODO: Implement window targeting using target_window hint (Task IMPL-CURSOR-TARGETING-001)
-            # target_window = focus_cursor_window(target_window)
-            # if not target_window:
-            #    raise RuntimeError("Failed to find or focus Cursor window")
-            # logger.info(f"[{message_id}] Focused target window.") # Add log after successful focus
-
             logger.info(
-                f"[{message_id}] Executing action: {action_type} with params: {parameters}"
+                f"[{message_id}] Executing action via OrchestratorBot: {action_type} with params: {parameters}"
             )
 
-            # {{ EDIT START: Implement pyautogui calls }}
+            # EDIT: Use OrchestratorBot methods
             if action_type == "typewrite":
                 text_to_type = parameters.get("text")
-                interval = parameters.get("interval", 0.01)  # Default interval
-                if text_to_type is None:  # Check for None specifically
+                interval = parameters.get("interval", 0.01)
+                if text_to_type is None:
                     raise ValueError(
                         "Missing required 'text' parameter for typewrite action."
                     )
-                pyautogui.typewrite(str(text_to_type), interval=float(interval))
-                logger.info(f"[{message_id}] Executed typewrite.")
+                execution_success = bot.typewrite(
+                    str(text_to_type), interval=float(interval)
+                )
 
             elif action_type == "press":
                 keys = parameters.get("keys")
@@ -171,116 +520,88 @@ def handle_message(msg_path: Path):
                     raise ValueError(
                         "Missing required 'keys' parameter for press action."
                     )
-                # Handle single key string or list of keys
-                if isinstance(keys, str):
-                    pyautogui.press(keys)
-                elif isinstance(keys, list):
-                    pyautogui.press(keys)
-                else:
+                if not (isinstance(keys, str) or isinstance(keys, list)):
                     raise ValueError(
                         "Invalid type for 'keys' parameter (must be string or list)."
                     )
-                logger.info(f"[{message_id}] Executed press: {keys}")
+                execution_success = bot.press(keys)
 
             elif action_type == "click":
-                # Extract params with defaults, handle potential None for x, y
                 x = parameters.get("x")
                 y = parameters.get("y")
                 button = parameters.get("button", "left")
                 clicks = parameters.get("clicks", 1)
                 interval = parameters.get("interval", 0.1)
-                pyautogui.click(
+                execution_success = bot.click(
                     x=x,
                     y=y,
                     button=button,
                     clicks=int(clicks),
                     interval=float(interval),
                 )
-                logger.info(
-                    f"[{message_id}] Executed click at ({x},{y}), button={button}, clicks={clicks}."
-                )
 
             elif action_type == "hotkey":
                 keys = parameters.get("keys")
                 if not keys or not isinstance(keys, list):
                     raise ValueError(
-                        "Missing or invalid 'keys' parameter for hotkey action (must be a list)."
+                        "Missing or invalid 'keys' parameter (must be list)."
                     )
-                pyautogui.hotkey(*keys)  # Unpack list into arguments
-                logger.info(f"[{message_id}] Executed hotkey: {keys}")
+                execution_success = bot.hotkey(*keys)
 
             elif action_type == "scroll":
                 amount = parameters.get("amount")
                 if amount is None:
-                    raise ValueError(
-                        "Missing required 'amount' parameter for scroll action."
-                    )
-                pyautogui.scroll(int(amount))
-                logger.info(f"[{message_id}] Executed scroll: {amount}")
+                    raise ValueError("Missing required 'amount' parameter.")
+                execution_success = bot.scroll(int(amount))
 
             elif action_type == "moveto":
                 x = parameters.get("x")
                 y = parameters.get("y")
                 duration = parameters.get("duration", 0.1)
                 if x is None or y is None:
-                    raise ValueError(
-                        "Missing required 'x' or 'y' parameter for moveto action."
-                    )
-                pyautogui.moveTo(int(x), int(y), duration=float(duration))
-                logger.info(f"[{message_id}] Executed moveto: ({x}, {y})")
+                    raise ValueError("Missing required 'x' or 'y'.")
+                execution_success = bot.move_to(
+                    int(x), int(y), duration=float(duration)
+                )
 
             elif action_type == "screenshot":
-                region = parameters.get("region")  # Optional: list [x, y, w, h]
-                save_path = parameters.get("save_path")  # Optional
-
+                region = parameters.get("region")
+                save_path = parameters.get("save_path")
                 if region and not (
                     isinstance(region, list)
                     and len(region) == 4
                     and all(isinstance(n, int) for n in region)
                 ):
                     raise ValueError(
-                        "Invalid 'region' parameter for screenshot (must be list of 4 ints or null)."
+                        "Invalid 'region' parameter (must be list of 4 ints or null)."
                     )
-
-                image = pyautogui.screenshot(region=tuple(region) if region else None)
-                if save_path:
-                    Path(save_path).parent.mkdir(
-                        parents=True, exist_ok=True
-                    )  # Ensure dir exists
-                    image.save(save_path)
-                    logger.info(
-                        f"[{message_id}] Executed screenshot and saved to {save_path}"
-                    )
-                    # Optionally return path in details?
-                else:
-                    logger.info(
-                        f"[{message_id}] Executed screenshot (image data captured, not saved)."
-                    )
-                    # Note: Returning image data via JSON response is not practical.
-                    # Maybe log success, or indicate path if saved.
-
-            else:
-                # This case should not be reached due to earlier validation, but included for safety
-                raise ValueError(
-                    f"Unknown action type '{action_type}' cannot be executed."
+                img_result = bot.screenshot(
+                    region=tuple(region) if region else None, save_path=save_path
                 )
+                execution_success = img_result is not None
+                # How to return image data? For now, just success/fail
+            # {{ EDIT END: Implement pyautogui calls }}
 
-            # If execution reaches here without error:
-            execution_status = "EXECUTED_SUCCESSFULLY"
-            execution_details = f"Action '{action_type}' executed successfully."
-            # {{ EDIT END }}
+            if execution_success:
+                execution_status = "SUCCESS"
+                execution_details = f"Action '{action_type}' executed successfully."
+                logger.info(f"[{message_id}] {execution_details}")
+            else:
+                # Error logged within bot methods
+                execution_status = "FAILED"
+                execution_details = (
+                    f"Action '{action_type}' failed during execution (see logs)."
+                )
+                logger.warning(f"[{message_id}] {execution_details}")
 
-        except (ValueError, TypeError, pyautogui.PyAutoGUIException) as exec_error:
-            # Catch specific parameter errors or pyautogui errors
+        except (
+            ValueError,
+            TypeError,
+            pyautogui.PyAutoGUIException if PYAUTOGUI_AVAILABLE else OSError,
+        ) as exec_error:
+            execution_status = "FAILED"
             error_msg = f"Error executing action '{action_type}': {exec_error}"
             logger.error(f"[{message_id}] {error_msg}", exc_info=True)
-            execution_status = "EXECUTION_FAILED"
-            execution_details = error_msg
-        except Exception as e:
-            # Catch any other unexpected errors during execution
-            error_msg = f"Unexpected error during '{action_type}' execution: {e}"
-            logger.error(f"[{message_id}] {error_msg}", exc_info=True)
-            execution_status = "EXECUTION_FAILED"
             execution_details = error_msg
 
         # --- Step 3: Write back a response message ---

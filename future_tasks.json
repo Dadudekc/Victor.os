@@ -1,0 +1,16 @@
+[
+  {
+    "task_id": "CAPTAIN8-CLEANUP-CONFIG-TESTCODE-001",
+    "name": "Remove Test Code from core/config.py",
+    "description": "Remove the commented-out `if __name__ == \"__main__\":` block from the end of src/dreamos/core/config.py. This test code should reside in actual test files.",
+    "priority": "LOW",
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": "CLEANUP",
+    "created_by": "Agent-8",
+    "created_at": "{{iso_timestamp_utc()}}",
+    "tags": ["core", "config", "cleanup", "refactor", "masterpiece"],
+    "dependencies": [],
+    "estimated_duration": "5m"
+  }
+]

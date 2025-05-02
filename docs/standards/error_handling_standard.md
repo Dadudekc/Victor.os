@@ -156,5 +156,5 @@ The following areas were identified as potentially deviating from these guidelin
     - `ConfigError` (`config.py`)
     - `SummarizationError` (`memory/summarization_utils.py`)
     - `CompactionError` (`memory/compaction_utils.py`)
-    - `ProjectBoardManagerError` (`core/comms/project_board.py`)
+    - `ProjectBoardManagerError` (`src/dreamos/coordination/project_board_manager.py`)
     - `CursorOrchestratorError` (`automation/cursor_orchestrator.py`)

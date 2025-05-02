@@ -1,29 +1,48 @@
+"""
+SwarmController
+===============
+
+Coordinates a fleet of Cursor GUI / headless agents, dispatching work from a
+central `TaskNexus`, collecting results via an in-process `EventBus`, feeding
+them to `FeedbackEngineV2`, and persisting lore for Dream.OS.
+
+Key refactors
+-------------
+*   **Config-first** – everything comes from one `AppConfig`.
+*   **Single EventType source** – avoid accidental shadowing.
+*   **Clean imports** – drop unused stdlib & package names.
+*   **Graceful shutdown** – join worker threads.
+*   **Quieter logs** – debug for tight loops, info for milestones.
+"""
+
+from __future__ import annotations
+
 import asyncio
+import datetime as _dt
+import json
 import logging
 import os
-import platform
-import queue
+import random
 import subprocess
 import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from _agent_coordination.tools.event_bus import EventBus
-from _agent_coordination.tools.event_type import EventType
+from _agent_coordination.tools.event_type import EventType  # ← single source-of-truth
 
+from dreamos.agents.agent2_infra_surgeon import Agent2InfraSurgeon
 from dreamos.agents.chatgpt_web_agent import run_loop as chat_run_loop
-
-# EDIT START: Import AppConfig
+from dreamos.coordination.project_board_manager import ProjectBoardManager
 from dreamos.core.config import AppConfig
 from dreamos.core.tasks.nexus.task_nexus import TaskNexus
 from dreamos.feedback.feedback_engine_v2 import FeedbackEngineV2
 from dreamos.hooks.stats_logger import StatsLoggingHook
 
 from ...channels.local_blob_channel import LocalBlobChannel
-from ...core.coordination.agent_bus import AgentBus, BaseEvent, EventType
-from ...core.coordination.base_agent import BaseAgent, TaskStatus
+from ...core.coordination.base_agent import TaskStatus
 from .cursor_fleet_launcher import (
     assign_windows_to_monitors,
     get_cursor_windows,
@@ -31,353 +50,348 @@ from .cursor_fleet_launcher import (
 )
 from .virtual_desktop_runner import VirtualDesktopController
 
-# EDIT END
-
-
-logger = logging.getLogger(__name__)
-# Remove basicConfig - should be configured by application entry point
-# logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s")
+logger = logging.getLogger(__name__)  # logging configured by entry point
 
 
 class SwarmController:
-    """
-    Controls a fleet of Cursor agents using LocalBlobChannel for task/result exchange.
-    """
+    """Top-level coordinator for Cursor agents (GUI & headless)."""
 
-    # EDIT START: Remove static helper methods for config resolution
-    # @staticmethod
-    # def _resolve_config_args(fleet_size, container_name, sas_token, connection_string, stats_interval):
-    #     ...
-    # @staticmethod
-    # def _resolve_config(connection_string: Optional[str], sas_token: Optional[str], container_name: str) -> Tuple[Optional[str], Optional[str], str, bool]:
-    #     ...
-    # @staticmethod
-    # def _resolve_stats_interval(stats_interval: Optional[int]) -> int:
-    #     ...
-    # EDIT END
+    _DEFAULT_STATS_INTERVAL_SEC: int = 60
 
-    # EDIT START: Modify __init__ to accept AppConfig and use it
-    def __init__(
-        self,
-        config: AppConfig,  # Accept AppConfig
-        # Remove old args that now come from config
-        # fleet_size: int = 3,
-        # container_name: str = "dream-os-c2",
-        # sas_token: str = None,
-        # connection_string: str = None,
-        # stats_interval: int = None,
-    ):
-        self.config = config  # Store config
+    # --------------------------------------------------------------------- #
+    # Construction
+    # --------------------------------------------------------------------- #
+    def __init__(self, config: AppConfig) -> None:
+        self.config: AppConfig = config
 
-        # Resolve all configuration from AppConfig object
-        self.fleet_size = getattr(config.swarm, "fleet_size", 3)
+        # -- fleet & channel ------------------------------------------------
+        self.fleet_size: int = getattr(config.swarm, "fleet_size", 3)
+
         azure_conf = getattr(config.integrations, "azure_blob", None)
-        self.container_name = (
-            getattr(azure_conf, "container_name", "dream-os-c2")
-            if azure_conf
-            else "dream-os-c2"
+        self.container_name: str = getattr(azure_conf, "container_name", "dream-os-c2")
+        self.sas_token: Optional[str] = getattr(azure_conf, "sas_token", None)
+        self.connection_string: Optional[str] = getattr(
+            azure_conf, "connection_string", None
         )
-        self.sas_token = getattr(azure_conf, "sas_token", None) if azure_conf else None
-        self.connection_string = (
-            getattr(azure_conf, "connection_string", None) if azure_conf else None
-        )
-        stats_interval = getattr(config.monitoring, "stats_interval", 60)
+        self.use_local: bool = getattr(config.memory_channel, "use_local_blob", False)
 
-        # Determine Azure connection mode (local vs cloud)
-        self.use_local = getattr(config.memory_channel, "use_local_blob", False)
-        # _, _, _, self.use_local = self._resolve_config(
-        #     self.connection_string, self.sas_token, self.container_name
-        # )
-        if not self.use_local and not self.connection_string and not self.sas_token:
+        if not self.use_local and not (self.connection_string or self.sas_token):
             logger.warning(
-                "Azure connection string/SAS token not found in config and not using local blobs. Channel operations might fail."
+                "💾 Azure Blob not fully configured; falling back to LocalBlobChannel."
             )
-            # Consider raising an error if cloud storage is expected but unconfigured
-            # raise RuntimeError("Azure Blob Storage required but not configured (connection_string/sas_token missing)")
+            self.use_local = True
 
-        # Initialize TaskNexus for central task management
-        self.nexus = TaskNexus(
-            config=self.config, task_file="runtime/task_list.json"
-        )  # Pass config to Nexus
-        # Stats logging hook for monitoring task metrics
-        self.stats_hook = StatsLoggingHook(self.nexus)
-        # Start periodic stats auto-logging
-        self._start_stats_autologger(interval=stats_interval)
-        # Initialize EventBus for pub/sub events
-        self.event_bus = EventBus()
-        # Subscribe to task results from workers
-        self.event_bus.subscribe(EventType.TASK_COMPLETED.value, self._handle_result)
-        # Initialize C2 channel for results (Local only)
-        # TODO: Channel initialization might need AppConfig too?
         self.channel = LocalBlobChannel()
-        # Verify connectivity to LocalBlobChannel
         if not self.channel.healthcheck():
-            logger.error(
-                "LocalBlobChannel healthcheck failed, aborting SwarmController initialization."
-            )
-            raise RuntimeError("Channel healthcheck failed")
-        self.workers: List[threading.Thread] = []
+            raise RuntimeError("LocalBlobChannel health-check failed – aborting")
+
+        # -- runtime components --------------------------------------------
+        self.nexus = TaskNexus(config=self.config, task_file="runtime/task_list.json")
+        self.stats_hook = StatsLoggingHook(self.nexus)
+        self.event_bus = EventBus()
+        self.event_bus.subscribe(EventType.TASK_COMPLETED.value, self._handle_result)
+
+        # -- orchestration state -------------------------------------------
         self._stop_event = threading.Event()
+        self.workers: List[threading.Thread] = []
 
-    # EDIT END
+        # -- background stats ----------------------------------------------
+        stats_ivl = getattr(
+            config.monitoring, "stats_interval", self._DEFAULT_STATS_INTERVAL_SEC
+        )
+        self._start_stats_autologger(interval=stats_ivl)
 
-    def start(self, initial_tasks: List[Dict] = None):
-        """
-        Launch GUI and headless agents and start routing loop.
-        """
-        logger.info(f"Starting SwarmController with {self.fleet_size} agents...")
-        # 0. Spawn ChatGPT WebAgent producer thread
-        try:
-            logger.info("Starting ChatGPTWebAgent producer thread...")
-            chat_thread = threading.Thread(
-                target=chat_run_loop,
-                args=(self._stop_event,),
-                name="ChatGPTWebAgent",
-                daemon=True,
-            )
-            chat_thread.start()
-            self.workers.append(chat_thread)
-        except ImportError as e:
-            logger.warning(f"ChatGPTWebAgent integration failed: {e}")
-        # Dispatch initial tasks into TaskNexus if provided
-        if initial_tasks:
-            for task in initial_tasks:
-                logger.info(f"Dispatching initial task to TaskNexus: {task}")
-                self.nexus.add_task(task)
-        # 1. Launch GUI instances
-        logger.info("Launching GUI Cursor instances...")
-        processes = []
-        for i in range(self.fleet_size):
-            proc = launch_cursor_instance(i)
-            processes.append(proc)
-            time.sleep(0.5)
-        # 2. Tile windows
+    # --------------------------------------------------------------------- #
+    # Public API
+    # --------------------------------------------------------------------- #
+    def start(self, initial_tasks: Optional[List[Dict[str, Any]]] = None) -> None:
+        """Bring up chat-producer, GUI agents, headless workers, then begin routing loop."""
+        logger.info(f"🚀 SwarmController booting {self.fleet_size} agents")
+
+        # 0) ChatGPT Web-agent (producer)
+        self._spawn_thread(
+            target=chat_run_loop,
+            args=(self._stop_event,),
+            name="ChatGPTWebAgent",
+        )
+
+        # 1) Seed TaskNexus
+        for task in initial_tasks or []:
+            self.nexus.add_task(task)
+            logger.info(f"📥 Seed task queued → {task.get('id', task)[:60]}")
+
+        # 2) GUI Cursor processes
+        processes = [launch_cursor_instance(i) for i in range(self.fleet_size)]
+        time.sleep(0.5)  # allow windows to surface
+
         try:
             windows = get_cursor_windows(target_count=len(processes), timeout=30)
             assign_windows_to_monitors(windows)
-        except Exception as e:
-            logger.warning(f"Window tiling skipped: {e}")
+        except Exception as tiling_err:  # pylint: disable=broad-except
+            logger.warning(f"🪟 Window tiling skipped: {tiling_err}")
 
-        # 3. Start headless dispatcher threads
-        logger.info("Starting headless dispatcher workers...")
+        # 3) Headless workers
         for i in range(self.fleet_size):
-            t = threading.Thread(
-                target=self._worker_loop, name=f"Worker-{i+1}", daemon=True
-            )
-            t.start()
-            self.workers.append(t)
+            self._spawn_thread(target=self._worker_loop, name=f"Worker-{i+1}")
 
-        # 4. Start routing loop in main thread
+        # 4) Routing loop (blocking)
         self._route_loop()
 
-    def _worker_loop(self):
-        """
-        Worker thread: pull tasks, simulate processing, push results.
-        """
-        # EDIT START: Get CURSOR_PATH from config
-        # Use VirtualDesktopController for headless launching if needed
+    def shutdown(self) -> None:
+        """Signal workers to stop then join threads."""
+        logger.info("🛑 SwarmController shutdown initiated")
+        self._stop_event.set()
+
+        for t in self.workers:
+            t.join(timeout=5)
+
+        logger.info("✅ SwarmController shutdown complete")
+
+    # --------------------------------------------------------------------- #
+    # Internal helpers
+    # --------------------------------------------------------------------- #
+    def _spawn_thread(self, *, target, args: tuple = (), name: str) -> None:
+        th = threading.Thread(target=target, args=args, name=name, daemon=True)
+        th.start()
+        self.workers.append(th)
+
+    # .........................................
+    # Worker
+    # .........................................
+    def _worker_loop(self) -> None:
+        """Instantiate and run a dedicated agent instance (e.g., Agent2)."""
+        worker_name = threading.current_thread().name
+        logger.info(f"Worker thread {worker_name} starting.")
+
         try:
-            vdc = VirtualDesktopController()
-            # cursor_exe_path=os.getenv("CURSOR_PATH", "Cursor.exe") # REMOVE os.getenv
-            # Access the config object passed during __init__
-            cursor_config = getattr(self.config.tools, "cursor", None)
-            cursor_exe_path = (
-                getattr(cursor_config, "executable_path", "Cursor.exe")
-                if cursor_config
-                else "Cursor.exe"
+            # Run the async part of the worker loop
+            asyncio.run(self._run_agent_async(worker_name))
+        except Exception as e:
+            logger.critical(
+                f"[{worker_name}] CRITICAL ASYNC RUNNER ERROR: {e}", exc_info=True
             )
+        finally:
+            logger.info(f"Worker thread {worker_name} finished.")
 
-            # Ensure the path is valid before launching
-            if not Path(cursor_exe_path).exists():
-                logger.warning(
-                    f"Cursor executable path from config not found: {cursor_exe_path}. Attempting default 'Cursor.exe'."
-                )
-                cursor_exe_path = "Cursor.exe"  # Fallback, though might still fail
+    async def _run_agent_async(self, worker_name: str) -> None:
+        """Asynchronous part of the worker loop: instantiate and run agent."""
+        # Attempt to launch headless Cursor in a virtual desktop
+        # self._maybe_launch_headless_cursor() # Keep this if needed for the agent
 
-            vdc.launch_cursor_headless(cursor_exe_path=cursor_exe_path)
-            logger.info(f"Launched headless cursor using path: {cursor_exe_path}")
-        except Exception as e_launch:
-            logger.warning(
-                f"Proceeding without headless setup due to error: {e_launch}"
-            )
-        # EDIT END
+        # --- Agent Instantiation ---
+        agent_instance = None
+        try:
+            # TODO: Replace with dynamic agent selection based on worker_name or config
+            if "Worker-1" in worker_name:  # Example: Dedicate Worker-1 to Agent 2
+                agent_id = "Agent-2"  # The ID the agent will use internally
+                logger.info(
+                    f"[{worker_name}] Instantiating {agent_id} (Agent2InfraSurgeon)..."
+                )
 
-        while not self._stop_event.is_set():
-            # Record heartbeat for this worker agent
-            try:
-                self.nexus.record_heartbeat(threading.current_thread().name)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to record heartbeat for {threading.current_thread().name}: {e}"
+                # Ensure PBM is available from TaskNexus
+                if not self.nexus or not self.nexus.board_manager:
+                    raise RuntimeError(
+                        "TaskNexus or ProjectBoardManager not initialized in SwarmController."
+                    )
+
+                agent_instance = Agent2InfraSurgeon(
+                    agent_id=agent_id,
+                    config=self.config,
+                    pbm=self.nexus.board_manager,
+                    agent_bus=self.event_bus,  # Pass the shared event bus
                 )
-            # Claim the next pending task from TaskNexus
-            task = self.nexus.get_next_task(agent_id=threading.current_thread().name)
-            if task:
-                logger.info(f"Worker received task: {task}")
-                # Simulate work: echo back with a timestamp
-                result = {
-                    "task_id": task.get("id"),
-                    "agent_id": threading.current_thread().name,
-                    "echo": task,
-                    "processed_at": time.time(),
-                }
-                # Publish result event to EventBus instead of blob channel
-                self.event_bus.publish(
-                    EventType.TASK_COMPLETED.value, result, ack_required=False
-                )
-                logger.info(f"Worker published result via EventBus: {result}")
-                # Mark task as completed in TaskNexus
-                self.nexus.update_task_status(task.get("id"), "completed")
-                # Log stats snapshot after task completion
-                try:
-                    self.stats_hook.log_snapshot()
-                except Exception as se:
-                    logger.error(f"Failed to log stats snapshot: {se}", exc_info=True)
+                logger.info(f"[{worker_name}] Successfully instantiated {agent_id}.")
             else:
-                time.sleep(2)
+                logger.warning(
+                    f"[{worker_name}] No specific agent assigned to this worker thread. Skipping."
+                )
+                return  # Or assign a default generic agent
 
-    def _route_loop(self):
-        """
-        Main loop: monitor results and handle them.
-        """
-        logger.info("Entering routing loop...")
+        except Exception as e:
+            logger.critical(
+                f"[{worker_name}] CRITICAL ERROR instantiating agent: {e}",
+                exc_info=True,
+            )
+            return  # Cannot proceed without an agent instance
+
+        # --- Run Agent's Autonomous Loop ---
+        logger.info(
+            f"[{worker_name}] Starting agent {agent_instance.agent_id}'s autonomous loop..."
+        )
+        agent_task = None
+        try:
+            # Create a task for the agent's loop - asyncio.run provides the loop
+            agent_task = asyncio.create_task(agent_instance.run_autonomous_loop())
+
+            # Monitor the stop event and cancel the agent task if needed
+            while not self._stop_event.is_set():
+                if agent_task.done():
+                    logger.info(
+                        f"[{worker_name}] Agent {agent_instance.agent_id} loop task finished unexpectedly."
+                    )
+                    # Check for exceptions
+                    exc = agent_task.exception()
+                    if exc:
+                        logger.error(
+                            f"[{worker_name}] Agent loop task finished with error: {exc}",
+                            exc_info=exc,
+                        )
+                    break  # Exit worker loop if agent loop finishes
+
+                # Yield control while checking stop event periodically
+                try:
+                    # wait_for ensures sleep doesn't block cancellation indefinitely
+                    await asyncio.wait_for(asyncio.sleep(1), timeout=1.1)
+                except asyncio.TimeoutError:
+                    pass  # Expected if sleep completes
+
+            # If stop event is set, cancel the agent task gracefully
+            if self._stop_event.is_set():
+                if agent_task and not agent_task.done():
+                    logger.info(
+                        f"[{worker_name}] Stop event set. Cancelling agent {agent_instance.agent_id} loop..."
+                    )
+                    agent_task.cancel()
+                    try:
+                        # Wait briefly for cancellation to propagate
+                        await asyncio.wait_for(agent_task, timeout=5.0)
+                    except asyncio.CancelledError:
+                        logger.info(
+                            f"[{worker_name}] Agent {agent_instance.agent_id} loop successfully cancelled."
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning(
+                            f"[{worker_name}] Timeout waiting for agent {agent_instance.agent_id} loop cancellation."
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"[{worker_name}] Error during agent task cancellation/cleanup: {e}",
+                            exc_info=True,
+                        )
+
+        except Exception as e:
+            logger.exception(f"[{worker_name}] Unhandled error running agent loop: {e}")
+        finally:
+            logger.debug(f"[{worker_name}] Agent async runner finishing.")
+
+    def _maybe_launch_headless_cursor(self) -> None:
+        """Launch headless Cursor if path exists, else continue silently."""
+        cursor_cfg = getattr(self.config.tools, "cursor", None)
+        cursor_exe = getattr(cursor_cfg, "executable_path", "Cursor.exe")
+
+        if not Path(cursor_exe).exists():
+            logger.warning(
+                f"Cursor exe not found at '{cursor_exe}', skipping headless launch"
+            )
+            return
+
+        try:
+            VirtualDesktopController().launch_cursor_headless(
+                cursor_exe_path=cursor_exe
+            )
+            logger.info(f"🖥️  Headless Cursor launched → {cursor_exe}")
+        except Exception as vdc_err:  # pylint: disable=broad-except
+            logger.warning(f"Headless launch failed: {vdc_err}")
+
+    # .........................................
+    # Router
+    # .........................................
+    def _route_loop(self) -> None:
+        """Idle loop so main thread can honour Ctrl-C & run atexit hooks."""
+        logger.info("📡 Routing loop active – Ctrl-C to exit")
         try:
             while not self._stop_event.is_set():
-                # Deprecated: channel.poll disabled in favor of EventBus
-                # results = self.channel.pull_results()
-                # for res in results:
-                #     self._handle_result(res)
                 time.sleep(5)
         except KeyboardInterrupt:
-            logger.info("SwarmController interrupted, shutting down...")
+            logger.info("KeyboardInterrupt received – shutting down")
         finally:
             self.shutdown()
 
-    def _handle_result(self, result: Dict[Any, Any]):
-        """
-        Handle an incoming result from an agent.
-        """
-        logger.info(f"SwarmController received result: {result}")
-        # EDIT START: Pass AppConfig to FeedbackEngineV2
-        # FeedbackEngineV2 analysis for archived failures
+    # .........................................
+    # Result Handler
+    # .........................................
+    def _handle_result(self, result: Dict[str, Any]) -> None:
+        """Handle result → feedback → lore persistence."""
+        logger.info(f"📑 Result received for {result.get('id')}")
+        self._run_feedback_engine(result)
+        self._persist_lore_metadata(result)
+        self._compile_lore()
+
+    # ------------------------------------------------------------------ #
+    # Feedback / Lore helpers
+    # ------------------------------------------------------------------ #
+    def _run_feedback_engine(self, result: Dict[str, Any]) -> None:
         try:
-            # fe = FeedbackEngineV2()
-            fe = FeedbackEngineV2(config=self.config)  # Pass config
-            # {{ EDIT START: Run async function in event loop }}
-            # TODO: FeedbackEngineV2.analyze_failures is now async! -> DONE
-            # This needs to be run in an event loop or adapted.
-            # For now, logging a warning. Needs further refactoring if async analysis is required here.
-            # analyses = fe.analyze_failures()
-            # logger.warning("FeedbackEngineV2 analysis skipped in _handle_result (needs async handling).")
-            # analyses = [] # Placeholder
-            try:
-                # Run analyze_failures in a new event loop (safer if _handle_result is sync)
-                analyses = asyncio.run(
-                    fe.analyze_failures()
-                )  # This blocks until analyze_failures completes
-                logger.debug(f"Feedback analysis returned {len(analyses)} items.")
-            except RuntimeError as rt_e:
-                # This might happen if _handle_result is *already* running in an event loop
-                # Although asyncio.run() is supposed to handle this, provide a fallback log
-                logger.warning(
-                    f"RuntimeError running async analyze_failures (may be nested loops?): {rt_e}. Skipping analysis."
-                )
-                analyses = []  # Placeholder
-            except Exception as async_e:
-                logger.error(
-                    f"Error running async analyze_failures: {async_e}", exc_info=True
-                )
-                analyses = []  # Placeholder
-            # {{ EDIT END }}
-            # Save analysis per result id
-            feedback_dir = os.path.join("dream_logs", "feedback")
-            os.makedirs(feedback_dir, exist_ok=True)
-            output_file = os.path.join(
-                feedback_dir, f"failure_analysis_{result.get('id','unknown')}.json"
-            )
-            # Ensure save_analysis can handle an empty list
+            fe = FeedbackEngineV2(config=self.config)
+            analyses = asyncio.run(fe.analyze_failures())
             if analyses:
-                fe.save_analysis(analyses, output_file=output_file)
-                logger.info(
-                    f"🔍 Feedback analysis saved for result: {result.get('id')}"
-                )
-            else:
-                logger.info(
-                    f"No feedback analysis data generated or analysis skipped for result: {result.get('id')}"
-                )
-        except Exception as e:
-            logger.error(
-                f"Failed to run feedback analysis for result {result.get('id')}: {e}",
-                exc_info=True,
-            )
-        # EDIT END
-        # Persist modified_files and log_tail into runtime/task_list.json for lore compilation
+                out_dir = Path("dream_logs/feedback")
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_file = out_dir / f"failure_analysis_{result['id']}.json"
+                fe.save_analysis(analyses, output_file=str(out_file))
+                logger.info(f"🔍 Feedback saved → {out_file}")
+        except Exception as fe_err:  # pylint: disable=broad-except
+            logger.error(f"FeedbackEngineV2 failed: {fe_err}", exc_info=True)
+
+    def _persist_lore_metadata(self, result: Dict[str, Any]) -> None:
         try:
             task_list_path = Path("runtime/task_list.json")
-            tasks_data = json.loads(task_list_path.read_text(encoding="utf-8"))
-            for t in tasks_data:
-                if t.get("id") == result.get("id"):
+            if not task_list_path.exists():
+                logger.warning(
+                    f"Lore metadata persistence skipped: {task_list_path} not found."
+                )
+                return
+            tasks = json.loads(task_list_path.read_text(encoding="utf-8"))
+            for t in tasks:
+                if t.get("id") == result["id"]:
                     payload = t.setdefault("payload", {})
-                    # modified_files from result metadata
                     payload["modified_files"] = result.get("modified_files", [])
-                    # log_tail from result stdout
                     stdout = result.get("stdout", "")
-                    if isinstance(stdout, str):
-                        lines = stdout.strip().splitlines()
-                        payload["log_tail"] = "\n".join(lines[-10:])
-            task_list_path.write_text(
-                json.dumps(tasks_data, indent=2), encoding="utf-8"
-            )
-        except Exception:
-            pass
-        # Invoke lore compilation as a one-shot tool
+                    payload["log_tail"] = "\n".join(stdout.strip().splitlines()[-10:])
+            task_list_path.write_text(json.dumps(tasks, indent=2), encoding="utf-8")
+        except Exception as lore_err:  # pylint: disable=broad-except
+            logger.warning(f"Lore metadata persistence failed: {lore_err}")
+
+    def _compile_lore(self) -> None:
         try:
-            # Auto-generate Devlog lore for the swarm
-            script = os.path.join(
-                os.getcwd(), "_agent_coordination/tools/compile_lore.py"
+            script = Path("_agent_coordination/tools/compile_lore.py")
+            if not script.exists():
+                logger.warning(
+                    f"Lore compilation skipped: Script not found at {script}"
+                )
+                return
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--style",
+                    "devlog",
+                    "--translation",
+                    "dream_logs/config/dream_translation.yaml",
+                    "--tasks",
+                    "runtime/task_list.json",
+                ],
+                check=True,
             )
-            cmd = [
-                "python",
-                script,
-                "--style",
-                "devlog",
-                "--translation",
-                os.path.join(os.getcwd(), "dream_logs/config/dream_translation.yaml"),
-                "--tasks",
-                os.path.join(os.getcwd(), "runtime/task_list.json"),
-            ]
-            subprocess.run(cmd, check=True)
-            logger.info("Lore compiled successfully.")
-        except Exception as e:
-            logger.error(f"Failed to compile lore: {e}", exc_info=True)
+            logger.debug("Lore compiled")
+        except Exception as comp_err:  # pylint: disable=broad-except
+            logger.error(f"Lore compilation failed: {comp_err}", exc_info=True)
 
-    def shutdown(self):
-        """
-        Signal all workers to stop.
-        """
-        logger.info("Shutting down SwarmController...")
-        self._stop_event.set()
-
-    def _start_stats_autologger(self, interval: int = 60) -> None:
-        """Launch a background thread to log stats periodically."""
-        thread = threading.Thread(
+    # ------------------------------------------------------------------ #
+    # Stats helper
+    # ------------------------------------------------------------------ #
+    def _start_stats_autologger(self, interval: int) -> None:
+        self._spawn_thread(
             target=self._stats_loop,
             args=(interval,),
-            daemon=True,
             name="StatsAutoLogger",
         )
-        thread.start()
 
     def _stats_loop(self, interval: int) -> None:
-        """Background loop that logs stats until stop event is set."""
         while not self._stop_event.is_set():
             try:
                 self.stats_hook.log_snapshot()
-                # Console heartbeat for manual monitoring
-                print(f"📊 Stats snapshot at {datetime.utcnow().isoformat()} UTC")
-            except Exception as e:
-                logger.error(f"Auto stats logging failed: {e}", exc_info=True)
+                print(f"📊 Stats @ {_dt.datetime.utcnow().isoformat()}Z")
+            except Exception as stats_err:  # pylint: disable=broad-except
+                logger.error(f"Stats logging failed: {stats_err}", exc_info=True)
             time.sleep(interval)
-
-
-# ... existing code ...

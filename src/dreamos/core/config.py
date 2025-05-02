@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import yaml
 from pydantic import BaseModel, Field, FilePath, SecretStr, ValidationError, validator
@@ -15,6 +15,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from .errors import ConfigurationError as CoreConfigurationError
 
 # Define project root relative to this file (now three levels up to repo root)
+# NOTE (Captain-Agent-5): Calculating PROJECT_ROOT based on __file__ location can be fragile.
+# Consider using a marker file search or environment variable for more robustness.
+# However, the PathsConfig allows overriding this value during initialization.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
 
@@ -36,7 +39,26 @@ class PathsConfig(BaseModel):
     logs: Path = Field(
         PROJECT_ROOT / "runtime" / "logs", description="Path to the logs directory"
     )
-    # Add other common paths if needed
+    agent_comms: Path = Field(
+        PROJECT_ROOT / "runtime" / "agent_comms",
+        description="Base directory for agent communications (mailboxes, boards)",
+    )
+    central_task_boards: Path = Field(
+        PROJECT_ROOT / "runtime" / "agent_comms" / "central_task_boards",
+        description="Directory for central task board JSON files",
+    )
+    task_schema: Path = Field(
+        PROJECT_ROOT
+        / "src"
+        / "dreamos"
+        / "coordination"
+        / "tasks"
+        / "task-schema.json",
+        description="Path to the task definition JSON schema",
+    )
+    project_root: Path = Field(
+        PROJECT_ROOT, description="Resolved project root directory"
+    )
 
 
 class DreamscapePlannerAgentConfig(BaseModel):
@@ -61,6 +83,9 @@ class DreamscapeWriterAgentConfig(BaseModel):
 
 
 class DreamscapeConfig(BaseModel):
+    # NOTE (Captain-Agent-5): This config section appears specific to a
+    # 'Dreamscape' planner/writer application. Review if this is still actively
+    # used or belongs in the core configuration vs. an application-specific layer.
     planner_agent: DreamscapePlannerAgentConfig = Field(
         default_factory=DreamscapePlannerAgentConfig
     )
@@ -91,6 +116,32 @@ class ChatGPTScraperConfig(BaseModel):
     )
 
 
+# EDIT START: Add GUI Automation Config Model
+class GuiAutomationConfig(BaseModel):
+    target_window_title: str = "Cursor"  # Default to common IDE name
+    input_coords_file_path: FilePath = Path(
+        PROJECT_ROOT / "runtime/config/cursor_agent_coords.json"
+    )
+    copy_coords_file_path: FilePath = Path(
+        PROJECT_ROOT / "runtime/config/cursor_agent_copy_coords.json"
+    )
+    recalibration_retries: int = 1
+    min_pause_seconds: float = 0.10
+    max_pause_seconds: float = 0.25
+    random_offset_pixels: int = 3
+    type_interval_seconds: float = 0.01  # Add typing interval
+    retry_attempts: int = 3  # Add retry attempts
+    retry_delay_seconds: float = 0.5  # Add retry delay
+    copy_attempts: int = (
+        2  # Add copy attempts config (for TASK_AGENT8-CONFIG-CURSORORCH-COPYATTEMPTS-001)
+    )
+
+    # Add validators if needed, e.g., for path existence (though FilePath handles basic check)
+
+
+# EDIT END
+
+
 # Main Application Configuration Model
 class AppConfig(BaseSettings):
     """Main application configuration loaded from environment variables and/or config file."""
@@ -100,6 +151,7 @@ class AppConfig(BaseSettings):
     dreamscape: DreamscapeConfig = Field(default_factory=DreamscapeConfig)
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
+    gui_automation: GuiAutomationConfig = Field(default_factory=GuiAutomationConfig)
 
     # Add other top-level config sections as needed (e.g., agent_bus, database)
 
@@ -123,33 +175,42 @@ class AppConfig(BaseSettings):
         # For YAML, we might need custom logic if not using its built-in features fully.
         # This is a basic example, assumes pydantic-settings handles most things.
         try:
-            # If a specific config file is passed, tell pydantic-settings to load it
-            # Note: This requires careful setup of SettingsConfigDict or custom loading.
-            # For simplicity here, assume env vars are primary, YAML is secondary/default.
-            # A more robust implementation would merge sources.
+            # Instantiate using pydantic-settings (handles env vars, .env)
+            instance = cls()
 
-            # Let's try loading from default yaml path if no explicit file given
-            # and if pydantic-settings doesn't automatically handle it.
-            yaml_data = {}
+            # If a specific YAML file is provided, or default exists, load and merge
+            yaml_config_data = {}
             load_path = config_file if config_file else DEFAULT_CONFIG_PATH
             if load_path.exists():
                 try:
                     with open(load_path, "r") as f:
-                        yaml_data = yaml.safe_load(f) or {}
+                        yaml_config_data = yaml.safe_load(f) or {}
+                    # Simplified YAML merge logic (Env vars take priority)
+                    temp_instance = cls.model_validate(yaml_config_data)
+                    final_data = temp_instance.model_dump()
+                    final_data.update(instance.model_dump(exclude_unset=True))
+                    instance = cls.model_validate(final_data)
                 except Exception as e:
                     logging.warning(
                         f"Could not load or parse YAML config at {load_path}: {e}"
                     )
 
-            # Instantiate, pydantic-settings will load from env vars automatically
-            # Passing yaml_data here requires custom handling or specific BaseSettings features.
-            # Simplest approach: rely purely on env vars and defaults first.
-            instance = cls()
-
-            # Manual merge logic (example, could be more sophisticated)
-            # This part is tricky with BaseSettings, often better to let it handle sources.
-            # if yaml_data:
-            #    instance = cls.model_validate({**yaml_data, **instance.model_dump()}) # Requires careful merging
+            # Ensure paths are absolute after loading and potential merging
+            instance.paths.runtime = instance.paths.runtime.resolve()
+            instance.paths.logs = instance.paths.logs.resolve()
+            instance.paths.agent_comms = instance.paths.agent_comms.resolve()
+            instance.paths.central_task_boards = (
+                instance.paths.central_task_boards.resolve()
+            )
+            instance.paths.task_schema = instance.paths.task_schema.resolve()
+            instance.paths.project_root = instance.paths.project_root.resolve()
+            if instance.gui_automation:
+                instance.gui_automation.input_coords_file_path = (
+                    instance.gui_automation.input_coords_file_path.resolve()
+                )
+                instance.gui_automation.copy_coords_file_path = (
+                    instance.gui_automation.copy_coords_file_path.resolve()
+                )
 
             return instance
 
