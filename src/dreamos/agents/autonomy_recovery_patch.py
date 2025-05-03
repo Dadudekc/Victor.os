@@ -1,7 +1,9 @@
 import json
 import os
-import time
+import logging
+# import time # F401 Unused import
 from datetime import datetime, timedelta, timezone
+import uuid
 
 # Configuration
 AGENT_STATUS_DIR = "runtime/agent_comms/agent_status"
@@ -10,7 +12,9 @@ LAST_ACTION_FILE = "last_action.json"
 STALE_THRESHOLD_SECONDS = 300  # 5 minutes
 MAX_STEPS_WITHOUT_COMMIT = 10  # Example threshold
 CAPTAIN_MAILBOX_ID = "Captain-Agent-5"  # Needs confirmation or dynamic lookup
-CAPTAIN_MAILBOX_PATH = f"runtime/agent_comms/agent_mailboxes/{CAPTAIN_MAILBOX_ID}/inbox"
+CAPTAIN_MAILBOX_PATH = (
+    f"runtime/agent_comms/agent_mailboxes/{CAPTAIN_MAILBOX_ID}/inbox"
+)
 
 
 class AgentStateError(Exception):
@@ -47,7 +51,9 @@ def _write_json_file(file_path: str, data: dict):
     except IOError as e:
         # Consider logging this error
         print(f"Error writing to {file_path}: {e}")
-        raise AgentStateError(f"Failed to write agent state to {file_path}") from e
+        raise AgentStateError(
+            f"Failed to write agent state to {file_path}"
+        ) from e
 
 
 def get_active_task(agent_id: str) -> dict | None:
@@ -246,3 +252,153 @@ def record_progress_and_reset_steps(agent_id: str):
 # except AgentStateError as e:
 #      print(f"Agent {agent_id} halted due to state error: {e}")
 #      # Agent enters safe halt state or exits loop
+
+
+def _check_core_systems(self):
+    """Basic checks for essential system components (e.g., PBM, AgentBus)."""
+    logging.info(f"Agent {self.agent_id}: Checking core system availability.")
+    # TODO: Implement actual checks (e.g., can we instantiate PBM?)
+    # Example placeholder:
+    try:
+        # from dreamos.core.tasks.pbm import ProjectBoardManager  # Hypothetical
+        # pbm = ProjectBoardManager()
+        # logging.info("PBM connection successful.")
+        pass
+    except Exception as e:
+        logging.warning(
+            f"Core system check failed (PBM example): {e}", exc_info=True
+        )
+        return False
+    return True
+
+
+def _verify_agent_loop_integrity(self):
+    """Checks if the agent's own loop logic seems intact."""
+    logging.info(f"Agent {self.agent_id}: Verifying agent loop integrity.")
+    # TODO: Implement checks (e.g., can agent read its own state? Is loop runnable?)
+    # Example placeholder:
+    if not hasattr(self, 'run') or not callable(self.run):
+        logging.error("Agent loop method 'run' is missing or not callable.")
+        return False
+    return True
+
+
+def _attempt_task_board_resync(self):
+    """Tries to connect to PBM and get current task status."""
+    logging.info(f"Agent {self.agent_id}: Attempting Task Board resynchronization.")
+    # TODO: Implement PBM interaction
+    # Example placeholder:
+    try:
+        # pbm = ProjectBoardManager()
+        # status = pbm.get_agent_status(self.agent_id) # Hypothetical
+        # logging.info(f"Task board resync successful. Current status: {status}")
+        pass
+    except Exception as e:
+        logging.error(f"Task board resync failed: {e}", exc_info=True)
+        return False
+    return True
+
+
+def _evaluate_recovery_options(self):
+    """Based on checks, decide the best course of action."""
+    logging.info(f"Agent {self.agent_id}: Evaluating recovery options.")
+    if not self._check_core_systems():
+        logging.warning("Core systems unavailable. Attempting minimal recovery.")
+        # Option: Attempt to alert Captain/System Monitor via a very basic mechanism
+        self._send_distress_signal(
+            "Core systems check failed. Limited recovery options."
+        )
+        return "MINIMAL_RECOVERY"
+
+    if not self._verify_agent_loop_integrity():
+        logging.error("Agent loop integrity compromised. Cannot self-recover fully.")
+        self._send_distress_signal(
+            "Agent loop integrity check failed. Requires external intervention."
+        )
+        return "AWAIT_INTERVENTION"
+
+    if not self._attempt_task_board_resync():
+        logging.warning(
+            "Task board resync failed. Proceeding with cached state if possible."
+        )
+        # Option: Operate based on last known state, announce state uncertainty
+        return "RECOVER_WITH_CACHE"
+
+    logging.info("All checks passed. Attempting full loop restart.")
+    return "FULL_RESTART"
+
+
+def _execute_recovery_strategy(self, strategy: str):
+    """Perform actions based on the chosen recovery strategy."""
+    logging.info(
+        f"Agent {self.agent_id}: Executing recovery strategy '{strategy}'..."
+    )
+
+    if strategy == "FULL_RESTART":
+        logging.info("Initiating full agent loop restart.")
+        # This might involve re-initializing state and calling self.run() or similar
+        # self.initialize_state()
+        # self.run() # Or trigger the main loop mechanism
+        pass
+
+    elif strategy == "RECOVER_WITH_CACHE":
+        logging.warning(
+            "Attempting to operate with potentially stale cached state. "
+            "Announcing uncertainty."
+        )
+        # self.announce_status("OPERATING_UNCERTAIN_STATE")
+        # self.run() # Start loop with cached state awareness
+        pass
+
+    elif strategy == "MINIMAL_RECOVERY":
+        logging.warning(
+            "Entering minimal recovery mode. Only distress signals active."
+        )
+        # Loop trying to send distress signals?
+        # while not self.shutdown_requested:
+        #     self._send_distress_signal("Agent in minimal recovery mode.")
+        #     time.sleep(60)
+        pass
+
+    elif strategy == "AWAIT_INTERVENTION":
+        logging.error(
+            "Entering safe halt mode. Awaiting external intervention."
+        )
+        # Stop all active processes, maybe send a final distress signal
+        self._send_distress_signal(
+            "Agent halting. Requires external intervention.", final=True
+        )
+        # self.halt_processing()
+        pass
+    else:
+        logging.error(f"Unknown recovery strategy: {strategy}. Halting.")
+        self._send_distress_signal(f"Unknown recovery strategy '{strategy}'. Halting.")
+        # self.halt_processing()
+
+
+def _send_distress_signal(self, message: str, final: bool = False):
+    """Sends an emergency message (e.g., to Captain, log, specific channel)."""
+    signal_id = str(uuid.uuid4())
+    log_prefix = "FINAL DISTRESS SIGNAL" if final else "DISTRESS SIGNAL"
+    full_message = (
+        f"{log_prefix} (Agent: {self.agent_id}, Signal ID: {signal_id}): {message}"
+    )
+    logging.critical(full_message)
+
+    # TODO: Implement actual sending mechanism (e.g., AgentBus event, direct message)
+    # Example:
+    try:
+        # bus = AgentBus()
+        # event = BaseEvent(
+        #     event_type=EventType.SYSTEM_AGENT_DISTRESS,
+        #     source_id=self.agent_id,
+        #     data={"message": full_message, "signal_id": signal_id, "final": final}
+        # )
+        # bus.dispatch_event(event)
+        pass
+    except Exception as e:
+        logging.error(
+            f"Failed to send distress signal via primary mechanism: {e}",
+            exc_info=True
+        )
+        # Fallback? Direct log write? stderr?

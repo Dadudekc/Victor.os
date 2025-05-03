@@ -1,11 +1,15 @@
 # src/dreamos/cli/calibrate_gui_coords.py
 import argparse
 import json
+import logging
 import os
+import sys
 import time
 from pathlib import Path
 
+import click
 import pyautogui
+import pyperclip
 
 # Assuming PROJECT_ROOT is defined appropriately elsewhere or determined dynamically
 # For simplicity, let's try to find it relative to this script
@@ -80,7 +84,9 @@ def calibrate_coordinates(coords_data: dict, file_name: str):
                 current_pos = pyautogui.position()
                 print(f" Captured: {current_pos}")
             except Exception as e:
-                print(f"\nError capturing position: {e}. Skipping key '{key}'.")
+                print(
+                    f"\nError capturing position: {e}. Skipping key '{key}'."
+                )
                 continue
 
             confirm = input(
@@ -90,13 +96,18 @@ def calibrate_coordinates(coords_data: dict, file_name: str):
                 updated_coords[key] = [current_pos.x, current_pos.y]
                 print(f"'{key}' updated.")
             elif confirm == "s":
-                print(f"Skipping calibration for the rest of {file_name}.")
+                print(
+                    f"Skipping calibration for the rest of {file_name}."
+                )
                 return None  # Indicate skip
             else:
                 print(f"Keeping original value for '{key}'.")
 
     except KeyboardInterrupt:
-        print("\nCalibration interrupted by user. Proceeding with changes made so far.")
+        print(
+            "\nCalibration interrupted by user. "
+            "Proceeding with changes made so far."
+        )
 
     return updated_coords
 
@@ -126,7 +137,8 @@ def main():
             if updated_coords is not None:
                 if updated_coords != coords:  # Only save if changed
                     save_confirm = input(
-                        f"\nSave updated coordinates to {COORDS_FILE.name}? (y/n): "
+                        f"\nSave updated coordinates to "
+                        f"{COORDS_FILE.name}? (y/n): "
                     ).lower()
                     if save_confirm == "y":
                         save_coords(COORDS_FILE, updated_coords)
@@ -146,7 +158,8 @@ def main():
             if updated_copy_coords is not None:
                 if updated_copy_coords != copy_coords:  # Only save if changed
                     save_copy_confirm = input(
-                        f"\nSave updated copy coordinates to {COPY_COORDS_FILE.name}? (y/n): "
+                        f"\nSave updated copy coordinates to "
+                        f"{COPY_COORDS_FILE.name}? (y/n): "
                     ).lower()
                     if save_copy_confirm == "y":
                         save_coords(COPY_COORDS_FILE, updated_copy_coords)
@@ -168,10 +181,14 @@ def main():
                 updated_session_start_coords != session_start_coords
             ):  # Only save if changed
                 save_session_start_confirm = input(
-                    f"\nSave updated session start coordinates to {SESSION_START_COORDS_FILE.name}? (y/n): "
+                    f"\nSave updated session start coordinates to "
+                    f"{SESSION_START_COORDS_FILE.name}? (y/n): "
                 ).lower()
                 if save_session_start_confirm == "y":
-                    save_coords(SESSION_START_COORDS_FILE, updated_session_start_coords)
+                    save_coords(
+                        SESSION_START_COORDS_FILE,
+                        updated_session_start_coords,
+                    )
                 else:
                     print("Changes to session start coordinates discarded.")
             else:

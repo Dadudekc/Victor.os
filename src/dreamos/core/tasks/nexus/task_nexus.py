@@ -16,7 +16,6 @@ from filelock import Timeout as LockAcquisitionError
 
 # EDIT: Import relevant exceptions
 from dreamos.core.errors import (
-    BoardLockError,
     ProjectBoardError,
     TaskNotFoundError,
     TaskValidationError,

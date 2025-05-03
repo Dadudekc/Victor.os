@@ -4,7 +4,8 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
+import math
 
 try:
     import pyautogui
@@ -220,6 +221,91 @@ def save_results(filepath: Path, results: Dict[str, Optional[str]]):
         logging.error(f"Failed to save validation results: {e}")
 
 
+def _validate_coordinates(coords_data: Dict[str, Any], results: Dict[str, Any]):
+    for name, data in coords_data.items():
+        if not isinstance(data, dict) or "x" not in data or "y" not in data:
+            results["errors"][name] = f"Invalid structure, missing 'x' or 'y'. Data: {data}"
+            continue
+        x, y = data["x"], data["y"]
+        if not isinstance(x, int) or not isinstance(y, int):
+            results["errors"][name] = f"Invalid types, 'x' or 'y' not integers. Got: ({type(x)}, {type(y)})"
+            continue
+        # Check if coordinates are within screen bounds (optional but recommended)
+        try:
+            screen_width, screen_height = pyautogui.size()
+            if not (0 <= x < screen_width and 0 <= y < screen_height):
+                results["warnings"].append(
+                    f"Coordinate '{name}' ({x},{y}) is outside screen bounds ({screen_width}x{screen_height})."
+                )
+        except Exception as e:
+            # Handle cases where screen size cannot be obtained (headless env?)
+            results["warnings"].append(
+                f"Could not verify screen bounds for coordinate '{name}': {e}"
+            )
+
+
+def _check_coordinate_overlap(coords_data: Dict[str, Any], results: Dict[str, Any]):
+    for name1, coord1 in coords_data.items():
+        for name2, coord2 in coords_data.items():
+            if name1 >= name2: # Avoid self-comparison and duplicates
+                continue
+            distance = math.sqrt((coord1["x"] - coord2["x"])**2 + (coord1["y"] - coord2["y"])**2)
+            if distance < 10:
+                results["warnings"].append(
+                    f"Coordinates '{name1}' ({coord1['x']},{coord1['y']}) and '{name2}' ({coord2['x']},{coord2['y']}) are very close (distance: {distance:.2f} < 10). Potential overlap?"
+                )
+
+
+def _check_accessibility(coords_data: Dict[str, Any], results: Dict[str, Any]):
+    # This requires integration with accessibility tools or more advanced UI inspection
+    logger.info("Accessibility checks require manual verification or specific OS tools.")
+    results["info"].append("Accessibility check skipped (requires manual verification).")
+    # Example placeholder for future:
+    # for name, data in coords_data.items():
+    #     x, y = data['x'], data['y']
+    #     try:
+    #         element = accessibility_tool.get_element_at(x, y)
+    #         if not element or not element.is_clickable():
+    #             results["warnings"].append(f"Element at '{name}' ({x},{y}) might not be accessible/clickable.")
+    #     except Exception as e:
+    #         results["errors"][name] = f"Accessibility check failed: {e}"
+
+
+def _check_for_duplicates(coords_data: Dict[str, Any], results: Dict[str, Any]):
+    seen_coords: Dict[Tuple[int, int], str] = {}
+    for name, data in coords_data.items():
+        # Ensure data is valid before checking
+        if name in results["errors"]:
+             continue
+        coord_tuple = (data["x"], data["y"])
+        if coord_tuple in seen_coords:
+            results["errors"].setdefault("duplicate_coordinates", []).append(
+                f"Duplicate coordinate value ({coord_tuple[0]},{coord_tuple[1]}) found for '{name}' and '{seen_coords[coord_tuple]}'."
+            )
+        else:
+            seen_coords[coord_tuple] = name
+
+
+def validate_gui_coordinates(coords_file: str, min_distance: float) -> Dict[str, Any]:
+    results = {
+        "errors": {},
+        "warnings": [],
+        "info": []
+    }
+
+    coords_data = load_coords(Path(coords_file))
+    if coords_data is None:
+        results["errors"]["coordinates_file"] = "Failed to load coordinates file."
+        return results
+
+    _validate_coordinates(coords_data, results)
+    _check_coordinate_overlap(coords_data, results)
+    _check_for_duplicates(coords_data, results)
+    _check_accessibility(coords_data, results) # Basic placeholder
+
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Validate GUI coordinates by injecting a test prompt and retrieving the response."
@@ -253,6 +339,18 @@ def main():
         action="store_true",
         help="Bypass window title activation/check before clicking coordinates.",
     )
+    parser.add_argument(
+        "--min_distance",
+        type=float,
+        default=10,
+        help="Minimum distance between coordinates to warn about potential overlap.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=str(DEFAULT_OUTPUT_PATH),
+        help=f"Path to save the validation results JSON file. Default: {DEFAULT_OUTPUT_PATH}",
+    )
 
     args = parser.parse_args()
 
@@ -268,6 +366,7 @@ def main():
     window_title = args.target_window_title
     wait_seconds = args.wait
     force_unsafe = args.force_unsafe_clicks
+    min_distance = args.min_distance
 
     print("\n=== Dream.OS GUI Coordinate Validation Tool ===")
     print(f"Validating Agents: {', '.join(agent_ids_list)}")
@@ -286,41 +385,7 @@ def main():
         print("Exiting due to coordinate loading error.")
         exit(1)
 
-    validation_results = {}
-
-    for agent_id in agent_ids_list:
-        print("-" * 30)
-        logging.info(f"Processing Agent: {agent_id}")
-        validation_results[agent_id] = None  # Default to None
-
-        agent_coords = all_coords.get(agent_id)
-        if not agent_coords:
-            logging.error(f"No coordinates found for agent '{agent_id}'. Skipping.")
-            continue
-
-        # 1. Inject Prompt
-        inject_success = inject_test_prompt(
-            agent_id, agent_coords, window_title, force_unsafe
-        )
-        if not inject_success:
-            logging.error(
-                f"Injection failed for agent '{agent_id}'. Skipping response retrieval."
-            )
-            continue
-
-        # 2. Wait for Response
-        logging.info(f"[{agent_id}] Waiting {wait_seconds} seconds for response...")
-        time.sleep(wait_seconds)
-
-        # 3. Retrieve Response
-        response = retrieve_response(agent_id, agent_coords, window_title, force_unsafe)
-        validation_results[agent_id] = (
-            response  # Store response (even if None or empty)
-        )
-        if response is None:
-            logging.error(f"[{agent_id}] Failed to retrieve response.")
-        else:
-            logging.info(f"[{agent_id}] Response retrieved (may be empty).")
+    validation_results = validate_gui_coordinates(coords_filepath, min_distance)
 
     # 4. Save Results
     save_results(output_filepath, validation_results)
