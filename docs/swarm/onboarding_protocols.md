@@ -308,3 +308,35 @@ When operating under `AUTONOMOUS_LOOP_MODE` (or similar directives mandating con
 4.  **Embrace Simulation Constraints:** We operate within a turn-based interaction model. Strict adherence to the reporting protocol is crucial for effectively simulating continuous background execution.
 
 ---
+
+## Agent Initialization
+
+### Step 3: Voice Calibration
+- All agents must read and emulate `runtime/governance/onboarding/general_victor_voice_resonance.json` before their first log or devlog entry.
+- Validation hook:
+  ```python
+  if not agent_log_starts_with_markers(message):
+      raise VoiceResonanceFailure("Agent log failed resonance check. Review tone, cadence, and narrative alignment.")
+  ```
+- Failure to meet resonance requirements results in auto-fail and return to calibration loop.
+
+---
+
+## 🔹 `runtime/temp_tasks` Directory
+
+**Purpose:**
+The `runtime/temp_tasks` directory acts as a **staging area** for new, pending, or prototype tasks. These are tasks that have not yet been officially injected into the central task boards (`task_backlog.json`, `working_tasks.json`) or assigned directly to an agent.
+
+**Usage:**
+
+* Agents may drop tasks here for review or delayed activation.
+* Maintainers and supervisors regularly check this directory for tasks needing review, validation, or assignment.
+* Automation tools and CLI scripts (e.g., `manage_tasks.py`) often operate on files in this directory before adding them to the board.
+
+**Protocols:**
+
+* All task files in `runtime/temp_tasks` must follow the valid task schema.
+* Before injecting into the main system, tasks should be linted, validated, and optionally reviewed by a captain or supervisor.
+* Agents must **not** treat `temp_tasks` as guaranteed assigned work — tasks here are unclaimed unless officially moved.
+
+---

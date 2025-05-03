@@ -15,32 +15,14 @@ except ImportError:
     )
     exit(1)
 
-# EDIT: Import OrchestratorBot
+# EDIT START: Remove dummy OrchestratorBot fallback, require real import
 try:
-    # Adjust path based on actual location relative to tools/validation
     from dreamos.core.bots.orchestrator_bot import OrchestratorBot
-except ImportError:
-    print(
-        "ERROR: Could not import OrchestratorBot. Ensure src/ is in PYTHONPATH or adjust import path."
-    )
-
-    # Fallback: Define a dummy class to allow script structure to run, but fail at runtime
-    class OrchestratorBot:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def move_to(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
-        def click(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
-        def hotkey(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
-        def press(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
+except ImportError as e:
+    raise ImportError(
+        "OrchestratorBot must be available for GUI validation. Please check your PYTHONPATH and dependencies."
+    ) from e
+# EDIT END
 
 # Configure logging
 logging.basicConfig(

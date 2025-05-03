@@ -330,10 +330,6 @@ class TaskNexus:
         considering priority and dependencies.
         Delegates the atomic move operation to ProjectBoardManager.
         """
-        # REMOVED: Direct file manipulation logic.
-
-        # TODO: Add dependency checking logic.
-
         if not self.board_manager:
             logger.error("ProjectBoardManager not initialized, cannot get next task.")
             return None
@@ -345,17 +341,15 @@ class TaskNexus:
         claimed_task_data = None
 
         try:
-            # 1. Get potential tasks from the Ready Queue
-            # Use PBM method to list pending tasks in the ready queue
+            # 1. Get all PENDING tasks from the Ready Queue
             ready_tasks = await asyncio.to_thread(
                 self.board_manager.list_ready_queue_tasks, status="PENDING"
             )
-
             if not ready_tasks:
                 logger.debug("No PENDING tasks found in the ready queue.")
                 return None
 
-            # 2. Filter by type (if provided)
+            # 2. Filter by type if specified
             if type_filter:
                 ready_tasks = [
                     t for t in ready_tasks if t.get("task_type") == type_filter
@@ -366,13 +360,11 @@ class TaskNexus:
                     )
                     return None
 
-            # 3. Sort by Priority (assuming lower number is higher priority)
-            # Handle missing or non-integer priorities gracefully
+            # 3. Sort by priority (lower number = higher priority)
             def get_priority(task):
                 p = task.get("priority")
                 if isinstance(p, int):
                     return p
-                # Basic mapping for string priorities (adjust as needed)
                 if isinstance(p, str):
                     p_upper = p.upper()
                     if p_upper == "CRITICAL":
@@ -383,22 +375,20 @@ class TaskNexus:
                         return 0
                     if p_upper == "LOW":
                         return 50
-                return 999  # Default to lowest priority if unknown/missing
+                return 999
 
             ready_tasks.sort(key=get_priority)
             logger.debug(f"Sorted {len(ready_tasks)} ready tasks by priority.")
 
-            # 4. Iterate through sorted tasks, check dependencies, and attempt claim
-            agent_capabilities_set = None  # Lazy load agent capabilities
-
+            # 4. Iterate through sorted tasks, check capabilities and dependencies before claim
+            agent_capabilities_set = None
             for task in ready_tasks:
                 candidate_task_id = task.get("task_id")
                 if not candidate_task_id:
                     logger.warning(f"Skipping task with missing task_id: {task}")
                     continue
 
-                # --- Capability Check (Existing logic) ---
-                # (Keep existing capability check logic here...)
+                # --- Capability Check ---
                 required_capabilities = task.get("required_capabilities")
                 if (
                     required_capabilities
@@ -425,7 +415,6 @@ class TaskNexus:
                                 f"Failed to retrieve capabilities for agent {agent_id}: {e_caps}. Skipping capability check."
                             )
                             agent_capabilities_set = set()
-
                     if not set(required_capabilities).issubset(agent_capabilities_set):
                         logger.debug(
                             f"Agent {agent_id} missing capabilities for task {candidate_task_id}. Required: {required_capabilities}, Has: {agent_capabilities_set}. Skipping."
@@ -448,25 +437,22 @@ class TaskNexus:
                         logger.debug(
                             f"Dependencies not met for task {candidate_task_id}. Skipping."
                         )
-                        continue  # Skip to next task if dependencies not met
+                        continue
                     else:
                         logger.debug(f"Dependencies met for task {candidate_task_id}.")
-                # -----------------------
+                # --- End Dependency Check ---
 
                 logger.info(
                     f"Agent {agent_id} attempting to claim highest priority available task: {candidate_task_id}"
                 )
-                # 5. Attempt atomic claim using the correct PBM method
                 try:
                     claim_successful = await asyncio.to_thread(
                         self.board_manager.claim_ready_task, candidate_task_id, agent_id
                     )
-
                     if claim_successful:
                         logger.info(
                             f"Agent {agent_id} successfully claimed task {candidate_task_id} via ProjectBoardManager."
                         )
-                        # Retrieve the claimed task data directly from PBM if possible, or re-read working
                         claimed_task_data = await asyncio.to_thread(
                             self.board_manager.get_task,
                             candidate_task_id,
@@ -476,40 +462,31 @@ class TaskNexus:
                             logger.error(
                                 f"Claim reported success, but task {candidate_task_id} could not be retrieved from working board!"
                             )
-                        # Stop searching and return the claimed task
-                        break  # <<< Exit loop once a task is claimed
+                        break  # Exit loop once a task is claimed
                     else:
                         logger.warning(
                             f"Agent {agent_id} failed to claim task {candidate_task_id} (likely already claimed or lock timeout). Continuing search..."
                         )
-                        # Continue to the next task in the priority list
-
                 except (ProjectBoardError, TaskNotFoundError) as e_claim:
-                    # Log expected errors during claim (e.g., not found because another agent claimed it first)
                     logger.warning(
                         f"Claim attempt failed for {candidate_task_id}: {e_claim}. Continuing search..."
                     )
-                    continue  # Continue to the next task
+                    continue
                 except Exception as e_unexp_claim:
                     logger.error(
                         f"Unexpected error during task claim for {candidate_task_id}: {e_unexp_claim}",
                         exc_info=True,
                     )
-                    # Decide whether to stop or continue on unexpected errors
-                    continue  # Continue for now
-
-            # End of loop - if claimed_task_data is still None, no claimable task was found
+                    continue
             if not claimed_task_data:
                 logger.debug(
                     f"No claimable tasks found for agent {agent_id} after checking {len(ready_tasks)} candidates."
                 )
-
         except Exception as e_outer:
             logger.error(
                 f"Error during get_next_task execution: {e_outer}", exc_info=True
             )
             claimed_task_data = None
-
         return claimed_task_data
 
     # --- Dependency Check Helper (Placeholder) ---

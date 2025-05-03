@@ -22,7 +22,6 @@ sys.path.insert(0, str(SRC_DIR))
 from dreamos.coordination.project_board_manager import (
     BoardLockError,
     ProjectBoardManager,
-    ProjectBoardManagerError,
     TaskNotFoundError,
     TaskValidationError,
 )
@@ -198,16 +197,35 @@ def temp_test_dir(tmp_path):  # tmp_path is a pytest fixture
 
 # Fixture for a PBM instance configured for the temp directory
 @pytest.fixture
-def pbm_instance(temp_test_dir):
-    future_path = "runtime/agent_comms/project_boards/future_tasks.json"
-    working_path = "runtime/agent_comms/project_boards/working_tasks.json"
-    # Mock filelock if it's a dependency we want to control
-    # For now, assume it works or use the real one if available
-    manager = ProjectBoardManager(
-        future_tasks_path=future_path,
-        working_tasks_path=working_path,
-        project_root=temp_test_dir,
+def pbm_instance(mock_app_config: AppConfig, fs):
+    """Fixture providing a PBM instance using mock config (DEPRECATED). Use 'pbm' fixture instead."""
+    # EDIT START: Use the AppConfig-based fixture 'pbm' for consistency.
+    # This fixture is kept for backward compatibility during refactor but should be removed.
+    # All tests using this should be updated to use the 'pbm' fixture.
+    print(
+        "WARNING: Using deprecated fixture 'pbm_instance'. Refactor test to use 'pbm'."
     )
+
+    # Re-implement using AppConfig for now to avoid immediate failure
+    if not fs.exists(mock_app_config.paths.task_schema):
+        schema_content = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "DreamOS Task",
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "status": {"type": "string"},
+            },
+            "required": ["task_id", "name", "description", "status"],
+        }
+        fs.create_file(
+            mock_app_config.paths.task_schema, contents=json.dumps(schema_content)
+        )
+    fs.create_dir(mock_app_config.paths.central_task_boards)
+    with patch("dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False):
+        manager = ProjectBoardManager(config=mock_app_config)
     return manager
 
 
@@ -224,8 +242,28 @@ def sample_task_details():
 
 
 @pytest.fixture
-def mock_pbm_with_schema(temp_test_dir):
-    """Provides a PBM instance where jsonschema is mocked."""
+def mock_pbm_with_schema(mock_app_config: AppConfig, fs):
+    """Provides a PBM instance where jsonschema is mocked, using AppConfig."""
+    # EDIT START: Refactor to use AppConfig and fs fixtures
+    # Ensure schema exists in fake filesystem
+    if not fs.exists(mock_app_config.paths.task_schema):
+        schema_content = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "DreamOS Task",
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "status": {"type": "string"},
+            },
+            "required": ["task_id", "name", "description", "status"],
+        }
+        fs.create_file(
+            mock_app_config.paths.task_schema, contents=json.dumps(schema_content)
+        )
+    fs.create_dir(mock_app_config.paths.central_task_boards)
+
     # Patch jsonschema within the PBM module's scope
     with patch(
         "dreamos.coordination.project_board_manager.jsonschema"
@@ -235,22 +273,31 @@ def mock_pbm_with_schema(temp_test_dir):
         # Simulate the specific exception type jsonschema raises
         mock_jsonschema_lib.exceptions.ValidationError = jsonschema.ValidationError
 
-        # Instantiate PBM *while the patch is active*
-        future_path = "runtime/agent_comms/project_boards/future_tasks_schema.json"
-        working_path = "runtime/agent_comms/project_boards/working_tasks_schema.json"
-        manager = ProjectBoardManager(
-            future_tasks_path=future_path,
-            working_tasks_path=working_path,
-            project_root=temp_test_dir,
-        )
-        # Crucially, ensure the schema is loaded (or mock _load_schema too if needed)
-        # Assuming _load_schema works correctly and loads the real schema
-        manager._task_schema = manager._load_schema()
+        # Instantiate PBM *while the patch is active* using AppConfig
+        with patch(
+            "dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False
+        ):
+            manager = ProjectBoardManager(config=mock_app_config)
+
+        # Crucially, ensure the schema is loaded (PBM __init__ does this)
         assert manager._task_schema is not None, "Schema must load for validation tests"
 
         # Attach the mock validate function for inspection
         manager._mock_jsonschema_validate = mock_jsonschema_lib.validate
         yield manager  # Return the manager instance with mocked validation
+    # OLD IMPLEMENTATION - REMOVED
+    # future_path = "runtime/agent_comms/project_boards/future_tasks_schema.json"
+    # working_path = "runtime/agent_comms/project_boards/working_tasks_schema.json"
+    # manager = ProjectBoardManager(
+    #     future_tasks_path=future_path,
+    #     working_tasks_path=working_path,
+    #     project_root=temp_test_dir,
+    # )
+    # manager._task_schema = manager._load_schema()
+    # assert manager._task_schema is not None, "Schema must load for validation tests"
+    # manager._mock_jsonschema_validate = mock_jsonschema_lib.validate
+    # yield manager
+    # EDIT END
 
 
 @pytest.fixture

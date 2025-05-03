@@ -5,29 +5,14 @@ import time
 import pyautogui
 import pyperclip
 
-# EDIT: Import OrchestratorBot
+# EDIT START: Remove dummy OrchestratorBot fallback, require real import
 try:
-    # Assuming script is run such that src/ is importable or OrchestratorBot is installed
     from dreamos.core.bots.orchestrator_bot import OrchestratorBot
-except ImportError:
-    print(
-        "ERROR: Could not import OrchestratorBot. Ensure src/ is in PYTHONPATH or adjust import path."
-    )
-
-    # Fallback: Define a dummy class
-    class OrchestratorBot:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def typewrite(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
-        def press(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
-        def hotkey(self, *args, **kwargs):
-            raise NotImplementedError("OrchestratorBot dummy")
-
+except ImportError as e:
+    raise ImportError(
+        "OrchestratorBot must be available for GUI interaction. Please check your PYTHONPATH and dependencies."
+    ) from e
+# EDIT END
 
 # Basic configuration
 logging.basicConfig(

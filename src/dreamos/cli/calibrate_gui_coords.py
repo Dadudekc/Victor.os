@@ -1,4 +1,5 @@
 # src/dreamos/cli/calibrate_gui_coords.py
+import argparse
 import json
 import os
 import time
@@ -16,6 +17,9 @@ except NameError:
 
 COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_coords.json"
 COPY_COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_copy_coords.json"
+SESSION_START_COORDS_FILE = (
+    PROJECT_ROOT / "config" / "cursor_agent_session_start_coords.json"
+)
 
 
 def load_coords(file_path: Path) -> dict:
@@ -98,46 +102,82 @@ def calibrate_coordinates(coords_data: dict, file_name: str):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="GUI Coordinate Calibration Utility")
+    parser.add_argument(
+        "--session-start-only",
+        action="store_true",
+        help="Only calibrate session start coordinates (skip standard and copy).",
+    )
+    args = parser.parse_args()
+
     print("Starting GUI Coordinate Calibration Utility")
     print(f"Looking for coordinate files relative to: {PROJECT_ROOT}")
     print(f"Coords file: {COORDS_FILE}")
     print(f"Copy coords file: {COPY_COORDS_FILE}")
+    print(
+        f"Session start coords file: {SESSION_START_COORDS_FILE}"
+    )  # For Cursor session automation
 
-    # --- Calibrate standard coordinates ---
-    coords = load_coords(COORDS_FILE)
-    if coords:
-        updated_coords = calibrate_coordinates(coords, COORDS_FILE.name)
-        if updated_coords is not None:
-            if updated_coords != coords:  # Only save if changed
-                save_confirm = input(
-                    f"\nSave updated coordinates to {COORDS_FILE.name}? (y/n): "
-                ).lower()
-                if save_confirm == "y":
-                    save_coords(COORDS_FILE, updated_coords)
+    if not args.session_start_only:
+        # --- Calibrate standard coordinates ---
+        coords = load_coords(COORDS_FILE)
+        if coords:
+            updated_coords = calibrate_coordinates(coords, COORDS_FILE.name)
+            if updated_coords is not None:
+                if updated_coords != coords:  # Only save if changed
+                    save_confirm = input(
+                        f"\nSave updated coordinates to {COORDS_FILE.name}? (y/n): "
+                    ).lower()
+                    if save_confirm == "y":
+                        save_coords(COORDS_FILE, updated_coords)
+                    else:
+                        print("Changes to standard coordinates discarded.")
                 else:
-                    print("Changes to standard coordinates discarded.")
+                    print("No changes made to standard coordinates.")
             else:
-                print("No changes made to standard coordinates.")
-        else:
-            print(f"Calibration skipped for {COORDS_FILE.name}.")
+                print(f"Calibration skipped for {COORDS_FILE.name}.")
 
-    # --- Calibrate copy coordinates ---
-    copy_coords = load_coords(COPY_COORDS_FILE)
-    if copy_coords:
-        updated_copy_coords = calibrate_coordinates(copy_coords, COPY_COORDS_FILE.name)
-        if updated_copy_coords is not None:
-            if updated_copy_coords != copy_coords:  # Only save if changed
-                save_copy_confirm = input(
-                    f"\nSave updated copy coordinates to {COPY_COORDS_FILE.name}? (y/n): "
-                ).lower()
-                if save_copy_confirm == "y":
-                    save_coords(COPY_COORDS_FILE, updated_copy_coords)
+        # --- Calibrate copy coordinates ---
+        copy_coords = load_coords(COPY_COORDS_FILE)
+        if copy_coords:
+            updated_copy_coords = calibrate_coordinates(
+                copy_coords, COPY_COORDS_FILE.name
+            )
+            if updated_copy_coords is not None:
+                if updated_copy_coords != copy_coords:  # Only save if changed
+                    save_copy_confirm = input(
+                        f"\nSave updated copy coordinates to {COPY_COORDS_FILE.name}? (y/n): "
+                    ).lower()
+                    if save_copy_confirm == "y":
+                        save_coords(COPY_COORDS_FILE, updated_copy_coords)
+                    else:
+                        print("Changes to copy coordinates discarded.")
                 else:
-                    print("Changes to copy coordinates discarded.")
+                    print("No changes made to copy coordinates.")
             else:
-                print("No changes made to copy coordinates.")
+                print(f"Calibration skipped for {COPY_COORDS_FILE.name}.")
+
+    # --- Calibrate session start coordinates (for Cursor automation) ---
+    session_start_coords = load_coords(SESSION_START_COORDS_FILE)
+    if session_start_coords:
+        updated_session_start_coords = calibrate_coordinates(
+            session_start_coords, SESSION_START_COORDS_FILE.name
+        )
+        if updated_session_start_coords is not None:
+            if (
+                updated_session_start_coords != session_start_coords
+            ):  # Only save if changed
+                save_session_start_confirm = input(
+                    f"\nSave updated session start coordinates to {SESSION_START_COORDS_FILE.name}? (y/n): "
+                ).lower()
+                if save_session_start_confirm == "y":
+                    save_coords(SESSION_START_COORDS_FILE, updated_session_start_coords)
+                else:
+                    print("Changes to session start coordinates discarded.")
+            else:
+                print("No changes made to session start coordinates.")
         else:
-            print(f"Calibration skipped for {COPY_COORDS_FILE.name}.")
+            print(f"Calibration skipped for {SESSION_START_COORDS_FILE.name}.")
 
     print("\nCalibration utility finished.")
 

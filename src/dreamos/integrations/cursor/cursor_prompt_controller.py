@@ -14,6 +14,11 @@ warnings.warn(
 )
 # EDIT END
 
+# EDIT START: Import OrchestratorBot and remove direct pyautogui/pyperclip usage
+from dreamos.core.bots.orchestrator_bot import OrchestratorBot
+
+# EDIT END
+
 # Configure logging
 logger = logging.getLogger("CursorPromptController")
 if not logger.hasHandlers():
@@ -59,117 +64,74 @@ class CursorPromptController:
         # EDIT END
         # Note: Consider integrating CursorWindowController here for activation if this
         # class were to be maintained, but deprecation is strongly recommended.
-        pass  # No specific init needed currently
+        self.bot = OrchestratorBot(config=None, agent_id="CursorPromptController")
 
     def _activate_cursor_window(self):
         """Attempts to find and activate the Cursor window."""
-        try:
-            windows = pyautogui.getWindowsWithTitle(CURSOR_WINDOW_TITLE)
-            if not windows:
-                logger.error(
-                    f"Could not find Cursor window with title '{CURSOR_WINDOW_TITLE}'."
-                )
-                # Fallback: Try activating without title check? Risky.
-                # pyautogui.getActiveWindow().activate() # Might not be Cursor
-                return False
-
-            cursor_window = windows[0]  # Assume first match
-            if not cursor_window.isActive:
-                logger.info(f"Activating Cursor window: {cursor_window.title}")
-                # Different activation methods depending on OS / window state
-                try:
-                    cursor_window.activate()
-                except Exception as activate_err:
-                    logger.warning(
-                        f"Standard activate failed ({activate_err}), trying alternative..."
-                    )
-                    try:
-                        cursor_window.minimize()  # Try minimizing/maximizing
-                        time.sleep(0.1)
-                        cursor_window.maximize()
-                    except Exception as alt_activate_err:
-                        logger.error(
-                            f"Alternative activation failed: {alt_activate_err}. Cannot ensure focus."
-                        )
-                        return False
-                time.sleep(ACTIVATE_DELAY)  # Wait for activation
-
-            # Verify activation (optional, might not be reliable)
-            # active_window = pyautogui.getActiveWindow()
-            # if CURSOR_WINDOW_TITLE not in active_window.title:
-            #     logger.warning(f"Activation might have failed. Active window: {active_window.title}")
-            #     return False
-
-            logger.info("Cursor window presumed active.")
-            return True
-        except Exception as e:
-            logger.error(f"Error activating Cursor window: {e}", exc_info=True)
-            return False
+        # EDIT START: Use OrchestratorBot for window activation
+        return self.bot.activate_window(CURSOR_WINDOW_TITLE)
+        # EDIT END
 
     def _focus_chat_input(self):
         """Attempts to focus the chat input field. Highly dependent on layout/hotkeys."""
         logger.info("Attempting to focus Cursor chat input...")
-        # Method 1: Assume a hotkey (e.g., Ctrl+L - common in VSCode based apps)
-        # This is a GUESS - needs verification in Cursor
+        # EDIT START: Use OrchestratorBot for hotkey
         try:
-            pyautogui.hotkey("ctrl", "l")  # Check Cursor's actual shortcut
+            self.bot.hotkey("ctrl", "l")
             time.sleep(PASTE_DELAY)
             logger.info("Sent Ctrl+L hotkey to focus chat input.")
             return True
         except Exception as e:
             logger.error(f"Failed to send focus hotkey: {e}")
-            # Fallback? Click coordinates? Image recognition? Too unreliable for now.
             logger.warning(
                 "Focusing chat input failed. Pasting might go to wrong location."
             )
             return False
+        # EDIT END
 
     def send_prompt_to_chat(self, prompt: str) -> bool:
         """DEPRECATED: Activates Cursor, focuses chat (best effort), pastes, and submits prompt."""
-        # EDIT START: Add method level deprecation warning
         warnings.warn(
             "send_prompt_to_chat is deprecated. Prefer integrations.cursor.utils.publish_cursor_inject_event.",
             DeprecationWarning,
             stacklevel=2,
         )
-        # EDIT END
         logger.warning(
-            "Executing deprecated send_prompt_to_chat via PyAutoGUI. This is unreliable."
-        )  # Add runtime log warning
+            "Executing deprecated send_prompt_to_chat via OrchestratorBot. This is unreliable."
+        )
         logger.info(f"Attempting to send prompt to Cursor chat: '{prompt[:100]}...'")
 
         if not self._activate_cursor_window():
             return False
 
-        # Attempt to focus the input field (best effort)
         self._focus_chat_input()
-        # Proceed even if focus fails, but log warning
 
-        # Use pyperclip for reliable pasting, especially for long/complex prompts
+        # EDIT START: Use OrchestratorBot for clipboard and typing
         try:
-            pyperclip.copy(prompt)
-            time.sleep(PASTE_DELAY)  # Give clipboard time
-            pyautogui.hotkey("ctrl", "v")  # Paste
+            self.bot.copy_to_clipboard(prompt)
+            time.sleep(PASTE_DELAY)
+            self.bot.hotkey("ctrl", "v")
             logger.info("Pasted prompt using Ctrl+V.")
             time.sleep(PASTE_DELAY)
         except Exception as e:
             logger.error(
-                f"Failed to paste prompt using pyperclip/pyautogui: {e}", exc_info=True
+                f"Failed to paste prompt using OrchestratorBot clipboard: {e}",
+                exc_info=True,
             )
-            # Fallback: Try typing (can be slow and error-prone for long prompts)
             logger.info("Falling back to typing prompt...")
             try:
-                pyautogui.write(prompt, interval=TYPE_INTERVAL)
+                self.bot.typewrite(prompt, interval=TYPE_INTERVAL)
                 logger.info("Finished typing prompt.")
             except Exception as type_e:
                 logger.error(f"Fallback typing also failed: {type_e}")
                 return False
+        # EDIT END
 
         # Submit the prompt
         try:
-            pyautogui.press("enter")
+            self.bot.press("enter")
             logger.info("Pressed Enter to submit prompt.")
-            time.sleep(SUBMIT_WAIT_DELAY)  # Give Cursor time to process
+            time.sleep(SUBMIT_WAIT_DELAY)
             return True
         except Exception as e:
             logger.error(f"Failed to press Enter: {e}")

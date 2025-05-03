@@ -6,6 +6,7 @@
 #       and its __init__.py.
 
 from .common_utils import get_utc_iso_timestamp
+from .coords import *  # EDIT: Added for coordinate utility access (see coords.py implementation)
 from .gui_utils import get_specific_coordinate
 
 # from .core import *
