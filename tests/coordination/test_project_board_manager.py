@@ -1,18 +1,30 @@
 # tests/coordination/test_project_board_manager.py
 
 import json
-import os
-import shutil  # For cleaning up test artifacts
 import sys
-import time
 from pathlib import Path
-from unittest import mock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch, ANY
 
-import filelock
-import jsonschema  # Import for exception type
 import pytest
-from pyfakefs.fake_filesystem_unittest import Patcher
+
+# E402 fixes: Move project imports after sys.path manipulation if needed
+# (Assuming tests/ directory structure allows direct import here)
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+# F811/F401 fixes for errors:
+# from dreamos.core.errors import BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError
+from dreamos.core.errors import (
+    ProjectBoardError,
+    BoardLockError,
+    TaskNotFoundError,
+    TaskValidationError,
+) # Re-import specifically where needed or fix original definitions
+from dreamos.core.coordination.task_nexus import (
+    ProjectBoardManager, # Keep PBM import
+    TaskStatusUpdatePayload, # Keep payload import
+    TaskSchema # Keep schema import
+)
+# Assuming TaskSchema is needed for validation or task creation
+# from dreamos.core.tasks.schema import TaskSchema
 
 # Add src directory to path for imports
 SRC_DIR = Path(__file__).resolve().parents[2] / "src"
