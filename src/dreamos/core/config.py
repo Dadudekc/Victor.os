@@ -10,7 +10,6 @@ from pydantic import (
     FilePath,
     SecretStr,
     model_validator,
-    FieldInfo,
 )
 from pydantic_settings import (
     BaseSettings,
@@ -152,7 +151,7 @@ class GuiAutomationConfig(BaseModel):
 # EDIT END
 
 
-# {{ EDIT START: Add Agent Activation Config Models }}
+# EDIT START: Add Agent Activation Config Models
 class AgentActivationConfig(BaseModel):
     worker_id_pattern: str = Field(
         ...,
@@ -173,22 +172,48 @@ class AgentActivationConfig(BaseModel):
 
 
 class SwarmConfig(BaseModel):
-    fleet_size: int = Field(
-        3, description="Number of worker threads/GUI instances to launch"
+    max_concurrent_tasks: int = 5
+    agent_startup_delay: float = 1.0
+
+
+# EDIT END
+
+
+# Add placeholder for Azure Blob config within an Integrations model
+class AzureBlobConfig(BaseModel):
+    connection_string: Optional[SecretStr] = None
+    container_name: Optional[str] = None
+
+
+class IntegrationsConfig(BaseModel):
+    azure_blob: Optional[AzureBlobConfig] = None
+    # Add other integrations here, e.g., github, slack
+
+
+# EDIT START: Add Monitoring Config Model
+class MonitoringConfig(BaseModel):
+    stats_interval: int = Field(
+        60, description="Interval in seconds for logging stats."
     )
-    active_agents: List[AgentActivationConfig] = Field(
-        default_factory=list,
-        description="List defining which agents to activate on which workers",
-    )
-    # Example default activation (can be overridden in config.yaml):
-    # default_factory=lambda: [
-    #     AgentActivationConfig(
-    #         worker_id_pattern="Worker-1",
-    #         agent_module="dreamos.agents.agent2_infra_surgeon",
-    #         agent_class="Agent2InfraSurgeon",
-    #         agent_id_override="Agent-2"
-    #     )
-    # ]
+
+
+# EDIT END
+
+
+# --- ADD Health Check Config ---
+class HealthCheckConfig(BaseModel):
+    expected_agent_ids: List[str] = Field(
+        default_factory=lambda: [f"Agent-{i}" for i in range(1, 9)]
+    )  # Default Agent-1 to Agent-8
+    cursor_coords_path: str = "runtime/config/cursor_coords.json"  # Default path
+    enable_cursor_status_check: bool = True
+    enable_cursor_window_check: bool = True
+
+
+# {{ EDIT START: Define placeholder OrchestratorConfig - MOVED EARLIER }}
+class OrchestratorConfig(BaseModel):
+    # Add fields relevant to orchestration/swarm management as needed
+    pass  # Empty for now to resolve NameError
 
 
 # {{ EDIT END }}
@@ -204,7 +229,15 @@ class AppConfig(BaseSettings):
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
     gui_automation: GuiAutomationConfig = Field(default_factory=GuiAutomationConfig)
+    # Use the moved OrchestratorConfig
+    orchestrator: OrchestratorConfig = Field(default_factory=OrchestratorConfig)
     swarm: SwarmConfig = Field(default_factory=SwarmConfig)
+    integrations: IntegrationsConfig = Field(default_factory=IntegrationsConfig)
+    # memory_channel: MemoryChannelConfig = Field(default_factory=MemoryChannelConfig) # Placeholder added, needs proper model/use
+    health_checks: HealthCheckConfig = Field(
+        default_factory=HealthCheckConfig
+    )  # ADD health_checks field
+    monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
 
     # Configuration loading behavior
     model_config = SettingsConfigDict(
@@ -213,10 +246,10 @@ class AppConfig(BaseSettings):
         env_file=".env",  # Default .env file to check
         env_file_encoding="utf-8",
         extra="ignore",  # Ignore extra fields found in config sources
-        yaml_file=DEFAULT_CONFIG_PATH, # Pass default path to custom source
+        yaml_file=DEFAULT_CONFIG_PATH,  # Pass default path to custom source
     )
 
-    # {{ EDIT START: Implement settings_customise_sources }}
+    # EDIT START: Implement settings_customise_sources
     @classmethod
     def settings_customise_sources(
         cls,
@@ -224,8 +257,9 @@ class AppConfig(BaseSettings):
         init_settings: PydanticBaseSettingsSource,
         env_settings: PydanticBaseSettingsSource,
         dotenv_settings: PydanticBaseSettingsSource,
-        # Add file_secret_settings if/when needed
-        # file_secret_settings: PydanticBaseSettingsSource,
+        # file_secret_settings if/when needed
+        # file_secret_settings: PydanticBaseSettingsSource, # REMOVE COMMENT, ADD ARGUMENT
+        file_secret_settings: PydanticBaseSettingsSource,  # ADDED BY AGENT-1
         # Add yaml_settings source parameter (though we instantiate it below)
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         """Define the priority order for loading settings sources."""
@@ -233,22 +267,22 @@ class AppConfig(BaseSettings):
             init_settings,  # 1. Values passed during initialization
             env_settings,  # 2. Environment variables
             dotenv_settings,  # 3. Values from .env file
-            YamlConfigSettingsSource(settings_cls), # 4. Values from config.yaml
+            file_secret_settings,  # 4. Values from secret files (if used) # ENSURE THIS IS PRESENT
+            YamlConfigSettingsSource(settings_cls),  # 5. Values from config.yaml
             # Add file_secret_settings here if needed
         )
-    # {{ EDIT END }}
+
+    # EDIT END
 
     # Ensure paths are absolute after loading (Pydantic v2 uses model_post_init)
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def resolve_paths(self) -> "AppConfig":
         """Ensures all configured paths are absolute after validation."""
         if self.paths:
             self.paths.runtime = self.paths.runtime.resolve()
             self.paths.logs = self.paths.logs.resolve()
             self.paths.agent_comms = self.paths.agent_comms.resolve()
-            self.paths.central_task_boards = (
-                self.paths.central_task_boards.resolve()
-            )
+            self.paths.central_task_boards = self.paths.central_task_boards.resolve()
             self.paths.task_schema = self.paths.task_schema.resolve()
             self.paths.project_root = self.paths.project_root.resolve()
         if self.gui_automation:
@@ -262,12 +296,13 @@ class AppConfig(BaseSettings):
         if self.logging and self.logging.log_file:
             log_path = Path(self.logging.log_file)
             if not log_path.is_absolute():
-                 # Assume relative to paths.logs directory
-                 self.logging.log_file = str(self.paths.logs / log_path)
+                # Assume relative to paths.logs directory
+                self.logging.log_file = str(self.paths.logs / log_path)
             else:
-                 self.logging.log_file = str(log_path.resolve())
+                self.logging.log_file = str(log_path.resolve())
 
         return self
+
 
 # Configuration Error Exception
 class ConfigurationError(CoreConfigurationError):
@@ -355,7 +390,7 @@ def setup_logging(config: AppConfig):
         logging.warning("No logging handlers configured.")
 
 
-# {{ EDIT START: Add YamlConfigSettingsSource }}
+# EDIT START: Add YamlConfigSettingsSource
 class YamlConfigSettingsSource(PydanticBaseSettingsSource):
     """
     A settings source class that loads variables from a YAML file.
@@ -373,20 +408,20 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
         yaml_file_from_config = settings_cls.model_config.get("yaml_file")
         self.yaml_file = yaml_file or yaml_file_from_config or DEFAULT_CONFIG_PATH
 
-        yaml_encoding_from_config = settings_cls.model_config.get(
-            "yaml_file_encoding"
-        )
+        yaml_encoding_from_config = settings_cls.model_config.get("yaml_file_encoding")
         self.yaml_file_encoding = (
-            yaml_file_encoding
-            or yaml_encoding_from_config
-            or "utf-8"
+            yaml_file_encoding or yaml_encoding_from_config or "utf-8"
         )
         self.config = self._load_config()
+
+        logger.debug(f"YamlConfigSettingsSource initialized for file: {self.yaml_file}")
 
     def _load_config(self) -> dict[str, Any]:
         if not self.yaml_file.exists():
             # Use logger if available, otherwise print
-            msg = f"YAML config file not found at {self.yaml_file}, skipping YAML source."
+            msg = (
+                f"YAML config file not found at {self.yaml_file}, skipping YAML source."
+            )
             try:
                 logger.warning(msg)
             except NameError:
@@ -396,9 +431,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             with open(self.yaml_file, "r", encoding=self.yaml_file_encoding) as f:
                 return yaml.safe_load(f) or {}
         except Exception as e:
-            msg = (
-                f"Error loading YAML config from {self.yaml_file}: {e}"
-            )
+            msg = f"Error loading YAML config from {self.yaml_file}: {e}"
             try:
                 logger.error(msg)
             except NameError:
@@ -406,18 +439,15 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             # Depending on strictness, could raise error or return empty
             return {}
 
-    def get_field_value(
-        self, field: "FieldInfo", field_name: str
-    ) -> tuple[Any, str, bool]:
+    def get_field_value(self, field: Any, field_name: str) -> tuple[Any, str, bool]:
         # This method is not strictly needed if __call__ loads the whole file
         # and pydantic handles the field mapping.
         # Kept for potential future field-specific logic from YAML.
-        # Returning None indicates the source doesn't provide this specific field directly. # noqa: E501
-        # Let Pydantic handle extracting nested values from the loaded self.config dict # noqa: E501
-        return self.config.get(field_name), field_name, False
+        # Returning None indicates the source doesn't provide this specific field directly.
+        return None, field_name, False
 
     def prepare_field_value(
-        self, field_name: str, field: "FieldInfo", value: Any, value_is_complex: bool
+        self, field_name: str, field: Any, value: Any, value_is_complex: bool
     ) -> Any:
         # Can add specific value preparations if needed
         return value
@@ -438,26 +468,28 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
         try:
             # Pass the specified path (or None to use defaults) to the model init
             # It will be picked up by the YamlConfigSettingsSource if relevant
-            yaml_path = config_path or DEFAULT_CONFIG_PATH # Ensure path is used if provided # noqa: E501
+            yaml_path = (
+                config_path or DEFAULT_CONFIG_PATH
+            )  # Ensure path is used if provided # noqa: E501
             # Override model_config directly for this instance if path is provided
             # This is a bit hacky, ideally YamlConfigSettingsSource would handle this more cleanly # noqa: E501
             if config_path:
-                _config = AppConfig(
-                    _settings_config_dict={"yaml_file": config_path}
-                )
+                _config = AppConfig(_settings_config_dict={"yaml_file": config_path})
             else:
-                 _config = AppConfig()
+                _config = AppConfig()
 
             # Ensure logging is set up after config is loaded
             setup_logging(_config)
-            logger.info(f"Configuration loaded successfully. Project Root: {_config.paths.project_root}") # noqa: E501
+            logger.info(
+                f"Configuration loaded successfully. Project Root: {_config.paths.project_root}"
+            )  # noqa: E501
         except Exception as e:
             # Use logger if possible, otherwise print
             msg = f"Failed to load application configuration: {e}"
             try:
                 logger.critical(msg, exc_info=True)
-            except NameError: # Logger might not be configured yet
-                 print(f"CRITICAL ERROR: {msg}")
+            except NameError:  # Logger might not be configured yet
+                print(f"CRITICAL ERROR: {msg}")
             raise ConfigurationError(msg) from e
     return _config
 
@@ -467,6 +499,7 @@ def get_config() -> AppConfig:
     if _config is None:
         return load_config()
     return _config
+
 
 # # Example Usage (for testing if run directly) - REMOVED/COMMENTED
 # # Kept commented for reference during development, but should be removed for production.  # noqa: E501

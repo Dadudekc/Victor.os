@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from dreamos.utils.common_utils import get_utc_iso_timestamp
+
 # import markdown # Removed as per Vulture
 from jinja2 import Environment, FileSystemLoader
 
@@ -61,10 +63,36 @@ class DevLogGenerator:
             strategies: Dictionary of strategies for different platforms
         """
         self.strategies = strategies
-        self.template_dir = "templates"
-        self.env = Environment(loader=FileSystemLoader(self.template_dir))
+        # Assuming template dir is relative to project root or configured elsewhere
+        # TODO: Confirm template directory source (config or hardcoded relative to project root?)
+        # For now, using relative 'templates' as placeholder
+        self.template_dir = Path("templates")  # Use pathlib for consistency
+        if not self.template_dir.is_dir():
+            # Fallback assuming templates are relative to THIS file's parent dir if 'templates' isn't at root
+            alt_template_dir = Path(__file__).parent / "templates"
+            if alt_template_dir.is_dir():
+                self.template_dir = alt_template_dir
+            else:
+                # Last resort: Assume project root/templates
+                # This requires knowing the project root, which isn't directly available here.
+                # Logging a warning. Ideally, template path comes from config.
+                logger.warning(
+                    f"Template directory '{self.template_dir}' not found relative to cwd or script. Jinja loading might fail."
+                )
+                # Let's proceed assuming it might be found by Jinja's default search path or project root
+                # self.template_dir = Path("templates") # Keep placeholder
+
+        # Ensure template_dir is passed as a string or Path object to FileSystemLoader
+        self.env = Environment(
+            loader=FileSystemLoader(str(self.template_dir)), autoescape=True
+        )  # Enable autoescape for security
+        # Add timestamp function to Jinja globals
+        self.env.globals["iso_timestamp_utc"] = get_utc_iso_timestamp
         # self.scraper = ChatGPTScraper(headless=True) # Scraper should likely be passed in or obtained differently  # noqa: E501
         logger.info("Initialized DevLog Generator")
+        logger.info(
+            f"Jinja Environment configured with template path: {self.template_dir}"
+        )
 
     def process_conversation(self, chat_data: Dict[str, Any]) -> DevLogPost:
         """

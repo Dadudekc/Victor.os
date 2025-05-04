@@ -99,7 +99,8 @@ def find_dead_code(
                     except ValueError:
                         pass  # Keep confidence 0 if parsing fails
 
-                # TODO: Add more robust parsing to extract item type and name if needed -> Current regex seems sufficient for common cases  # noqa: E501
+                # Regex parsing handles common cases (function, variable, class, import, property)
+                # More complex analysis would require AST parsing or different Vulture output.
                 finding = {
                     "file": file_path_str,
                     "line": int(line_num_str),

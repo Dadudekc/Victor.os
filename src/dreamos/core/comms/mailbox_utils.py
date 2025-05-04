@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,21 +47,16 @@ MailboxMessagePriority = Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 def validate_mailbox_message_schema(message_data: Dict[str, Any]) -> bool:
     """Validates if the message data dictionary conforms to the documented mailbox message schema."""
-    # Fields listed as Mandatory in docs/communication/messaging_format.md
     required_keys = [
         "message_id",
         "sender_agent_id",
         "recipient_agent_id",
         "timestamp_utc",
         "subject",
-        "type", # Added 'type' as required per docs
+        "type",
         "body",
-        # 'priority' is optional in docs, but create_mailbox_message adds a default,
-        # so it should always be present in messages created by the utility.
-        # We'll keep it here for robustness check on data passed to write.
-        "priority"
+        "priority",
     ]
-    # Removed 'read_status' as it's not listed as mandatory in docs
 
     if not all(key in message_data for key in required_keys):
         missing = [key for key in required_keys if key not in message_data]
@@ -79,10 +75,25 @@ def validate_mailbox_message_schema(message_data: Dict[str, Any]) -> bool:
     if not isinstance(message_data.get("recipient_agent_id"), str):
         util_logger.error("Validation Failed: recipient_agent_id must be a string.")
         return False
-    if not isinstance(message_data.get("timestamp_utc"), str):
-        # TODO: Add stricter ISO 8601 format validation?
+
+    # --- Timestamp Validation ---
+    ts_str = message_data.get("timestamp_utc")
+    if not isinstance(ts_str, str):
         util_logger.error("Validation Failed: timestamp_utc must be a string.")
         return False
+    try:
+        # Attempt strict ISO 8601 parsing (handles Z and +HH:MM)
+        # Python 3.11+ fromisoformat directly handles Z, older versions might need replace
+        if "Z" in ts_str and sys.version_info < (3, 11):
+            ts_str = ts_str.replace("Z", "+00:00")
+        datetime.fromisoformat(ts_str)
+    except ValueError:
+        util_logger.error(
+            f"Validation Failed: timestamp_utc '{ts_str}' is not a valid ISO 8601 format."
+        )
+        return False
+    # TODO REMOVED: Add stricter ISO 8601 format validation?
+
     if not isinstance(message_data.get("subject"), str):
         util_logger.error("Validation Failed: subject must be a string.")
         return False

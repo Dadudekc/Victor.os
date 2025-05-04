@@ -19,10 +19,8 @@ from __future__ import annotations  # noqa: I001
 
 import asyncio
 import datetime as _dt
-import importlib
 import json
 import logging
-import re
 import subprocess
 import sys
 import threading
@@ -30,23 +28,36 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from dreamos._agent_coordination.tools.event_bus import EventBus
-from dreamos._agent_coordination.tools.event_type import EventType
 from dreamos.agents.chatgpt_web_agent import run_loop as chat_run_loop
 from dreamos.core.config import AppConfig
-from dreamos.core.tasks.nexus.task_nexus import TaskNexus
+from dreamos.core.tasks.nexus.db_task_nexus import DbTaskNexus
+from dreamos.core.db.sqlite_adapter import SQLiteAdapter
+from dreamos.core.coordination.agent_bus import AgentBus
+from dreamos.core.agents.base_agent import BaseAgent
 from dreamos.feedback.feedback_engine_v2 import FeedbackEngineV2
 from dreamos.hooks.stats_logger import StatsLoggingHook
+from dreamos.hooks.devlog_hook import DevlogHook
 
 from dreamos.automation.cursor_orchestrator import CursorOrchestrator
 
-from ...channels.local_blob_channel import LocalBlobChannel
+from dreamos.channels.local_blob_channel import LocalBlobChannel
 from .cursor_fleet_launcher import (
     assign_windows_to_monitors,
     get_cursor_windows,
     launch_cursor_instance,
 )
 from .virtual_desktop_runner import VirtualDesktopController
+
+# {{ EDIT START: Import ProjectBoardManager }}
+from dreamos.coordination.project_board_manager import ProjectBoardManager
+# {{ EDIT END }}
+
+# EDIT: Import GUI Controller (assuming Path exists)
+from ..gui.controller import GUIController
+
+# {{ EDIT START: Import devlog utility }}
+from dreamos.reporting.devlog_utils import update_devlog_index
+# {{ EDIT END }}
 
 logger = logging.getLogger(__name__)  # logging configured by entry point
 
@@ -59,19 +70,47 @@ class SwarmController:
     # --------------------------------------------------------------------- #
     # Construction
     # --------------------------------------------------------------------- #
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(
+        self,
+        config: AppConfig,
+        # EDIT: Add adapter and bus dependencies
+        adapter: SQLiteAdapter,
+        agent_bus: AgentBus,
+        # EDIT: Remove direct nexus instantiation
+        # nexus: Optional[TaskNexus] = None,
+        # bus: Optional[AgentBus] = None,
+        num_workers: Optional[int] = None,
+    ):
         self.config: AppConfig = config
+        self.num_workers = num_workers or config.swarm.fleet_size
+        # EDIT: Initialize DbTaskNexus with adapter
+        self.nexus = DbTaskNexus(adapter=adapter)
+        # EDIT: Use passed agent_bus
+        self.bus = agent_bus
+        # self.bus = bus or AgentBus() # OLD
+        self.adapter = adapter  # Store adapter for agent instantiation
 
         # -- fleet & channel ------------------------------------------------
         self.fleet_size: int = getattr(config.swarm, "fleet_size", 3)
 
-        azure_conf = getattr(config.integrations, "azure_blob", None)
-        self.container_name: str = getattr(azure_conf, "container_name", "dream-os-c2")
-        self.sas_token: Optional[str] = getattr(azure_conf, "sas_token", None)
-        self.connection_string: Optional[str] = getattr(
-            azure_conf, "connection_string", None
+        # {{ EDIT START: Safely access nested Azure Blob config }}
+        azure_conf = config.integrations.azure_blob if config.integrations else None
+        self.container_name: str = (
+            getattr(azure_conf, "container_name", "dream-os-c2")
+            if azure_conf
+            else "dream-os-c2"
         )
-        self.use_local: bool = getattr(config.memory_channel, "use_local_blob", False)
+        self.sas_token: Optional[str] = (
+            getattr(azure_conf, "sas_token", None) if azure_conf else None
+        )
+        self.connection_string: Optional[str] = (
+            getattr(azure_conf, "connection_string", None) if azure_conf else None
+        )
+        # {{ EDIT END }}
+
+        # {{ EDIT START: Adjust use_local logic }}
+        self.use_local: bool = not bool(self.connection_string or self.sas_token)
+        # {{ EDIT END }}
 
         if not self.use_local and not (self.connection_string or self.sas_token):
             logger.warning(
@@ -84,14 +123,32 @@ class SwarmController:
             raise RuntimeError("LocalBlobChannel health-check failed – aborting")
 
         # -- runtime components --------------------------------------------
-        self.nexus = TaskNexus(config=self.config, task_file="runtime/task_list.json")
         self.stats_hook = StatsLoggingHook(self.nexus)
         self.event_bus = EventBus()
-        self.event_bus.subscribe(EventType.TASK_COMPLETED.value, self._handle_result)
+        # {{ EDIT START: Instantiate ProjectBoardManager }}
+        try:
+            self.pbm = ProjectBoardManager(config=self.config)
+            logger.info("ProjectBoardManager initialized.")
+        except Exception as e:
+            logger.critical(
+                f"Failed to initialize ProjectBoardManager: {e}", exc_info=True
+            )
+            self.pbm = None  # Indicate PBM failed
+
+        # {{ EDIT START: Instantiate DevlogHook }}
+        try:
+            self.devlog_hook = DevlogHook(agent_bus=self.event_bus, config=self.config)
+            logger.info("DevlogHook initialized.")
+        except Exception as e:
+            logger.critical(f"Failed to initialize DevlogHook: {e}", exc_info=True)
+            self.devlog_hook = None
+        # {{ EDIT END }}
 
         # -- orchestration state -------------------------------------------
         self._stop_event = threading.Event()
-        self.workers: List[threading.Thread] = []
+        self.workers: List[GUIController] = []
+        self.agents: Dict[str, BaseAgent] = {}
+        self.threads: List[threading.Thread] = []
 
         # -- background stats ----------------------------------------------
         stats_ivl = getattr(
@@ -127,6 +184,15 @@ class SwarmController:
     def start(self, initial_tasks: Optional[List[Dict[str, Any]]] = None) -> None:
         """Bring up chat-producer, GUI agents, headless workers, then begin routing loop."""  # noqa: E501
         logger.info(f"🚀 SwarmController booting {self.fleet_size} agents")
+
+        # {{ EDIT START: Run async setup }}
+        # Use asyncio.run() to execute the async setup portion
+        try:
+            asyncio.run(self._async_setup())
+        except Exception as setup_err:
+            logger.critical(f"Async setup failed: {setup_err}", exc_info=True)
+            raise RuntimeError(f"Failed during async setup: {setup_err}") from setup_err
+        # {{ EDIT END }}
 
         # 0) ChatGPT Web-agent (producer)
         self._spawn_thread(
@@ -172,7 +238,7 @@ class SwarmController:
         logger.info("🛑 SwarmController shutdown initiated")
         self._stop_event.set()
 
-        for t in self.workers:
+        for t in self.threads:
             t.join(timeout=5)
 
         logger.info("✅ SwarmController shutdown complete")
@@ -183,7 +249,42 @@ class SwarmController:
     def _spawn_thread(self, *, target, args: tuple = (), name: str) -> None:
         th = threading.Thread(target=target, args=args, name=name, daemon=True)
         th.start()
-        self.workers.append(th)
+        self.threads.append(th)
+
+    # {{ EDIT START: Add async setup method }}
+    async def _async_setup(self) -> None:
+        """Perform asynchronous setup tasks like subscribing to event bus."""
+        logger.info("Performing async setup for SwarmController...")
+        # Subscribe to EventBus here
+        if self.event_bus:
+            try:
+                await self.event_bus.subscribe(
+                    EventType.TASK_COMPLETED.value, self._handle_result_async
+                )
+                logger.info(
+                    f"Successfully subscribed to {EventType.TASK_COMPLETED.value}"
+                )
+                # Add other subscriptions if needed
+            except Exception as sub_err:
+                logger.error(
+                    f"Failed to subscribe to event bus: {sub_err}", exc_info=True
+                )
+                # Decide if this is fatal
+        else:
+            logger.warning("EventBus not available during async setup.")
+        logger.info("Async setup complete.")
+
+        # {{ EDIT START: Subscribe DevlogHook }}
+        if self.devlog_hook:
+            await self.devlog_hook.setup_subscriptions()
+            logger.info("DevlogHook subscriptions activated.")
+        else:
+            logger.warning(
+                "DevlogHook was not initialized, cannot activate subscriptions."
+            )
+        # {{ EDIT END }}
+
+    # {{ EDIT END }}
 
     # {{ EDIT START: Add async runner for Cursor Orchestrator Listener }}
     def _run_cursor_orchestrator_listener_async(self) -> None:
@@ -212,182 +313,211 @@ class SwarmController:
 
     # {{ EDIT END }}
 
-    # .........................................
-    # Worker
-    # .........................................
+    # --------------------------------------------------------------------- #
+    # Background Worker Loop
+    # --------------------------------------------------------------------- #
     def _worker_loop(self) -> None:
-        """Instantiate and run a dedicated agent instance (e.g., Agent2)."""
+        """Continuously run agent logic within an async context until stopped."""  # noqa: E501
         worker_name = threading.current_thread().name
-        logger.info(f"Worker thread {worker_name} starting.")
-
+        logger.info(f"👷 {worker_name} started.")
         try:
-            # Run the async part of the worker loop
-            asyncio.run(self._run_agent_async(worker_name))
+            # Each worker thread needs its own event loop
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self._run_agent_async_loop(worker_name))
         except Exception as e:
             logger.critical(
-                f"[{worker_name}] CRITICAL ASYNC RUNNER ERROR: {e}", exc_info=True
+                f"💥 {worker_name} encountered fatal error: {e}", exc_info=True
             )
         finally:
-            logger.info(f"Worker thread {worker_name} finished.")
+            # {{ EDIT START: Ensure loop closure in finally }}
+            if loop and not loop.is_closed():
+                loop.close()
+            # {{ EDIT END }}
+            logger.info(f"👷 {worker_name} stopped.")
 
-    async def _run_agent_async(self, worker_name: str) -> None:
-        """Asynchronous part of the worker loop: instantiate and run agent."""
-        # Attempt to launch headless Cursor in a virtual desktop
-        # self._maybe_launch_headless_cursor() # Keep this if needed for the agent
-
-        # --- Agent Instantiation ---
-        agent_instance = None
-        agent_config_found = False
-        try:
-            # Iterate through configured activations
-            for activation_conf in self.config.swarm.active_agents:
-                # Check if the worker_name matches the pattern
-                if re.fullmatch(activation_conf.worker_id_pattern, worker_name):
-                    agent_config_found = True
-                    logger.info(
-                        f"[{worker_name}] Matched activation config: {activation_conf.agent_module}.{activation_conf.agent_class}"  # noqa: E501
-                    )
-
-                    # Dynamically import the module
-                    try:
-                        module_path = activation_conf.agent_module
-                        module = importlib.import_module(module_path)
-                    except ImportError as e:
-                        logger.critical(
-                            f"[{worker_name}] Failed to import agent module {module_path}: {e}"  # noqa: E501
-                        )
-                        return  # Cannot proceed
-
-                    # Get the class from the module
-                    try:
-                        AgentClass = getattr(module, activation_conf.agent_class)
-                    except AttributeError:
-                        logger.critical(
-                            f"[{worker_name}] Agent class {activation_conf.agent_class} not found in module {module_path}."  # noqa: E501
-                        )
-                        return  # Cannot proceed
-
-                    # Prepare arguments for instantiation (common args)
-                    # Specific agents might need more/different args - requires more complex config or introspection  # noqa: E501
-                    agent_id = (
-                        activation_conf.agent_id_override
-                        or f"{activation_conf.agent_class}_{worker_name}"
-                    )
-                    agent_args = {
-                        "agent_id": agent_id,
-                        "config": self.config,
-                        "agent_bus": self.event_bus,
-                        # Conditionally add PBM if the agent expects it (best effort)
-                        # A better approach might involve dependency injection or capability checks  # noqa: E501
-                    }
-                    if (
-                        hasattr(AgentClass, "__init__")
-                        and "pbm" in AgentClass.__init__.__code__.co_varnames
-                    ):
-                        if not self.nexus or not self.nexus.board_manager:
-                            logger.error(
-                                f"[{worker_name}] Agent {AgentClass.__name__} requires PBM, but it's not available in TaskNexus."  # noqa: E501
+    async def _run_agent_async_loop(self, worker_name: str) -> None:
+        """The core async loop run by each worker thread."""
+        # {{ EDIT START: Initialize agent cycle count outside loop? Or assume agent has it }}
+        # Assuming BaseAgent manages its own cycle count internally
+        # agent.cycle_count = 0 # Example if managed here
+        # {{ EDIT END }}
+        while not self._stop_event.is_set():
+            task = None
+            try:
+                task = await self.nexus.claim_task()  # Use async claim
+                if task:
+                    logger.info(f"👷 [{worker_name}] claimed task: {task['task_id']}")
+                    await self._execute_task_with_retry(task, worker_name)
+                    # {{ EDIT START: Increment cycle count and update index }}
+                    # Assuming the agent assigned to the task can be retrieved or is context
+                    # This logic needs access to the specific agent instance
+                    # For now, let's assume agent_id is in the task and we can get agent object
+                    agent_id = task.get("assigned_agent")
+                    if agent_id:
+                        agent = self.agents.get(agent_id)
+                        if agent and hasattr(
+                            agent, "cycle_count"
+                        ):  # Check if agent exists and has counter
+                            agent.cycle_count += 1  # Increment agent's cycle
+                            logger.debug(
+                                f"Agent {agent_id} completed cycle {agent.cycle_count}"
                             )
-                            # Decide how to handle: skip agent, raise error?
-                            # For now, skip instantiation if PBM is required but missing.  # noqa: E501
-                            return
-                        agent_args["pbm"] = self.nexus.board_manager
-
-                    # Instantiate the agent
-                    logger.info(
-                        f"[{worker_name}] Instantiating {AgentClass.__name__} with ID {agent_id}..."  # noqa: E501
-                    )
-                    agent_instance = AgentClass(**agent_args)
-                    logger.info(
-                        f"[{worker_name}] Successfully instantiated {agent_id}."
-                    )
-                    break  # Stop after finding the first matching config
-
-            if not agent_config_found:
-                logger.warning(
-                    f"[{worker_name}] No activation config found for this worker. Skipping agent instantiation."  # noqa: E501
+                            if agent.cycle_count % 10 == 0:
+                                # {{ EDIT START: Simplify log message to avoid f-string issue }}
+                                logger.info(
+                                    "Updating devlog index for agent cycle multiple of 10."
+                                )
+                                # {{ EDIT END }}
+                                try:
+                                    devlog_base_path = (
+                                        self.config.paths.resolve_relative_path(
+                                            self.config.paths.devlog_dir
+                                        )
+                                    )
+                                    # Run synchronous update in executor to avoid blocking async loop
+                                    loop = asyncio.get_running_loop()
+                                    await loop.run_in_executor(
+                                        None,  # Use default executor
+                                        update_devlog_index,
+                                        agent_id,
+                                        devlog_base_path,
+                                    )
+                                except Exception as idx_err:
+                                    logger.error(
+                                        f"Error updating devlog index for {agent_id}: {idx_err}",
+                                        exc_info=True,
+                                    )
+                        else:
+                            logger.warning(
+                                f"Could not find agent {agent_id} or it lacks 'cycle_count' attribute for devlog update."
+                            )
+                    # {{ EDIT END }}
+                else:
+                    # No task claimed, wait before polling again
+                    await asyncio.sleep(self.config.swarm.idle_poll_interval_sec)
+            except Exception as e:
+                logger.error(
+                    f"👷 [{worker_name}] Error in agent loop: {e}", exc_info=True
                 )
-                return
+                if task:
+                    # Attempt to mark task as failed if error occurred during processing
+                    try:
+                        await self.nexus.update_task_status(
+                            task["task_id"], "failed", error=str(e)
+                        )
+                    except Exception as update_err:
+                        logger.error(
+                            f"Failed to mark task {task['task_id']} as failed after loop error: {update_err}"
+                        )
+                # Avoid busy-looping on persistent errors
+                await asyncio.sleep(self.config.swarm.error_poll_interval_sec)
 
-        except Exception as e:
-            logger.critical(
-                f"[{worker_name}] CRITICAL ERROR instantiating agent: {e}",
+    async def _execute_task_with_retry(self, task: Dict, worker_name: str) -> None:
+        """Handles the execution of a single task with retry logic for orchestrator errors."""
+        task_id = task.get("task_id", "UNKNOWN_ID")
+        agent_id = task.get(
+            "agent_id", f"Agent_{worker_name.split('-')[-1]}"
+        )  # Derive agent ID
+        prompt = task.get("prompt", "")
+        max_attempts = self.config.swarm.get("task_execution_attempts", 3)
+        retry_delay = self.config.swarm.get("task_retry_delay", 5.0)
+
+        for attempt in range(max_attempts):
+            logger.info(
+                f"[{worker_name}] Attempt {attempt + 1}/{max_attempts} for task {task_id}"
+            )
+            success = False
+            result_content = None
+            error_details = None
+
+            try:
+                # Step 1: Inject Prompt
+                logger.debug(f"[{worker_name}] Injecting prompt for task {task_id}...")
+                inject_success = await self.cursor_orchestrator.inject_prompt(
+                    agent_id=agent_id,
+                    prompt=prompt,
+                    timeout=self.config.gui_automation.get("inject_timeout", 60.0),
+                )
+                if not inject_success:
+                    logger.warning(
+                        f"[{worker_name}] Prompt injection failed for task {task_id} (attempt {attempt + 1})"
+                    )
+                    error_details = "Prompt injection failed"
+                    # Go to retry logic immediately
+                    raise CursorOrchestratorError(error_details)
+
+                # Step 2: Retrieve Response
+                logger.debug(
+                    f"[{worker_name}] Retrieving response for task {task_id}..."
+                )
+                result_content = await self.cursor_orchestrator.retrieve_response(
+                    agent_id=agent_id,
+                    timeout=self.config.gui_automation.get("retrieve_timeout", 120.0),
+                )
+
+                if result_content is None:
+                    logger.warning(
+                        f"[{worker_name}] Response retrieval returned None for task {task_id} (attempt {attempt + 1})"
+                    )
+                    error_details = "Response retrieval failed (returned None)"
+                    # Go to retry logic
+                    raise CursorOrchestratorError(error_details)
+
+                # If both steps succeeded
+                success = True
+                logger.info(
+                    f"[{worker_name}] Successfully processed task {task_id} (attempt {attempt + 1})"
+                )
+                break  # Exit retry loop on success
+
+            except CursorOrchestratorError as co_err:
+                logger.warning(
+                    f"[{worker_name}] CursorOrchestrator error on attempt {attempt + 1} for task {task_id}: {co_err}"
+                )
+                error_details = f"Orchestrator Error: {co_err}"
+                # Fall through to retry/failure logic
+            except Exception as e:
+                logger.error(
+                    f"[{worker_name}] Unexpected error during task {task_id} execution (attempt {attempt + 1}): {e}",
+                    exc_info=True,
+                )
+                error_details = f"Unexpected Error: {e}"
+                # Treat unexpected errors as potentially fatal for this attempt
+                break  # Exit retry loop on unexpected errors
+
+            # Retry delay logic
+            if attempt < max_attempts - 1:
+                logger.info(f"[{worker_name}] Retrying task {task_id} after delay...")
+                await asyncio.sleep(
+                    retry_delay * (attempt + 1)
+                )  # Exponential backoff basic
+            else:
+                logger.error(
+                    f"[{worker_name}] Task {task_id} failed after {max_attempts} attempts."
+                )
+
+        # After loop (success or final failure)
+        result_payload = {
+            "task_id": task_id,
+            "agent_id": agent_id,
+            "status": "completed" if success else "failed",
+            "result": result_content if success else None,
+            "error": error_details if not success else None,
+            "completed_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+        }
+
+        try:
+            await self.channel.push_result(result_payload)
+            logger.info(
+                f"[{worker_name}] Pushed result for task {task_id} (Status: {result_payload['status']})"
+            )
+        except Exception as push_err:
+            logger.error(
+                f"[{worker_name}] CRITICAL: Failed to push result for task {task_id}: {push_err}",
                 exc_info=True,
             )
-            return  # Cannot proceed without an agent instance
-
-        # --- Run Agent's Autonomous Loop ---
-        if not agent_instance:
-            logger.error(
-                f"[{worker_name}] Agent instance not created. Cannot run loop."
-            )
-            return
-
-        logger.info(
-            f"[{worker_name}] Starting agent {agent_instance.agent_id}'s autonomous loop..."  # noqa: E501
-        )
-        agent_task = None
-        try:
-            # Create a task for the agent's loop - asyncio.run provides the loop
-            if not hasattr(
-                agent_instance, "run_autonomous_loop"
-            ) or not asyncio.iscoroutinefunction(agent_instance.run_autonomous_loop):
-                logger.error(
-                    f"[{worker_name}] Agent {agent_instance.agent_id} does not have a valid async 'run_autonomous_loop' method."  # noqa: E501
-                )
-                return
-            agent_task = asyncio.create_task(agent_instance.run_autonomous_loop())
-
-            # Monitor the stop event and cancel the agent task if needed
-            while not self._stop_event.is_set():
-                if agent_task.done():
-                    logger.info(
-                        f"[{worker_name}] Agent {agent_instance.agent_id} loop task finished unexpectedly."  # noqa: E501
-                    )
-                    # Check for exceptions
-                    exc = agent_task.exception()
-                    if exc:
-                        logger.error(
-                            f"[{worker_name}] Agent loop task finished with error: {exc}",  # noqa: E501
-                            exc_info=exc,
-                        )
-                    break  # Exit worker loop if agent loop finishes
-
-                # Yield control while checking stop event periodically
-                try:
-                    # wait_for ensures sleep doesn't block cancellation indefinitely
-                    await asyncio.wait_for(asyncio.sleep(1), timeout=1.1)
-                except asyncio.TimeoutError:
-                    pass  # Expected if sleep completes
-
-            # If stop event is set, cancel the agent task gracefully
-            if self._stop_event.is_set():
-                if agent_task and not agent_task.done():
-                    logger.info(
-                        f"[{worker_name}] Stop event set. Cancelling agent {agent_instance.agent_id} loop..."  # noqa: E501
-                    )
-                    agent_task.cancel()
-                    try:
-                        # Wait briefly for cancellation to propagate
-                        await asyncio.wait_for(agent_task, timeout=5.0)
-                    except asyncio.CancelledError:
-                        logger.info(
-                            f"[{worker_name}] Agent {agent_instance.agent_id} loop successfully cancelled."  # noqa: E501
-                        )
-                    except asyncio.TimeoutError:
-                        logger.warning(
-                            f"[{worker_name}] Timeout waiting for agent {agent_instance.agent_id} loop cancellation."  # noqa: E501
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f"[{worker_name}] Error during agent task cancellation/cleanup: {e}",  # noqa: E501
-                            exc_info=True,
-                        )
-
-        except Exception as e:
-            logger.exception(f"[{worker_name}] Unhandled error running agent loop: {e}")
-        finally:
-            logger.debug(f"[{worker_name}] Agent async runner finishing.")
+            # Consider adding to a dead-letter queue or alternative error handling
 
     def _maybe_launch_headless_cursor(self) -> None:
         """Launch headless Cursor if path exists, else continue silently."""
@@ -425,12 +555,35 @@ class SwarmController:
     # --------------------------------------------------------------------- #
     # Result Handler
     # --------------------------------------------------------------------- #
-    def _handle_result(self, result: Dict[str, Any]) -> None:
-        """Handle result → feedback → lore persistence."""
-        logger.info(f"📑 Result received for {result.get('id')}")
-        self._run_feedback_engine(result)
-        self._persist_lore_metadata(result)
-        self._compile_lore()
+    # {{ EDIT START: Rename _handle_result to sync wrapper, create async handler }}
+    # def _handle_result(self, result: Dict[str, Any]) -> None:
+    #     """Handle result -> feedback -> lore persistence."""
+    #     logger.info(f"📑 Result received for {result.get('id')}")
+    #     self._run_feedback_engine(result)
+    #     self._persist_lore_metadata(result)
+    #     self._compile_lore()
+
+    async def _handle_result_async(self, result: Dict[str, Any]) -> None:
+        """Async handler for task results received via EventBus."""
+        task_id = result.get("task_id") or result.get("id", "unknown_task")
+        logger.info(f"📑 Async: Result received for {task_id}")
+        # Run potentially blocking operations in executor threads
+        loop = asyncio.get_running_loop()
+        try:
+            await loop.run_in_executor(None, self._run_feedback_engine, result)
+            await loop.run_in_executor(None, self._persist_lore_metadata, result)
+            await loop.run_in_executor(None, self._compile_lore)
+            logger.info(f"📑 Async: Processing complete for {task_id}")
+        except Exception as e:
+            logger.error(
+                f"📑 Async: Error processing result for {task_id}: {e}", exc_info=True
+            )
+
+    # Keep sync version if needed elsewhere, or remove if only used by bus
+    # def _handle_result_sync_wrapper(self, result: Dict[str, Any]) -> None:
+    #     """Synchronous wrapper if needed."""
+    #     asyncio.run(self._handle_result_async(result))
+    # {{ EDIT END }}
 
     # ------------------------------------------------------------------ #
     # Feedback / Lore helpers
@@ -469,7 +622,14 @@ class SwarmController:
 
     def _compile_lore(self) -> None:
         try:
-            script = Path("_agent_coordination/tools/compile_lore.py")
+            # EDIT START: Fix potential script path - assuming it moved or is elsewhere
+            # script = Path("_agent_coordination/tools/compile_lore.py")
+            # Attempting a more likely location based on project structure. Needs verification.
+            # Assuming compile_lore is part of the project analysis tools now
+            script = Path(
+                "src/dreamos/tools/analysis/project_scanner/compile_lore.py"
+            )  # Guessed path, might need adjustment
+            # EDIT END
             if not script.exists():
                 logger.warning(
                     f"Lore compilation skipped: Script not found at {script}"

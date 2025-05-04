@@ -13,7 +13,6 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 # REMOVED obsolete dreamforge comments/imports
 # Assuming agent_utils is now in core/utils # This comment is incorrect, it's in agents/utils  # noqa: E501
 from dreamos.agents.utils.agent_utils import (  # publish_task_update, # Will be replaced by internal event publishing; publish_error,       # Will be replaced by internal event publishing  # noqa: E501
-    AgentError,
     MessageHandlingError,
     TaskProcessingError,
     handle_task_cancellation,
@@ -44,10 +43,29 @@ from dreamos.core.coordination.message_patterns import (
 )
 
 # from dreamos.core.memory.governance_memory_engine import log_event
-from dreamos.core.memory.governance_memory_engine import log_event
-
 # from dreamos.core.utils.performance_logger import PerformanceLogger
 from dreamos.core.utils.performance_logger import PerformanceLogger
+
+# from dreamos.core.logging.swarm_logger import (  # Removed unused import
+#     log_agent_event,
+# )
+# REMOVED obsolete config manager imports
+# EDIT START: Remove obsolete TODO comment & import
+# EDIT END
+# EDIT START: Remove redundant EventType import comment
+# EDIT END
+# {{ EDIT END }}
+# EDIT START: Remove placeholder definitions/comments
+# REMOVED global constant comment
+# {{ EDIT START: Remove placeholder statuses/payloads/event types - defined elsewhere }}
+# {{ EDIT END }}
+# {{ EDIT START: Placeholder for new event payload for validation failure }}
+# {{ EDIT END }}
+# {{ EDIT START: Placeholder for new EventType - should move to enum }}
+# {{ EDIT END }}
+# EDIT END
+# EDIT END
+from .base_agent_lifecycle import BaseAgentLifecycleMixin  # IMPORT LIFECYCLE MIXIN
 
 # {{ EDIT START: Import payload dataclasses }}
 from .event_payloads import (
@@ -63,41 +81,8 @@ from .event_payloads import (
 # EDIT START: Import EventType from canonical source
 from .event_types import EventType
 
-# from dreamos.core.logging.swarm_logger import (  # Removed unused import
-#     log_agent_event,
-# )
 
-
-# REMOVED obsolete config manager imports
-
-
-# EDIT START: Remove obsolete TODO comment & import
-# EDIT END
-
-# EDIT START: Remove redundant EventType import comment
-# EDIT END
-
-
-# {{ EDIT END }}
-
-# EDIT START: Remove placeholder definitions/comments
-# REMOVED global constant comment
-
-# {{ EDIT START: Remove placeholder statuses/payloads/event types - defined elsewhere }}
-# {{ EDIT END }}
-
-# {{ EDIT START: Placeholder for new event payload for validation failure }}
-# {{ EDIT END }}
-
-# {{ EDIT START: Placeholder for new EventType - should move to enum }}
-# {{ EDIT END }}
-# EDIT END
-
-
-# EDIT END
-
-
-class BaseAgent(ABC):
+class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
     """Base class for all Dream.OS agents providing common functionality."""
 
     # EDIT START: Modify __init__ signature and logic
@@ -136,6 +121,9 @@ class BaseAgent(ABC):
         self._command_handlers: Dict[
             str, Callable[[TaskMessage], Awaitable[Dict[str, Any]]]
         ] = {}
+        # {{ EDIT START: Add cycle counter }}
+        self.cycle_count = 0
+        # {{ EDIT END }}
         self.logger.debug(f"Initializing BaseAgent for {agent_id}")
 
         # EDIT START: Use config directly and validate it exists
@@ -212,152 +200,6 @@ class BaseAgent(ABC):
         self.agent_bus = agent_bus or self._get_default_agent_bus()
         # self.capabilities = set(capabilities) if capabilities else set() # EDIT: Removed capabilities assignment  # noqa: E501
         # Capability registration now handled via CapabilityRegistry
-
-    @with_error_handling(AgentError)
-    async def start(self):
-        """Start the agent, subscribe to topics, and launch task processor."""
-        self.logger.info(f"Starting agent {self.agent_id}...")
-        log_event("AGENT_START", self.agent_id, {"version": "1.0.0"})
-        self._running = True
-
-        # Subscribe to command messages using topic string
-        # OLD TOPIC: command_topic = f"agent.{self.agent_id}.command"
-        # PREVIOUS TOPIC: command_topic = f"agent.{self.agent_id}.task.command"
-        # NEW HIERARCHICAL TOPIC:
-        command_topic = f"dreamos.agent.{self.agent_id}.task.command"
-        # self._subscription_id = await self.agent_bus.subscribe(
-        #     MessageType.COMMAND,
-        #     self._handle_command
-        # )
-        # Assuming subscribe now returns a subscription object or ID for unsubscribing
-        # self._subscription_id = await self.agent_bus.subscribe(command_topic, self._handle_command)  # noqa: E501
-        # {{ EDIT: Store topic and handler for unsubscribe }}
-        self._command_topic = command_topic
-        self._command_handler_ref = (
-            self._handle_command
-        )  # Store actual method reference
-        # Subscribe to agent-specific command topic (dynamic topic)
-        await self.agent_bus.subscribe(self._command_topic, self._command_handler_ref)
-        # {{ EDIT END }}
-        self.logger.info(f"Subscribed to command topic: {self._command_topic}")
-
-        # {{ EDIT START: Subscribe to AGENT_CONTRACT_QUERY }}
-        # Use the EventType enum directly for system-wide topics
-        self._contract_query_topic = (
-            EventType.AGENT_CONTRACT_QUERY.value
-        )  # Use enum value as topic
-        self._contract_query_handler_ref = self._handle_contract_query
-        # Subscribe to agent-specific contract query topic (if applicable, currently system-wide)  # noqa: E501
-        await self.agent_bus.subscribe(
-            self._contract_query_topic, self._contract_query_handler_ref
-        )
-        self.logger.info(
-            f"Subscribed to contract query topic: {self._contract_query_topic}"
-        )
-        # {{ EDIT END }}
-
-        # Start task processor
-        self._task_processor_task = asyncio.create_task(self._process_task_queue())
-        self.logger.info("Task processor started.")
-
-        # Start the message bus (if BaseAgent is responsible for its lifecycle)
-        # NOTE: Typically, AgentBus lifecycle is managed externally.
-        # Consider removing this if the bus is started elsewhere.
-        # await self.agent_bus.start()
-        # self.logger.info("AgentBus start requested (if managed internally)." )
-
-        # Call agent-specific startup
-        await self._on_start()
-        self.logger.info(f"Agent {self.agent_id} started successfully.")
-
-    @with_error_handling(AgentError)
-    async def stop(self):
-        """Stop the agent, cancel tasks, unsubscribe, and shutdown."""
-        self.logger.info(f"Stopping agent {self.agent_id}...")
-        self._running = False
-
-        # Cancel the task processor first
-        if hasattr(self, "_task_processor_task") and self._task_processor_task:
-            self._task_processor_task.cancel()
-            try:
-                await self._task_processor_task
-            except asyncio.CancelledError:
-                self.logger.info("Task processor stopped.")
-
-        # Cancel all active tasks managed by the queue processing
-        self.logger.info(f"Cancelling {len(self._active_tasks)} active task(s)...")
-        for task_id, task in list(self._active_tasks.items()):  # Iterate over copy
-            if task and not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    self.logger.info(f"Cancelled active task {task_id}.")
-                    log_event(
-                        "AGENT_TASK_CANCELLED", self.agent_id, {"task_id": task_id}
-                    )
-                # Ensure removal even if await fails
-                self._active_tasks.pop(task_id, None)
-
-        # Clear the queue (optional, prevents processing stale tasks on restart)
-        while not self._task_queue.empty():
-            try:
-                self._task_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                break
-        self.logger.info("Task queue cleared.")
-
-        # Unsubscribe from bus
-        # {{ EDIT: Use topic and handler for unsubscribe }}
-        # if self._subscription_id:
-        if hasattr(self, "_command_topic") and hasattr(self, "_command_handler_ref"):
-            try:
-                # Assuming unsubscribe takes the topic pattern and handler
-                # await self.agent_bus.unsubscribe(self._subscription_id)
-                await self.agent_bus.unsubscribe(
-                    self._command_topic, self._command_handler_ref
-                )
-                self.logger.info(
-                    f"Unsubscribed from command topic: {self._command_topic}"
-                )
-            except Exception as e:
-                self.logger.error(f"Error unsubscribing from agent bus: {e}")
-        else:
-            self.logger.warning(
-                "Command topic/handler reference not found for unsubscription."
-            )
-        # {{ EDIT END }}
-
-        # {{ EDIT START: Unsubscribe from AGENT_CONTRACT_QUERY }}
-        if hasattr(self, "_contract_query_topic") and hasattr(
-            self, "_contract_query_handler_ref"
-        ):
-            try:
-                await self.agent_bus.unsubscribe(
-                    self._contract_query_topic, self._contract_query_handler_ref
-                )
-                self.logger.info(
-                    f"Unsubscribed from contract query topic: {self._contract_query_topic}"  # noqa: E501
-                )
-            except Exception as e:
-                self.logger.error(f"Error unsubscribing from contract query topic: {e}")
-        else:
-            self.logger.warning(
-                "Contract query topic/handler reference not found for unsubscription."
-            )
-        # {{ EDIT END }}
-
-        # Shutdown the message bus (if BaseAgent is responsible)
-        # NOTE: Typically, AgentBus lifecycle is managed externally.
-        # Consider removing this if the bus is shutdown elsewhere.
-        # await self.agent_bus.shutdown()
-        # self.logger.info("AgentBus shutdown requested (if managed internally)." )
-
-        # Call agent-specific shutdown
-        await self._on_stop()
-
-        log_event("AGENT_STOP", self.agent_id, {"reason": "Shutdown requested"})
-        self.logger.info(f"Agent {self.agent_id} stopped successfully.")
 
     def register_command_handler(
         self,
@@ -1234,3 +1076,8 @@ class BaseAgent(ABC):
     def get_capabilities(self) -> List[str]:
         # Simple example, replace with actual capability logic
         return list(self._command_handlers.keys())
+
+    # --- Default Agent Bus ---
+    def _get_default_agent_bus(self) -> AgentBus:
+        # ... existing _get_default_agent_bus ...
+        pass

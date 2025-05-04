@@ -12,11 +12,34 @@ from pathlib import Path
 import click
 import yaml
 
-# from dreamos.core.orchestrator import Orchestrator # INCORRECT/STALE IMPORT
+# Add project root to sys.path for absolute imports
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now use core config path
+# Other imports (relative paths need checking)
+# from dreamos.agents import (
+#     Agent1CodeReviewer,
+#     Agent2InfraSurgeon,
+#     Agent3DocArchitect,
+#     Agent4TesterValidator,
+#     Agent5PlannerCoordinator,
+#     Agent6ObserverMonitor,
+#     Agent7SecurityAuditor,
+#     Agent8ResearchSynthesizer,
+# )
 from dreamos.automation.execution.swarm_controller import SwarmController
+from dreamos.core.config import AppConfig, setup_logging
+
+# {{ EDIT START: Explicitly remove dashboard import line }}
+# from dreamos.dashboard.dashboard_app import run_dashboard # REMOVED BY AGENT-1
+# {{ EDIT END }}
+# from dreamos.tools.thea_relay_agent import TheaRelayAgent # Commented out, seems unused
 
 # Use canonical AppConfig and setup_logging from dreamos.config
-from dreamos.config import AppConfig, setup_logging
+# {{ EDIT START: Remove duplicate config import }}
+# from dreamos.config import AppConfig, setup_logging
+# {{ EDIT END }}
 
 # Initial basic logging config (will be overridden by setup_logging)
 logging.basicConfig(
@@ -24,6 +47,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)  # Use __name__ for module-level logger
 sys.stdout.flush()  # Flush after initial basicConfig
+
+# Import other CLI command groups/functions
+# from .agent_cmds import agent_app
+# from .task_cmds import task_app
+# from .config_cmds import config_app
+
+# Import the new state command group
+
+# --- Main App Initialization ---
+app = click.Group(help="DreamOS Command Line Interface")
+
+# Add other command groups
+# app.add_typer(agent_app, name="agent")
+# app.add_typer(task_app, name="task")
+# app.add_typer(config_app, name="config")
+
+# Add state commands (assuming state_app is defined in state_cmds.py)
+# TODO: Verify integration pattern between Click and Typer if state_cmds uses Typer
+# {{ EDIT START: Comment out problematic Typer integration }}
+# app.add_typer(state_app, name="state")
+# {{ EDIT END }}
+
+# --- Main Execution Guard --- #
+# (Keep the rest of the file as is)
 
 
 # EDIT START: Define click command group
@@ -55,9 +102,11 @@ def cli(ctx, config):
                     loaded_config = loaded_config.model_copy(update=override_data)
                     logger.info(f"Successfully applied overrides from {config}")
                 except Exception as e:
-                    logger.error(f"Failed to load or apply override config {config}: {e}")
+                    logger.error(
+                        f"Failed to load or apply override config {config}: {e}"
+                    )
                     # Decide if this is fatal or just a warning
-                    sys.exit(1) # Make it fatal for now
+                    sys.exit(1)  # Make it fatal for now
             else:
                 logger.error(f"Specified --config file does not exist: {config}")
                 sys.exit(1)
@@ -82,46 +131,25 @@ def cli(ctx, config):
 # Example subcommand - can be expanded
 @cli.command()
 @click.pass_context
-async def run(ctx):
+def run(ctx):
     """Initialize and run the main SwarmController."""
     config = ctx.obj["config"]
     try:
-        # orchestrator = Orchestrator(config) # EDIT: Remove old instantiation
-        # logger.info("Orchestrator initialized.") # EDIT: Remove old log
-        # logger.info("Running Orchestrator... (Add main loop/task execution here)") # EDIT: Remove old log  # noqa: E501
-        # # Example: await orchestrator.start() or await orchestrator.run_task(...)
-        # # For now, just log and exit gracefully
-        # await asyncio.sleep(1)  # Placeholder for actual run logic
-        # logger.info("Orchestrator run complete (placeholder). Exiting.") # EDIT: Remove old log  # noqa: E501
-
         # {{ EDIT START: Instantiate and run SwarmController }}
-        # TODO: Handle initial tasks loading if needed
+        # Load initial tasks if needed (example logic commented out)
         initial_tasks = []
-        # Example: Load from a file or default tasks
         # initial_tasks_path = config.paths.project_root / "runtime/initial_tasks.json"
-        # if initial_tasks_path.exists():
-        #     try:
-        #         with open(initial_tasks_path, "r") as f:
-        #             initial_tasks = json.load(f)
-        #         logger.info(f"Loaded {len(initial_tasks)} initial tasks.")
-        #     except Exception as e:
-        #         logger.warning(f"Failed to load initial tasks: {e}")
+        # ... loading logic ...
 
+        logger.info("Attempting to initialize SwarmController...")
         controller = SwarmController(config=config)
         logger.info("SwarmController initialized.")
-        # Note: controller.start() is blocking and contains the main loop internally
-        # It also handles worker threads, so we don't need separate asyncio tasks here usually.  # noqa: E501
-        # However, `start` itself is NOT async. Need to run it appropriately.
-        # Running blocking `start` in executor to not block main CLI thread if needed,
-        # OR just run it directly if CLI's purpose is just to launch the controller.
-        # For simplicity, assume direct run blocks until shutdown.
-        # If this needs to run in background, threading or asyncio.to_thread is needed.
 
-        # Since SwarmController.start manages its own threads and loops,
-        # we likely don't need `async def run(ctx)` unless other async setup is needed.
-        # For now, keep async def but run start synchronously.
-        # Consider refactoring `start` or how it's called if true async needed here.
+        # SwarmController.start() is blocking and manages its own threads/loops.
+        # Run it directly as the CLI's primary purpose here is to launch it.
+        logger.info("Attempting to start SwarmController...")
         controller.start(initial_tasks=initial_tasks)
+
         # The start method blocks until shutdown is called or loop ends.
         logger.info("SwarmController start method returned (likely shutdown). Exiting.")
         # {{ EDIT END }}

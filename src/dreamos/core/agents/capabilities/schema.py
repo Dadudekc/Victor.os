@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-# TODO: Consider standardizing on Pydantic models instead of @dataclass for consistency and validation.  # noqa: E501
-
 # Type alias for flexibility, could be replaced by a more specific JSON Schema type
 JsonSchema = Dict[str, Any]
 

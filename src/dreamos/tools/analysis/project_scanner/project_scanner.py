@@ -1147,6 +1147,46 @@ class ProjectScanner:
         except Exception as e:
             logger.error(f"Error clearing cache file {cache_path}: {e}")
 
+    def analyze_scan_results(self) -> Dict[str, Any]:
+        """Analyzes the collected data in self.analysis.
+
+        TODO: Implement more sophisticated analysis (e.g., dependencies).
+
+        Returns:
+            A dictionary containing analysis summary.
+        """
+        logger.info("Analyzing scan results...")
+        summary = {
+            "total_files_scanned": len(self.analysis),
+            "language_counts": {},
+            "total_functions": 0,
+            "total_classes": 0,
+            "total_routes": 0,
+            "errors": [],
+        }
+
+        for file_path_str, file_data in self.analysis.items():
+            if not file_data or file_data.get("error"):
+                summary["errors"].append(file_path_str)
+                continue
+
+            lang = file_data.get("language", "unknown")
+            summary["language_counts"][lang] = (
+                summary["language_counts"].get(lang, 0) + 1
+            )
+
+            summary["total_functions"] += len(file_data.get("functions", []))
+            summary["total_classes"] += len(file_data.get("classes", {}))
+            summary["total_routes"] += len(file_data.get("routes", []))
+
+        logger.info(
+            f"Analysis complete: Scanned {summary['total_files_scanned']} files."
+        )
+        logger.debug(f"Analysis summary: {summary}")
+        # Optionally store summary in self.analysis or return it
+        # self.analysis["_summary"] = summary
+        return summary
+
 
 def main():
     parser = argparse.ArgumentParser(

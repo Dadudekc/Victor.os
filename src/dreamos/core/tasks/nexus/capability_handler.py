@@ -2,7 +2,10 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-# Relative import should work if capability_registry is in the same directory
+# Import the adapter to pass to the registry
+from dreamos.core.db.sqlite_adapter import SQLiteAdapter
+
+# Import the *specific* registry class
 from .capability_registry import CapabilityRegistry
 
 logger = logging.getLogger(__name__)
@@ -11,12 +14,28 @@ logger = logging.getLogger(__name__)
 class CapabilityHandler:
     """Handles interactions with the CapabilityRegistry."""
 
-    def __init__(self, capability_registry: Optional[CapabilityRegistry]):
-        if capability_registry is None:
-            logger.warning(
-                "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."  # noqa: E501
+    def __init__(self, adapter: SQLiteAdapter):
+        """Initializes the handler and the underlying registry with the adapter."""
+        if not adapter:
+            logger.critical(
+                "CapabilityHandler requires a valid SQLiteAdapter instance!"
             )
-        self.registry = capability_registry
+            # Or raise an error
+            self.registry = None
+        else:
+            try:
+                # Instantiate CapabilityRegistry with the adapter
+                self.registry = CapabilityRegistry(adapter=adapter)
+            except Exception as e:
+                logger.critical(
+                    f"Failed to initialize CapabilityRegistry: {e}", exc_info=True
+                )
+                self.registry = None
+
+        if self.registry is None:
+            logger.warning(
+                "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."
+            )
 
     async def register_capability(self, capability: Any) -> bool:
         """Registers or updates a capability via the CapabilityRegistry."""

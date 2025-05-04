@@ -7,18 +7,16 @@ from pathlib import Path
 from typing import Dict
 
 from dreamos.core.config import AppConfig
-
-# Local application imports
+from dreamos.core.coordination.agent_bus import AgentBus
 from dreamos.core.tasks.nexus.task_nexus import TaskNexus
-from dreamos.utils.config_utils import get_config
-from dreamos.utils.dream_mode_utils.browser import (
+from dreamos.utils.dream_mode_utils.html_parser import extract_latest_reply
+from dreamos.utils.dream_mode_utils.task_parser import extract_task_metadata
+from dreamos.utils.gui_utils import (
     close_browser,
     launch_browser,
     navigate_to_page,
     wait_for_login,
 )
-from dreamos.utils.dream_mode_utils.html_parser import extract_latest_reply
-from dreamos.utils.dream_mode_utils.task_parser import extract_task_metadata
 
 logger = logging.getLogger("ChatGPTWebAgent")
 logger.setLevel(logging.INFO)
@@ -58,23 +56,23 @@ class ChatGPTWebAgent:
         paths_settings = getattr(config, "paths", {})
 
         # Inbox Directory (Example: config.paths.agent_inboxes)
-        inbox_root_config = get_config(
-            "paths.agent_inboxes",
-            default="runtime/agent_inboxes",
-            config_obj=self.config,
+        inbox_root_config = getattr(
+            paths_settings,
+            "agent_inboxes",
+            Path("runtime/agent_inboxes"),
         )
         self.inbox_dir = Path(inbox_root_config) / agent_id  # Ensure Path object
         self.inbox_file = self.inbox_dir / "pending_responses.json"
 
         # Scrape Interval (Example: config.chat_agent.scrape_interval)
-        self.interval = get_config(
+        self.interval = getattr(
+            config,
             f"agents.chatgpt_web.{self.agent_id}.scrape_interval",
-            default=get_config(
+            getattr(
+                config,
                 "agents.chatgpt_web.default_scrape_interval",
-                default=DEFAULT_INTERVAL,
-                config_obj=self.config,
+                DEFAULT_INTERVAL,
             ),
-            config_obj=self.config,
         )
 
         # Onboarding Prompt Path (Example: config.paths.onboarding_prompts)
@@ -97,10 +95,10 @@ class ChatGPTWebAgent:
         self.driver = None
 
         # Initialize C2 channel (e.g., LocalBlobChannel, RedisChannel)
-        c2_channel_type = get_config(
+        c2_channel_type = getattr(
+            config,
             "agents.chatgpt_web.c2_channel.type",
-            default="LocalBlobChannel",
-            config_obj=self.config,
+            "LocalBlobChannel",
         )
         # TODO: Instantiate channel based on type (requires importing channel classes) -> REMOVED TODO  # noqa: E501
         # NOTE: To add support for other channel types, import them and add conditions below.  # noqa: E501
@@ -121,10 +119,10 @@ class ChatGPTWebAgent:
 
         # Initialize TaskNexus - Get Path from central config
         # task_list_path = getattr(config.paths, 'tasks', Path("runtime/task_list.json")) # Simplified access below  # noqa: E501
-        task_list_path = get_config(
+        task_list_path = getattr(
+            config,
             "services.task_nexus.task_file",
-            default="runtime/task_list.json",
-            config_obj=self.config,
+            Path("runtime/task_list.json"),
         )
         self.nexus = TaskNexus(
             task_file=task_list_path
@@ -140,6 +138,26 @@ class ChatGPTWebAgent:
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         if not self.inbox_file.exists():
             self._save_pending_responses([])
+
+        self.task_nexus = TaskNexus()  # Assuming nexus handles its own path
+        self.agent_bus = AgentBus()
+
+        # --- Runtime Paths & State ---
+        # EDIT START: Resolve paths relative to configured root
+        runtime_path = config.paths.resolve_relative_path("runtime")
+        self.pending_responses_path = (
+            runtime_path / "agent_state" / f"{self.agent_id}_pending_responses.json"
+        )
+        self.processed_cache_path = (
+            runtime_path / "agent_state" / f"{self.agent_id}_processed_cache.json"
+        )
+        # EDIT START: Update path to new location
+        # self.onboarding_path = Path("runtime/_agent_coordination/onboarding")
+        self.onboarding_path = runtime_path / "governance" / "onboarding"
+        # EDIT END
+        # Ensure state directories exist
+        self.pending_responses_path.parent.mkdir(parents=True, exist_ok=True)
+        self.processed_cache_path.parent.mkdir(parents=True, exist_ok=True)
 
     def _load_pending_responses(self):
         try:
@@ -362,75 +380,14 @@ class ChatGPTWebAgent:
         close_browser()
 
 
-def run_loop(shutdown_event):
-    """Main loop for the standalone ChatGPT Web Agent."""
-    logger.info("Starting ChatGPT Agent standalone run loop...")
-
-    # EDIT START: Load config first
-    try:
-        config = load_app_config()  # Assumes load_app_config is available  # noqa: F821
-        if not config:
-            raise ValueError(
-                "Failed to load AppConfig for ChatGPTWebAgent standalone run."
-            )
-    except Exception as e:
-        logger.error(f"Cannot start ChatGPTWebAgent standalone: {e}")
-        return  # Exit if config fails
-    # EDIT END
-
-    # EDIT START: Remove load_dotenv and get values from config
-    # load_dotenv() # No longer needed, config is the source of truth
-    # conversation_url = os.getenv("CHATGPT_CONVERSATION_URL")
-    # agent_id = os.getenv("AGENT_ID", "chatgpt_web_001")
-    # simulate = os.getenv("SIMULATE", "false").lower() == "true"
-
-    # Retrieve settings safely from config
-    chat_agent_settings = getattr(config, "chat_agent", {})
-    agent_settings = getattr(config, "agent_settings", {})  # General agent settings
-
-    conversation_url = getattr(chat_agent_settings, "conversation_url", None)
-    # Use agent_id from chat_agent settings if available, else general agent_id, else default  # noqa: E501
-    agent_id = getattr(
-        chat_agent_settings,
-        "agent_id",
-        getattr(agent_settings, "agent_id", "chatgpt_web_001"),
-    )
-    simulate = getattr(chat_agent_settings, "simulate", False)
-    reset_onboarding = getattr(chat_agent_settings, "reset_onboarding", False)  # noqa: F841
-    # EDIT END
-
-    # EDIT START: Get reset flag from config (already done above, remove redundant block)  # noqa: E501
-    # agent_settings = getattr(config, 'chat_agent', {})
-    # reset_onboarding = getattr(agent_settings, 'reset_onboarding', False)
-    # EDIT END
-
-    if not conversation_url:
-        logger.error("`chat_agent.conversation_url` not set in config. Exiting.")
-        return
-
-    # EDIT START: Pass config to agent constructor (already correct, just ensure old code removed)  # noqa: E501
-    # agent = ChatGPTWebAgent(agent_id=agent_id, conversation_url=conversation_url, simulate=simulate)  # noqa: E501
-    # agent.reset_onboarding_flag = reset_onboarding # Set the flag after init
-    agent = ChatGPTWebAgent(
-        config=config,
-        agent_id=agent_id,
-        conversation_url=conversation_url,
-        simulate=simulate,
-    )
-    # No need to set reset_onboarding_flag manually, it's handled in __init__ now.
-    # EDIT END
-
-    # Run the main loop
-    try:
-        while not shutdown_event.is_set():
-            try:
-                agent.run_cycle()
-            except Exception as e:
-                logger.error(f"Error in agent cycle: {e}", exc_info=True)
-            time.sleep(agent.interval)
-    finally:
-        agent.close()
-    logger.info("ChatGPT Agent run loop stopped.")
+async def run_loop(agent_id: str):
+    """Main loop for the ChatGPTWebAgent."""
+    logger.info(f"Starting run_loop for agent: {agent_id}")
+    # EDIT: Instantiate config directly
+    config = AppConfig()
+    # agent = ChatGPTWebAgent(config=get_config(), agent_id=agent_id)
+    agent = ChatGPTWebAgent(config=config, agent_id=agent_id)
+    await agent.run()
 
 
 # ... (rest of file, __main__ block etc.) ...

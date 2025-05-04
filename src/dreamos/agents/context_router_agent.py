@@ -6,8 +6,11 @@ from typing import Any, Dict, Optional
 # Assuming BaseAgent and AgentBus are correctly located after potential refactors
 # Adjust imports as necessary based on Agent 1/2 work
 try:
-    from dreamos.agents.base_agent import BaseAgent
-    from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+    from ..coordination.event_payloads import BaseEvent
+    from ..coordination.project_board_manager import ProjectBoardManager
+    from ..core.config import AppConfig
+    from ..core.coordination.agent_bus import AgentBus
+    from .base_agent import BaseAgent
 
     # Import event types that this agent will listen to (adjust as needed)
     # Example: Assume a new event type from Agent 5 for scraped data

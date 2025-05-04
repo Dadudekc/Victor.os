@@ -4,6 +4,7 @@
 import ast  # EDIT: Added import
 import hashlib
 import logging
+import re  # Import re for pattern matching
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -20,6 +21,10 @@ except ImportError:
     logging.warning(
         "PyYAML library not found. Protocol compliance check requires it. Run: pip install PyYAML"  # noqa: E501
     )
+
+# Import AppConfig and ConfigurationError
+from ..core.config import AppConfig
+from ..core.errors import ConfigurationError
 
 # --- Determine Project Root (copied & adapted from standardize_task_list.py) ---
 project_root_found = None
@@ -218,55 +223,90 @@ class TaskStatusAstVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node):
-        # Check for calls to PBM CLI (simplistic check)
-        # TODO: Enhance to check specific CLI commands and args
+        # Check for calls to PBM CLI (enhanced check)
         if (
             isinstance(node.func, ast.Attribute)
             and node.func.attr == "run_terminal_cmd"
         ):
+            cmd_str = None
+            # Extract command string from args or keywords
             if (
                 len(node.args) > 0
                 and isinstance(node.args[0], ast.Constant)
                 and isinstance(node.args[0].value, str)
             ):
                 cmd_str = node.args[0].value
-                if (
-                    "manage_tasks.py complete" in cmd_str
-                    or "manage_tasks.py update" in cmd_str
-                ):
-                    self.found_status_assignment = (
-                        True  # Found potential status update via CLI
-                    )
-                    self.details.append(
-                        f"Found potential status update via PBM CLI call at line {node.lineno}."  # noqa: E501
-                    )
-                    # Cannot easily verify status value from CLI string here
-
-        # Check for calls to update_task_status or similar PBM methods
-        if isinstance(node.func, ast.Attribute):
-            if node.func.attr == "update_task_status":
-                self.found_status_assignment = True
-                self.details.append(
-                    f"Found call to update_task_status at line {node.lineno}."
-                )
-                # Check status keyword arg if possible
+            else:
                 for kw in node.keywords:
                     if (
-                        kw.arg == "status"
+                        kw.arg == "command"
                         and isinstance(kw.value, ast.Constant)
                         and isinstance(kw.value.value, str)
                     ):
-                        status_value = kw.value.value.upper()
-                        if status_value not in VALID_TASK_STATUSES:
-                            self.uses_valid_status = False
+                        cmd_str = kw.value.value
+                        break
+
+            if cmd_str and "manage_tasks.py" in cmd_str:
+                self.details.append(
+                    f"Found PBM CLI call at line {node.lineno}: `{cmd_str[:100]}{'...' if len(cmd_str)>100 else ''}`"
+                )  # Log truncated command
+                try:
+                    # Attempt to parse the command string (basic parsing)
+                    # Note: shlex might struggle with complex pipelines or nested quotes here.
+                    # Use basic string splitting/checking as a robust fallback.
+                    parts = cmd_str.split()
+                    pbm_command = None
+                    status_arg = None
+                    if "manage_tasks.py" in parts:
+                        script_index = parts.index("manage_tasks.py")
+                        if script_index + 1 < len(parts):
+                            pbm_command = parts[script_index + 1]
                             self.details.append(
-                                f" -> Call uses potentially invalid status '{kw.value.value}'."  # noqa: E501
+                                f"  - Identified PBM command: '{pbm_command}'"
                             )
-                        else:
+
+                        # Check for status argument
+                        if "--status" in parts:
+                            status_index = parts.index("--status")
+                            if status_index + 1 < len(parts):
+                                status_arg = parts[status_index + 1].upper()
+                                self.details.append(
+                                    f"  - Identified status argument: '{status_arg}'"
+                                )
+                                if status_arg not in VALID_TASK_STATUSES:
+                                    self.uses_valid_status = False
+                                    self.details.append(
+                                        f"  - WARNING: Potentially invalid status '{status_arg}' used in CLI call."
+                                    )
+                        elif pbm_command in ["complete", "update"]:
+                            # Check if status might be implied or missing when expected
                             self.details.append(
-                                f" -> Call uses valid status '{kw.value.value}'."
+                                f"  - NOTE: PBM command '{pbm_command}' used without explicit --status flag."
                             )
-                        break  # Found status kwarg
+
+                    # Mark that a potential status update occurred
+                    if pbm_command in ["complete", "update", "claim", "promote"]:
+                        self.found_status_assignment = True
+
+                except Exception as e:
+                    self.details.append(
+                        f"  - WARNING: Failed to parse PBM CLI command string: {e}"
+                    )
+
+        # Check for calls to update_task_status or similar PBM methods
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr in [
+                "update_task_status",
+                "update_working_task",
+                "move_task_to_completed",
+                "claim_ready_task",
+                "promote_task_to_ready",
+            ]:
+                self.found_status_assignment = True
+                self.details.append(
+                    f"Found call to PBM method `.{node.func.attr}` at line {node.lineno}."
+                )
+                # Potentially check arguments here if needed for specific status validation
 
         self.generic_visit(node)
 
@@ -390,48 +430,81 @@ def check_mailbox_structure(agent_id: str) -> Tuple[bool, str]:
     return is_compliant, " ".join(details)
 
 
-def _find_agent_source_file(agent_id: str) -> Path | None:
-    """Attempts to locate the source file for a given agent ID.
+# EDIT START: Refactor _find_agent_source_file to use AppConfig
+def _find_agent_source_file(agent_id: str, config: AppConfig) -> Path | None:
+    """Attempts to locate the source file for a given agent ID using AppConfig.
 
-    Placeholder: Assumes a convention like src/dreamos/agents/<agent_id_lower>.py
-    TODO: Replace with a more robust mechanism (e.g., config lookup, registry).
+    Looks for a match in the 'agent_activations' list based on
+    agent_id_override or worker_id_pattern.
     """
-    # Simple convention guess
-    agent_file_name = f"{agent_id.lower().replace('-', '_')}.py"
-    potential_path = project_root_found / "src" / "dreamos" / "agents" / agent_file_name
-    if potential_path.exists():
-        logger.debug(f"Found potential source file for {agent_id} at: {potential_path}")
-        return potential_path
-    else:
-        logger.warning(
-            f"Could not find source file for {agent_id} using convention: {potential_path}"  # noqa: E501
+    if (
+        not config
+        or not hasattr(config, "agent_activations")
+        or not config.agent_activations
+    ):
+        logger.error(
+            "Cannot find agent source: 'agent_activations' not configured in AppConfig."
         )
-        # Try checking common subdirs like 'agents'
-        potential_path_subdir = (
-            project_root_found
-            / "src"
-            / "dreamos"
-            / "agents"
-            / "agents"
-            / agent_file_name
-        )
-        if potential_path_subdir.exists():
-            logger.debug(
-                f"Found potential source file for {agent_id} in subdir: {potential_path_subdir}"  # noqa: E501
-            )
-            return potential_path_subdir
-        logger.error(f"Agent source file location for '{agent_id}' unknown.")
         return None
+
+    for activation_config in config.agent_activations:
+        # Check for direct ID override match
+        if activation_config.agent_id_override == agent_id:
+            logger.debug(f"Found agent {agent_id} via agent_id_override.")
+        # Check pattern match if override doesn't match
+        elif re.match(activation_config.worker_id_pattern, agent_id):
+            logger.debug(
+                f"Found agent {agent_id} via pattern '{activation_config.worker_id_pattern}'."
+            )
+        else:
+            continue  # Not a match for this activation config
+
+        # Found a match, construct the path
+        module_path_str = activation_config.agent_module
+        # Convert module path (e.g., dreamos.agents.agent1) to file path
+        relative_path_parts = module_path_str.split(".")
+        # Assume standard src layout
+        potential_path = (
+            config.paths.project_root
+            / "src"
+            / Path(*relative_path_parts).with_suffix(".py")
+        )
+
+        if potential_path.exists():
+            logger.info(f"Located source file for {agent_id}: {potential_path}")
+            return potential_path
+        else:
+            logger.error(
+                f"Config found for {agent_id}, but source file does not exist: {potential_path}"
+            )
+            return None  # Config entry exists but file doesn't
+
+    logger.error(
+        f"Agent source file location for '{agent_id}' unknown. No matching entry in config.agent_activations."
+    )
+    return None
+
+
+# EDIT END: Refactor _find_agent_source_file
 
 
 def check_agent_bus_usage(agent_id: str) -> Tuple[bool, str]:
     """Checks if agents *could* use standard AgentBus patterns via AST analysis."""
-    # EDIT START: Use AST Visitor
-    agent_file = _find_agent_source_file(agent_id)
+    # EDIT START: Load config and pass to finder
+    try:
+        config = AppConfig.load()  # Load config here
+    except ConfigurationError as e:
+        return (
+            False,
+            f"AgentBus Usage Check ({agent_id}): FAIL - Config load error: {e}",
+        )
+
+    agent_file = _find_agent_source_file(agent_id, config)
+    # EDIT END
     if not agent_file:
         return (
             False,
-            f"AgentBus Usage Check ({agent_id}): FAIL - Source file not found.",
+            f"AgentBus Usage Check ({agent_id}): FAIL - Source file not found (check config.agent_activations).",
         )
 
     try:
@@ -455,12 +528,21 @@ def check_agent_bus_usage(agent_id: str) -> Tuple[bool, str]:
 
 def check_task_status_reporting(agent_id: str) -> Tuple[bool, str]:
     """Checks if agents *could* use standard task statuses via AST analysis."""
-    # EDIT START: Use AST Visitor
-    agent_file = _find_agent_source_file(agent_id)
+    # EDIT START: Load config and pass to finder
+    try:
+        config = AppConfig.load()  # Load config here
+    except ConfigurationError as e:
+        return (
+            False,
+            f"Task Status Usage Check ({agent_id}): FAIL - Config load error: {e}",
+        )
+
+    agent_file = _find_agent_source_file(agent_id, config)
+    # EDIT END
     if not agent_file:
         return (
             False,
-            f"Task Status Usage Check ({agent_id}): FAIL - Source file not found.",
+            f"Task Status Usage Check ({agent_id}): FAIL - Source file not found (check config.agent_activations).",
         )
 
     try:

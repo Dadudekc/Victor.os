@@ -3,6 +3,7 @@
 import asyncio  # Import asyncio for sleep
 import json
 import logging  # Import logging
+import re  # Import re for regex validation
 import shutil
 import sys  # Added for sys.modules check
 from datetime import datetime
@@ -10,6 +11,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional  # Added type hinting
 
 from dreamos.core.comms.mailbox_utils import write_mailbox_message
+
+# Correct import path
+from pydantic import (  # Import Pydantic
+    BaseModel,
+    ValidationError,
+    field_validator,
+)
 
 # Attempt to import BaseAgent - Path needs verification
 try:
@@ -67,6 +75,22 @@ MAILBOX_ROOT_DIR = Path("runtime/agent_comms/agent_mailboxes")
 POLLING_INTERVAL_SECONDS = 5  # How often to check the directory
 
 
+# --- Pydantic Schema for Validation (DEFINE-THEA-MESSAGE-SCHEMA-001) ---
+class TheaMessage(BaseModel):
+    recipient_agent_id: str
+    context_id: Optional[str] = None  # Allow context_id to be optional
+    payload: Dict[str, Any]  # Example: Assume a generic payload dict
+    # Add other required fields based on actual schema
+
+    @field_validator("recipient_agent_id")
+    @classmethod
+    def validate_agent_id_format(cls, v: str) -> str:
+        # ENFORCE-MAILBOX-STD-001 (Agent ID format part)
+        if not re.match(r"^Agent-\d+$", v):
+            raise ValueError("recipient_agent_id must follow 'Agent-X' format")
+        return v
+
+
 class TheaRelayAgent(BaseAgent):
     """
     An agent that monitors a directory for THEA responses, parses them,
@@ -112,29 +136,31 @@ class TheaRelayAgent(BaseAgent):
     def _validate_response(
         self, response: Optional[Dict[str, Any]], filename: str
     ) -> bool:
-        """Basic validation for required fields in the response."""
+        """Validate response against TheaMessage Pydantic schema."""
         if not response:
             self.log.warning(f"Response data is empty for {filename}. Skipping.")
             return False
-        if "recipient_agent_id" not in response:
-            self.log.warning(f"Missing 'recipient_agent_id' in {filename}. Skipping.")
+        try:
+            TheaMessage(**response)  # Validate using Pydantic model
+            self.log.debug(f"Response schema validated successfully for {filename}.")
+            return True
+        except ValidationError as e:
+            self.log.warning(f"Invalid THEA message schema in {filename}: {e}")
             return False
-        # TODO: Add more validation based on DEFINE-THEA-MESSAGE-SCHEMA-001
-        return True
+        # REMOVED old basic validation
+        # TODO REMOVED: Add more validation based on DEFINE-THEA-MESSAGE-SCHEMA-001
 
     def _get_mailbox_path(self, agent_id: str, context_id: str) -> Optional[Path]:
-        """Constructs the target mailbox path, validating agent ID format."""
-        # TODO: Align validation with ENFORCE-MAILBOX-STD-001 standard
-        if (
-            not agent_id
-            or not isinstance(agent_id, str)
-            or not agent_id.startswith("Agent-")
-        ):
+        """Constructs the target mailbox path, validating agent ID format based on ENFORCE-MAILBOX-STD-001."""
+        # Validation now handled by Pydantic model, but keep log message
+        if not re.match(r"^Agent-\d+$", agent_id):
             self.log.warning(
-                f"Invalid recipient_agent_id format: '{agent_id}'. Expected 'Agent-X'. Skipping."  # noqa: E501
+                f"Invalid recipient_agent_id format: '{agent_id}'. Expected 'Agent-X' (Should have been caught by schema validation). Skipping."  # noqa: E501
             )
             return None
-        # Ensure target agent mailbox exists
+        # TODO REMOVED: Align validation with ENFORCE-MAILBOX-STD-001 standard
+
+        # Ensure target agent mailbox exists (ENFORCE-MAILBOX-STD-001 - Path part)
         agent_mailbox_dir = self.mailbox_root_dir / agent_id / "inbox"
         try:
             agent_mailbox_dir.mkdir(parents=True, exist_ok=True)
@@ -143,24 +169,30 @@ class TheaRelayAgent(BaseAgent):
                 f"Failed to create mailbox directory {agent_mailbox_dir}: {e}",
                 exc_info=True,
             )
-            return None  # Cannot proceed if mailbox dir fails
-        return agent_mailbox_dir / f"MSG_FROM_THEA_{context_id}.json"
+            return None
+        # Define message naming convention (ENFORCE-MAILBOX-STD-001 - Naming part)
+        # Use context_id if available, otherwise generate one
+        safe_context_id = re.sub(
+            r"[^a-zA-Z0-9_\-]",
+            "_",
+            context_id or f"gen_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}",
+        )  # Sanitize context_id
+        return agent_mailbox_dir / f"MSG_FROM_THEA_{safe_context_id}.json"
 
     def _dispatch_message(self, response: Dict[str, Any], filename: str) -> bool:
         """Dispatches the parsed response to the correct agent mailbox."""
-        agent_id = response.get("recipient_agent_id")
-        # Use context_id if present, otherwise generate one
-        context_id = response.get(
-            "context_id", f"gen_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
-        )
+        # Extract validated data (Pydantic ensures recipient_agent_id exists)
+        agent_id = response["recipient_agent_id"]
+        context_id = response.get("context_id")  # Already validated as optional
 
         msg_path = self._get_mailbox_path(agent_id, context_id)
         if not msg_path:
-            return False  # Skip dispatch if path generation/validation failed
+            return False
 
-        self.log.info(f"Dispatching '{filename}' to {agent_id} (Context: {context_id})")
+        self.log.info(
+            f"Dispatching '{filename}' to {agent_id} (Context: {context_id or 'Generated'})"
+        )  # Adjust log
         try:
-            # Use the imported (or dummy) mailbox writer
             write_mailbox_message(msg_path, response)
             self.log.info(
                 f"Successfully dispatched to {msg_path.relative_to(Path.cwd())}"

@@ -79,6 +79,59 @@ def get_specific_coordinate(
 
 # --- Add other missing GUI utils here ---
 
+# {{ EDIT START: Add placeholder functions for missing utils }}
+
+
+def copy_text_from_cursor(*args, **kwargs) -> Optional[str]:
+    """**Placeholder:** Copies text from the Cursor window (Not Implemented)."""
+    logger.warning(
+        "Placeholder function 'copy_text_from_cursor' called. Not implemented."
+    )
+    return None
+
+
+def close_browser(*args, **kwargs):
+    """**Placeholder:** Closes the browser used by web agents (Not Implemented)."""
+    logger.warning("Placeholder function 'close_browser' called. Not implemented.")
+    pass
+
+
+def launch_browser(*args, **kwargs):
+    """**Placeholder:** Launches a browser for web agents (Not Implemented)."""
+    logger.warning("Placeholder function 'launch_browser' called. Not implemented.")
+    pass
+
+
+def inject_text_via_mouse(*args, **kwargs):
+    """**Placeholder:** Injects text at current mouse position (Not Implemented)."""
+    logger.warning(
+        "Placeholder function 'inject_text_via_mouse' called. Not implemented."
+    )
+    pass
+
+
+def perform_mouse_action(*args, **kwargs):
+    """**Placeholder:** Performs a generic mouse action (Not Implemented)."""
+    logger.warning(
+        "Placeholder function 'perform_mouse_action' called. Not implemented."
+    )
+    pass
+
+
+def navigate_to_page(*args, **kwargs):
+    """**Placeholder:** Navigates browser to a specific page (Not Implemented)."""
+    logger.warning("Placeholder function 'navigate_to_page' called. Not implemented.")
+    pass
+
+
+def wait_for_login(*args, **kwargs):
+    """**Placeholder:** Waits for a login process to complete (Not Implemented)."""
+    logger.warning("Placeholder function 'wait_for_login' called. Not implemented.")
+    pass
+
+
+# {{ EDIT END }}
+
 
 def load_coordinates(coords_file_path: Path | str) -> Optional[Dict[str, Any]]:
     """Safely loads and parses the JSON coordinate file."""
@@ -358,3 +411,137 @@ def wait_for_element(
 
 
 # EDIT END
+
+
+# {{ EDIT START: Add THEA Response Copy Utility }}
+def copy_thea_reply(
+    anchor_image_path: str,
+    click_offset: Tuple[int, int],
+    confidence: float = 0.9,
+    retries: int = 2,
+    delay_between_actions: float = 0.1,
+) -> Optional[str]:
+    """
+    Attempts to copy the latest THEA reply text from Cursor UI.
+
+    Locates an anchor image (e.g., THEA's avatar) near the last response,
+    clicks nearby using an offset, selects all, copies,
+    and returns clipboard content.
+
+    Args:
+        anchor_image_path: Path to the anchor image (e.g., THEA's avatar).
+        click_offset: (x, y) offset from anchor center to click inside the message.
+        confidence: Confidence level for locating the anchor image.
+        retries: Number of times to retry the copy sequence if validation fails.
+        delay_between_actions: Pause duration between pyautogui actions.
+
+    Returns:
+        The copied text content, or None if unsuccessful.
+    """
+    if (
+        not PYAUTOGUI_AVAILABLE
+        or not pyautogui
+        or not PYPERCLIP_AVAILABLE
+        or not pyperclip
+    ):
+        logger.error(
+            "copy_thea_reply cannot run: pyautogui or pyperclip not available."
+        )
+        return None
+
+    clipboard_placeholder = f"_dreamos_clear_{time.time()}_"
+    original_clipboard = None
+
+    for attempt in range(retries + 1):
+        logger.info(
+            f"Attempting to copy THEA reply (Attempt {attempt + 1}/{retries + 1})..."
+        )
+        try:
+            # 1. Locate Anchor
+            logger.debug(f"Locating anchor image: {anchor_image_path}")
+            anchor_pos = pyautogui.locateCenterOnScreen(
+                anchor_image_path, confidence=confidence, grayscale=True
+            )
+            if not anchor_pos:
+                logger.warning(
+                    f"Anchor image '{Path(anchor_image_path).name}' not found on screen."
+                )
+                if attempt < retries:
+                    time.sleep(0.5 * (attempt + 1))  # Simple backoff
+                    continue
+                else:
+                    return None  # Failed after retries
+            logger.debug(f"Anchor found at: {anchor_pos}")
+
+            # 2. Calculate Click Position
+            click_x = anchor_pos.x + click_offset[0]
+            click_y = anchor_pos.y + click_offset[1]
+            logger.debug(f"Calculated click position: ({click_x}, {click_y})")
+
+            # 3. Prepare Clipboard (Clear)
+            try:
+                original_clipboard = (
+                    pyperclip.paste()
+                )  # Store original to restore later if needed
+                pyperclip.copy(clipboard_placeholder)
+                time.sleep(delay_between_actions / 2)
+                if pyperclip.paste() != clipboard_placeholder:
+                    logger.warning("Clipboard clear verification failed.")
+                    # Continue anyway, maybe copy will overwrite
+            except Exception as clip_err:
+                logger.error(f"Failed to prepare clipboard: {clip_err}")
+                # Don't retry if clipboard interaction fails fundamentally
+                return None
+
+            # 4. Click to Focus
+            pyautogui.click(click_x, click_y, duration=delay_between_actions / 2)
+            time.sleep(delay_between_actions)
+
+            # 5. Select All
+            pyautogui.hotkey(
+                "ctrl", "a"
+            )  # Assuming Windows/Linux, adjust for Mac ('command', 'a') if needed
+            time.sleep(delay_between_actions)
+
+            # 6. Copy
+            pyautogui.hotkey(
+                "ctrl", "c"
+            )  # Assuming Windows/Linux, adjust for Mac ('command', 'c') if needed
+            time.sleep(delay_between_actions * 2)  # Give clipboard time to update
+
+            # 7. Retrieve & Validate
+            copied_text = pyperclip.paste()
+
+            if copied_text != clipboard_placeholder and copied_text.strip():
+                logger.info(f"Successfully copied text (length: {len(copied_text)}).")
+                return copied_text
+            else:
+                logger.warning(
+                    f"Validation failed: Clipboard content empty or unchanged (attempt {attempt + 1})."
+                )
+                # Continue to next retry attempt
+
+        except pyautogui.FailSafeException:
+            logger.error("PyAutoGUI fail-safe triggered (mouse moved to corner?).")
+            return None  # Fail safe means stop
+        except Exception as e:
+            logger.exception(
+                f"Error during THEA reply copy sequence (attempt {attempt + 1}): {e}"
+            )
+            # Fall through to retry logic
+
+        # If loop continues (validation failed or general error), wait before next attempt
+        if attempt < retries:
+            wait_time = 0.5 * (attempt + 1)  # Simple backoff
+            logger.info(f"Waiting {wait_time:.1f}s before retry...")
+            time.sleep(wait_time)
+
+    # If loop finishes without returning, all retries failed
+    logger.error("Failed to copy THEA reply after all retries.")
+    # Optionally restore original clipboard content?
+    # if original_clipboard is not None:
+    #     pyperclip.copy(original_clipboard)
+    return None
+
+
+# {{ EDIT END }}

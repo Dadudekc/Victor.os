@@ -22,6 +22,8 @@ from dreamos.utils.common_utils import get_utc_iso_timestamp
 # Setup a logger for utility functions
 util_logger = logging.getLogger("core.utils")
 
+logger = logging.getLogger(__name__)
+
 
 class AgentError(Exception):
     """Base exception for agent-related errors."""
@@ -390,3 +392,12 @@ async def publish_supervisor_alert(
             exc_info=True,
         )
         raise  # Re-raise the exception so the caller knows publish failed
+
+
+def example_agent_util_function(*args, **kwargs):
+    """Placeholder for a utility function agents might need."""
+    logger.warning("Placeholder agent utility function called.")
+    return None
+
+
+logger.warning("Loaded placeholder: dreamos.agents.utils.agent_utils")

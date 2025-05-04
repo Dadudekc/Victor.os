@@ -167,17 +167,46 @@ def interact_with_cursor(prompt: str) -> str | None:
     if not type_prompt_and_send(prompt):
         return None  # Failed to type/send
 
-    # 3. Wait for Response (Simplistic approach - replace with better check if possible)
-    # TODO: Implement a more robust check for response completion if possible
-    #       (e.g., image recognition of 'thinking' indicator, OCR of response area)
+    # 3. Wait for Response (Enhanced approach)
     logger.info(
-        f"Waiting approximately {RESPONSE_WAIT_TIMEOUT}s for Cursor to "
-        "generate response..."
+        f"Waiting approximately {RESPONSE_WAIT_TIMEOUT}s for Cursor to generate response..."
     )
-    time.sleep(RESPONSE_WAIT_TIMEOUT)  # Simple wait - unreliable
 
-    # 4. Copy Response
-    response_text = copy_cursor_response()
+    # --- Enhanced Wait/Check ---
+    initial_clipboard = pyperclip.paste()  # Store clipboard before waiting
+    # time.sleep(RESPONSE_WAIT_TIMEOUT)  # Simple wait - unreliable - REMOVED
+
+    # Basic check loop (still relies heavily on timing)
+    start_time = time.time()
+    response_text = None
+    while time.time() - start_time < RESPONSE_WAIT_TIMEOUT:
+        # Attempt copy operation
+        current_response_attempt = copy_cursor_response()
+
+        # Check if clipboard content has changed significantly and is not empty
+        if current_response_attempt and current_response_attempt != initial_clipboard:
+            logger.info("Detected clipboard change. Assuming response completion.")
+            response_text = current_response_attempt
+            break  # Exit loop once a changed response is found
+        else:
+            logger.debug(
+                f"Clipboard content unchanged or empty. Waiting... (Elapsed: {time.time() - start_time:.1f}s)"
+            )
+            time.sleep(RESPONSE_CHECK_INTERVAL)  # Wait before next check
+
+    if not response_text:
+        logger.warning(
+            f"Timeout ({RESPONSE_WAIT_TIMEOUT}s) reached or no response detected/copied."
+        )
+        # Attempt one final copy just in case
+        response_text = copy_cursor_response()
+        if not response_text or response_text == initial_clipboard:
+            logger.error("Final copy attempt also failed or yielded no change.")
+            response_text = None  # Ensure return is None if truly failed
+    # --- End Enhanced Wait/Check ---
+
+    # 4. Copy Response - This is now handled within the loop above
+    # response_text = copy_cursor_response()
 
     if response_text:
         logger.info("--- Cursor Interaction Completed Successfully ---")

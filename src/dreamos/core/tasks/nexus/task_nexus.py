@@ -18,10 +18,14 @@ from pydantic import BaseModel, Field, ValidationError
 try:
     from dreamos.core.config import PROJECT_ROOT
 except ImportError:
-    logging.warning("Could not import PROJECT_ROOT from core config, calculating relatively.")
-    PROJECT_ROOT = Path(__file__).resolve().parents[4] # Adjust depth if needed
+    logging.warning(
+        "Could not import PROJECT_ROOT from core config, calculating relatively."
+    )
+    PROJECT_ROOT = Path(__file__).resolve().parents[4]  # Adjust depth if needed
 
-DEFAULT_TASK_FILE = PROJECT_ROOT / "runtime" / "agent_comms" / "central_task_boards" / "task_list.json" # Updated path based on config
+DEFAULT_TASK_FILE = (
+    PROJECT_ROOT / "runtime" / "agent_comms" / "central_task_boards" / "task_list.json"
+)  # Updated path based on config
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +34,7 @@ logger = logging.getLogger(__name__)
 class Task(BaseModel):
     task_id: str
     description: str
-    status: str = "pending" # Default status
+    status: str = "pending"  # Default status
     priority: str = "medium"
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -45,33 +49,39 @@ class TaskNexus:
 
     def __init__(self, task_file: Union[str, Path] = DEFAULT_TASK_FILE):
         self.task_file_path = Path(task_file)
-        self._lock = threading.Lock() # Basic locking for file access
+        self._lock = threading.Lock()  # Basic locking for file access
         self.tasks: List[Task] = self._load()
-        logger.info(f"TaskNexus initialized. Loaded {len(self.tasks)} tasks from {self.task_file_path}")
+        logger.info(
+            f"TaskNexus initialized. Loaded {len(self.tasks)} tasks from {self.task_file_path}"
+        )
 
     def _load(self) -> List[Task]:
         """Loads tasks from the JSON file."""
         with self._lock:
             if not self.task_file_path.exists():
-                logger.warning(f"Task file {self.task_file_path} not found, initializing empty list.")
+                logger.warning(
+                    f"Task file {self.task_file_path} not found, initializing empty list."
+                )
                 # Ensure directory exists
                 self.task_file_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(self.task_file_path, 'w') as f:
+                with open(self.task_file_path, "w") as f:
                     json.dump([], f)
                 return []
             try:
-                with open(self.task_file_path, 'r') as f:
+                with open(self.task_file_path, "r") as f:
                     tasks_data = json.load(f)
                 # Validate data against Task model
                 validated_tasks = [Task(**task_data) for task_data in tasks_data]
                 return validated_tasks
             except (json.JSONDecodeError, ValidationError, FileNotFoundError) as e:
-                logger.error(f"Error loading tasks from {self.task_file_path}: {e}. Returning empty list.")
+                logger.error(
+                    f"Error loading tasks from {self.task_file_path}: {e}. Returning empty list."
+                )
                 # Consider backup/recovery mechanism here
                 return []
             except Exception as e:
-                 logger.exception(f"Unexpected error loading tasks: {e}")
-                 return []
+                logger.exception(f"Unexpected error loading tasks: {e}")
+                return []
 
     def _save(self):
         """Saves the current task list to the JSON file."""
@@ -80,13 +90,15 @@ class TaskNexus:
                 # Ensure directory exists before saving
                 self.task_file_path.parent.mkdir(parents=True, exist_ok=True)
                 tasks_data = [task.model_dump() for task in self.tasks]
-                with open(self.task_file_path, 'w') as f:
+                with open(self.task_file_path, "w") as f:
                     json.dump(tasks_data, f, indent=2)
                 logger.debug(f"Saved {len(self.tasks)} tasks to {self.task_file_path}")
             except Exception as e:
                 logger.exception(f"Error saving tasks to {self.task_file_path}: {e}")
 
-    def get_next_task(self, agent_id: Optional[str] = None, type_filter: Optional[str] = None) -> Optional[Task]:
+    def get_next_task(
+        self, agent_id: Optional[str] = None, type_filter: Optional[str] = None
+    ) -> Optional[Task]:
         """Return first pending task, mark as claimed, and save."""
         # Note: type_filter is not part of the basic spec, added for potential future use
         with self._lock:
@@ -99,7 +111,7 @@ class TaskNexus:
                     task.status = "claimed"
                     task.claimed_by = agent_id if agent_id else "unknown_agent"
                     task.updated_at = datetime.utcnow().isoformat()
-                    self._save() # Save immediately after claiming
+                    self._save()  # Save immediately after claiming
                     logger.info(f"Task {task.task_id} claimed by {task.claimed_by}")
                     return task
             logger.debug("No pending tasks found.")
@@ -111,7 +123,9 @@ class TaskNexus:
             try:
                 # Ensure required fields are present (basic check)
                 if "task_id" not in task_dict or "description" not in task_dict:
-                     raise ValueError("Task dictionary must contain 'task_id' and 'description'")
+                    raise ValueError(
+                        "Task dictionary must contain 'task_id' and 'description'"
+                    )
 
                 # Set defaults if not present
                 task_dict.setdefault("status", "pending")
@@ -130,7 +144,9 @@ class TaskNexus:
                 logger.exception(f"Failed to add task: {e}")
                 raise
 
-    def update_task_status(self, task_id: str, status: str, result: Optional[Any] = None) -> bool:
+    def update_task_status(
+        self, task_id: str, status: str, result: Optional[Any] = None
+    ) -> bool:
         """Change status of given task and save."""
         with self._lock:
             for task in self.tasks:
@@ -153,7 +169,7 @@ class TaskNexus:
         """Return all tasks or filter by status."""
         # Return a copy to prevent external modification of internal list
         with self._lock:
-             tasks_copy = [task.model_copy() for task in self.tasks]
+            tasks_copy = [task.model_copy() for task in self.tasks]
 
         if status:
             return [task for task in tasks_copy if task.status == status]

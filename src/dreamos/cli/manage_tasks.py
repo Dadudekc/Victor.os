@@ -57,7 +57,6 @@ except ImportError as e:
 DEFAULT_BOARDS_BASE_DIR = PROJECT_ROOT / "runtime" / "agent_comms" / "project_boards"
 WORKING_TASKS_FILENAME = "working_tasks.json"
 COMPLETED_TASKS_FILENAME = "completed_tasks.json"
-# FUTURE_TASKS_FILENAME = "future_tasks.json" # Deprecated
 TASK_BACKLOG_FILENAME = "task_backlog.json"
 TASK_READY_QUEUE_FILENAME = "task_ready_queue.json"
 

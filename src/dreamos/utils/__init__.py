@@ -4,7 +4,6 @@
 #       cascading failures after recent refactoring.
 #       A dedicated task should be created to clean up src/dreamos/utils/
 #       and its __init__.py.
-# REFACTOR Agent-7: Apply model failed to remove commented lines below (load/save json/yaml). Remove manually.  # noqa: E501
 
 # Import specific utilities instead of wildcard imports to avoid F403 and fix F401
 
@@ -20,16 +19,17 @@ from .project_root import find_project_root  # F401 fix - keep if used, remove i
 # from .protocol_compliance_utils import (  # ... import other needed functions ...
 #     check_task_schema,
 # )
-from .schema_validator import validate_schema  # Import specific validator
-from .search import (  # Import specific search functions
-    fuzzy_find_file,
-    regex_search_files,
-)
-from .text import (  # ... import other needed functions ...
-    extract_code_block,
-    generate_uuid,
-)
-from .validation import is_valid_uuid  # Import specific validation
+from .schema_validator import validate_payload  # Import specific validator
+
+# EDIT: Remove missing imports
+# from .search import (  # Import specific search functions
+#     fuzzy_find_file,
+#     regex_search_files,
+# )
+from .search import run_ripgrep_search  # Import the existing function
+from .text import sanitize_filename  # Import existing
+
+# from .validation import is_valid_uuid  # REMOVED Import from deleted module
 
 # Ensure all imported names are actually used in the codebase.
 # If any `from .module import func` above results in F401 later, remove that line.
@@ -43,13 +43,14 @@ __all__ = [
     "get_specific_coordinate",  # Remove if unused
     # "check_task_schema",
     "find_project_root",  # Remove if unused
-    "validate_schema",
-    "fuzzy_find_file",
-    "regex_search_files",
-    "extract_code_block",
-    "generate_uuid",
-    "is_valid_uuid",
-    "validate_agent_id",
+    "validate_payload",
+    # EDIT: Remove missing entries, add existing
+    # "fuzzy_find_file",
+    # "regex_search_files",
+    "run_ripgrep_search",
+    "sanitize_filename",
+    # "is_valid_uuid", # REMOVED reference
+    # "validate_agent_id", # REMOVED non-existent reference
     # Add specific names from coords, dream_mode_utils etc. if they are used and imported  # noqa: E501
     # Example: "CoordinateManager", "select_dream_mode"
 ]

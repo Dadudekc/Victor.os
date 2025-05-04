@@ -2,13 +2,16 @@ import asyncio
 import collections
 import logging
 import uuid
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import Dict, List, Optional
+
+from dreamos.core.db.sqlite_adapter import SQLiteAdapter  # Import adapter for init
 
 from ..comms.project_board import ProjectBoardManager
 from ..errors import ProjectBoardError, TaskNotFoundError
 from .capability_handler import CapabilityHandler  # To check capabilities
+
+# Import the new DB-backed Task Nexus
+from .db_task_nexus import DbTaskNexus
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +23,23 @@ class TaskOperationsHandler:
         self,
         board_manager: ProjectBoardManager,
         capability_handler: CapabilityHandler,
-        # agent_registry_handler: AgentRegistryHandler, # Needed for dependency check - PBM handles now?  # noqa: E501
-        future_tasks_path: Path,  # Needed for add_task
-        future_tasks_lock_path: Path,  # Needed for add_task
+        adapter: SQLiteAdapter,  # Accept adapter directly
+        # Remove file paths, they are handled by adapter/DbTaskNexus
+        # future_tasks_path: Path,
+        # future_tasks_lock_path: Path,
     ):
         self.board_manager = board_manager
         self.capability_handler = capability_handler
-        # self.agent_registry_handler = agent_registry_handler
-        self.future_tasks_path = future_tasks_path
-        self.future_tasks_lock_path = future_tasks_lock_path
+        # Instantiate the new DbTaskNexus
+        try:
+            self.task_nexus = DbTaskNexus(adapter=adapter)
+        except Exception as e:
+            logger.critical(f"Failed to initialize DbTaskNexus: {e}", exc_info=True)
+            self.task_nexus = None  # Ensure it's None if init fails
+
+        # Remove references to paths
+        # self.future_tasks_path = future_tasks_path
+        # self.future_tasks_lock_path = future_tasks_lock_path
 
         if not self.board_manager:
             logger.error(
@@ -37,6 +48,10 @@ class TaskOperationsHandler:
         if not self.capability_handler:
             logger.error(
                 "TaskOperationsHandler initialized without a CapabilityHandler!"
+            )
+        if not self.task_nexus:
+            logger.error(
+                "TaskOperationsHandler failed to initialize DbTaskNexus! Task operations will fail."
             )
 
     # --- Dependency Check Helper --- (Moved from TaskNexus)
@@ -213,31 +228,30 @@ class TaskOperationsHandler:
 
     # --- Add Task --- (Moved from TaskNexus, now simpler)
     async def add_task(self, task_dict: Dict) -> bool:
-        """Adds a task to the future queue via ProjectBoardManager."""
-        if not self.board_manager:
-            logger.error("ProjectBoardManager not available, cannot add task.")
+        """Adds a task via DbTaskNexus."""
+        if not self.task_nexus:
+            logger.error("DbTaskNexus not available, cannot add task.")
             return False
 
-        task_dict.setdefault("status", "PENDING")
+        # DbTaskNexus expects a dict
+        task_dict.setdefault("status", "PENDING")  # Ensure status is set
         if "task_id" not in task_dict and "id" not in task_dict:
             task_dict["task_id"] = f"task_{uuid.uuid4().hex[:8]}"
         task_id = task_dict.get("task_id", task_dict.get("id"))
-        task_dict.setdefault("created_at", datetime.now(timezone.utc).isoformat())
-        task_dict["timestamp_updated"] = datetime.now(timezone.utc).isoformat()
 
         try:
-            success = await asyncio.to_thread(
-                self.board_manager.add_future_task, task_dict
-            )
-            if success:
-                logger.info(
-                    f"Added task {task_id} to future queue via ProjectBoardManager."
-                )
+            # DbTaskNexus add_task returns the added task dict or None on failure
+            added_task = await asyncio.to_thread(self.task_nexus.add_task, task_dict)
+            if added_task:
+                logger.info(f"Added task {task_id} via DbTaskNexus.")
+                return True
             else:
-                logger.warning(f"ProjectBoardManager failed to add task {task_id}.")
-            return success
+                logger.warning(f"DbTaskNexus failed to add task {task_id}.")
+                return False
         except Exception as e:
-            logger.error(f"Error adding task {task_id}: {e}", exc_info=True)
+            logger.error(
+                f"Error adding task {task_id} via DbTaskNexus: {e}", exc_info=True
+            )
             return False
 
     # --- Update Task Status --- (Moved from TaskNexus, still needs careful review)
@@ -245,36 +259,32 @@ class TaskOperationsHandler:
         self,
         task_id: str,
         status: str,
-        agent_id: Optional[str] = None,
+        agent_id: Optional[str] = None,  # Passed through?
         notes: Optional[str] = None,
         **kwargs,
     ) -> bool:
-        """Updates a task's status and other fields on the working board via ProjectBoardManager."""  # noqa: E501
-        if not self.board_manager:
-            logger.error(
-                "ProjectBoardManager not available, cannot update task status."
-            )
+        """Updates a task's status and other fields via DbTaskNexus."""  # noqa: E501
+        if not self.task_nexus:
+            logger.error("DbTaskNexus not available, cannot update task status.")
             return False
 
         updates = {
             "status": status,
-            "timestamp_updated": datetime.now(timezone.utc).isoformat(
-                timespec="milliseconds"
-            )
-            + "Z",
+            # Add other relevant fields from kwargs or direct params
         }
         if agent_id is not None:
-            updates["assigned_agent"] = agent_id  # PBM should handle claimed_by logic
+            updates["agent_id"] = agent_id
         if notes is not None:
-            # PBM expects full replacement, caller should handle appending if needed
-            updates["notes"] = notes
+            # Consider how notes are handled - append or replace?
+            # Assuming DbTaskNexus expects full replacement or handles appending.
+            pass  # Add notes to updates if needed
 
-        # Allow common extra fields to be passed through
+        # Add other allowed fields from kwargs
         allowed_extra_updates = {
-            "result_status",
-            "started_at",
+            "result_summary",
             "completed_at",
-            "result_data",
+            "payload",
+            "result_status",
             "error_message",
             "progress",
             "scoring",
@@ -282,37 +292,30 @@ class TaskOperationsHandler:
         for key, value in kwargs.items():
             if key in allowed_extra_updates:
                 updates[key] = value
-            else:
-                logger.warning(
-                    f"Ignoring disallowed extra update field '{key}' in update_task_status."  # noqa: E501
-                )
+
+        # Special handling for unclaiming?
+        if status in ["completed", "failed", "cancelled", "pending"]:
+            updates["agent_id"] = None  # Ensure agent is cleared
 
         try:
-            log_msg = f"Delegating update for task {task_id} to status {status} via ProjectBoardManager."  # noqa: E501
-            logger.info(log_msg)
             success = await asyncio.to_thread(
-                self.board_manager.update_working_task, task_id, updates
+                self.task_nexus.update_task, task_id, updates
             )
             if success:
-                logger.info(f"ProjectBoardManager successfully updated task {task_id}.")
+                logger.debug(
+                    f"Update task {task_id} status to {status} via DbTaskNexus succeeded."
+                )
             else:
                 logger.warning(
-                    f"ProjectBoardManager failed to update task {task_id} (task not found or write error)."  # noqa: E501
+                    f"Update task {task_id} status to {status} via DbTaskNexus failed."
                 )
             return success
-        # THIS IS THE BLOCK WITH THE ORIGINAL SYNTAX ERROR - ensure it's correct here
-        except ProjectBoardError as e:
+        except Exception as e:
             logger.error(
-                f"ProjectBoardError during task update delegation for {task_id}: {e}"
-            )
-            return False
-        except Exception as e_unexp:  # Catch unexpected errors during delegation
-            logger.error(
-                f"Unexpected error during task update delegation for {task_id}: {e_unexp}",  # noqa: E501
+                f"Error updating task {task_id} status via DbTaskNexus: {e}",
                 exc_info=True,
             )
             return False
-        # Removed the outer mis-indented except block from original TaskNexus
 
     # --- Get All Tasks / Stats --- (Moved from TaskNexus)
     async def get_all_tasks(

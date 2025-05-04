@@ -4,24 +4,25 @@ import uuid
 from typing import Any, Dict, Optional, Tuple
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
-
-# --- Core DreamOS Imports ---
-from dreamos.coordination.base_agent import BaseAgent
-
-# EDIT START: Import PBM
-from dreamos.coordination.project_board_manager import (
-    ProjectBoardManager,
-    TaskClaimError,
-    TaskStatus,
-)
 from dreamos.core.comms.mailbox_utils import (
     delete_message,
     list_mailbox_messages,
     read_message,
 )
-from dreamos.core.config import AppConfig
 from dreamos.core.coordination.message_patterns import TaskMessage
 from dreamos.core.eventing.publishers import publish_cursor_inject_event
+
+from ..coordination.project_board_manager import (
+    ProjectBoardManager,
+    TaskClaimError,
+    TaskStatus,
+)
+
+# EDIT START: Import PBM
+from ..core.config import AppConfig
+
+# --- Core DreamOS Imports ---
+from .base_agent import BaseAgent
 
 # EDIT END
 

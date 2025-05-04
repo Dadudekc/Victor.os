@@ -69,39 +69,59 @@ def get_blob_channel(config: AppConfig):
                 azure_config.container_name or "dreamos-tasks"
             )  # Default if not in config
 
-            # EDIT START: Pass account_url to AzureBlobChannel constructor
-            # Initialize client first, then pass it
+            credential = None
             if conn_str:
+                # Connection string handles auth internally
                 blob_service_client = BlobServiceClient.from_connection_string(conn_str)
-            elif account_url and sas_token:
-                # Assume SAS token or other credential for account_url case
-                blob_service_client = BlobServiceClient(
-                    account_url=account_url, credential=sas_token
-                )
-            # TODO: Add support for other credential types if needed (e.g., DefaultAzureCredential)  # noqa: E501
-            elif account_url:  # Maybe using DefaultAzureCredential?
-                logger.warning(
-                    "account_url provided without explicit credential (SAS/connection string). Assuming DefaultAzureCredential is configured."  # noqa: E501
-                )
-                from azure.identity import DefaultAzureCredential
+            elif account_url:
+                if sas_token:
+                    # Use SAS token if provided
+                    credential = sas_token
+                    logger.info("Using SAS Token credential for Azure Blob Storage.")
+                else:
+                    # Attempt DefaultAzureCredential (async version)
+                    logger.info(
+                        "Attempting DefaultAzureCredential for Azure Blob Storage."
+                    )
+                    try:
+                        from azure.identity.aio import DefaultAzureCredential
 
-                blob_service_client = BlobServiceClient(  # noqa: F841
-                    account_url=account_url, credential=DefaultAzureCredential()
-                )
+                        credential = DefaultAzureCredential()
+                    except ImportError:
+                        logger.error(
+                            "Azure identity library not found ('pip install azure-identity'). Cannot use DefaultAzureCredential."  # noqa: E501
+                        )
+                        raise ValueError(
+                            "Azure identity library required for DefaultAzureCredential"
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to initialize DefaultAzureCredential: {e}",
+                            exc_info=True,
+                        )
+                        raise ValueError(
+                            f"DefaultAzureCredential initialization failed: {e}"
+                        )
+
+                if credential:
+                    blob_service_client = BlobServiceClient(
+                        account_url=account_url, credential=credential
+                    )
+                else:
+                    # This path should ideally not be reached if credential logic is correct
+                    raise ValueError(
+                        "Could not determine appropriate Azure credential."
+                    )
             else:
                 raise ValueError(
-                    "Azure Blob config requires connection_string OR account_url (with optional sas_token)."  # noqa: E501
+                    "Azure Blob config requires connection_string OR account_url."  # Removed sas_token from here
                 )
 
             logger.info(f"Info: Using AzureBlobChannel (Container: {container_name})")
+            # Pass the initialized client to the channel constructor
             return AzureBlobChannel(
-                # Pass client directly if constructor supports it, else pass config values  # noqa: E501
-                # Assuming constructor is updated as below:
+                blob_service_client=blob_service_client,
                 container_name=container_name,
-                connection_string=conn_str,  # Pass original config values
-                sas_token=sas_token,
-                account_url=account_url,
-                # blob_service_client=blob_service_client, # Alternative if constructor takes client  # noqa: E501
             )
             # EDIT END
         except Exception as e:

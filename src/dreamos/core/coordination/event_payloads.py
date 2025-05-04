@@ -132,10 +132,19 @@ class MemoryEventData(BaseModel):
 
 # Add more specific payloads as needed, e.g., for Cursor events
 class CursorInjectRequestPayload(BaseModel):
-    target_file: str
-    content: str
-    line_number: Optional[int] = None  # Optional target line
-    correlation_id: str
+    """Payload for when a prompt injection is requested for a specific agent."""
+
+    agent_id: str = Field(..., description="The target agent ID for the injection.")
+    prompt: str = Field(..., description="The prompt text to be injected.")
+    # Optionally include correlation_id if it should be part of the core payload
+    # correlation_id: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        # Simple dict conversion, handle potential Pydantic v1/v2 differences
+        if hasattr(self, "model_dump"):
+            return self.model_dump(mode="json")  # Pydantic v2
+        else:
+            return self.dict()  # Pydantic v1
 
 
 class CursorRetrieveRequestPayload(BaseModel):

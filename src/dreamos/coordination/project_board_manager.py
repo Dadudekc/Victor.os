@@ -65,9 +65,6 @@ class ProjectBoardManager:
     def __init__(
         self,
         config: AppConfig,  # Pass the full AppConfig object
-        # Remove boards_base_dir and project_root as they are now derived from config
-        # boards_base_dir: str | Path, # Deprecated
-        # project_root: str | Path = ".", # Deprecated
         lock_timeout: int = DEFAULT_LOCK_TIMEOUT,
     ):
         """Initialize the board manager with paths and configuration from AppConfig."""
@@ -271,10 +268,6 @@ class ProjectBoardManager:
     def _save_completed_tasks(self, data: list[dict]):
         self._save_file(self.completed_tasks_path, data)
 
-    # Deprecate load_boards() as tasks are loaded on demand within methods
-    # def load_boards(self):
-    #     ...
-
     def _load_schema(self) -> Optional[Dict[str, Any]]:
         """Loads the task JSON schema file using path from AppConfig."""
         # EDIT START: Use AppConfig for schema path
@@ -433,12 +426,6 @@ class ProjectBoardManager:
                         f"Failed to release lock for {file_path}: {e}", exc_info=True
                     )
 
-    # Deprecate save_boards() as tasks are saved individually by methods
-    # def save_boards(self):
-    #    ...
-
-    # ... (_dummy_lock context manager might be useful for multi-file ops later) ...
-
     def get_task(
         self,
         task_id: str,
@@ -484,10 +471,6 @@ class ProjectBoardManager:
             f"Task ID '{task_id}' not found on any board checked ({board})."
         )
         return None
-
-    # Remove list_future_tasks
-    # def list_future_tasks(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
-    #     ...
 
     def list_backlog_tasks(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
         """Lists tasks on the backlog, optionally filtering by status."""

@@ -38,9 +38,16 @@ from dreamos.coordination.event_payloads import (
     CursorResultPayload,
 )
 from dreamos.core.config import AppConfig
+from dreamos.core.coordination.event_payloads import (
+    CursorInjectRequestPayload,
+)
 
+# EDIT END # ADDED BY THEA / Agent-1 Auto-Correction
 # EDIT START: Import core ToolError and new wait utility
 from dreamos.core.errors import ToolError as CoreToolError
+
+# EDIT START: Import retry decorator # ADDED BY THEA / Agent-1 Auto-Correction
+from dreamos.utils.decorators import retry_on_exception
 from dreamos.utils.gui_utils import wait_for_element
 
 # EDIT START: Remove unused Selenium imports
@@ -332,11 +339,19 @@ class CursorOrchestrator:
         )
 
         try:
+            # EDIT START: Create and pass payload for CURSOR_INJECT_REQUEST
+            inject_request_payload = CursorInjectRequestPayload(
+                agent_id=agent_id,
+                prompt=prompt,  # Pass the prompt being injected
+            )
             await self._set_agent_status(
                 agent_id,
                 "INJECTING",
-                event_type=EventType.CURSOR_INJECT_REQUEST,  # TODO: Add payload?
+                event_type=EventType.CURSOR_INJECT_REQUEST,
+                event_data=inject_request_payload.to_dict(),  # Pass serialized payload
             )
+            # EDIT END
+
             # Use tenacity for retries
             retryer = tenacity.AsyncRetrying(
                 stop=tenacity.stop_after_attempt(self.config.retry_attempts),
@@ -779,160 +794,81 @@ class CursorOrchestrator:
 
         return retrieved_text if success else None
 
+    @retry_on_exception(
+        max_attempts=3, exceptions=RETRYABLE_UI_EXCEPTIONS, delay=1.0, logger=logger
+    )
     def _perform_copy_sequence(
         self, x: int, y: int, agent_id_for_log: str
     ) -> Optional[str]:
-        """Executes the PyAutoGUI sequence for copying text, including validation and retries.
-        Handles potential UI automation exceptions.
-        """  # noqa: E501
-        if not pyautogui or not pyperclip:
-            raise CursorOrchestratorError("PyAutoGUI or Pyperclip is not available")
-
-        logger.debug(f"_perform_copy_sequence for {agent_id_for_log} starting.")
-        original_pos = pyautogui.position()
-        clipboard_placeholder = f"_dreamos_clear_{time.time()}_"  # Unique placeholder
-        # EDIT START: Use config value for max attempts
-        # MAX_COPY_ATTEMPTS = 2 # Initial attempt + 1 retry # OLD Hardcoded value
-        max_copy_attempts = self.config.copy_attempts
-        # EDIT END
-        clipboard_content = None
+        """Clicks the copy button and retrieves text from the clipboard."""
+        logger.info(f"Attempting copy sequence for agent {agent_id_for_log}...")
+        if not self._check_and_recover_focus(
+            self.config.target_window_title, agent_id_for_log
+        ):
+            logger.warning(
+                f"Focus check/recovery failed for agent {agent_id_for_log} before copy."
+            )
+            # Proceed cautiously, focus might be okay or user might intervene
 
         try:
-            # Move mouse only once
+            initial_clipboard = pyperclip.paste()
+            logger.debug("Cleared clipboard (initial content check)")
+            pyperclip.copy("")  # Clear clipboard before clicking copy
+
+            # Short pause before click
+            time.sleep(self.config.pause_before_action)
+
             logger.debug(
-                f"[{agent_id_for_log}] Moving mouse to Copy button ({x}, {y})..."
+                f"Clicking copy coordinates for {agent_id_for_log}: ({x}, {y})"
             )
-            pyautogui.moveTo(x, y, duration=0.1)
-            time.sleep(0.1)
+            pyautogui.click(x, y)
+            logger.debug("Copy button clicked.")
 
-            for attempt in range(max_copy_attempts):  # EDIT: Use variable
-                logger.info(
-                    f"[{agent_id_for_log}] Copy attempt {attempt + 1}/{max_copy_attempts}..."  # noqa: E501
-                )
-                clipboard_content = None  # Reset for this attempt
-
-                # EDIT START: Check focus before clicking Copy
-                # Assume self.config.gui_automation.target_window_title holds the expected title  # noqa: E501
-                target_window_title = self.config.target_window_title
-                if not self._check_and_recover_focus(
-                    target_window_title, agent_id_for_log
-                ):
-                    logger.warning(
-                        f"[{agent_id_for_log}] Window focus lost or recovery failed before Copy click (attempt {attempt+1}). Skipping click."  # noqa: E501
-                    )
-                    # Don't click if focus is wrong, let retry loop handle it
-                    if attempt < max_copy_attempts - 1:  # EDIT: Use variable
-                        time.sleep(0.5)  # Pause before retry
-                        continue  # Go to next attempt
-                    else:
-                        break  # Max attempts reached
-                # EDIT END
-
-                # -- Clear clipboard --
+            # Wait for clipboard to update, WITH TIMEOUT
+            clipboard_wait_start = time.monotonic()
+            clipboard_timeout = self.config.get(
+                "clipboard_wait_timeout", 5.0
+            )  # Get timeout from config or default to 5s
+            copied_text = None
+            while time.monotonic() - clipboard_wait_start < clipboard_timeout:
                 try:
-                    pyperclip.copy(clipboard_placeholder)
-                    time.sleep(0.05)  # Ensure clipboard system processes clear
-                    if pyperclip.paste() != clipboard_placeholder:
-                        logger.warning(
-                            f"[{agent_id_for_log}] Clipboard clear verification failed (attempt {attempt+1})."  # noqa: E501
+                    current_clipboard = pyperclip.paste()
+                    if current_clipboard and current_clipboard != initial_clipboard:
+                        copied_text = current_clipboard
+                        logger.info(
+                            f"Clipboard updated for agent {agent_id_for_log} after {time.monotonic() - clipboard_wait_start:.2f}s."
                         )
-                except PyperclipException as clear_err:
-                    logger.error(
-                        f"[{agent_id_for_log}] Failed to clear clipboard (attempt {attempt+1}): {clear_err}"  # noqa: E501
-                    )
-                    break  # Exit retry loop
+                        break  # Exit loop successfully
+                    time.sleep(0.1)  # Short poll interval
+                except PyperclipException as clip_err:
+                    # Handle potential intermittent clipboard access errors during polling
+                    logger.warning(f"Error accessing clipboard during wait: {clip_err}")
+                    time.sleep(0.2)  # Slightly longer pause after error
 
-                # -- Click Copy --
-                logger.debug(
-                    f"[{agent_id_for_log}] Clicking Copy button (attempt {attempt+1})..."  # noqa: E501
-                )
-                pyautogui.click()  # Click at current location (already moved)
-
-                # -- Poll Clipboard --
-                wait_start_time = time.time()
-                clipboard_timeout = 2.0  # seconds
-                poll_interval = 0.1  # seconds
-                polled_content = None
-                while time.time() - wait_start_time < clipboard_timeout:
-                    try:
-                        current_clipboard = pyperclip.paste()
-                        if current_clipboard != clipboard_placeholder:
-                            polled_content = current_clipboard
-                            logger.debug(
-                                f"[{agent_id_for_log}] Clipboard content changed after {(time.time() - wait_start_time):.2f}s (attempt {attempt+1})."  # noqa: E501
-                            )
-                            break  # Content acquired for validation
-                    except PyperclipException as clip_err:
-                        logger.warning(
-                            f"[{agent_id_for_log}] Error reading clipboard while polling (attempt {attempt+1}): {clip_err}"  # noqa: E501
-                        )
-                        break  # Exit polling loop on error
-                    time.sleep(poll_interval)
-
-                if polled_content is None:
-                    logger.warning(
-                        f"[{agent_id_for_log}] Clipboard content did not change from placeholder within {clipboard_timeout}s (attempt {attempt+1})."  # noqa: E501
-                    )
-                    # Continue to next retry attempt if any remain
-                    if attempt < max_copy_attempts - 1:  # EDIT: Use variable
-                        time.sleep(0.5)  # Pause before retry
-                    else:
-                        break  # Max attempts reached
-
-                # -- Validate Clipboard Content --
-                if (
-                    polled_content and polled_content.strip()
-                ):  # Check not None and not just whitespace
-                    # Optional: Add more specific checks like startswith('```') if needed  # noqa: E501
-                    # if polled_content.strip().startswith("```"):
-                    logger.info(
-                        f"[{agent_id_for_log}] Clipboard content validated (non-empty) (attempt {attempt+1})."  # noqa: E501
-                    )
-                    clipboard_content = polled_content  # Assign valid content
-                    break  # Exit retry loop, content is valid
-                    # else:
-                    #    logger.warning(f"[{agent_id_for_log}] Clipboard content validation failed: Did not start with expected pattern (attempt {attempt+1}).")  # noqa: E501
-                else:
-                    logger.warning(
-                        f"[{agent_id_for_log}] Clipboard content validation failed: Content is None or empty/whitespace (attempt {attempt+1})."  # noqa: E501
-                    )
-
-                # If validation failed, pause and continue to next retry attempt if any remain  # noqa: E501
-                if attempt < max_copy_attempts - 1:  # EDIT: Use variable
-                    logger.info(f"[{agent_id_for_log}] Retrying copy operation...")
-                    time.sleep(0.5)  # Pause before retry
-                # else: loop finishes, final failure logged below
-
-            # -- End of Retry Loop --
-
-            if clipboard_content:
-                logger.info(
-                    f"[{agent_id_for_log}] Successfully retrieved and validated clipboard content (length: {len(clipboard_content)})."  # noqa: E501
-                )
-                # Restore mouse position before returning success
-                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
-                return clipboard_content
-            else:
+            if copied_text is None:
                 logger.error(
-                    f"[{agent_id_for_log}] Failed to retrieve valid content from clipboard after {max_copy_attempts} attempts."  # noqa: E501
+                    f"Clipboard did not update within {clipboard_timeout}s timeout for agent {agent_id_for_log}."
                 )
-                # Restore mouse position before returning failure
-                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
-                return None
+                raise asyncio.TimeoutError(
+                    "Clipboard update timed out."
+                )  # Raise specific error
 
-        except (FailSafeException, PyperclipException) as e:
-            logger.error(
-                f"[{agent_id_for_log}] UI interaction failed during copy sequence: {e}"
-            )
-            # Restore mouse position on error
-            pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
-            raise CursorOrchestratorError(f"Copy sequence error: {e}")
+            # Add pause after copy if needed
+            time.sleep(self.config.pause_after_action)
+
+            return copied_text
+
+        except FailSafeException:
+            logger.error("PyAutoGUI fail-safe triggered during copy sequence.")
+            raise CursorOrchestratorError("Fail-safe triggered")
+        except PyperclipException as e:
+            logger.error(f"Pyperclip error during copy sequence: {e}")
+            raise CursorOrchestratorError(f"Clipboard error: {e}")
         except Exception as e:
-            logger.exception(
-                f"[{agent_id_for_log}] Unexpected error during copy sequence: {e}"
+            logger.error(
+                f"Unexpected error in _perform_copy_sequence for agent {agent_id_for_log}: {e}",
+                exc_info=True,
             )
-            # Restore mouse position on error
-            pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
             raise CursorOrchestratorError(f"Unexpected copy error: {e}")
 
     @retry_on_exception(max_attempts=2, exceptions=(FailSafeException,), delay=0.5)  # noqa: F821

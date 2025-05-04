@@ -16,22 +16,18 @@ Unified memory subsystem for Dream.OS
 ###########################################################################
 from __future__ import annotations  # noqa: I001
 
+import asyncio
 import json
 import logging
 import os
 import sqlite3
 import tempfile
-import threading
 import zlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from cachetools import LRUCache
-from dreamos.coordination.agent_bus import AgentBus
-from dreamos.core.coordination.agent_bus import MemoryEvent
-from dreamos.core.coordination.event_payloads import MemoryEventData
-from dreamos.core.coordination.event_types import EventType
 from jinja2 import Environment, FileSystemLoader
 
 from ..core.config import AppConfig
@@ -153,114 +149,158 @@ class MemoryManager:
 ###########################################################################
 class DatabaseManager:
     """
-    Thread-safe wrapper around SQLite for long-term interaction storage.
+    Async wrapper around SQLite for long-term interaction storage.
+    Uses asyncio.Lock for safe concurrent access from async contexts.
     """
 
-    # TODO: Uses threading.Lock. Consider converting to async/await with
-    # an async-compatible SQLite library (like aiosqlite) if used heavily
-    # in async contexts to avoid blocking the event loop.
-    def __init__(
-        self, db_path: Path | None = None, lock: threading.Lock | None = None
-    ) -> None:
-        self.lock = lock or threading.Lock()
-        # Use path from config by default
+    # TODO comment updated
+    # NOTE: Uses asyncio.Lock. Assumes usage within an async context.
+    # Requires an async-compatible SQLite library (like aiosqlite) for true non-blocking DB ops.
+    # Current implementation uses asyncio.to_thread for sync DB calls.
+
+    def __init__(self, db_path: Path | None = None) -> None:
+        # REMOVED threading.Lock parameter
+        self.lock = asyncio.Lock()  # Use asyncio.Lock
         self.db_path = db_path or (_memory_base_path / "engagement_memory.db")
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self._init_schema()
+        # Initial connection can be sync, operations will be async
+        try:
+            # Ensure directory exists
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self._init_schema()  # Initial schema setup can be sync
+        except Exception as e:
+            logger.critical(
+                f"Failed to initialize DatabaseManager at {self.db_path}: {e}",
+                exc_info=True,
+            )
+            raise
 
     def _init_schema(self) -> None:
-        with self.lock:
-            c = self.conn.cursor()
-            c.execute(
-                """
-                CREATE TABLE IF NOT EXISTS interactions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    platform TEXT,
-                    username TEXT,
-                    interaction_id TEXT,
-                    timestamp TEXT,
-                    response TEXT,
-                    sentiment TEXT,
-                    success INTEGER,
-                    chatgpt_url TEXT
-                )
-                """
-            )
-            c.execute(
-                """
-                CREATE TABLE IF NOT EXISTS conversations_metadata (
-                    interaction_id TEXT PRIMARY KEY,
-                    initialized_at TEXT,
-                    metadata TEXT
-                )
-                """
-            )
-            self.conn.commit()
+        # This runs synchronously during __init__ before async loop starts
+        # No need for async lock here if only called from __init__.
+        # If called elsewhere, it would need `async def` and `async with self.lock`.
+        c = self.conn.cursor()
+        c.execute(
+            """
+           CREATE TABLE IF NOT EXISTS interactions (
+               id INTEGER PRIMARY KEY AUTOINCREMENT,
+               platform TEXT,
+               username TEXT,
+               interaction_id TEXT,
+               timestamp TEXT,
+               response TEXT,
+               sentiment TEXT,
+               success INTEGER,
+               chatgpt_url TEXT
+           )
+           """
+        )
+        c.execute(
+            """
+           CREATE TABLE IF NOT EXISTS conversations_metadata (
+               interaction_id TEXT PRIMARY KEY,
+               initialized_at TEXT,
+               metadata TEXT
+           )
+           """
+        )
+        self.conn.commit()
 
-    # ────────────────────────────────────────────────────────────────── #
-    # Write helpers
-    # ────────────────────────────────────────────────────────────────── #
-    def record_interaction(self, row: Dict[str, Any]) -> None:
-        with self.lock:
-            self.conn.execute(
-                """
-                INSERT INTO interactions (
-                    platform, username, interaction_id, timestamp,
-                    response, sentiment, success, chatgpt_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    row.get("platform"),
-                    row.get("username"),
-                    row.get("interaction_id"),
-                    row.get("timestamp"),
-                    row.get("response"),
-                    row.get("sentiment"),
-                    1 if row.get("success") else 0,
-                    row.get("chatgpt_url"),
-                ),
-            )
-            self.conn.commit()
+    # --- Write helpers (now async) ---
+    async def record_interaction(self, row: Dict[str, Any]) -> None:
+        def _sync_record():
+            # This function runs in a separate thread via asyncio.to_thread
+            conn = sqlite3.connect(
+                self.db_path, check_same_thread=False
+            )  # New conn per thread
+            try:
+                conn.execute(
+                    """
+                    INSERT INTO interactions (
+                        platform, username, interaction_id, timestamp,
+                        response, sentiment, success, chatgpt_url
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        row.get("platform"),
+                        row.get("username"),
+                        row.get("interaction_id"),
+                        row.get("timestamp"),
+                        row.get("response"),
+                        row.get("sentiment"),
+                        1 if row.get("success") else 0,
+                        row.get("chatgpt_url"),
+                    ),
+                )
+                conn.commit()
+            finally:
+                conn.close()
 
-    def initialize_conversation(
+        async with self.lock:  # Use asyncio lock
+            await asyncio.to_thread(
+                _sync_record
+            )  # Run sync DB operation in thread pool
+
+    async def initialize_conversation(
         self, interaction_id: str, metadata: Dict[str, Any]
     ) -> None:
-        with self.lock:
-            ts = (
-                datetime.now(timezone.utc)
-                .isoformat(timespec="seconds")
-                .replace("+00:00", "Z")
-            )
-            self.conn.execute(
-                """
-                INSERT OR IGNORE INTO conversations_metadata
-                    (interaction_id, initialized_at, metadata)
-                VALUES (?, ?, ?)
-                """,
-                (interaction_id, ts, json.dumps(metadata)),
-            )
-            self.conn.commit()
+        def _sync_init():
+            # This function runs in a separate thread via asyncio.to_thread
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            try:
+                ts = (
+                    datetime.now(timezone.utc)
+                    .isoformat(timespec="seconds")
+                    .replace("+00:00", "Z")
+                )
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO conversations_metadata
+                        (interaction_id, initialized_at, metadata)
+                    VALUES (?, ?, ?)
+                    """,
+                    (interaction_id, ts, json.dumps(metadata)),
+                )
+                conn.commit()
+            finally:
+                conn.close()
 
-    # ────────────────────────────────────────────────────────────────── #
-    # Read helpers
-    # ────────────────────────────────────────────────────────────────── #
-    def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
-        cur = self.conn.cursor()
-        cur.execute(
-            """
-            SELECT platform, username, interaction_id, timestamp, response,
-                   sentiment, success, chatgpt_url
-            FROM interactions
-            WHERE interaction_id = ?
-            ORDER BY timestamp ASC
-            """,
-            (interaction_id,),
-        )
-        columns = [d[0] for d in cur.description]
-        return [dict(zip(columns, row)) for row in cur.fetchall()]
+        async with self.lock:  # Use asyncio lock
+            await asyncio.to_thread(_sync_init)
 
-    def close(self) -> None:
-        self.conn.close()
+    # --- Read helpers (now async) ---
+    async def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
+        def _sync_fetch():
+            # This function runs in a separate thread via asyncio.to_thread
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            try:
+                cur = conn.cursor()
+                cur.row_factory = sqlite3.Row  # Return rows as dict-like objects
+                cur.execute(
+                    """
+                    SELECT * FROM interactions
+                    WHERE interaction_id = ?
+                    ORDER BY timestamp ASC
+                    """,
+                    (interaction_id,),
+                )
+                rows = cur.fetchall()
+                # Convert sqlite3.Row objects to standard dicts
+                return [dict(row) for row in rows]
+            finally:
+                conn.close()
+
+        # Reading might not strictly need the lock depending on isolation level,
+        # but using it ensures consistency if writes are happening.
+        async with self.lock:  # Use asyncio lock
+            return await asyncio.to_thread(_sync_fetch)
+
+    async def close(self) -> None:
+        # Close the initial connection if it exists
+        # Active operations using asyncio.to_thread manage their own connections.
+        if self.conn:
+            self.conn.close()
+            self.conn = None  # Indicate closed
 
 
 ###########################################################################
@@ -275,10 +315,11 @@ class UnifiedMemoryManager:
     • Jinja2 narrative helpers
     """  # noqa: E501
 
-    # TODO: This class uses threading.Lock internally and manages DatabaseManager
-    # which also uses threading.Lock. This makes the UnifiedMemoryManager synchronous
-    # and potentially blocking in async contexts. Consider a full async refactor
-    # using asyncio.Lock and async file/DB operations if performance is critical.
+    # NOTE: This class coordinates segment managers and DatabaseManager.
+    # DatabaseManager now uses asyncio.Lock and runs sync operations in threads.
+    # Segment operations (_load_segments, _save_segment) are file I/O and
+    # should also be run in threads or use aiofiles for async operation.
+    # Internal lock `_internal_lock` should also be asyncio.Lock.
 
     SEGMENTS = ("system", "context", "prompts", "feedback", "interactions")
 
@@ -290,261 +331,128 @@ class UnifiedMemoryManager:
         template_dir: Path | None = None,
         compression_level: int = 6,
     ) -> None:
-        """Initialize memory manager.
-
-        Args:
-            cache_size: Max items per segment cache.
-            segment_dir: Path to store JSON segments (defaults to config memory path).
-            db_path: Path to SQLite DB (defaults to config memory path + db name).
-            template_dir: Path to Jinja2 templates (defaults to config path + templates).
-            compression_level: Zlib compression level (0-9).
-        """  # noqa: E501
-        self.lock = threading.Lock()
-        self.compression_level = compression_level
-        self._config = AppConfig.load()  # Load config for paths
-
-        # Use config paths by default
-        self.segment_dir = segment_dir or self._config.paths.memory
-        self.db_path = db_path or (self.segment_dir / "engagement_memory.db")
-        self.template_dir = template_dir or (
-            self.segment_dir / "templates"
-        )  # Example default
-
+        self.segment_dir: Path = segment_dir or (_memory_base_path / "segments")
         self.segment_dir.mkdir(parents=True, exist_ok=True)
-        self.template_dir.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure template dir exists
-
+        self.template_dir: Path = template_dir or (_memory_base_path / "templates")
+        self.db_manager = DatabaseManager(db_path=db_path)
         self.cache: Dict[str, LRUCache] = {
             seg: LRUCache(maxsize=cache_size) for seg in self.SEGMENTS
         }
-        self.db = DatabaseManager(db_path=self.db_path, lock=self.lock)
+        self.compression = compression_level
+        self.env = Environment(loader=FileSystemLoader(self.template_dir))
+        self._internal_lock = asyncio.Lock()  # Use asyncio.Lock
+        self._load_segments()  # Make this async?
 
-        # Jinja2 env
-        tmpl_root = self.template_dir
-        self.jinja_env = Environment(
-            loader=FileSystemLoader(str(tmpl_root)),
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
+    async def _load_segments(self) -> None:
+        # Needs to be async to use lock and async file ops
+        async with self._internal_lock:
+            for seg in self.SEGMENTS:
+                # Load initial segment data
+                try:
+                    file_path = self._segment_file(seg)
+                    if await asyncio.to_thread(file_path.exists):
 
-        self.agent_bus = AgentBus()  # Get singleton instance
+                        def _sync_read():
+                            return file_path.read_bytes()
 
-        # Compaction config
-        self.compaction_config = DEFAULT_COMPACTION_CONFIG
+                        compressed_data = await asyncio.to_thread(_sync_read)
+                        data = json.loads(
+                            zlib.decompress(compressed_data).decode("utf-8")
+                        )
+                        self.cache[seg].update(data)  # Populate cache
+                    else:
+                        # Initialize segment if file doesn't exist
+                        await self._save_segment(seg)  # Save empty segment
 
-    # ────────────────────────────────────────────────────────────────── #
-    # Segment helpers
-    # ────────────────────────────────────────────────────────────────── #
-    def _segment_file(self, seg: str) -> Path:
-        return self.segment_dir / f"{seg}_memory.json"
+                except Exception as e:
+                    logger.error(
+                        f"Failed to load memory segment '{seg}': {e}", exc_info=True
+                    )
 
-    def _load_segments(self) -> None:
-        for seg in self.SEGMENTS:
-            f = self._segment_file(seg)
-            if not f.exists():
-                continue
+    async def _save_segment(self, seg: str) -> None:
+        # Needs to be async to use lock and async file ops
+        async with self._internal_lock:
             try:
-                raw = json.loads(f.read_text())
-                for k, v in raw.items():
-                    comp = zlib.compress(json.dumps(v).encode("utf-8"))
-                    self.segments[seg][k] = comp
-            except Exception as exc:
-                logger.error("Segment %s corrupt (%s) – skipped", f, exc, exc_info=True)
+                file_path = self._segment_file(seg)
+                data_to_save = dict(self.cache[seg])  # Get current cache state
+                encoded_data = json.dumps(data_to_save).encode("utf-8")
+                compressed_data = zlib.compress(encoded_data, self.compression)
 
-    def _save_segment(self, seg: str) -> None:
-        payload: Dict[str, Any] = {}
-        for k, comp in self.segments[seg].items():
-            try:
-                raw = zlib.decompress(comp)
-                payload[k] = json.loads(raw.decode("utf-8"))
-            except Exception as exc:
-                logger.error(f"_save_segment {seg}:{k} failed ({exc})", exc_info=True)
-                # skip corrupt entry
-        # Write remaining valid entries atomically
-        seg_file = self._segment_file(seg)
-        tmp_file = seg_file.with_suffix(seg_file.suffix + ".tmp")
-        try:
-            with tmp_file.open("w", encoding="utf-8") as fh:
-                fh.write(json.dumps(payload, indent=2))
-            os.replace(str(tmp_file), str(seg_file))
-        except Exception as exc:
-            logger.error(f"_save_segment write {seg} failed ({exc})", exc_info=True)
+                # Atomic write using temp file
+                temp_file_path = file_path.with_suffix(f".{os.getpid()}.tmp")
 
-    # ────────────────────────────────────────────────────────────────── #
-    # Cache interface
-    # ────────────────────────────────────────────────────────────────── #
-    def set(
+                def _sync_write():
+                    with open(temp_file_path, "wb") as f:
+                        f.write(compressed_data)
+                    os.replace(temp_file_path, file_path)
+
+                await asyncio.to_thread(_sync_write)
+                logger.debug(f"Saved memory segment '{seg}'")
+            except Exception as e:
+                logger.error(
+                    f"Failed to save memory segment '{seg}': {e}", exc_info=True
+                )
+                # Attempt cleanup
+                if await asyncio.to_thread(temp_file_path.exists):
+                    try:
+                        await asyncio.to_thread(os.remove, temp_file_path)
+                    except OSError:
+                        pass
+
+    # --- Core Key-Value Operations (now async) ---
+    async def set(
         self, key: str, value: Any, seg: str = "system", source_agent_id: str = "System"
     ) -> None:
-        """Store data, triggering MEMORY_UPDATE event."""
-        comp = zlib.compress(json.dumps(value).encode("utf-8"))
-        with self.lock:
-            self.cache[f"{seg}:{key}"] = comp
-            self.segments[seg][key] = comp
-            self._save_segment(seg)
-            logger.debug(f"Memory set → {seg}/{key}")
+        if seg not in self.SEGMENTS:
+            raise ValueError(f"Invalid segment: {seg}")
 
-        # Dispatch event
-        event_data = MemoryEventData(
-            agent_id=source_agent_id, segment_id=seg, content={key: value}, success=True
-        )
-        self.agent_bus.dispatch_event(
-            MemoryEvent(
-                event_type=EventType.MEMORY_UPDATE,
-                source_id=source_agent_id,
-                data=event_data,
-            )
-        )
+        async with self._internal_lock:  # Lock for cache modification
+            self.cache[seg][key] = value
+            # Consider if save should happen immediately or be batched
+            # Immediate save ensures persistence but can be slow.
+            save_task = asyncio.create_task(self._save_segment(seg))
+            # Optionally await save_task if synchronous persistence is needed
 
-        # {{START: Trigger Compaction Check}}
-        if self.compaction_config.get("check_on_write", False):
-            try:
-                self._check_and_compact(seg)
-            except Exception as e:
-                # Log error but don't let compaction failure break the main operation
-                logger.error(
-                    f"Compaction check failed after writing to segment '{seg}': {e}",
-                    exc_info=True,
-                )
-        # {{END: Trigger Compaction Check}}
+        # Publish memory update event (assuming AgentBus is available/injected)
+        # self._publish_memory_event(EventType.MEMORY_UPDATE, ...)
 
-    def get(
+    async def get(
         self, key: str, seg: str = "system", source_agent_id: str = "System"
     ) -> Optional[Any]:
-        """Retrieve data, triggering MEMORY_READ event."""
-        value = None
-        status = "FAILURE"
-        message = f"Key '{key}' not found in segment '{seg}'"
-        try:
-            if seg not in self.segments:
-                self._load_segments()
+        if seg not in self.SEGMENTS:
+            raise ValueError(f"Invalid segment: {seg}")
 
-            if key in self.segments[seg]:
-                value = json.loads(
-                    zlib.decompress(self.segments[seg][key]).decode("utf-8")
-                )
-                logger.debug(f"Memory get ← {seg}/{key}")
-                status = "SUCCESS"
-                message = None  # Clear message on success
-            else:
-                logger.debug(f"Memory get miss ← {seg}/{key}")
-                # Keep status as FAILURE and the message
+        # Cache check doesn't strictly need lock if LRUCache handles thread-safety
+        # But locking ensures consistency if saves/loads modify cache structure.
+        async with self._internal_lock:
+            value = self.cache[seg].get(key)
 
-        except Exception as e:
-            logger.error(f"Error during get for {seg}/{key}: {e}", exc_info=True)
-            status = "FAILURE"  # noqa: F841
-            message = str(e)  # noqa: F841
-            value = None  # Ensure value is None on error
-        finally:
-            # Dispatch event regardless of success/failure
-            event_data = MemoryEventData(
-                agent_id=source_agent_id,
-                segment_id=seg,
-                query=key,
-                content=value,
-                success=True,
-            )
-            self.agent_bus.dispatch_event(
-                MemoryEvent(
-                    event_type=EventType.MEMORY_READ,
-                    source_id=source_agent_id,
-                    data=event_data,
-                )
-            )
-
+        # Publish memory read event
+        # self._publish_memory_event(EventType.MEMORY_READ, ...)
         return value
 
-    def delete(
+    async def delete(
         self, key: str, seg: str = "system", source_agent_id: str = "System"
     ) -> bool:
-        """Delete data, triggering MEMORY_DELETE event."""
+        if seg not in self.SEGMENTS:
+            raise ValueError(f"Invalid segment: {seg}")
+
         deleted = False
-        status = "FAILURE"
-        message = f"Key '{key}' not found for deletion in segment '{seg}'"
-        try:
-            if seg not in self.segments:
-                self._load_segments()
-
-            if key in self.segments[seg]:
-                del self.segments[seg][key]
-                self._save_segment(seg)
-                logger.debug(f"Memory delete 🗑️ {seg}/{key}")
+        async with self._internal_lock:
+            if key in self.cache[seg]:
+                del self.cache[seg][key]
                 deleted = True
-                status = "SUCCESS"
-                message = None  # Clear message on success
-            else:
-                logger.debug(f"Memory delete miss ← {seg}/{key}")
-                # Keep status FAILURE and message
+                # Schedule save after deletion
+                save_task = asyncio.create_task(self._save_segment(seg))
 
-        except Exception as e:
-            logger.error(f"Error during delete for {seg}/{key}: {e}", exc_info=True)
-            status = "FAILURE"  # noqa: F841
-            message = str(e)  # noqa: F841
-            deleted = False  # Ensure flag is False on error
-        finally:
-            # Dispatch event
-            event_data = MemoryEventData(
-                agent_id=source_agent_id,
-                segment_id=seg,
-                content={key: None},
-                success=True,
-            )
-            # Only dispatch if something was potentially acted upon or error occurred
-            # Alternatively, always dispatch? Let's always dispatch for observability.
-            self.agent_bus.dispatch_event(
-                MemoryEvent(
-                    event_type=EventType.MEMORY_DELETE,
-                    source_id=source_agent_id,
-                    data=event_data,
-                )
-            )
-
+        # Publish memory delete event
+        # if deleted: self._publish_memory_event(EventType.MEMORY_DELETE, ...)
         return deleted
 
-    def clear_segment(self, seg: str) -> None:
-        with self.lock:
-            self.segments[seg].clear()
-            for k in [k for k in self.cache.keys() if k.startswith(f"{seg}:")]:
-                del self.cache[k]
-            self._save_segment(seg)
+    # ... (other methods like clear_segment, get_stats need async lock if modifying cache) ...
 
-    # ────────────────────────────────────────────────────────────────── #
-    # Stats / housekeeping
-    # ────────────────────────────────────────────────────────────────── #
-    def get_stats(self) -> Dict[str, Any]:
-        return {
-            "cache": {"items": len(self.cache), "max": self.cache.maxsize},
-            "segments": {
-                s: {"items": len(d), "bytes": sum(len(c) for c in d.values())}
-                for s, d in self.segments.items()
-            },
-        }
-
-    def optimize(self) -> None:
-        with self.lock:
-            self.cache.clear()
-            for seg, data in self.segments.items():
-                for k, comp in list(data.items()):
-                    try:
-                        raw = zlib.decompress(comp)
-                        data[k] = zlib.compress(raw, level=9)
-                    except Exception as exc:
-                        logger.error(
-                            f"optimize {seg}:{k} failed ({exc})", exc_info=True
-                        )
-                try:
-                    self._save_segment(seg)
-                except Exception as exc:
-                    logger.error(
-                        f"optimize save segment {seg} failed ({exc})", exc_info=True
-                    )
-            logger.info("Memory optimize complete – stats: %s", self.get_stats())
-
-    # ────────────────────────────────────────────────────────────────── #
-    # Interaction helpers
-    # ────────────────────────────────────────────────────────────────── #
-    def record_interaction(
+    # --- DB Operations (Delegate to async DBManager methods) ---
+    async def record_interaction(
         self,
         platform: str,
         username: str,
@@ -579,29 +487,20 @@ class UnifiedMemoryManager:
             conv.append(row)
             self.set(conv_key, conv, "interactions")
 
-        self.db.record_interaction(row)
+        await self.db_manager.record_interaction(row)
 
-        # {{START: Trigger Compaction Check}}
-        if self.compaction_config.get("check_on_write", False):
-            try:
-                self._check_and_compact(conv_key)
-            except Exception as e:
-                logger.error(
-                    f"Compaction check failed after recording interaction to segment '{conv_key}': {e}",  # noqa: E501
-                    exc_info=True,
-                )
-        # {{END: Trigger Compaction Check}}
-
-    def initialize_conversation(
+    async def initialize_conversation(
         self, interaction_id: str, metadata: Dict[str, Any]
     ) -> None:
-        self.db.initialize_conversation(interaction_id, metadata)
+        await self.db_manager.initialize_conversation(interaction_id, metadata)
 
-    def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
-        return self.db.fetch_conversation(interaction_id)
+    async def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
+        return await self.db_manager.fetch_conversation(interaction_id)
 
-    def export_conversation_finetune(self, interaction_id: str, out_path: Path) -> bool:
-        conv = self.fetch_conversation(interaction_id)
+    async def export_conversation_finetune(
+        self, interaction_id: str, out_path: Path
+    ) -> bool:
+        conv = await self.fetch_conversation(interaction_id)
         if not conv:
             return False
 
@@ -633,7 +532,7 @@ class UnifiedMemoryManager:
     # ────────────────────────────────────────────────────────────────── #
     def render_narrative(self, template_name: str, context: Dict[str, Any]) -> str:
         try:
-            tmpl = self.jinja_env.get_template(template_name)
+            tmpl = self.env.get_template(template_name)
             return tmpl.render(**context)
         except Exception as exc:
             logger.error(
@@ -875,5 +774,12 @@ class UnifiedMemoryManager:
     # ────────────────────────────────────────────────────────────────── #
     # Cleanup
     # ────────────────────────────────────────────────────────────────── #
-    def close(self) -> None:
-        self.db.close()
+    async def close(self) -> None:
+        """Closes the DB connection and potentially saves segments."""
+        # Ensure segments are saved before closing DB
+        save_tasks = [self._save_segment(seg) for seg in self.SEGMENTS]
+        await asyncio.gather(*save_tasks)
+        await self.db_manager.close()
+
+    # Helper to publish memory events (needs AgentBus instance)
+    # async def _publish_memory_event(self, event_type: EventType, key: str, seg: str, ...)
