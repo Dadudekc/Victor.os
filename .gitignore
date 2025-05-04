@@ -13,7 +13,7 @@ __pycache__/
 
 # Runtime directory (contains instance-specific data, logs, etc.)
 # Ignore all runtime files by default
-/runtime/*
+# /runtime/*
 
 # But specifically keep the directory structure markers
 !/runtime/**/.keep
