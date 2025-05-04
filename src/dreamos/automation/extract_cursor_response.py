@@ -64,12 +64,9 @@ except ImportError:
 
 # Config & constants
 DEFAULT_COORDS = (
-    Path(find_project_root(__file__)) /
-    "runtime/config/cursor_agent_coords.json"
+    Path(find_project_root(__file__)) / "runtime/config/cursor_agent_coords.json"
 )
-DEFAULT_RESP_DIR = (
-    Path(find_project_root(__file__)) / "runtime/cursor_responses"
-)
+DEFAULT_RESP_DIR = Path(find_project_root(__file__)) / "runtime/cursor_responses"
 CLICK_PAUSE = (0.10, 0.25)
 AFTER_COPY = (0.25, 0.45)
 CLIP_RETRIES = 3
@@ -82,15 +79,13 @@ def _rand_pause(bounds: Tuple[float, float]) -> None:
     time.sleep(random.uniform(*bounds))
 
 
-def _save_response(
-    text: str, out_dir: Path, meta: Dict[str, Any]
-) -> Path:
+def _save_response(text: str, out_dir: Path, meta: Dict[str, Any]) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     f = out_dir / f"{ts}.json"
-    f.write_text(json.dumps({"meta": meta, "content": text},
-                            ensure_ascii=False,
-                            indent=2))
+    f.write_text(
+        json.dumps({"meta": meta, "content": text}, ensure_ascii=False, indent=2)
+    )
     return f
 
 

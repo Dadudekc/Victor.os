@@ -19,10 +19,12 @@ from __future__ import annotations
 
 import asyncio
 import datetime as _dt
+import importlib
 import json
 import logging
 import os
 import random
+import re
 import subprocess
 import sys
 import threading
@@ -180,32 +182,77 @@ class SwarmController:
 
         # --- Agent Instantiation ---
         agent_instance = None
+        agent_config_found = False
         try:
-            # TODO: Replace with dynamic agent selection based on worker_name or config
-            if "Worker-1" in worker_name:  # Example: Dedicate Worker-1 to Agent 2
-                agent_id = "Agent-2"  # The ID the agent will use internally
-                logger.info(
-                    f"[{worker_name}] Instantiating {agent_id} (Agent2InfraSurgeon)..."
-                )
-
-                # Ensure PBM is available from TaskNexus
-                if not self.nexus or not self.nexus.board_manager:
-                    raise RuntimeError(
-                        "TaskNexus or ProjectBoardManager not initialized in SwarmController."
+            # Iterate through configured activations
+            for activation_conf in self.config.swarm.active_agents:
+                # Check if the worker_name matches the pattern
+                if re.fullmatch(activation_conf.worker_id_pattern, worker_name):
+                    agent_config_found = True
+                    logger.info(
+                        f"[{worker_name}] Matched activation config: {activation_conf.agent_module}.{activation_conf.agent_class}"
                     )
 
-                agent_instance = Agent2InfraSurgeon(
-                    agent_id=agent_id,
-                    config=self.config,
-                    pbm=self.nexus.board_manager,
-                    agent_bus=self.event_bus,  # Pass the shared event bus
-                )
-                logger.info(f"[{worker_name}] Successfully instantiated {agent_id}.")
-            else:
+                    # Dynamically import the module
+                    try:
+                        module_path = activation_conf.agent_module
+                        module = importlib.import_module(module_path)
+                    except ImportError as e:
+                        logger.critical(
+                            f"[{worker_name}] Failed to import agent module {module_path}: {e}"
+                        )
+                        return  # Cannot proceed
+
+                    # Get the class from the module
+                    try:
+                        AgentClass = getattr(module, activation_conf.agent_class)
+                    except AttributeError:
+                        logger.critical(
+                            f"[{worker_name}] Agent class {activation_conf.agent_class} not found in module {module_path}."
+                        )
+                        return  # Cannot proceed
+
+                    # Prepare arguments for instantiation (common args)
+                    # Specific agents might need more/different args - requires more complex config or introspection
+                    agent_id = (
+                        activation_conf.agent_id_override
+                        or f"{activation_conf.agent_class}_{worker_name}"
+                    )
+                    agent_args = {
+                        "agent_id": agent_id,
+                        "config": self.config,
+                        "agent_bus": self.event_bus,
+                        # Conditionally add PBM if the agent expects it (best effort)
+                        # A better approach might involve dependency injection or capability checks
+                    }
+                    if (
+                        hasattr(AgentClass, "__init__")
+                        and "pbm" in AgentClass.__init__.__code__.co_varnames
+                    ):
+                        if not self.nexus or not self.nexus.board_manager:
+                            logger.error(
+                                f"[{worker_name}] Agent {AgentClass.__name__} requires PBM, but it's not available in TaskNexus."
+                            )
+                            # Decide how to handle: skip agent, raise error?
+                            # For now, skip instantiation if PBM is required but missing.
+                            return
+                        agent_args["pbm"] = self.nexus.board_manager
+
+                    # Instantiate the agent
+                    logger.info(
+                        f"[{worker_name}] Instantiating {AgentClass.__name__} with ID {agent_id}..."
+                    )
+                    agent_instance = AgentClass(**agent_args)
+                    logger.info(
+                        f"[{worker_name}] Successfully instantiated {agent_id}."
+                    )
+                    break  # Stop after finding the first matching config
+
+            if not agent_config_found:
                 logger.warning(
-                    f"[{worker_name}] No specific agent assigned to this worker thread. Skipping."
+                    f"[{worker_name}] No activation config found for this worker. Skipping agent instantiation."
                 )
-                return  # Or assign a default generic agent
+                return
 
         except Exception as e:
             logger.critical(
@@ -215,12 +262,25 @@ class SwarmController:
             return  # Cannot proceed without an agent instance
 
         # --- Run Agent's Autonomous Loop ---
+        if not agent_instance:
+            logger.error(
+                f"[{worker_name}] Agent instance not created. Cannot run loop."
+            )
+            return
+
         logger.info(
             f"[{worker_name}] Starting agent {agent_instance.agent_id}'s autonomous loop..."
         )
         agent_task = None
         try:
             # Create a task for the agent's loop - asyncio.run provides the loop
+            if not hasattr(
+                agent_instance, "run_autonomous_loop"
+            ) or not asyncio.iscoroutinefunction(agent_instance.run_autonomous_loop):
+                logger.error(
+                    f"[{worker_name}] Agent {agent_instance.agent_id} does not have a valid async 'run_autonomous_loop' method."
+                )
+                return
             agent_task = asyncio.create_task(agent_instance.run_autonomous_loop())
 
             # Monitor the stop event and cancel the agent task if needed
@@ -293,9 +353,9 @@ class SwarmController:
         except Exception as vdc_err:  # pylint: disable=broad-except
             logger.warning(f"Headless launch failed: {vdc_err}")
 
-    # .........................................
+    # --------------------------------------------------------------------- #
     # Router
-    # .........................................
+    # --------------------------------------------------------------------- #
     def _route_loop(self) -> None:
         """Idle loop so main thread can honour Ctrl-C & run atexit hooks."""
         logger.info("📡 Routing loop active – Ctrl-C to exit")
@@ -307,9 +367,9 @@ class SwarmController:
         finally:
             self.shutdown()
 
-    # .........................................
+    # --------------------------------------------------------------------- #
     # Result Handler
-    # .........................................
+    # --------------------------------------------------------------------- #
     def _handle_result(self, result: Dict[str, Any]) -> None:
         """Handle result → feedback → lore persistence."""
         logger.info(f"📑 Result received for {result.get('id')}")

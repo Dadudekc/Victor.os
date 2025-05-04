@@ -1,0 +1,8 @@
+# .flake8
+[flake8]
+# Ignore line length errors (E501), let black handle it
+ignore = E501, W503
+# Match black's default line length
+max-line-length = 88
+# Ignore unused imports (F401) for now, can be cleaned up later
+# ignore = E501, W503, F401

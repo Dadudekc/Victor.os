@@ -142,6 +142,48 @@ class GuiAutomationConfig(BaseModel):
 # EDIT END
 
 
+# {{ EDIT START: Add Agent Activation Config Models }}
+class AgentActivationConfig(BaseModel):
+    worker_id_pattern: str = Field(
+        ...,
+        description="Regex pattern to match worker names (e.g., 'Worker-.*' or 'Worker-(1|3)')",
+    )
+    agent_module: str = Field(
+        ...,
+        description="Full module path to the agent class (e.g., 'dreamos.agents.agent2_infra_surgeon')",
+    )
+    agent_class: str = Field(
+        ...,
+        description="Name of the agent class within the module (e.g., 'Agent2InfraSurgeon')",
+    )
+    agent_id_override: Optional[str] = Field(
+        None,
+        description="Optional specific agent_id to assign, otherwise derived or default used.",
+    )
+
+
+class SwarmConfig(BaseModel):
+    fleet_size: int = Field(
+        3, description="Number of worker threads/GUI instances to launch"
+    )
+    active_agents: List[AgentActivationConfig] = Field(
+        default_factory=list,
+        description="List defining which agents to activate on which workers",
+    )
+    # Example default activation (can be overridden in config.yaml):
+    # default_factory=lambda: [
+    #     AgentActivationConfig(
+    #         worker_id_pattern="Worker-1",
+    #         agent_module="dreamos.agents.agent2_infra_surgeon",
+    #         agent_class="Agent2InfraSurgeon",
+    #         agent_id_override="Agent-2"
+    #     )
+    # ]
+
+
+# {{ EDIT END }}
+
+
 # Main Application Configuration Model
 class AppConfig(BaseSettings):
     """Main application configuration loaded from environment variables and/or config file."""
@@ -152,6 +194,9 @@ class AppConfig(BaseSettings):
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
     gui_automation: GuiAutomationConfig = Field(default_factory=GuiAutomationConfig)
+    # {{ EDIT START: Add Swarm Config }}
+    swarm: SwarmConfig = Field(default_factory=SwarmConfig)
+    # {{ EDIT END }}
 
     # Add other top-level config sections as needed (e.g., agent_bus, database)
 

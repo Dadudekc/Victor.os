@@ -10,15 +10,7 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 
-# Flake8 hook
--   repo: https://github.com/PyCQA/flake8
-    rev: '6.1.0' # Use a specific tag for flake8
-    hooks:
-    -   id: flake8
-        # args: [--config=setup.cfg] # Uncomment and point to config if one exists
-        additional_dependencies: [flake8-bugbear] # Example: add common plugins if needed
-
-# {{ EDIT START: Add Black and isort hooks }}
+# {{ EDIT START: Move Black and isort before Flake8 }}
 -   repo: https://github.com/psf/black
     rev: 24.4.2 # Use a specific tag
     hooks:
@@ -31,3 +23,11 @@ repos:
         name: isort (python)
         args: ["--profile", "black"]
 # {{ EDIT END }}
+
+# Flake8 hook
+-   repo: https://github.com/PyCQA/flake8
+    rev: '6.1.0' # Use a specific tag for flake8
+    hooks:
+    -   id: flake8
+        # args: [--config=setup.cfg] # Uncomment and point to config if one exists
+        additional_dependencies: [flake8-bugbear] # Example: add common plugins if needed

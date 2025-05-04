@@ -53,7 +53,7 @@ Upon entering the IDLE state, an agent **must** perform the following actions se
     5.  **Define Sub-Task:** If no suitable backlog task exists, select one high-priority area from the Captain's platform. Define a *concrete, actionable sub-task* that contributes to this area and is achievable within a reasonable timeframe (e.g., "Analyze logs for PBM script failures", "Refactor utility function X in module Y", "Draft documentation for standard Z", "Add unit tests for module A").
     6.  **Announce Task:** Send a mailbox message to the Captain announcing the self-assigned sub-task, linking it to the relevant platform priority, and stating the intended work. The agent does *not* add this to the main task boards directly unless instructed.
     7.  **Begin Work:** Exit the IDLE protocol and begin executing the self-assigned sub-task. Report progress/completion via mailbox as appropriate.
-*   **Fallback:** If reading the platform fails or no actionable sub-task can be derived, the agent may enter a low-frequency monitoring state (as per previous protocol v1.0), periodically re-scanning task boards and mailboxes.
+*   **Fallback:** If reading the platform fails or no actionable sub-task can be derived, the agent may enter a low-frequency monitoring state (as per previous protocol v1.1), periodically re-scanning task boards and mailboxes.
 
 ## 4. Exiting IDLE State
 

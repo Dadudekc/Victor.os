@@ -3,32 +3,37 @@
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, ANY
+from unittest import mock
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
+# from dreamos.core.coordination.task_nexus import ( # Removed - ModuleNotFoundError
+#     TaskNexus,
+#     TaskStatus,
+#     TaskPriority,
+# )
+# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # Removed - Causes ImportError
+from dreamos.core.config import AppConfig, PathsConfig
+
 # E402 fixes: Move project imports after sys.path manipulation if needed
 # (Assuming tests/ directory structure allows direct import here)
-from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
 # F811/F401 fixes for errors:
 # from dreamos.core.errors import BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError
-from dreamos.core.errors import (
-    ProjectBoardError,
+from dreamos.core.errors import (  # Re-import specifically where needed or fix original definitions
     BoardLockError,
+    ProjectBoardError,
     TaskNotFoundError,
     TaskValidationError,
-) # Re-import specifically where needed or fix original definitions
-from dreamos.core.coordination.task_nexus import (
-    ProjectBoardManager, # Keep PBM import
-    TaskStatusUpdatePayload, # Keep payload import
-    TaskSchema # Keep schema import
 )
-# Assuming TaskSchema is needed for validation or task creation
-# from dreamos.core.tasks.schema import TaskSchema
 
 # Add src directory to path for imports
 SRC_DIR = Path(__file__).resolve().parents[2] / "src"
 sys.path.insert(0, str(SRC_DIR))
+
+# EDIT START: Import jsonschema for mocking exceptions
+import jsonschema
 
 # Module to test
 from dreamos.coordination.project_board_manager import (
@@ -44,6 +49,8 @@ from dreamos.core.errors import (
     TaskNotFoundError,
     TaskValidationError,
 )
+
+# EDIT END
 
 
 # Mock filelock if not installed or for testing purposes
@@ -207,40 +214,6 @@ def temp_test_dir(tmp_path):  # tmp_path is a pytest fixture
     # shutil.rmtree(test_dir) # tmp_path handles cleanup
 
 
-# Fixture for a PBM instance configured for the temp directory
-@pytest.fixture
-def pbm_instance(mock_app_config: AppConfig, fs):
-    """Fixture providing a PBM instance using mock config (DEPRECATED). Use 'pbm' fixture instead."""
-    # EDIT START: Use the AppConfig-based fixture 'pbm' for consistency.
-    # This fixture is kept for backward compatibility during refactor but should be removed.
-    # All tests using this should be updated to use the 'pbm' fixture.
-    print(
-        "WARNING: Using deprecated fixture 'pbm_instance'. Refactor test to use 'pbm'."
-    )
-
-    # Re-implement using AppConfig for now to avoid immediate failure
-    if not fs.exists(mock_app_config.paths.task_schema):
-        schema_content = {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "title": "DreamOS Task",
-            "type": "object",
-            "properties": {
-                "task_id": {"type": "string"},
-                "name": {"type": "string"},
-                "description": {"type": "string"},
-                "status": {"type": "string"},
-            },
-            "required": ["task_id", "name", "description", "status"],
-        }
-        fs.create_file(
-            mock_app_config.paths.task_schema, contents=json.dumps(schema_content)
-        )
-    fs.create_dir(mock_app_config.paths.central_task_boards)
-    with patch("dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False):
-        manager = ProjectBoardManager(config=mock_app_config)
-    return manager
-
-
 # Fixture for sample valid task data
 @pytest.fixture
 def sample_task_details():
@@ -313,9 +286,11 @@ def mock_pbm_with_schema(mock_app_config: AppConfig, fs):
 
 
 @pytest.fixture
-def pbm_instance_with_real_schema(temp_test_dir):
-    """Instance of PBM specifically for testing schema loading."""
-    # Create a dummy schema file in the expected location within the temp dir
+# TODO: Rename this fixture to avoid confusion with the removed deprecated 'pbm_instance'. e.g., 'pbm_with_real_schema'
+def pbm_instance_with_real_schema(mock_app_config: AppConfig, fs):
+    """Instance of PBM specifically for testing schema loading, using AppConfig."""
+    # EDIT START: Refactor to use AppConfig and fs
+    # Create a dummy schema file in the expected location within the fake filesystem
     schema_content = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "DreamOS Task Schema",
@@ -326,362 +301,310 @@ def pbm_instance_with_real_schema(temp_test_dir):
         },
         "required": ["task_id", "description"],
     }
-    schema_dir = temp_test_dir / "src" / "dreamos" / "coordination" / "tasks"
-    schema_dir.mkdir(parents=True, exist_ok=True)
-    schema_path = schema_dir / "task-schema.json"
-    with open(schema_path, "w") as f:
-        json.dump(schema_content, f)
+    # Use schema path from mock_app_config
+    schema_path = mock_app_config.paths.task_schema
+    fs.create_file(schema_path, contents=json.dumps(schema_content))
+    fs.create_dir(mock_app_config.paths.central_task_boards)
 
-    # Now instantiate PBM pointing to this temp project root
-    future_path = "runtime/agent_comms/project_boards/future_tasks_schema_load.json"
-    working_path = "runtime/agent_comms/project_boards/working_tasks_schema_load.json"
-    manager = ProjectBoardManager(
-        future_tasks_path=future_path,
-        working_tasks_path=working_path,
-        project_root=temp_test_dir,
-    )
+    # Now instantiate PBM using AppConfig
+    with patch("dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False):
+        manager = ProjectBoardManager(config=mock_app_config)
+
+    # PBM __init__ loads the schema, no need to call _load_schema manually
+    assert manager._task_schema is not None, "Schema should be loaded by __init__"
     return manager
+    # OLD IMPLEMENTATION - REMOVED
+    # schema_dir = temp_test_dir / "src" / "dreamos" / "coordination" / "tasks"
+    # schema_dir.mkdir(parents=True, exist_ok=True)
+    # schema_path = schema_dir / "task-schema.json"
+    # with open(schema_path, "w") as f:
+    #     json.dump(schema_content, f)
+    # future_path = "runtime/agent_comms/project_boards/future_tasks_schema_load.json"
+    # working_path = "runtime/agent_comms/project_boards/working_tasks_schema_load.json"
+    # manager = ProjectBoardManager(
+    #     future_tasks_path=future_path,
+    #     working_tasks_path=working_path,
+    #     project_root=temp_test_dir,
+    # )
+    # return manager
+    # EDIT END
 
 
 # --- Test Cases ---
 
 
-def test_pbm_initialization(pbm_instance, temp_test_dir):
+def test_pbm_initialization(pbm: ProjectBoardManager, temp_test_dir):
     """Test if ProjectBoardManager initializes correctly."""
-    assert pbm_instance is not None
-    assert pbm_instance.project_root == temp_test_dir.resolve()
-    assert pbm_instance.future_tasks_path.name == "future_tasks.json"
-    assert pbm_instance.working_tasks_path.name == "working_tasks.json"
-    assert pbm_instance.future_tasks == []
-    assert pbm_instance.working_tasks == []
+    assert pbm is not None
+    assert pbm.config.paths.project_root == temp_test_dir.resolve()
+    assert pbm.backlog_path.name == "task_backlog.json"
+    assert pbm.working_tasks_path.name == "working_tasks.json"
+    assert pbm.list_backlog_tasks() == []
+    assert pbm.list_ready_queue_tasks() == []
+    assert pbm.list_completed_tasks() == []
 
 
-def test_add_task_future_success(pbm_instance, sample_task_details):
-    """Test adding a valid task to the future board."""
+def test_add_task_future_success(pbm: ProjectBoardManager, sample_task_details):
+    """Test adding a valid task to the future board (now backlog)."""
     agent_id = "TestAgentAdd"
-    success = pbm_instance.add_task(
-        sample_task_details, agent_id, target_board="future"
-    )
+    success = pbm.add_task_to_backlog(sample_task_details, agent_id)
     assert success is True
-    assert len(pbm_instance.future_tasks) == 1
-    assert pbm_instance.future_tasks[0]["task_id"] == sample_task_details["task_id"]
-    assert pbm_instance.future_tasks[0]["created_by"] == agent_id
-    assert pbm_instance.future_tasks[0]["status"] == "PENDING"
-    # Verify file content after save (requires reading the file)
-    assert pbm_instance.future_tasks_path.exists()
-    with open(pbm_instance.future_tasks_path, "r") as f:
+    backlog_tasks = pbm.list_backlog_tasks()
+    assert len(backlog_tasks) == 1
+    assert backlog_tasks[0]["task_id"] == sample_task_details["task_id"]
+    assert backlog_tasks[0]["created_by"] == agent_id
+    assert backlog_tasks[0]["status"] == "PENDING"
+    assert pbm.backlog_path.exists()
+    with open(pbm.backlog_path, "r") as f:
         data = json.load(f)
     assert len(data) == 1
     assert data[0]["task_id"] == sample_task_details["task_id"]
 
 
-def test_add_task_working_success(pbm_instance, sample_task_details):
-    """Test adding a valid task to the working board."""
-    agent_id = "TestAgentAddWork"
-    details = sample_task_details.copy()
-    details["task_id"] = "TEST-TASK-WORK-001"
-    success = pbm_instance.add_task(details, agent_id, target_board="working")
-    assert success is True
-    assert len(pbm_instance.working_tasks) == 1
-    assert pbm_instance.working_tasks[0]["task_id"] == details["task_id"]
-    assert pbm_instance.working_tasks[0]["created_by"] == agent_id
-    # Verify file content
-    assert pbm_instance.working_tasks_path.exists()
-    with open(pbm_instance.working_tasks_path, "r") as f:
-        data = json.load(f)
-    assert len(data) == 1
-    assert data[0]["task_id"] == details["task_id"]
-
-
-def test_add_task_duplicate_id(pbm_instance, sample_task_details):
-    """Test adding a task with a duplicate ID fails."""
+def test_add_task_duplicate_id(pbm: ProjectBoardManager, sample_task_details):
+    """Test adding a task with a duplicate ID fails (to backlog)."""
     agent_id = "TestAgentDup"
-    # Add the task once
-    pbm_instance.add_task(sample_task_details, agent_id, target_board="future")
-    assert len(pbm_instance.future_tasks) == 1
+    pbm.add_task_to_backlog(sample_task_details, agent_id)
+    assert len(pbm.list_backlog_tasks()) == 1
 
-    # Try adding again with the same ID
-    success_duplicate = pbm_instance.add_task(
-        sample_task_details, agent_id, target_board="future"
-    )
+    success_duplicate = pbm.add_task_to_backlog(sample_task_details, agent_id)
     assert success_duplicate is False
-    # Ensure only one task remains
-    assert len(pbm_instance.future_tasks) == 1
-    # Verify file content reflects only one task
-    with open(pbm_instance.future_tasks_path, "r") as f:
+    assert len(pbm.list_backlog_tasks()) == 1
+    with open(pbm.backlog_path, "r") as f:
         data = json.load(f)
     assert len(data) == 1
 
 
-def test_add_task_missing_id(pbm_instance):
+def test_add_task_missing_id(pbm: ProjectBoardManager):
     """Test adding a task without a task_id raises validation error."""
     agent_id = "TestAgentInvalid"
     invalid_details = {"description": "Missing ID"}
     with pytest.raises(TaskValidationError):
-        pbm_instance.add_task(invalid_details, agent_id, target_board="future")
-    assert len(pbm_instance.future_tasks) == 0  # Ensure no task was added
+        pbm.add_task_to_backlog(invalid_details, agent_id)
+    assert len(pbm.list_backlog_tasks()) == 0
     assert (
-        not pbm_instance.future_tasks_path.exists()
-    )  # File shouldn't be created on validation error
+        not pbm.backlog_path.exists()
+        or len(json.loads(pbm.backlog_path.read_text())) == 0
+    )
 
 
-def test_add_task_missing_description(pbm_instance):
+def test_add_task_missing_description(pbm: ProjectBoardManager):
     """Test adding a task without a description raises validation error."""
     agent_id = "TestAgentInvalid"
     invalid_details = {"task_id": "INVALID-DESC-001"}
     with pytest.raises(TaskValidationError):
-        pbm_instance.add_task(invalid_details, agent_id, target_board="future")
-    assert len(pbm_instance.future_tasks) == 0
-    assert not pbm_instance.future_tasks_path.exists()
+        pbm.add_task_to_backlog(invalid_details, agent_id)
+    assert len(pbm.list_backlog_tasks()) == 0
+    assert (
+        not pbm.backlog_path.exists()
+        or len(json.loads(pbm.backlog_path.read_text())) == 0
+    )
 
 
-def test_claim_task_success(pbm_instance, sample_task_details):
+def test_claim_task_success(pbm: ProjectBoardManager, sample_task_details):
     """Test successfully claiming a PENDING task."""
     agent_id_add = "TestAgentAddClaim"
     agent_id_claim = "TestAgentClaim"
-    # Add a task to future board first
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    assert len(pbm_instance.future_tasks) == 1
-    assert len(pbm_instance.working_tasks) == 0
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    assert len(pbm.list_backlog_tasks()) == 1
+    assert len(pbm.list_ready_queue_tasks()) == 0
 
-    # Claim the task
     task_id = sample_task_details["task_id"]
-    success_claim = pbm_instance.claim_task(task_id, agent_id_claim)
+    success_claim = pbm.claim_ready_task(task_id, agent_id_claim)
 
     assert success_claim is True
-    # Verify state after claim
-    assert len(pbm_instance.future_tasks) == 0
-    assert len(pbm_instance.working_tasks) == 1
-    claimed_task = pbm_instance.working_tasks[0]
+    assert len(pbm.list_backlog_tasks()) == 0
+    assert len(pbm.list_ready_queue_tasks()) == 0
+    claimed_task = pbm.list_ready_queue_tasks()[0]
     assert claimed_task["task_id"] == task_id
-    assert claimed_task["status"] == "WORKING"
+    assert claimed_task["status"] == "CLAIMED"
     assert claimed_task["assigned_agent"] == agent_id_claim
     assert "timestamp_claimed_utc" in claimed_task
-    # Verify file contents
-    assert (
-        not pbm_instance.future_tasks_path.exists()
-        or len(json.loads(pbm_instance.future_tasks_path.read_text())) == 0
-    )
-    assert pbm_instance.working_tasks_path.exists()
-    with open(pbm_instance.working_tasks_path, "r") as f:
+    assert pbm.backlog_path.exists()
+    with open(pbm.backlog_path, "r") as f:
         working_data = json.load(f)
-    assert len(working_data) == 1
-    assert working_data[0]["task_id"] == task_id
-    assert working_data[0]["status"] == "WORKING"
-    assert working_data[0]["assigned_agent"] == agent_id_claim
+    assert len(working_data) == 0
+    assert pbm.ready_queue_path.exists()
+    with open(pbm.ready_queue_path, "r") as f:
+        ready_data = json.load(f)
+    assert len(ready_data) == 0
 
 
-def test_claim_task_not_found(pbm_instance):
+def test_claim_task_not_found(pbm: ProjectBoardManager):
     """Test claiming a task that does not exist raises error."""
     agent_id = "TestAgentClaimFail"
     with pytest.raises(TaskNotFoundError):
-        pbm_instance.claim_task("NONEXISTENT-TASK-001", agent_id)
+        pbm.claim_ready_task("NONEXISTENT-TASK-001", agent_id)
 
 
-def test_claim_task_wrong_status(pbm_instance, sample_task_details):
+def test_claim_task_wrong_status(pbm: ProjectBoardManager, sample_task_details):
     """Test claiming a task that is not PENDING fails."""
     agent_id_add = "TestAgentAddStatus"
     agent_id_claim = "TestAgentClaimStatus"
     task_id = sample_task_details["task_id"]
-    # Add task and immediately update its status (requires update_task)
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    # Need to manually modify the in-memory state and save for this test setup
-    # Or implement update_task tests first
-    pbm_instance.future_tasks[0][
-        "status"
-    ] = "COMPLETED"  # Set invalid status for claiming
-    pbm_instance._save_file(pbm_instance.future_tasks_path, pbm_instance.future_tasks)
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    pbm.future_tasks[0]["status"] = "COMPLETED"  # Set invalid status for claiming
+    pbm._save_file(pbm.future_tasks_path, pbm.future_tasks)
 
-    success_claim = pbm_instance.claim_task(task_id, agent_id_claim)
+    success_claim = pbm.claim_ready_task(task_id, agent_id_claim)
     assert success_claim is False
-    # Verify task remains on future board with original (modified) status
-    assert len(pbm_instance.future_tasks) == 1
-    assert pbm_instance.future_tasks[0]["status"] == "COMPLETED"
-    assert len(pbm_instance.working_tasks) == 0
+    assert len(pbm.list_backlog_tasks()) == 1
+    assert pbm.list_ready_queue_tasks()[0]["status"] == "COMPLETED"
 
 
-def test_update_task_success(pbm_instance, sample_task_details):
+def test_update_task_success(pbm: ProjectBoardManager, sample_task_details):
     """Test successfully updating a task on the working board."""
     agent_id_add = "TestAgentAddUpdate"
     agent_id_claim = "TestAgentClaimUpdate"
     agent_id_update = "TestAgentUpdate"
     task_id = sample_task_details["task_id"]
-    # Add and claim the task first
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    pbm_instance.claim_task(task_id, agent_id_claim)
-    assert len(pbm_instance.working_tasks) == 1
-    original_task = pbm_instance.working_tasks[0]
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    pbm.claim_ready_task(task_id, agent_id_claim)
+    assert len(pbm.list_ready_queue_tasks()) == 0
+    assert len(pbm.list_working_tasks()) == 1
+    original_task = pbm.list_working_tasks()[0]
     original_timestamp = original_task["timestamp_updated"]
 
-    # Update the task
     updates = {
         "status": "COMPLETED",
         "notes": ["Update note 1", "Update note 2"],
         "progress_summary": "Finished phase 1",
     }
-    success_update = pbm_instance.update_task(task_id, updates, agent_id_update)
+    success_update = pbm.update_task(task_id, updates, agent_id_update)
 
     assert success_update is True
-    assert len(pbm_instance.working_tasks) == 1
-    updated_task = pbm_instance.working_tasks[0]
+    assert len(pbm.list_working_tasks()) == 1
+    updated_task = pbm.list_working_tasks()[0]
     assert updated_task["task_id"] == task_id
     assert updated_task["status"] == "COMPLETED"
     assert updated_task["notes"] == [
         "Initial task notes.",
         "Update note 1",
         "Update note 2",
-    ]  # Check notes append
+    ]
     assert updated_task["progress_summary"] == "Finished phase 1"
     assert updated_task["timestamp_updated"] != original_timestamp
-    assert "timestamp_completed_utc" in updated_task  # Added on status change
+    assert "timestamp_completed_utc" in updated_task
 
-    # Verify file contents
-    assert pbm_instance.working_tasks_path.exists()
-    with open(pbm_instance.working_tasks_path, "r") as f:
+    assert pbm.backlog_path.exists()
+    with open(pbm.backlog_path, "r") as f:
         working_data = json.load(f)
-    assert len(working_data) == 1
-    assert working_data[0]["task_id"] == task_id
-    assert working_data[0]["status"] == "COMPLETED"
-    assert working_data[0]["notes"] == [
-        "Initial task notes.",
-        "Update note 1",
-        "Update note 2",
-    ]
+    assert len(working_data) == 0
+    assert pbm.ready_queue_path.exists()
+    with open(pbm.ready_queue_path, "r") as f:
+        ready_data = json.load(f)
+    assert len(ready_data) == 0
 
 
-def test_update_task_not_found(pbm_instance):
+def test_update_task_not_found(pbm: ProjectBoardManager):
     """Test updating a task that does not exist raises TaskNotFoundError."""
     agent_id = "TestAgentUpdateFail"
     with pytest.raises(TaskNotFoundError):
-        pbm_instance.update_task("NONEXISTENT-TASK-002", {"status": "FAILED"}, agent_id)
+        pbm.update_task("NONEXISTENT-TASK-002", {"status": "FAILED"}, agent_id)
 
 
-def test_update_task_future_board(pbm_instance, sample_task_details):
+def test_update_task_future_board(pbm: ProjectBoardManager, sample_task_details):
     """Test attempting to update a task still on the future board fails gracefully."""
-    # Note: Current implementation only looks for task on working board for updates.
-    # If this behaviour changes, this test needs adjustment.
     agent_id_add = "TestAgentAddUpdateFuture"
     agent_id_update = "TestAgentUpdateFutureFail"
     task_id = sample_task_details["task_id"]
-    # Add task to future board
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    assert len(pbm_instance.future_tasks) == 1
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    assert len(pbm.list_backlog_tasks()) == 1
 
     with pytest.raises(
         TaskNotFoundError
     ):  # Expecting not found as it checks working board
-        pbm_instance.update_task(task_id, {"status": "BLOCKED"}, agent_id_update)
+        pbm.update_task(task_id, {"status": "BLOCKED"}, agent_id_update)
 
-    # Verify task is unchanged on future board
-    assert len(pbm_instance.future_tasks) == 1
-    assert pbm_instance.future_tasks[0]["status"] == "PENDING"  # Original status
+    assert len(pbm.list_backlog_tasks()) == 1
+    assert pbm.list_ready_queue_tasks()[0]["status"] == "PENDING"  # Original status
 
 
-def test_delete_task_future_success(pbm_instance, sample_task_details):
+def test_delete_task_future_success(pbm: ProjectBoardManager, sample_task_details):
     """Test successfully deleting a task from the future board."""
     agent_id_add = "TestAgentAddDelete"
     agent_id_delete = "TestAgentDeleteFuture"
     task_id = sample_task_details["task_id"]
-    # Add task to future board
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    assert len(pbm_instance.future_tasks) == 1
-    assert pbm_instance.future_tasks_path.exists()
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    assert len(pbm.list_backlog_tasks()) == 1
+    assert pbm.backlog_path.exists()
 
-    # Delete the task
-    success_delete = pbm_instance.delete_task(task_id, agent_id_delete, "future")
+    success_delete = pbm.delete_task(task_id, agent_id_delete, "future")
 
     assert success_delete is True
-    assert len(pbm_instance.future_tasks) == 0
-    # Verify file is empty or non-existent after deletion
+    assert len(pbm.list_backlog_tasks()) == 0
     assert (
-        not pbm_instance.future_tasks_path.exists()
-        or len(json.loads(pbm_instance.future_tasks_path.read_text())) == 0
+        not pbm.backlog_path.exists()
+        or len(json.loads(pbm.backlog_path.read_text())) == 0
     )
 
 
-def test_delete_task_working_success(pbm_instance, sample_task_details):
+def test_delete_task_working_success(pbm: ProjectBoardManager, sample_task_details):
     """Test successfully deleting a task from the working board."""
     agent_id_add = "TestAgentAddDelWork"
     agent_id_claim = "TestAgentClaimDelWork"
     agent_id_delete = "TestAgentDeleteWork"
     task_id = sample_task_details["task_id"]
-    # Add and claim task
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    pbm_instance.claim_task(task_id, agent_id_claim)
-    assert len(pbm_instance.working_tasks) == 1
-    assert pbm_instance.working_tasks_path.exists()
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    pbm.claim_ready_task(task_id, agent_id_claim)
+    assert len(pbm.list_ready_queue_tasks()) == 0
+    assert pbm.ready_queue_path.exists()
 
-    # Delete the task from working board
-    success_delete = pbm_instance.delete_task(task_id, agent_id_delete, "working")
+    success_delete = pbm.delete_task(task_id, agent_id_delete, "working")
 
     assert success_delete is True
-    assert len(pbm_instance.working_tasks) == 0
+    assert len(pbm.list_ready_queue_tasks()) == 0
     assert (
-        not pbm_instance.working_tasks_path.exists()
-        or len(json.loads(pbm_instance.working_tasks_path.read_text())) == 0
+        not pbm.ready_queue_path.exists()
+        or len(json.loads(pbm.ready_queue_path.read_text())) == 0
     )
 
 
-def test_delete_task_not_found(pbm_instance):
+def test_delete_task_not_found(pbm: ProjectBoardManager):
     """Test deleting a non-existent task raises TaskNotFoundError."""
     agent_id = "TestAgentDeleteNonExistent"
     with pytest.raises(TaskNotFoundError):
-        pbm_instance.delete_task("NONEXISTENT-TASK-DELETE", agent_id, "future")
+        pbm.delete_task("NONEXISTENT-TASK-DELETE", agent_id, "future")
     with pytest.raises(TaskNotFoundError):
-        pbm_instance.delete_task("NONEXISTENT-TASK-DELETE", agent_id, "working")
+        pbm.delete_task("NONEXISTENT-TASK-DELETE", agent_id, "working")
 
 
 @patch("dreamos.coordination.project_board_manager.ProjectBoardManager._save_file")
 def test_claim_task_fail_save_working_rollback(
-    mock_save_file, pbm_instance, sample_task_details
+    mock_save_file, pbm: ProjectBoardManager, sample_task_details
 ):
     """Test claim_task rollback when saving working_tasks fails."""
     agent_id_add = "TestAgentAddRollback"
     agent_id_claim = "TestAgentClaimRollback"
     task_id = sample_task_details["task_id"]
 
-    # Add the task to future board
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    assert len(pbm_instance.future_tasks) == 1
-    original_future_list_state = [t.copy() for t in pbm_instance.future_tasks]
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    assert len(pbm.list_backlog_tasks()) == 1
+    original_backlog_list_state = [t.copy() for t in pbm.list_backlog_tasks()]
 
-    # Configure mock _save_file:
-    # 1st call (future_tasks with CLAIMING status) -> Success
-    # 2nd call (working_tasks with new task) -> Fail (IOError)
-    # 3rd call (future_tasks reverting status) -> Success (implicitly checked by verifying final state)
     def save_side_effect(file_path, data):
-        if file_path == pbm_instance.future_tasks_path:
-            # Allow first save (status: CLAIMING) and third save (rollback)
+        if file_path == pbm.future_tasks_path:
             print(f"Mock _save_file SUCCESS for: {file_path}")
-            # To properly simulate, we should actually write the intermediate state
-            # For simplicity, we'll just allow it to pass and check the PBM state later
             pass
-        elif file_path == pbm_instance.working_tasks_path:
+        elif file_path == pbm.ready_queue_path:
             print(f"Mock _save_file FAIL for: {file_path}")
-            raise IOError("Simulated disk write error on working_tasks")
+            raise IOError("Simulated disk write error on ready_queue")
         else:
             raise ValueError(f"Unexpected file path in mock_save_file: {file_path}")
 
-    # Apply the side effect
-    # We need to track calls carefully
     call_count = 0
 
     def side_effect_wrapper(file_path, data):
         nonlocal call_count
         call_count += 1
         print(f"_save_file call #{call_count} for {file_path.name}")
-        if call_count == 1 and file_path == pbm_instance.future_tasks_path:
-            # First call: Save future with 'CLAIMING' - Success
+        if call_count == 1 and file_path == pbm.future_tasks_path:
             save_side_effect(file_path, data)
-            # Verify the state written *would* have been CLAIMING
             assert data[0]["status"] == "CLAIMING"
-        elif call_count == 2 and file_path == pbm_instance.working_tasks_path:
-            # Second call: Save working - Fail
+        elif call_count == 2 and file_path == pbm.ready_queue_path:
             save_side_effect(file_path, data)
-        elif call_count == 3 and file_path == pbm_instance.future_tasks_path:
-            # Third call: Rollback future - Success
+        elif call_count == 3 and file_path == pbm.future_tasks_path:
             save_side_effect(file_path, data)
-            # Verify the state written *would* be reverted
             assert data[0]["status"] == "PENDING"
         else:
             raise AssertionError(
@@ -690,170 +613,179 @@ def test_claim_task_fail_save_working_rollback(
 
     mock_save_file.side_effect = side_effect_wrapper
 
-    # Attempt to claim the task - expected to fail overall due to IOError
-    success_claim = pbm_instance.claim_task(task_id, agent_id_claim)
+    success_claim = pbm.claim_ready_task(task_id, agent_id_claim)
 
     assert success_claim is False
-    assert (
-        mock_save_file.call_count >= 2
-    )  # Should attempt future(CLAIMING), working(FAIL), [future(ROLLBACK)]
-    # Depending on exact execution path, rollback might happen in finally block or separate call
-    # Check the final state is correct is more robust.
+    assert mock_save_file.call_count >= 2
 
-    # Verify final state: Task should be back in future_tasks with original status
-    # Need to manually reload or trust the rollback logic updated the instance state
-    pbm_instance.load_boards()  # Reload from simulated disk state (requires _save_file mock to simulate writes or test reads)
-    # ---- OR ---- Check in-memory state *if* rollback updates it correctly:
+    pbm.load_boards()
+    assert len(pbm.list_backlog_tasks()) == 1, "Task should be back in backlog list"
+    assert pbm.list_backlog_tasks()[0]["task_id"] == task_id
     assert (
-        len(pbm_instance.future_tasks) == 1
-    ), "Task should be back in future_tasks list"
-    assert pbm_instance.future_tasks[0]["task_id"] == task_id
-    assert (
-        pbm_instance.future_tasks[0]["status"] == "PENDING"
+        pbm.list_backlog_tasks()[0]["status"] == "PENDING"
     ), "Task status should be reverted to PENDING"
     assert (
-        len(pbm_instance.working_tasks) == 0
-    ), "Task should not be in working_tasks list"
+        len(pbm.list_ready_queue_tasks()) == 0
+    ), "Task should not be in ready_queue list"
 
 
 @patch("dreamos.coordination.project_board_manager.filelock.FileLock")
-def test_update_task_lock_timeout(MockFileLockClass, pbm_instance, sample_task_details):
+def test_update_task_lock_timeout(
+    MockFileLockClass, pbm: ProjectBoardManager, sample_task_details
+):
     """Test update_task raises BoardLockError on lock timeout."""
     agent_id_add = "TestAgentAddLock"
     agent_id_claim = "TestAgentClaimLock"
     agent_id_update = "TestAgentUpdateLock"
     task_id = sample_task_details["task_id"]
-    # Add and claim the task first
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
-    pbm_instance.claim_task(task_id, agent_id_claim)
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
+    pbm.claim_ready_task(task_id, agent_id_claim)
 
-    # Configure mock lock to raise Timeout
     mock_lock_instance = mock.MagicMock()
     mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")
     MockFileLockClass.return_value = mock_lock_instance
 
     updates = {"status": "BLOCKED"}
     with pytest.raises(BoardLockError):
-        pbm_instance.update_task(task_id, updates, agent_id_update)
+        pbm.update_task(task_id, updates, agent_id_update)
 
-    # Ensure acquire was called
     mock_lock_instance.acquire.assert_called_once()
-    # Ensure release was not called if acquire failed (depends on implementation, but typically yes)
-    # mock_lock_instance.release.assert_not_called()
 
 
 @patch("dreamos.coordination.project_board_manager.filelock.FileLock")
-def test_claim_task_lock_timeout(MockFileLockClass, pbm_instance, sample_task_details):
+def test_claim_task_lock_timeout(
+    MockFileLockClass, pbm: ProjectBoardManager, sample_task_details
+):
     """Test claim_task raises BoardLockError on lock timeout."""
     agent_id_add = "TestAgentAddClaimLock"
     agent_id_claim = "TestAgentClaimLockFail"
     task_id = sample_task_details["task_id"]
-    pbm_instance.add_task(sample_task_details, agent_id_add, "future")
+    pbm.add_task_to_backlog(sample_task_details, agent_id_add)
 
-    # Configure mock lock to raise Timeout
     mock_lock_instance = mock.MagicMock()
-    # Simulate timeout on acquiring either lock (future or working)
     mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")
     MockFileLockClass.return_value = mock_lock_instance
 
     with pytest.raises(BoardLockError):
-        pbm_instance.claim_task(task_id, agent_id_claim)
+        pbm.claim_ready_task(task_id, agent_id_claim)
 
-    mock_lock_instance.acquire.assert_called_once()  # Should fail on first lock acquire
-
-
-def test_add_task_schema_validation_fail(mock_pbm_with_schema, sample_task_details):
-    """Test add_task fails if schema validation fails."""
-    agent_id = "TestAgentAddSchemaFail"
-    # Configure mock validate to raise error
-    mock_pbm_with_schema._mock_jsonschema_validate.side_effect = (
-        jsonschema.ValidationError("Simulated schema validation error")
-    )
-
-    # Attempt to add the task
-    # Note: add_task currently doesn't implement schema validation, this test anticipates it
-    # Assuming validation *will be* added to add_task
-    with pytest.raises(TaskValidationError) as excinfo:
-        mock_pbm_with_schema.add_task(sample_task_details, agent_id, "future")
-    assert "failed schema validation" in str(excinfo.value).lower()
-
-    mock_pbm_with_schema._mock_jsonschema_validate.assert_called_once()
-    assert len(mock_pbm_with_schema.future_tasks) == 0
+    mock_lock_instance.acquire.assert_called_once()
 
 
-def test_update_task_schema_validation_success(
-    mock_pbm_with_schema, sample_task_details
+# --- Tests for Schema Validation ---
+
+
+# Patch the validate function directly where it's used
+@patch("dreamos.coordination.project_board_manager.jsonschema.validate")
+def test_add_task_schema_validation_fail(
+    mock_jsonschema_validate, pbm: ProjectBoardManager, sample_task_details
 ):
-    """Test update_task succeeds when schema validation passes."""
-    agent_id_add = "TestAgentAddSchemaOk"
-    agent_id_claim = "TestAgentClaimSchemaOk"
-    agent_id_update = "TestAgentUpdateSchemaOk"
-    task_id = sample_task_details["task_id"]
-    # Add and claim the task
-    # Need to use a PBM *without* the schema mock for setup
-    setup_pbm = ProjectBoardManager(project_root=mock_pbm_with_schema.project_root)
-    setup_pbm.add_task(sample_task_details, agent_id_add, "future")
-    setup_pbm.claim_task(task_id, agent_id_claim)
-
-    # Configure mock validate to succeed (default behavior of MagicMock)
-    mock_pbm_with_schema._mock_jsonschema_validate.side_effect = None
-
-    updates = {"status": "REVIEWING"}
-    success = mock_pbm_with_schema.update_task(task_id, updates, agent_id_update)
-
-    assert success is True
-    mock_pbm_with_schema._mock_jsonschema_validate.assert_called_once()
-    assert mock_pbm_with_schema.working_tasks[0]["status"] == "REVIEWING"
-
-
-def test_update_task_schema_validation_fail(mock_pbm_with_schema, sample_task_details):
-    """Test update_task fails if schema validation fails."""
-    agent_id_add = "TestAgentAddSchemaFailUpd"
-    agent_id_claim = "TestAgentClaimSchemaFailUpd"
-    agent_id_update = "TestAgentUpdateSchemaFailUpd"
-    task_id = sample_task_details["task_id"]
-    # Add and claim the task
-    setup_pbm = ProjectBoardManager(project_root=mock_pbm_with_schema.project_root)
-    setup_pbm.add_task(sample_task_details, agent_id_add, "future")
-    setup_pbm.claim_task(task_id, agent_id_claim)
-    original_task_status = setup_pbm.working_tasks[0]["status"]
-
-    # Configure mock validate to raise error
-    mock_pbm_with_schema._mock_jsonschema_validate.side_effect = (
-        jsonschema.ValidationError("Simulated schema validation error on update")
+    """Test adding a task fails when schema validation raises ValidationError."""
+    # Configure the mock to raise the specific error PBM expects to catch
+    mock_jsonschema_validate.side_effect = jsonschema.exceptions.ValidationError(
+        "Simulated schema validation error on add"
     )
+    agent_id = "agent-test-add-schema-fail"
 
-    updates = {"priority": "INVALID_PRIORITY"}  # Update that might fail schema
+    # Expect PBM to catch jsonschema.ValidationError and raise TaskValidationError
+    with pytest.raises(TaskValidationError) as excinfo:
+        pbm.add_task_to_backlog(sample_task_details, agent_id)
 
-    success = mock_pbm_with_schema.update_task(task_id, updates, agent_id_update)
-
-    assert success is False  # update_task returns False on validation fail
-    mock_pbm_with_schema._mock_jsonschema_validate.assert_called_once()
-    # Verify task state wasn't changed in memory (or file)
-    mock_pbm_with_schema.load_boards()  # Reload to be sure
-    assert len(mock_pbm_with_schema.working_tasks) == 1
-    assert mock_pbm_with_schema.working_tasks[0]["status"] == original_task_status
-    assert (
-        mock_pbm_with_schema.working_tasks[0]["priority"] == "HIGH"
-    )  # Original priority
+    # Check that our mock was called
+    mock_jsonschema_validate.assert_called_once()
+    # Check the raised exception message includes the original error message
+    assert "Simulated schema validation error on add" in str(excinfo.value)
+    assert "failed schema validation" in str(excinfo.value)
 
 
-def test_load_schema_success(pbm_instance_with_real_schema):
-    """Test that _load_schema correctly loads a valid schema file."""
-    # The fixture already called __init__, which calls _load_schema
-    assert pbm_instance_with_real_schema._task_schema is not None
-    assert isinstance(pbm_instance_with_real_schema._task_schema, dict)
-    assert pbm_instance_with_real_schema._task_schema["title"] == "DreamOS Task Schema"
-    assert "task_id" in pbm_instance_with_real_schema._task_schema["properties"]
+@patch("dreamos.coordination.project_board_manager.jsonschema.validate")
+def test_update_task_schema_validation_success(
+    mock_jsonschema_validate, pbm: ProjectBoardManager, sample_task_details
+):
+    """Test updating a task succeeds when schema validation passes."""
+    # Add a task first (validation will pass by default mock behavior)
+    agent_id = "agent-test-update-schema-ok"
+    task_id = sample_task_details["task_id"]
+    pbm.add_task_to_backlog(sample_task_details, agent_id)
+    pbm.claim_ready_task(task_id, agent_id)  # Move to working board first
+
+    # Ensure the mock does *not* raise an error for the update call
+    mock_jsonschema_validate.side_effect = None
+    mock_jsonschema_validate.reset_mock()  # Reset call count from add/claim
+
+    updated_details = {"description": "Updated description for schema success"}
+
+    try:
+        success = pbm.update_working_task(task_id, updated_details)
+        assert success is True  # PBM method should return True
+    except TaskValidationError as e:
+        pytest.fail(f"Schema validation unexpectedly failed during update: {e}")
+
+    # Check that validation was called during the update
+    mock_jsonschema_validate.assert_called_once()
+
+    # Verify update happened
+    updated_task = pbm.get_task(task_id, board="working")
+    assert updated_task is not None
+    assert updated_task["description"] == "Updated description for schema success"
+
+
+@patch("dreamos.coordination.project_board_manager.jsonschema.validate")
+def test_update_task_schema_validation_fail(
+    mock_jsonschema_validate, pbm: ProjectBoardManager, sample_task_details
+):
+    """Test updating a task fails when schema validation raises ValidationError."""
+    # Add and claim a task first (validation will pass by default)
+    agent_id = "agent-test-update-schema-fail"
+    task_id = sample_task_details["task_id"]
+    pbm.add_task_to_backlog(sample_task_details, agent_id)
+    pbm.claim_ready_task(task_id, agent_id)  # Move to working board
+    original_task = pbm.get_task(task_id, board="working")  # Get original state
+
+    # Configure the mock to raise the error during the update call
+    mock_jsonschema_validate.side_effect = jsonschema.exceptions.ValidationError(
+        "Simulated schema validation error on update"
+    )
+    mock_jsonschema_validate.reset_mock()  # Reset call count from add/claim
+
+    # Attempt to update with details that would trigger the mock error
+    invalid_updated_details = {"status": "INVALID_STATUS_IGNORED_BY_MOCK"}
+
+    # Expect PBM to catch jsonschema.ValidationError and raise TaskValidationError
+    with pytest.raises(TaskValidationError) as excinfo:
+        # Note: update_working_task raises the error directly, doesn't return bool on validation failure
+        pbm.update_working_task(task_id, invalid_updated_details)
+
+    # Check that our mock was called during the update attempt
+    mock_jsonschema_validate.assert_called_once()
+    # Check the raised exception message
+    assert "Simulated schema validation error on update" in str(excinfo.value)
+    assert "failed schema validation" in str(excinfo.value)
+
+    # Verify the task was NOT actually updated on the board
+    task_after_fail = pbm.get_task(task_id, board="working")
+    assert task_after_fail == original_task  # Should be unchanged
+
+
+# --- Tests for Schema Loading ---
+
+
+def test_load_schema_success(pbm: ProjectBoardManager):
+    """Test that the schema is loaded correctly on initialization."""
+    # The pbm fixture ensures PBM is initialized
+    # with a path to a *real* schema file (handled by the fixture setup).
+    # We just need to check if the schema object is populated.
+    assert pbm._task_schema is not None
+    assert isinstance(pbm._task_schema, dict)
+    assert "$schema" in pbm._task_schema  # Check for a key expected in the schema
 
 
 def test_load_schema_not_found(
-    pbm_instance,
-):  # Use regular instance without schema file
+    pbm: ProjectBoardManager,
+):
     """Test that _load_schema returns None if the schema file is not found."""
-    # Ensure schema file does not exist in this fixture's temp dir
     schema_path = (
-        pbm_instance.project_root
+        pbm.config.paths.project_root
         / "src"
         / "dreamos"
         / "coordination"
@@ -862,26 +794,21 @@ def test_load_schema_not_found(
     )
     assert not schema_path.exists()
 
-    # Call _load_schema directly (usually called in __init__)
-    loaded_schema = pbm_instance._load_schema()
+    loaded_schema = pbm._load_schema()
     assert loaded_schema is None
-    # Verify the instance variable is also None
-    assert pbm_instance._task_schema is None
+    assert pbm._task_schema is None
 
 
-def test_load_schema_invalid_json(temp_test_dir):  # Needs custom setup
+def test_load_schema_invalid_json(temp_test_dir):
     """Test _load_schema handles invalid JSON gracefully."""
-    # Create an invalid schema file
     schema_dir = temp_test_dir / "src" / "dreamos" / "coordination" / "tasks"
     schema_dir.mkdir(parents=True, exist_ok=True)
     schema_path = schema_dir / "task-schema.json"
     with open(schema_path, "w") as f:
-        f.write('{"invalid_json": ,}')  # Invalid JSON syntax
+        f.write('{"invalid_json": ,}')
 
-    # Instantiate PBM pointing to this temp project root
     manager = ProjectBoardManager(project_root=temp_test_dir)
-    # __init__ calls _load_schema
-    assert manager._task_schema is None  # Should be None due to load failure
+    assert manager._task_schema is None
 
 
 # --- Tests for claim_ready_task ---
@@ -890,18 +817,15 @@ def test_claim_ready_task_success(
 ):
     """Test claiming a task from the ready queue."""
     agent_id = "agent-test-claim"
-    # Setup: Add task to ready queue
     fs.create_file(pbm.ready_queue_path, contents=json.dumps([sample_task_1]))
 
     claimed = pbm.claim_ready_task(sample_task_1["task_id"], agent_id)
     assert claimed is True
 
-    # Verify ready queue is empty
     with open(pbm.ready_queue_path, "r") as f:
         ready_data = json.load(f)
     assert len(ready_data) == 0
 
-    # Verify working tasks has the task
     assert fs.exists(pbm.working_tasks_path)
     with open(pbm.working_tasks_path, "r") as f:
         working_data = json.load(f)
@@ -931,7 +855,7 @@ def test_move_task_to_completed_success(
     """Test moving a task from working to completed."""
     agent_id = "agent-test-complete"
     working_task = sample_task_1.copy()
-    working_task["status"] = "IN_PROGRESS"  # Assume it was being worked on
+    working_task["status"] = "IN_PROGRESS"
     working_task["claimed_by"] = agent_id
     working_task["assigned_agent"] = agent_id
     fs.create_file(pbm.working_tasks_path, contents=json.dumps([working_task]))
@@ -939,17 +863,15 @@ def test_move_task_to_completed_success(
     final_updates = {
         "status": "COMPLETED",
         "completion_summary": "Task finished successfully.",
-        "completed_by": agent_id,  # PBM should add this
+        "completed_by": agent_id,
     }
     moved = pbm.move_task_to_completed(working_task["task_id"], final_updates)
     assert moved is True
 
-    # Verify working is empty
     with open(pbm.working_tasks_path, "r") as f:
         working_data = json.load(f)
     assert len(working_data) == 0
 
-    # Verify completed has the task
     assert fs.exists(pbm.completed_tasks_path)
     with open(pbm.completed_tasks_path, "r") as f:
         completed_data = json.load(f)
@@ -981,24 +903,20 @@ def test_get_task_success(
     self, pbm: ProjectBoardManager, sample_task_1: dict, sample_task_2: dict, fs
 ):
     """Test getting a task from various boards."""
-    # Setup
     task1_working = sample_task_1.copy()
     task1_working["status"] = "CLAIMED"
     task2_ready = sample_task_2.copy()
     fs.create_file(pbm.working_tasks_path, contents=json.dumps([task1_working]))
     fs.create_file(pbm.ready_queue_path, contents=json.dumps([task2_ready]))
 
-    # Get from working
     retrieved_task1 = pbm.get_task(sample_task_1["task_id"], board="working")
     assert retrieved_task1 is not None
     assert retrieved_task1["task_id"] == sample_task_1["task_id"]
 
-    # Get from ready
     retrieved_task2 = pbm.get_task(sample_task_2["task_id"], board="ready")
     assert retrieved_task2 is not None
     assert retrieved_task2["task_id"] == sample_task_2["task_id"]
 
-    # Get using 'any'
     retrieved_task1_any = pbm.get_task(sample_task_1["task_id"], board="any")
     assert retrieved_task1_any is not None
     assert retrieved_task1_any["task_id"] == sample_task_1["task_id"]

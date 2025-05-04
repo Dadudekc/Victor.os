@@ -10,7 +10,8 @@ try:
     from dreamos.core.bots.orchestrator_bot import OrchestratorBot
 except ImportError as e:
     raise ImportError(
-        "OrchestratorBot must be available for GUI interaction. Please check your PYTHONPATH and dependencies."
+        "OrchestratorBot must be available for GUI interaction. "
+        "Please check your PYTHONPATH and dependencies."
     ) from e
 # EDIT END
 
@@ -32,7 +33,9 @@ RESPONSE_CHECK_INTERVAL = 1  # Seconds between response checks
 try:
     bot = OrchestratorBot(config=None, agent_id="GuiInteractionTool")
 except Exception as e:
-    logging.error(f"Failed to initialize OrchestratorBot: {e}. GUI actions will fail.")
+    logging.error(
+        f"Failed to initialize OrchestratorBot: {e}. " "GUI actions will fail."
+    )
     bot = OrchestratorBot()  # Use dummy if init fails
 
 # --- Core Interaction Function ---
@@ -51,7 +54,8 @@ def find_and_activate_cursor_window(
             windows = pyautogui.getWindowsWithTitle(title_substring)
             if not windows:
                 logger.warning(
-                    f"Attempt {attempt + 1}/{retries}: No window found with title containing '{title_substring}'. Retrying after {delay}s..."
+                    f"Attempt {attempt + 1}/{retries}: No window found with title "
+                    f"containing '{title_substring}'. Retrying after {delay}s..."
                 )
                 time.sleep(delay)
                 continue
@@ -79,13 +83,15 @@ def find_and_activate_cursor_window(
                 return cursor_window
             else:
                 logger.warning(
-                    f"Attempt {attempt + 1}/{retries}: Failed to activate window '{cursor_window.title}'. Window might be obscured or unresponsive."
+                    f"Attempt {attempt + 1}/{retries}: Failed to activate window "
+                    f"'{cursor_window.title}'. Window might be obscured or unresponsive."
                 )
                 time.sleep(delay)
 
         except Exception as e:
             logger.error(
-                f"Attempt {attempt + 1}/{retries}: Error finding/activating Cursor window: {e}"
+                f"Attempt {attempt + 1}/{retries}: Error finding/activating "
+                f"Cursor window: {e}"
             )
             time.sleep(delay)
 
@@ -165,7 +171,8 @@ def interact_with_cursor(prompt: str) -> str | None:
     # TODO: Implement a more robust check for response completion if possible
     #       (e.g., image recognition of 'thinking' indicator, OCR of response area)
     logger.info(
-        f"Waiting approximately {RESPONSE_WAIT_TIMEOUT}s for Cursor to generate response..."
+        f"Waiting approximately {RESPONSE_WAIT_TIMEOUT}s for Cursor to "
+        "generate response..."
     )
     time.sleep(RESPONSE_WAIT_TIMEOUT)  # Simple wait - unreliable
 

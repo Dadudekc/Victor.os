@@ -2,21 +2,20 @@ import logging
 import time
 import warnings  # EDIT START: Import warnings module
 
-import pyautogui
-import pyperclip  # For reliable pasting
+# EDIT START: Import OrchestratorBot here to fix E402
+from dreamos.core.bots.orchestrator_bot import OrchestratorBot
+
+# import pyautogui # F401 Unused Import
+# import pyperclip  # F401 Unused Import
 
 # EDIT START: Add module level deprecation warning
 warnings.warn(
-    "The CursorPromptController module (using pyautogui) is deprecated due to its inherent fragility. "
-    "Use the event-based mechanism via integrations.cursor.utils.publish_cursor_inject_event and AgentBus instead.",
+    "The CursorPromptController module (using pyautogui) is deprecated due to its "
+    "inherent fragility. Use the event-based mechanism via "
+    "integrations.cursor.utils.publish_cursor_inject_event and AgentBus instead.",
     DeprecationWarning,
     stacklevel=2,
 )
-# EDIT END
-
-# EDIT START: Import OrchestratorBot and remove direct pyautogui/pyperclip usage
-from dreamos.core.bots.orchestrator_bot import OrchestratorBot
-
 # EDIT END
 
 # Configure logging
@@ -84,7 +83,7 @@ class CursorPromptController:
         except Exception as e:
             logger.error(f"Failed to send focus hotkey: {e}")
             logger.warning(
-                "Focusing chat input failed. Pasting might go to wrong location."
+                "Focusing chat input failed. " "Pasting might go to wrong location."
             )
             return False
         # EDIT END
@@ -92,12 +91,14 @@ class CursorPromptController:
     def send_prompt_to_chat(self, prompt: str) -> bool:
         """DEPRECATED: Activates Cursor, focuses chat (best effort), pastes, and submits prompt."""
         warnings.warn(
-            "send_prompt_to_chat is deprecated. Prefer integrations.cursor.utils.publish_cursor_inject_event.",
+            "send_prompt_to_chat is deprecated. Prefer "
+            "integrations.cursor.utils.publish_cursor_inject_event.",
             DeprecationWarning,
             stacklevel=2,
         )
         logger.warning(
-            "Executing deprecated send_prompt_to_chat via OrchestratorBot. This is unreliable."
+            "Executing deprecated send_prompt_to_chat via OrchestratorBot. "
+            "This is unreliable."
         )
         logger.info(f"Attempting to send prompt to Cursor chat: '{prompt[:100]}...'")
 
@@ -156,7 +157,10 @@ if __name__ == "__main__":
 
     controller = CursorPromptController()
 
-    test_prompt = "Hello Cursor! This is an automated test prompt from CursorPromptController. Please write a short python function to add two numbers."
+    test_prompt = (
+        "Hello Cursor! This is an automated test prompt from "
+        "CursorPromptController. Please write a short python function to add two numbers."
+    )
 
     print(f"Will attempt to send the following prompt in 5 seconds:")
     print(f"---\n{test_prompt}\n---")
@@ -174,7 +178,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nOperation aborted by user.")
     except Exception as e:
-        print(f"\nAn unexpected error occurred: {e}")
+        print(f"\nAn unexpected error occurred: {{e}}")
         logger.error("Error in example usage block", exc_info=True)
 
     print("CursorPromptController example finished.")

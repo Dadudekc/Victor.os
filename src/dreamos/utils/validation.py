@@ -5,6 +5,7 @@ functionality might now exist in schema_validator.py or specific modules.
 """
 
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +17,6 @@ logger = logging.getLogger(__name__)
 def is_valid_uuid(uuid_string: str) -> bool:
     """Placeholder for UUID validation."""
     # Example basic check (replace with actual logic if needed)
-    import uuid
-
     try:
         uuid.UUID(uuid_string)
         return True

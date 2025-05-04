@@ -6,11 +6,12 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Import new standard mailbox utilities
-from dreamos.agents.utils.agent_utils import (
+# Import mailbox utilities from the correct location
+from dreamos.core.comms.mailbox_utils import (
     MailboxMessagePriority,
     MailboxMessageType,
     create_mailbox_message,
+    list_mailbox_messages,
     read_mailbox_message,
     write_mailbox_message,
 )
@@ -63,8 +64,8 @@ class MailboxHandler:
 
         # Ensure required directories for this agent exist
         try:
-            self.inbox_path.mkdir(parents=True, exist_ok=True)
-            self.archive_path.mkdir(parents=True, exist_ok=True)
+            os.makedirs(self.inbox_path, exist_ok=True)
+            os.makedirs(self.archive_path, exist_ok=True)
             # Optionally create outbox/failed dirs if needed
         except OSError as e:
             raise MailboxError(
@@ -77,7 +78,7 @@ class MailboxHandler:
         # Check if target mailbox exists? write_mailbox_message handles dir creation.
         return target_inbox
 
-    def send(
+    async def send(
         self,
         target_agent_id: str,
         message_type: str,
@@ -101,8 +102,7 @@ class MailboxHandler:
         target_inbox = self._get_target_inbox(target_agent_id)
 
         try:
-            # Create the message using the standard utility
-            # Map input args to standard schema fields
+            # Create the message using the standard utility (synchronous)
             message_data = create_mailbox_message(
                 sender_agent_id=self.agent_id,
                 recipient_agent_id=target_agent_id,
@@ -112,8 +112,8 @@ class MailboxHandler:
                 priority=priority,
             )
 
-            # Write the message using the standard utility
-            filepath = write_mailbox_message(
+            # Write the message using the standard utility (asynchronous)
+            filepath = await write_mailbox_message(
                 message_data=message_data,
                 recipient_inbox_path=str(target_inbox),  # Utility expects string path
                 filename_prefix=filename_prefix,
@@ -121,7 +121,8 @@ class MailboxHandler:
             logger.info(
                 f"Sent message {Path(filepath).name} to agent {target_agent_id}'s inbox ({filepath})."
             )
-            return filepath
+            # Return the string representation of the Path object
+            return str(filepath)
 
         except (ValueError, IOError) as e:
             logger.error(
@@ -136,19 +137,25 @@ class MailboxHandler:
             )
             return None
 
-    def get_messages(self, max_count: int | None = None) -> list[tuple[Path, dict]]:
+    async def get_messages(
+        self, max_count: int | None = None
+    ) -> list[tuple[Path, dict]]:
         """Reads and validates standard JSON messages from the agent's own inbox."""
         messages = []
         try:
-            # Look for standard .json files
-            files = sorted(self.inbox_path.glob("*.json"), key=os.path.getmtime)
+            # Use the async list function from mailbox_utils
+            files = await list_mailbox_messages(self.inbox_path)
+            # Sort files by modification time (synchronous os.path.getmtime)
+            # Consider making sorting fully async if performance becomes an issue
+            files.sort(key=os.path.getmtime)
+
             count = 0
             for filepath in files:
                 if max_count is not None and count >= max_count:
                     break
 
-                # Use the standard utility to read and validate
-                message_data = read_mailbox_message(
+                # Use the standard utility to read and validate (asynchronous)
+                message_data = await read_mailbox_message(
                     str(filepath)
                 )  # Utility expects string path
 
@@ -164,11 +171,15 @@ class MailboxHandler:
 
         except OSError as e:
             logger.error(f"Failed to list inbox directory {self.inbox_path}: {e}")
+        except Exception as e:
+            logger.error(
+                f"Unexpected error getting messages from {self.inbox_path}: {e}"
+            )
         return messages
 
     def archive_message(self, message_filepath: Path) -> bool:
         """Moves a processed message file (expected to be .json) from the inbox to the archive."""
-        # TODO: Consider making internal file operations (glob, move) async if required
+        # This remains synchronous for now, using shutil.move
         if not message_filepath.is_file() or message_filepath.parent != self.inbox_path:
             logger.error(
                 f"Cannot archive file '{message_filepath.name}': Not found in inbox {self.inbox_path}."
@@ -177,7 +188,8 @@ class MailboxHandler:
 
         # Ensure the archive directory exists (should be created in __init__, but double-check)
         try:
-            self.archive_path.mkdir(parents=True, exist_ok=True)
+            # Using os.makedirs for sync operation
+            os.makedirs(self.archive_path, exist_ok=True)
         except OSError as e:
             logger.error(
                 f"Failed to ensure archive directory exists at {self.archive_path}: {e}"
@@ -196,6 +208,5 @@ class MailboxHandler:
             return False
 
     # Potential future methods:
-    # - read_message(message_id_or_path)
-    # - delete_message(message_id_or_path)
-    # - handle_failed_message(...) # E.g., moving files identified as invalid by get_messages
+    # - async def read_message(message_id_or_path)
+    # - async def delete_message(message_id_or_path)

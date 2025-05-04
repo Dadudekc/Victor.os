@@ -11,9 +11,11 @@ from pathlib import Path
 # import argparse
 import click
 
+# from dreamos.core.orchestrator import Orchestrator # INCORRECT/STALE IMPORT
+from dreamos.automation.execution.swarm_controller import SwarmController
+
 # Use canonical AppConfig and setup_logging from dreamos.config
 from dreamos.config import AppConfig, setup_logging
-from dreamos.core.orchestrator import Orchestrator
 
 # Initial basic logging config (will be overridden by setup_logging)
 logging.basicConfig(
@@ -55,16 +57,48 @@ def cli(ctx, config):
 @cli.command()
 @click.pass_context
 async def run(ctx):
-    """Initialize and run the main Orchestrator."""
+    """Initialize and run the main SwarmController."""
     config = ctx.obj["config"]
     try:
-        orchestrator = Orchestrator(config)
-        logger.info("Orchestrator initialized.")
-        logger.info("Running Orchestrator... (Add main loop/task execution here)")
-        # Example: await orchestrator.start() or await orchestrator.run_task(...)
-        # For now, just log and exit gracefully
-        await asyncio.sleep(1)  # Placeholder for actual run logic
-        logger.info("Orchestrator run complete (placeholder). Exiting.")
+        # orchestrator = Orchestrator(config) # EDIT: Remove old instantiation
+        # logger.info("Orchestrator initialized.") # EDIT: Remove old log
+        # logger.info("Running Orchestrator... (Add main loop/task execution here)") # EDIT: Remove old log
+        # # Example: await orchestrator.start() or await orchestrator.run_task(...)
+        # # For now, just log and exit gracefully
+        # await asyncio.sleep(1)  # Placeholder for actual run logic
+        # logger.info("Orchestrator run complete (placeholder). Exiting.") # EDIT: Remove old log
+
+        # {{ EDIT START: Instantiate and run SwarmController }}
+        # TODO: Handle initial tasks loading if needed
+        initial_tasks = []
+        # Example: Load from a file or default tasks
+        # initial_tasks_path = config.paths.project_root / "runtime/initial_tasks.json"
+        # if initial_tasks_path.exists():
+        #     try:
+        #         with open(initial_tasks_path, "r") as f:
+        #             initial_tasks = json.load(f)
+        #         logger.info(f"Loaded {len(initial_tasks)} initial tasks.")
+        #     except Exception as e:
+        #         logger.warning(f"Failed to load initial tasks: {e}")
+
+        controller = SwarmController(config=config)
+        logger.info("SwarmController initialized.")
+        # Note: controller.start() is blocking and contains the main loop internally
+        # It also handles worker threads, so we don't need separate asyncio tasks here usually.
+        # However, `start` itself is NOT async. Need to run it appropriately.
+        # Running blocking `start` in executor to not block main CLI thread if needed,
+        # OR just run it directly if CLI's purpose is just to launch the controller.
+        # For simplicity, assume direct run blocks until shutdown.
+        # If this needs to run in background, threading or asyncio.to_thread is needed.
+
+        # Since SwarmController.start manages its own threads and loops,
+        # we likely don't need `async def run(ctx)` unless other async setup is needed.
+        # For now, keep async def but run start synchronously.
+        # Consider refactoring `start` or how it's called if true async needed here.
+        controller.start(initial_tasks=initial_tasks)
+        # The start method blocks until shutdown is called or loop ends.
+        logger.info("SwarmController start method returned (likely shutdown). Exiting.")
+        # {{ EDIT END }}
 
     except Exception as e:
         logger.exception(
