@@ -3,26 +3,21 @@
 import asyncio
 import logging
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-import openai  # Though not used directly if client abstracts it
-
-# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # OLD PATH
+# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # OLD PATH  # noqa: E501
 from dreamos.config import AppConfig  # Import AppConfig
 
 # from ..events.event_types import DreamscapeEventType # No longer needed
 # Import AgentBus interface
 from dreamos.coordination.agent_bus import (  # CORRECTED PATH
     AgentBus,
-    BaseEvent,
-    EventType,
 )
 
 # {{ EDIT: Import schema }}
-# from ..schemas.event_schemas import PlanRequestedPayload, BaseEventPayload # No longer needed
+# from ..schemas.event_schemas import PlanRequestedPayload, BaseEventPayload # No longer needed  # noqa: E501
 # from pydantic import ValidationError # No longer needed for event handling
-from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus
+from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage
 from dreamos.integrations.openai_client import (  # Import the specific client
     OpenAIClient,
     OpenAIClientError,
@@ -72,7 +67,7 @@ class ContentPlannerAgent(BaseAgent):
                 f"Failed to initialize OpenAI Client for {self.agent_id}: {e}",
                 exc_info=True,
             )
-            # Agent might still start but LLM calls will fail. Consider raising or preventing start.
+            # Agent might still start but LLM calls will fail. Consider raising or preventing start.  # noqa: E501
             self.openai_client = None
             logger.warning(
                 f"{self.agent_id} initialized WITHOUT a functional OpenAI client."
@@ -83,7 +78,7 @@ class ContentPlannerAgent(BaseAgent):
         self.register_command_handler(self.PLAN_COMMAND_TYPE, self.handle_plan_request)
 
         logger.info(
-            f"ContentPlannerAgent ({self.agent_id}) initialized and ready for '{self.PLAN_COMMAND_TYPE}' tasks."
+            f"ContentPlannerAgent ({self.agent_id}) initialized and ready for '{self.PLAN_COMMAND_TYPE}' tasks."  # noqa: E501
         )
 
     # {{ EDIT END }}
@@ -98,7 +93,7 @@ class ContentPlannerAgent(BaseAgent):
             logger.info(f"OpenAI Client ready for {self.agent_id}.")
         else:
             logger.warning(
-                f"{self.agent_id} started but OpenAI client is not available/configured."
+                f"{self.agent_id} started but OpenAI client is not available/configured."  # noqa: E501
             )
         # EDIT END
         await asyncio.sleep(0)  # Yield control
@@ -123,14 +118,14 @@ class ContentPlannerAgent(BaseAgent):
         """
         # Parameters are now in task.params
         topic = task.params.get("topic")
-        # Optional: requester_id = task.originator_agent_id (might be supervisor or another agent)
+        # Optional: requester_id = task.originator_agent_id (might be supervisor or another agent)  # noqa: E501
         # Correlation ID is automatically handled by BaseAgent
 
         if not topic:
             logger.error(
                 f"Task {task.task_id}: Planning request received without a topic."
             )
-            # Let BaseAgent handle publishing failure via raising exception or returning error dict
+            # Let BaseAgent handle publishing failure via raising exception or returning error dict  # noqa: E501
             # For clarity, explicitly return error payload:
             return {"error": "Missing topic in task parameters"}
 
@@ -177,7 +172,7 @@ class ContentPlannerAgent(BaseAgent):
                 prompt=prompt,
                 model=model,
                 max_tokens=max_tokens,
-                temperature=0.5,  # Lower temperature for more structured output like an outline
+                temperature=0.5,  # Lower temperature for more structured output like an outline  # noqa: E501
             )
 
             logger.debug(f"Task {task.task_id}: Received LLM response:\n{llm_response}")
@@ -197,7 +192,7 @@ class ContentPlannerAgent(BaseAgent):
 
             await self.publish_task_progress(task, 0.9, "Planning complete.")
 
-            # Return the successful result payload for BaseAgent to publish TASK_COMPLETED
+            # Return the successful result payload for BaseAgent to publish TASK_COMPLETED  # noqa: E501
             # Use model_dump() if ContentPlan is a Pydantic model
             result_payload = (
                 plan.model_dump() if hasattr(plan, "model_dump") else plan.__dict__
@@ -222,15 +217,15 @@ class ContentPlannerAgent(BaseAgent):
 
     # {{ EDIT END }}
 
-    # {{ EDIT START: Add helper methods for prompt building and parsing }} # Keep this edit block if methods are new
+    # {{ EDIT START: Add helper methods for prompt building and parsing }} # Keep this edit block if methods are new  # noqa: E501
     def _build_planning_prompt(self, topic: str) -> str:
         """Builds the prompt for the LLM to generate a content plan outline."""
         # Simple prompt, can be refined based on desired plan structure
         prompt = (
-            f"You are a content planner for a software development blog called Digital Dreamscape.\n"
-            f"Your task is to create a concise, logical outline for a blog post about the following topic:\n\n"
+            f"You are a content planner for a software development blog called Digital Dreamscape.\n"  # noqa: E501
+            f"Your task is to create a concise, logical outline for a blog post about the following topic:\n\n"  # noqa: E501
             f"Topic: {topic}\n\n"
-            f"Provide the outline as a numbered list. Each item should represent a major section or sub-section of the blog post.\n"
+            f"Provide the outline as a numbered list. Each item should represent a major section or sub-section of the blog post.\n"  # noqa: E501
             f"Focus on structure and flow. Do not write the content itself.\n\n"
             f"Outline:\n"
             f"1."
@@ -281,11 +276,11 @@ class ContentPlannerAgent(BaseAgent):
     #     ...
     # async def handle_plan_request_event(self, event_data: Dict[str, Any]):
     #     ...
-    # async def publish_event(self, event_type: DreamscapeEventType, payload: Dict[str, Any]):
+    # async def publish_event(self, event_type: DreamscapeEventType, payload: Dict[str, Any]):  # noqa: E501
     #     ...
     # {{ EDIT END }}
 
     # Example: If planning logic needed config
     # async def handle_plan_request(...):
-    # planning_model = get_config("dreamscape.planner_agent.llm_model", default="gpt-4", config_obj=self.config)
+    # planning_model = get_config("dreamscape.planner_agent.llm_model", default="gpt-4", config_obj=self.config)  # noqa: E501
     # ... use planning_model ...

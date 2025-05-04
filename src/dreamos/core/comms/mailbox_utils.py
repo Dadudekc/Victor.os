@@ -4,7 +4,6 @@ import asyncio
 import json
 import logging
 import os
-import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,7 +18,6 @@ from ...utils.common_utils import get_utc_iso_timestamp
 from ..config import AppConfig
 from ..errors import ConfigurationError
 from ..events.base_event import BaseDreamEvent
-from ..utils.file_locking import FileLock, LockAcquisitionError, LockDirectoryError
 
 # Setup logger
 util_logger = logging.getLogger(__name__)
@@ -47,18 +45,22 @@ MailboxMessagePriority = Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 
 def validate_mailbox_message_schema(message_data: Dict[str, Any]) -> bool:
-    """Validates if the message data dictionary conforms to the basic mailbox message schema."""
+    """Validates if the message data dictionary conforms to the documented mailbox message schema."""
+    # Fields listed as Mandatory in docs/communication/messaging_format.md
     required_keys = [
         "message_id",
-        "timestamp_utc",
         "sender_agent_id",
         "recipient_agent_id",
+        "timestamp_utc",
         "subject",
-        "message_type",
-        "priority",
+        "type", # Added 'type' as required per docs
         "body",
-        "read_status",
+        # 'priority' is optional in docs, but create_mailbox_message adds a default,
+        # so it should always be present in messages created by the utility.
+        # We'll keep it here for robustness check on data passed to write.
+        "priority"
     ]
+    # Removed 'read_status' as it's not listed as mandatory in docs
 
     if not all(key in message_data for key in required_keys):
         missing = [key for key in required_keys if key not in message_data]
@@ -67,17 +69,38 @@ def validate_mailbox_message_schema(message_data: Dict[str, Any]) -> bool:
         )
         return False
 
+    # Add specific type checks for mandatory fields
     if not isinstance(message_data.get("message_id"), str):
-        util_logger.error(
-            "Mailbox message schema validation failed: message_id is not a string."
-        )
+        util_logger.error("Validation Failed: message_id must be a string.")
         return False
     if not isinstance(message_data.get("sender_agent_id"), str):
-        util_logger.error(
-            "Mailbox message schema validation failed: sender_agent_id is not a string."
-        )
+        util_logger.error("Validation Failed: sender_agent_id must be a string.")
         return False
-    # Add more strict type/value checks as needed...
+    if not isinstance(message_data.get("recipient_agent_id"), str):
+        util_logger.error("Validation Failed: recipient_agent_id must be a string.")
+        return False
+    if not isinstance(message_data.get("timestamp_utc"), str):
+        # TODO: Add stricter ISO 8601 format validation?
+        util_logger.error("Validation Failed: timestamp_utc must be a string.")
+        return False
+    if not isinstance(message_data.get("subject"), str):
+        util_logger.error("Validation Failed: subject must be a string.")
+        return False
+    if not isinstance(message_data.get("type"), str):
+        util_logger.error("Validation Failed: type must be a string.")
+        return False
+    # Body can be string or object, no strict check here
+    if not isinstance(message_data.get("priority"), str):
+        util_logger.error("Validation Failed: priority must be a string.")
+        return False
+
+    # Optional: Validate 'type' and 'priority' against known Literals if desired
+    # message_type = message_data.get("type")
+    # if message_type not in get_args(MailboxMessageType):
+    #     util_logger.warning(f"Validation Warning: 'type' value '{message_type}' not in standard Literal.")
+    # priority_val = message_data.get("priority")
+    # if priority_val not in get_args(MailboxMessagePriority):
+    #     util_logger.warning(f"Validation Warning: 'priority' value '{priority_val}' not in standard Literal.")
 
     util_logger.debug("Mailbox message schema validation successful.")
     return True
@@ -246,7 +269,7 @@ async def list_mailbox_messages(
             if f.is_file() and not f.name.endswith((".tmp", ".lock"))
         ]
         util_logger.debug(
-            f"Found {len(message_files)} potential messages in {path} matching {pattern}"
+            f"Found {len(message_files)} potential messages in {path} matching {pattern}"  # noqa: E501
         )
         return message_files
     except Exception as e:
@@ -259,19 +282,19 @@ def get_agent_mailbox_path(agent_id: str, config: AppConfig) -> Path:
     base_mailbox_dir = config.get("system.paths.mailboxes")
     if not base_mailbox_dir:
         raise ConfigurationError(
-            "Base mailbox directory ('system.paths.mailboxes') not found in configuration."
+            "Base mailbox directory ('system.paths.mailboxes') not found in configuration."  # noqa: E501
         )
     safe_agent_id = agent_id.replace(" ", "_").replace("/", "-").replace("\\", "-")
     if safe_agent_id != agent_id:
         util_logger.warning(
-            f"Agent ID '{agent_id}' contained potentially unsafe characters, using '{safe_agent_id}' for path."
+            f"Agent ID '{agent_id}' contained potentially unsafe characters, using '{safe_agent_id}' for path."  # noqa: E501
         )
     inbox_path = Path(base_mailbox_dir) / safe_agent_id / "inbox"
     return inbox_path
 
 
 def validate_agent_mailbox_path(path: Path, config: AppConfig) -> bool:
-    """Checks if a given path is a valid agent mailbox inbox path according to config."""
+    """Checks if a given path is a valid agent mailbox inbox path according to config."""  # noqa: E501
     base_mailbox_dir = config.get("system.paths.mailboxes")
     if not base_mailbox_dir:
         util_logger.error(
@@ -291,4 +314,4 @@ def validate_agent_mailbox_path(path: Path, config: AppConfig) -> bool:
     return False
 
 
-# ... existing code ... (Keep other utils like format_agent_report, publish_supervisor_alert)
+# ... existing code ... (Keep other utils like format_agent_report, publish_supervisor_alert)  # noqa: E501

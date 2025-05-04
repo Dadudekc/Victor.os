@@ -1,17 +1,10 @@
 # dream_mode/utils/browser.py
 
-import json
 import logging
-import os
 import sys
 import time
 from pathlib import Path
 from typing import Optional
-
-import undetected_chromedriver as uc
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 # ---------------------------
 # Import UnifiedDriverManager from Digital Dreamscape project
@@ -25,7 +18,7 @@ dds_src = (
 )
 if str(dds_src) not in sys.path:
     sys.path.insert(0, str(dds_src))
-from dreamos.UnifiedDriverManager import UnifiedDriverManager
+from dreamos.UnifiedDriverManager import UnifiedDriverManager  # noqa: E402
 
 logger = logging.getLogger("BrowserUtils")
 _manager: Optional[UnifiedDriverManager] = None

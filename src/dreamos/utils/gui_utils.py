@@ -10,10 +10,6 @@ from pathlib import Path  # Added Path
 from typing import Any, Dict, Optional, Tuple
 
 # Import core error and potentially PROJECT_ROOT if needed here
-from ..core.errors import (  # Assuming CoordinateError is defined in core.errors
-    CoordinateError,
-    ToolError,
-)
 
 # from ..core.config import PROJECT_ROOT # If needed for default paths
 
@@ -25,7 +21,7 @@ logger = logging.getLogger(__name__)
 def get_specific_coordinate(
     identifier: str, full_coords: Optional[Dict[str, Any]]
 ) -> Optional[Tuple[int, int]]:
-    """Extracts specific (x, y) coordinates for an identifier (e.g., 'agent_01.input_box')."""
+    """Extracts specific (x, y) coordinates for an identifier (e.g., 'agent_01.input_box')."""  # noqa: E501
     if not full_coords:
         logger.debug(f"Full coordinates data is None, cannot get '{identifier}'.")
         return None
@@ -33,7 +29,7 @@ def get_specific_coordinate(
     parts = identifier.split(".")  # e.g., ['agent_01', 'input_box']
     if len(parts) != 2:
         logger.warning(
-            f"Invalid coordinate identifier format: '{identifier}'. Expected 'agent_id.element_key'."
+            f"Invalid coordinate identifier format: '{identifier}'. Expected 'agent_id.element_key'."  # noqa: E501
         )
         return None
 
@@ -42,14 +38,14 @@ def get_specific_coordinate(
     agent_coords = full_coords.get(agent_id)
     if not agent_coords or not isinstance(agent_coords, dict):
         logger.debug(
-            f"No coordinate data found for agent '{agent_id}' in the provided structure."
+            f"No coordinate data found for agent '{agent_id}' in the provided structure."  # noqa: E501
         )
         return None
 
     coords = agent_coords.get(element_key)
     if not coords:
         logger.debug(
-            f"No coordinates found for element '{element_key}' within agent '{agent_id}'."
+            f"No coordinates found for element '{element_key}' within agent '{agent_id}'."  # noqa: E501
         )
         return None
 
@@ -76,7 +72,7 @@ def get_specific_coordinate(
         return (coords["x"], coords["y"])
     else:
         logger.warning(
-            f"Invalid coordinate format for '{identifier}': {coords}. Expected [x, y] or {{ 'x': x, 'y': y }}."
+            f"Invalid coordinate format for '{identifier}': {coords}. Expected [x, y] or {{ 'x': x, 'y': y }}."  # noqa: E501
         )
         return None
 
@@ -156,7 +152,7 @@ def is_window_focused(target_title_substring: str) -> bool:
     Returns:
         True if pygetwindow is available, an active window is found, and its title contains the substring.
         False otherwise.
-    """
+    """  # noqa: E501
     if not PYGETWINDOW_AVAILABLE or pygetwindow is None:
         logger.warning("is_window_focused check skipped: pygetwindow not available.")
         return False  # Cannot verify without the library
@@ -168,12 +164,12 @@ def is_window_focused(target_title_substring: str) -> bool:
             # Case-insensitive comparison
             if target_title_substring.lower() in active_window.title.lower():
                 logger.debug(
-                    f"Active window title contains target substring '{target_title_substring}'. Focus presumed correct."
+                    f"Active window title contains target substring '{target_title_substring}'. Focus presumed correct."  # noqa: E501
                 )
                 return True
             else:
                 logger.debug(
-                    f"Active window title does not contain target substring '{target_title_substring}'."
+                    f"Active window title does not contain target substring '{target_title_substring}'."  # noqa: E501
                 )
                 return False
         elif active_window:
@@ -194,7 +190,7 @@ def is_window_focused(target_title_substring: str) -> bool:
 # --- Recalibration Utility ---
 
 # EDIT START: Remove local PROJECT_ROOT calculation
-# # Define path relative to this file (utils/gui_utils.py -> utils -> core -> dreamos -> src -> tools)
+# # Define path relative to this file (utils/gui_utils.py -> utils -> core -> dreamos -> src -> tools)  # noqa: E501
 # # Replicate PROJECT_ROOT definition locally to avoid problematic cross-module import
 # GUI_UTILS_DIR = Path(__file__).resolve().parent
 # PROJECT_ROOT = GUI_UTILS_DIR.parents[2] # utils -> core -> dreamos -> src
@@ -219,7 +215,7 @@ def trigger_recalibration(
 
     Returns:
         True if the script executed successfully (return code 0), False otherwise.
-    """
+    """  # noqa: E501
     # EDIT START: Define script path using project_root argument
     recalibration_script_path = (
         project_root / "src" / "tools" / "calibration" / "recalibrate_coords.py"
@@ -228,7 +224,7 @@ def trigger_recalibration(
 
     if not recalibration_script_path.exists():
         logger.error(
-            f"Recalibration script not found at: {recalibration_script_path}. Cannot recalibrate."
+            f"Recalibration script not found at: {recalibration_script_path}. Cannot recalibrate."  # noqa: E501
         )
         return False
 
@@ -244,7 +240,7 @@ def trigger_recalibration(
     ]
 
     logger.info(
-        f"Triggering recalibration script for '{identifier}' with command: {' '.join(command)}"
+        f"Triggering recalibration script for '{identifier}' with command: {' '.join(command)}"  # noqa: E501
     )
 
     try:
@@ -269,7 +265,7 @@ def trigger_recalibration(
             return True
         else:
             logger.error(
-                f"Recalibration script for '{identifier}' failed with return code {process.returncode}."
+                f"Recalibration script for '{identifier}' failed with return code {process.returncode}."  # noqa: E501
             )
             logger.error(f"Recalibration stdout:\n{process.stdout}")
             logger.error(f"Recalibration stderr:\n{process.stderr}")
@@ -278,7 +274,7 @@ def trigger_recalibration(
     except FileNotFoundError as e:
         # Error finding python executable or script itself
         logger.error(
-            f"Error executing recalibration script: {e}. Check Python path and script path.",
+            f"Error executing recalibration script: {e}. Check Python path and script path.",  # noqa: E501
             exc_info=True,
         )
         return False
@@ -333,7 +329,7 @@ def wait_for_element(
             )
             if center:
                 logger.info(
-                    f"Element {img_filename} found at ({center.x}, {center.y}) after {time.time() - start_time:.2f}s."
+                    f"Element {img_filename} found at ({center.x}, {center.y}) after {time.time() - start_time:.2f}s."  # noqa: E501
                 )
                 # Return as plain tuple
                 return (center.x, center.y)

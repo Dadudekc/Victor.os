@@ -2,7 +2,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, Literal, Optional
 
 try:
     import pyautogui
@@ -12,7 +12,7 @@ except ImportError:
     pyautogui = None
     PYAUTOGUI_AVAILABLE = False
     logging.error(
-        "pyautogui not found. Cursor window reachability check cannot verify screen bounds."
+        "pyautogui not found. Cursor window reachability check cannot verify screen bounds."  # noqa: E501
     )
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def _load_coordinates(coords_path: Path) -> Optional[Dict[str, Dict[str, int]]]:
 def check_cursor_window_reachability(
     coords_path: Path = DEFAULT_COORDS_PATH,
 ) -> Dict[str, Any]:
-    """Checks if configured cursor coordinates for expected agents are valid and within screen bounds."""
+    """Checks if configured cursor coordinates for expected agents are valid and within screen bounds."""  # noqa: E501
     logger.info(f"Running {CHECK_NAME} check using: {coords_path}")
     details: Dict[str, Any] = {"per_agent": {}, "config_path": str(coords_path)}
     overall_status: CheckStatus = "PASS"  # Start optimistic
@@ -104,7 +104,7 @@ def check_cursor_window_reachability(
                         )
                     else:
                         agent_result["reason"] = (
-                            f"Coordinates ({x},{y}) outside screen bounds ({screen_width}x{screen_height})."
+                            f"Coordinates ({x},{y}) outside screen bounds ({screen_width}x{screen_height})."  # noqa: E501
                         )
                         any_unreachable = True
                 else:
@@ -112,7 +112,7 @@ def check_cursor_window_reachability(
                         True  # Assume reachable if bounds check failed
                     )
                     agent_result["reason"] = (
-                        "Coordinates syntactically valid (Screen bounds check unavailable/failed)."
+                        "Coordinates syntactically valid (Screen bounds check unavailable/failed)."  # noqa: E501
                     )
                     # Consider making this a WARN instead of PASS?
                     if overall_status == "PASS":

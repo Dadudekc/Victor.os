@@ -1,45 +1,23 @@
 """Shared utilities for agent functionality."""
 
 import asyncio
-import json
 import logging  # Added for logging potential errors within utils
-import os
-import random
-import tempfile
-import time
 import traceback
-import uuid
-from datetime import datetime, timezone
 from functools import wraps
-from pathlib import Path
-from queue import Empty, Queue
-from typing import Any, Awaitable, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
-from filelock import AsyncFileLock, Timeout
-
-from dreamos.coordination.agent_bus import AgentBus, Message  # CORRECTED PATH
-from dreamos.core.config import AppConfig
+from dreamos.coordination.agent_bus import AgentBus  # CORRECTED PATH
 from dreamos.core.coordination.event_payloads import (  # Import the payload
     SupervisorAlertPayload,
 )
 from dreamos.core.coordination.event_types import EventType
 from dreamos.core.coordination.message_patterns import (
     TaskMessage,
-    TaskPriority,
-    TaskStatus,
-    update_task_status,
 )
 from dreamos.core.events.base_event import BaseDreamEvent
 from dreamos.core.memory.governance_memory_engine import log_event
-from dreamos.core.utils.file_locking import (
-    FileLock,
-    LockAcquisitionError,
-    LockDirectoryError,
-)
 from dreamos.core.utils.performance_logger import PerformanceLogger
 from dreamos.utils.common_utils import get_utc_iso_timestamp
-
-from ...core.errors import ConfigurationError
 
 # Setup a logger for utility functions
 util_logger = logging.getLogger("core.utils")
@@ -79,7 +57,7 @@ def with_error_handling(error_class: type = AgentError):
             try:
                 return await func(*args, **kwargs)
             except Exception as e:
-                # Log the error using standard logger if available on self, otherwise use util_logger
+                # Log the error using standard logger if available on self, otherwise use util_logger  # noqa: E501
                 logger_instance = getattr(
                     args[0] if args else None, "logger", util_logger
                 )
@@ -111,7 +89,7 @@ def with_error_handling(error_class: type = AgentError):
 
 
 def with_performance_tracking(operation_name: str):
-    """Decorator for tracking operation performance. Assumes 'self' is the first arg and has 'perf_logger'."""
+    """Decorator for tracking operation performance. Assumes 'self' is the first arg and has 'perf_logger'."""  # noqa: E501
 
     def decorator(func: Callable):
         @wraps(func)
@@ -121,7 +99,7 @@ def with_performance_tracking(operation_name: str):
                 self.perf_logger, PerformanceLogger
             ):
                 util_logger.warning(
-                    f"Performance tracking skipped for {operation_name}: 'perf_logger' not found or invalid on {self}."
+                    f"Performance tracking skipped for {operation_name}: 'perf_logger' not found or invalid on {self}."  # noqa: E501
                 )
                 return await func(self, *args, **kwargs)
 
@@ -155,7 +133,7 @@ async def publish_task_update(
         # Publish to a dynamic topic including task ID
         await bus.publish(event_topic, message_content)
         util_logger.debug(
-            f"Published task update for {task.task_id} ({task.status.name}) to {event_topic}"
+            f"Published task update for {task.task_id} ({task.status.name}) to {event_topic}"  # noqa: E501
         )
     except Exception as e:
         util_logger.error(
@@ -171,7 +149,7 @@ async def publish_error(
     correlation_id: Optional[str],  # Correlation ID might be None
     details: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """Publish an error message to the system error topic and potentially a response topic."""
+    """Publish an error message to the system error topic and potentially a response topic."""  # noqa: E501
     # Publish to a general system error topic
     # OLD TOPIC: system_error_topic = "system.error"
     # NEW TOPIC:
@@ -179,7 +157,7 @@ async def publish_error(
     error_data = {
         "error": error_message,
         "source_agent": agent_id,
-        "traceback": traceback.format_exc(),  # Consider omitting traceback from bus? Logged locally.
+        "traceback": traceback.format_exc(),  # Consider omitting traceback from bus? Logged locally.  # noqa: E501
         **(details or {}),  # Merge additional details
     }
     error_message_payload = {
@@ -191,7 +169,7 @@ async def publish_error(
     try:
         await bus.publish(system_error_topic, error_message_payload)
         util_logger.debug(
-            f"Published error from {agent_id} to {system_error_topic} (CorrID: {correlation_id})"
+            f"Published error from {agent_id} to {system_error_topic} (CorrID: {correlation_id})"  # noqa: E501
         )
     except Exception as e:
         util_logger.error(
@@ -241,9 +219,9 @@ async def handle_task_cancellation(
     agent_id: str,
     correlation_id: Optional[str],  # Correlation ID might be None
 ) -> None:
-    """Handle task cancellation request by cancelling the task and publishing results."""
+    """Handle task cancellation request by cancelling the task and publishing results."""  # noqa: E501
     active_task = active_tasks.get(task_id)
-    # OLD TOPIC: response_topic = f"system.response.{correlation_id}" if correlation_id else None
+    # OLD TOPIC: response_topic = f"system.response.{correlation_id}" if correlation_id else None  # noqa: E501
     # NEW TOPIC:
     response_topic = (
         f"system.response.{correlation_id}.result" if correlation_id else None
@@ -278,16 +256,16 @@ async def handle_task_cancellation(
                 )
             except Exception as e:
                 util_logger.error(
-                    f"Failed to publish cancellation confirmation to {response_topic}: {e}",
+                    f"Failed to publish cancellation confirmation to {response_topic}: {e}",  # noqa: E501
                     exc_info=True,
                 )
         else:
             util_logger.warning(
-                f"Cannot send cancellation confirmation for task {task_id}: No correlation ID."
+                f"Cannot send cancellation confirmation for task {task_id}: No correlation ID."  # noqa: E501
             )
 
         # Note: The actual task status (CANCELLED) should be set and published
-        # by the _process_single_task exception handling in BaseAgent when the await task raises CancelledError.
+        # by the _process_single_task exception handling in BaseAgent when the await task raises CancelledError.  # noqa: E501
 
         # Original MessageType.RESPONSE publish commented out
         # await bus.publish(Message(
@@ -360,7 +338,7 @@ def format_agent_report(
     # Use name if available, otherwise fall back to Agent ID
     header_name = agent_name if agent_name else f"Agent {agent_id}"
     header = f"**{header_name} Reporting:**"
-    body = f"- **Current Task:** {task}\n- **Current Status:** {status}\n- **Action Taken or Standby Action:** {action}"
+    body = f"- **Current Task:** {task}\n- **Current Status:** {status}\n- **Action Taken or Standby Action:** {action}"  # noqa: E501
     return f"{header}\n\n{body}"
 
 
@@ -403,7 +381,7 @@ async def publish_supervisor_alert(
             alert_event
         )  # Use dispatch_event which takes BaseEvent
         util_logger.info(
-            f"Agent {source_agent_id} raised supervisor alert {payload.alert_id}: {blocker_summary}"
+            f"Agent {source_agent_id} raised supervisor alert {payload.alert_id}: {blocker_summary}"  # noqa: E501
         )
         return payload.alert_id
     except Exception as e:

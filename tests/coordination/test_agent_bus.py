@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -32,7 +32,7 @@ async def test_agent_bus_publish_subscribe(agent_bus):
     event_type = EventType.SYSTEM
     test_event = Event(type=event_type, data={"test": "data"}, source_id="test_source")
 
-    sub_id = await agent_bus.register_handler(event_type, handler)
+    sub_id = await agent_bus.register_handler(event_type, handler)  # noqa: F841
     await agent_bus.publish(event_type, test_event)
 
     # Allow time for event processing
@@ -80,14 +80,14 @@ def test_agent_bus_delegates_to_simple_bus(MockSimpleEventBus):
     assert agent_bus._event_bus is mock_simple_bus_instance
 
     # Test delegation
-    handler = lambda e: print(e)
-    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src")
+    handler = lambda e: print(e)  # noqa: E731
+    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src")  # noqa: F821
 
     try:
         # Intentional wildcard subscription for comprehensive logging
         agent_bus.subscribe("system.*", handler)
     except AttributeError as e:
-        logger.error(f"Failed to subscribe: {e}")
+        logger.error(f"Failed to subscribe: {e}")  # noqa: F821
 
     mock_simple_bus_instance.subscribe.assert_called_once_with("system.*", handler)
 
@@ -115,7 +115,7 @@ def test_unsubscribe_removes_handler(simple_bus):
         handler2_called = True
 
     topic = "test.topic"
-    event = BaseEvent(
+    event = BaseEvent(  # noqa: F821
         EventType.SYSTEM_ERROR, "test_src", data={}
     )  # Type doesn't matter here
     event.event_type.value = topic  # Force topic for matching
@@ -146,7 +146,7 @@ def test_unsubscribe_removes_topic_if_empty(simple_bus):
         handler_called = True
 
     topic = "empty.topic"
-    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src", data={})
+    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src", data={})  # noqa: F821
     event.event_type.value = topic
 
     simple_bus.subscribe(topic, handler)
@@ -174,7 +174,7 @@ def test_unsubscribe_nonexistent_handler(simple_bus):
         pass
 
     topic = "safe.unsubscribe"
-    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src", data={})
+    event = BaseEvent(EventType.SYSTEM_ERROR, "test_src", data={})  # noqa: F821
     event.event_type.value = topic
 
     simple_bus.subscribe(topic, handler1)

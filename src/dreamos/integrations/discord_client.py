@@ -1,12 +1,10 @@
 """Client for interacting with Discord (Bot and Webhooks)."""
 
-import asyncio
-import json
+import asyncio  # noqa: I001
 import logging
 
 import aiohttp
 import tenacity
-
 from dreamos.utils.config_utils import get_config
 
 from . import APIError, IntegrationError
@@ -29,7 +27,7 @@ class DiscordClient:
 
         if not self._webhook_functional and not self._bot_functional:
             logger.warning(
-                "Neither Discord Bot Token nor Webhook URL found. Client non-functional."
+                "Neither Discord Bot Token nor Webhook URL found. Client non-functional."  # noqa: E501
             )
         elif not self._bot_functional:
             logger.warning(
@@ -44,7 +42,7 @@ class DiscordClient:
         self._bot_client = None  # Placeholder for discord.py client
         self._session: aiohttp.ClientSession | None = None  # Session for webhook
         logger.info(
-            f"DiscordClient initialized (Webhook: {self._webhook_functional}, Bot: {self._bot_functional})."
+            f"DiscordClient initialized (Webhook: {self._webhook_functional}, Bot: {self._bot_functional})."  # noqa: E501
         )
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -95,7 +93,7 @@ class DiscordClient:
         payload.update(kwargs)
 
         logger.debug(
-            f"Sending webhook message (User: {username or 'Default'}): {content[:100]}..."
+            f"Sending webhook message (User: {username or 'Default'}): {content[:100]}..."  # noqa: E501
         )
         start_time = asyncio.get_event_loop().time()
 
@@ -105,17 +103,17 @@ class DiscordClient:
                 response_text = await response.text()
                 if 200 <= response.status < 300:
                     logger.info(
-                        f"Discord webhook message sent successfully ({end_time - start_time:.2f}s). Status: {response.status}"
+                        f"Discord webhook message sent successfully ({end_time - start_time:.2f}s). Status: {response.status}"  # noqa: E501
                     )
                 else:
                     logger.warning(
-                        f"Discord webhook request failed with status {response.status}. Response: {response_text}. Retrying if possible..."
+                        f"Discord webhook request failed with status {response.status}. Response: {response_text}. Retrying if possible..."  # noqa: E501
                     )
-                    response.raise_for_status()  # Let tenacity retry based on ClientResponseError
+                    response.raise_for_status()  # Let tenacity retry based on ClientResponseError  # noqa: E501
         except aiohttp.ClientResponseError as e:
             # This block is reached after retries are exhausted
             logger.error(
-                f"Discord webhook failed after retries: Status {e.status}, Message: {e.message}"
+                f"Discord webhook failed after retries: Status {e.status}, Message: {e.message}"  # noqa: E501
             )
             # Map specific non-retryable errors if needed (e.g., 400, 401, 403, 404)
             if e.status in [400, 401, 403, 404]:
@@ -125,11 +123,11 @@ class DiscordClient:
                 )
             else:  # Treat other ClientResponseErrors as API errors
                 raise APIError(
-                    f"Discord webhook failed after retries (Status {e.status}): {e.message}",
+                    f"Discord webhook failed after retries (Status {e.status}): {e.message}",  # noqa: E501
                     original_exception=e,
                 )
         except asyncio.TimeoutError as e:
-            logger.error(f"Discord webhook timed out after retries.")
+            logger.error("Discord webhook timed out after retries.")
             raise APIError(
                 "Discord webhook timed out after retries.", original_exception=e
             )
@@ -182,13 +180,13 @@ class DiscordClient:
                 response_text = await response.text()
                 if 200 <= response.status < 300:
                     logger.info(
-                        f"Discord bot message sent successfully ({end_time - start_time:.2f}s). Status: {response.status}"
+                        f"Discord bot message sent successfully ({end_time - start_time:.2f}s). Status: {response.status}"  # noqa: E501
                     )
                 else:
                     logger.warning(
-                        f"Discord bot message request failed with status {response.status}. Response: {response_text}. Retrying if possible..."
+                        f"Discord bot message request failed with status {response.status}. Response: {response_text}. Retrying if possible..."  # noqa: E501
                     )
-                    # Raise specific error for rate limiting (429) to allow retry via APIError
+                    # Raise specific error for rate limiting (429) to allow retry via APIError  # noqa: E501
                     if response.status == 429:
                         raise APIError(
                             f"Discord Rate Limit (429). Response: {response_text}",
@@ -198,14 +196,14 @@ class DiscordClient:
 
         except aiohttp.ClientResponseError as e:
             logger.error(
-                f"Discord bot message failed after retries: Status {e.status}, Message: {e.message}"
+                f"Discord bot message failed after retries: Status {e.status}, Message: {e.message}"  # noqa: E501
             )
             if e.status == 401 or e.status == 403:  # Unauthorized/Forbidden
                 self._bot_functional = (
                     False  # Disable bot if token invalid/perms missing
                 )
                 raise IntegrationError(
-                    f"Discord bot auth/permission error (Status {e.status}): {e.message}",
+                    f"Discord bot auth/permission error (Status {e.status}): {e.message}",  # noqa: E501
                     original_exception=e,
                 )
             elif e.status == 400 or e.status == 404:  # Bad Request / Not Found
@@ -215,12 +213,12 @@ class DiscordClient:
                 )
             else:  # Includes 429 if retry failed
                 raise APIError(
-                    f"Discord bot message failed after retries (Status {e.status}): {e.message}",
+                    f"Discord bot message failed after retries (Status {e.status}): {e.message}",  # noqa: E501
                     original_exception=e,
                     status_code=e.status,
                 )
         except asyncio.TimeoutError as e:
-            logger.error(f"Discord bot message timed out after retries.")
+            logger.error("Discord bot message timed out after retries.")
             raise APIError(
                 "Discord bot message timed out after retries.", original_exception=e
             )

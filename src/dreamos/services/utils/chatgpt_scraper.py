@@ -8,19 +8,16 @@ import logging
 import os
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 
 import undetected_chromedriver as uc
-from selenium import webdriver
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
     TimeoutException,
     WebDriverException,
 )
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -224,7 +221,7 @@ class ChatGPTScraper:
                     }
                 }
                 scrollChats();
-            """
+            """  # noqa: E501
             )
             time.sleep(5)  # Wait for content load
 
@@ -354,7 +351,7 @@ class ChatGPTScraper:
 
             self.wait.until_not(
                 EC.presence_of_element_located(SPINNER_SELECTOR),
-                message="Timed out waiting for GPT response (spinner did not disappear)",
+                message="Timed out waiting for GPT response (spinner did not disappear)",  # noqa: E501
             )
             logger.info("GPT response finished.")
             time.sleep(0.5)  # Small buffer after response seems complete

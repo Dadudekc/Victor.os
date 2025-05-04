@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -16,7 +16,7 @@ def mock_dashboard_deps():
     }
 
 
-# @pytest.mark.skip(reason="Requires Dashboard class implementation and potentially QApplication")
+# @pytest.mark.skip(reason="Requires Dashboard class implementation and potentially QApplication")  # noqa: E501
 def test_dashboard_initialization(mock_dashboard_deps):
     """Test that the Dashboard initializes correctly."""
     # # Need QApplication for widget tests
@@ -28,7 +28,7 @@ def test_dashboard_initialization(mock_dashboard_deps):
     pass  # Removed assert True
 
 
-# @pytest.mark.skip(reason="Requires Dashboard class implementation and potentially QApplication")
+# @pytest.mark.skip(reason="Requires Dashboard class implementation and potentially QApplication")  # noqa: E501
 def test_dashboard_refresh_smoke(mock_dashboard_deps):
     """Smoke test for the refresh method."""
     # app = QApplication.instance() or QApplication([])

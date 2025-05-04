@@ -51,7 +51,7 @@ def compact_segment_data(
     Raises:
         ValueError/TypeError: Potentially during timestamp parsing if format is unexpected,
                               though these are currently caught and logged as warnings.
-    """
+    """  # noqa: E501
     policy_type = policy.get("type", "time_based")
     logger.debug(f"Applying compaction policy '{policy_type}'...")
 
@@ -80,16 +80,16 @@ def compact_segment_data(
                         dropped_count += 1
                 except (ValueError, TypeError) as e:
                     logger.warning(
-                        f"Could not parse timestamp '{entry_ts_str}' for compaction: {e}. Keeping entry."
+                        f"Could not parse timestamp '{entry_ts_str}' for compaction: {e}. Keeping entry."  # noqa: E501
                     )
                     compacted_data.append(entry)  # Keep if timestamp is bad
             else:
                 logger.warning(
-                    f"Entry missing 'timestamp' for time-based compaction. Keeping entry: {str(entry)[:100]}..."
+                    f"Entry missing 'timestamp' for time-based compaction. Keeping entry: {str(entry)[:100]}..."  # noqa: E501
                 )
                 compacted_data.append(entry)  # Keep if no timestamp
         logger.info(
-            f"Time-based compaction: Kept {len(compacted_data)}, Dropped {dropped_count} (older than {max_age_days} days)"
+            f"Time-based compaction: Kept {len(compacted_data)}, Dropped {dropped_count} (older than {max_age_days} days)"  # noqa: E501
         )
         return compacted_data
 
@@ -100,12 +100,12 @@ def compact_segment_data(
             compacted_data = data[-keep_n:]
             dropped_count = len(data) - keep_n
             logger.info(
-                f"Keep-N compaction: Kept {len(compacted_data)}, Dropped {dropped_count} (limit {keep_n})"
+                f"Keep-N compaction: Kept {len(compacted_data)}, Dropped {dropped_count} (limit {keep_n})"  # noqa: E501
             )
             return compacted_data
         else:
             logger.info(
-                f"Keep-N compaction: No change needed (Count {len(data)} <= Limit {keep_n})"
+                f"Keep-N compaction: No change needed (Count {len(data)} <= Limit {keep_n})"  # noqa: E501
             )
             return data  # No change needed
 
@@ -219,14 +219,14 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
 
         if not json_str.strip():
             logger.warning(
-                f"Compaction skipped: File content is empty after potential decompression - {file_path}"
+                f"Compaction skipped: File content is empty after potential decompression - {file_path}"  # noqa: E501
             )
             return True  # Treat as success
 
         original_data = json.loads(json_str)
         if not isinstance(original_data, list):
             # EDIT START: Raise specific error
-            # logger.error(f"Compaction failed: Expected a list in file {file_path}, found {type(original_data)}")
+            # logger.error(f"Compaction failed: Expected a list in file {file_path}, found {type(original_data)}")  # noqa: E501
             # return False
             raise CompactionError(
                 f"Expected a list in file {file_path}, found {type(original_data)}"
@@ -262,7 +262,7 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         # Save only if data changed
         if len(compacted_data) < len(original_data):
             logger.info(
-                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."
+                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."  # noqa: E501
             )
             if _rewrite_memory_safely(file_path, compacted_data, is_compressed):
                 return True
@@ -296,7 +296,7 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         # Save only if data changed
         if len(compacted_data) < len(original_data):
             logger.info(
-                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."
+                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."  # noqa: E501
             )
             if _rewrite_memory_safely(file_path, compacted_data, is_compressed):
                 return True

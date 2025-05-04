@@ -1,8 +1,6 @@
-from datetime import datetime, timezone
-from uuid import UUID
+from datetime import datetime, timezone  # noqa: I001
 
 import pytest
-
 from dreamos.core.coordination.message_patterns import (
     TaskMessage,
     TaskPriority,

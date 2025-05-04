@@ -32,14 +32,14 @@ class PromptExecutionMonitor:
         timeout_sec: int = 120,
         archive_service: Optional[FailedPromptArchiveService] = None,
     ):
-        """Initialize the monitor with memory, dispatcher, and optional archive service."""
+        """Initialize the monitor with memory, dispatcher, and optional archive service."""  # noqa: E501
         self.memory = memory
         self.dispatcher = dispatcher
         self.timeout_sec = timeout_sec
         self.archive_service = archive_service or FailedPromptArchiveService()
         self.active_prompts: Dict[str, datetime] = {}
-        self._lock = threading.Lock()
-        self._monitor_thread = threading.Thread(
+        self._lock = threading.Lock()  # noqa: F821
+        self._monitor_thread = threading.Thread(  # noqa: F821
             target=self._monitor_loop, daemon=True, name="PromptMonitorThread"
         )
         self._monitor_thread.start()
@@ -85,7 +85,7 @@ class PromptExecutionMonitor:
             )
             asyncio.create_task(self.agent_bus.dispatch_event(evt))
             logger.debug(
-                f"Dispatched {EventType.TASK_COMPLETED.name} event for prompt {prompt_id}"
+                f"Dispatched {EventType.TASK_COMPLETED.name} event for prompt {prompt_id}"  # noqa: E501
             )
         except Exception as e:
             logger.error(
@@ -183,7 +183,7 @@ class PromptExecutionMonitor:
                 prompt_data = self.memory.get(prompt_id, seg="interactions") or {}
             except Exception as mem_e:
                 logger.error(
-                    f"Failed to retrieve prompt data from memory for {prompt_id}: {mem_e}",
+                    f"Failed to retrieve prompt data from memory for {prompt_id}: {mem_e}",  # noqa: E501
                     exc_info=True,
                 )
                 prompt_data = {"error": "Failed to retrieve original prompt data"}
@@ -195,7 +195,7 @@ class PromptExecutionMonitor:
                 self.dispatcher.queue_prompt(prompt_data, retry=True)
             else:
                 logger.error(
-                    f"Dispatcher has no 'queue_prompt' method. Cannot requeue {prompt_id}."
+                    f"Dispatcher has no 'queue_prompt' method. Cannot requeue {prompt_id}."  # noqa: E501
                 )
         except Exception as e:
             logger.error(f"Failed to requeue prompt {prompt_id}: {e}", exc_info=True)

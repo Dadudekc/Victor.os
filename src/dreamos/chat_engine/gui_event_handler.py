@@ -1,7 +1,4 @@
-import logging
 import sys
-
-from PyQt5.QtCore import QObject, pyqtSignal
 
 try:
     from PyQt5 import QtCore, QtWidgets
@@ -47,9 +44,6 @@ except ImportError:
     class QTextEdit:
         def __init__(self, *args, **kwargs):
             pass
-
-
-from dreamos.core.agent_bus import AgentBus
 
 
 class GUIEventHandler(QMainWindow):
@@ -125,13 +119,13 @@ class GUIEventHandler(QMainWindow):
     def toggle_reverse(self):
         self.config.reverse_order = self.reverse_checkbox.isChecked()
         self.log(
-            f"🔄 Reverse chat order {'enabled' if self.config.reverse_order else 'disabled'}."
+            f"🔄 Reverse chat order {'enabled' if self.config.reverse_order else 'disabled'}."  # noqa: E501
         )
 
     def toggle_archive(self):
         self.config.archive_enabled = self.archive_checkbox.isChecked()
         self.log(
-            f"📦 Archive after chat cycle {'enabled' if self.config.archive_enabled else 'disabled'}."
+            f"📦 Archive after chat cycle {'enabled' if self.config.archive_enabled else 'disabled'}."  # noqa: E501
         )
 
     # -----------------------------

@@ -12,7 +12,7 @@ from .generation_engine import build_context, generate_episode  # noqa: F401
 # However, the GUI code expects a function.
 # Let's adjust the generation_engine to handle this.
 
-# *** Revised thinking: The __init__.py should export the functions the GUI *actually* needs. ***
+# *** Revised thinking: The __init__.py should export the functions the GUI *actually* needs. ***  # noqa: E501
 # build_context and generate_episode are correctly handled by the above line.
 # send_prompt_to_chatgpt is NOT directly called by the GUI in the latest GUI code.
 # The GUI calls generate_episode, which *internally* uses the scraper.

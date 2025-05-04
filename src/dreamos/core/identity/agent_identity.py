@@ -1,7 +1,7 @@
 # src/dreamos/core/identity/agent_identity.py
 import logging
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from pydantic import BaseModel, Field, validator
 
@@ -34,15 +34,15 @@ class AgentIdentity(BaseModel):
                 return datetime.fromisoformat(v.replace("Z", "+00:00"))
             except ValueError:
                 logger.error(
-                    f"Invalid datetime format for AgentIdentity: {v}. Using current UTC time."
+                    f"Invalid datetime format for AgentIdentity: {v}. Using current UTC time."  # noqa: E501
                 )
                 return datetime.utcnow()
         elif isinstance(v, (int, float)):  # Handle potential timestamp floats/ints
             return datetime.utcfromtimestamp(v)
         elif isinstance(v, datetime):
-            # Ensure timezone-aware (naive assumed UTC) - Pydantic v2 might handle this better
+            # Ensure timezone-aware (naive assumed UTC) - Pydantic v2 might handle this better  # noqa: E501
             if v.tzinfo is None:
-                # This is a simplification; proper tz handling might be needed if non-UTC is possible
+                # This is a simplification; proper tz handling might be needed if non-UTC is possible  # noqa: E501
                 return v  # Assuming UTC if naive
             return v
         logger.warning(

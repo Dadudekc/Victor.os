@@ -3,7 +3,6 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -48,7 +47,7 @@ class AgentIdentityStore:
                         )
         except (OSError, LockAcquisitionError, LockDirectoryError) as e:
             logger.error(
-                f"Failed to create agent identity store directory or file at {self.store_path}: {e}",
+                f"Failed to create agent identity store directory or file at {self.store_path}: {e}",  # noqa: E501
                 exc_info=True,
             )
             raise
@@ -71,12 +70,12 @@ class AgentIdentityStore:
                 return json.loads(content)
             except FileNotFoundError:
                 logger.warning(
-                    f"Agent identity store file not found at {self.store_path}. Returning empty data."
+                    f"Agent identity store file not found at {self.store_path}. Returning empty data."  # noqa: E501
                 )
                 return {}
             except json.JSONDecodeError:
                 logger.error(
-                    f"Failed to decode JSON from agent identity store {self.store_path}. Returning empty data.",
+                    f"Failed to decode JSON from agent identity store {self.store_path}. Returning empty data.",  # noqa: E501
                     exc_info=True,
                 )
                 return {}
@@ -143,7 +142,7 @@ class AgentIdentityStore:
                 identities.append(AgentIdentity(**agent_data))
             except Exception as e:
                 logger.error(
-                    f"Failed to parse identity data for agent {agent_id} during get_all: {e}",
+                    f"Failed to parse identity data for agent {agent_id} during get_all: {e}",  # noqa: E501
                     exc_info=True,
                 )
                 continue

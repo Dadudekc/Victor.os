@@ -8,13 +8,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from dreamos.automation.cursor_orchestrator import (
+from dreamos.automation.cursor_orchestrator import (  # noqa: E402
     UI_AUTOMATION_AVAILABLE,
     CursorOrchestratorError,
     get_cursor_orchestrator,
 )
-from dreamos.core.agent_bus import AgentBus
-from dreamos.core.config import AppConfig
+from dreamos.core.agent_bus import AgentBus  # noqa: E402
+from dreamos.core.config import AppConfig  # noqa: E402
 
 # Basic Logging Setup
 logging.basicConfig(
@@ -79,7 +79,7 @@ async def main():
         logger.info("CursorOrchestrator listener started.")
     except AttributeError:
         logger.critical(
-            "CursorOrchestrator does not have a 'start_listening' method. Cannot process commands. Exiting."
+            "CursorOrchestrator does not have a 'start_listening' method. Cannot process commands. Exiting."  # noqa: E501
         )
         # Perform cleanup/shutdown if needed
         await orchestrator.shutdown()  # Assuming shutdown exists

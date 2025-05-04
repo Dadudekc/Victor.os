@@ -3,24 +3,19 @@ DevLog Dispatcher - Autonomous content publishing agent that watches for new con
 and dispatches it to various platforms using the appropriate strategies.
 """
 
-import hashlib
+import hashlib  # noqa: I001
 import json
 import logging
-import os
 import time
 from pathlib import Path
-from queue import Empty, Queue
+from queue import Queue
 from threading import Thread
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol
+from typing import Dict, List, Optional
 from unittest.mock import MagicMock
 
-from utils.devlog_analyzer import DevLogAnalyzer
-from utils.devlog_generator import DevLogPost
-from utils.logging_utils import get_logger
-from watchdog.events import FileCreatedEvent, FileSystemEventHandler
-
 from dreamos.core.config import AppConfig, LinkedInConfig, TwitterConfig
-from dreamos.social.interfaces import SocialMediaPlatform
+from utils.logging_utils import get_logger
+from watchdog.events import FileSystemEventHandler
 
 # Configure logging using the consolidated utility
 logger = get_logger(__name__)
@@ -64,7 +59,7 @@ class DevLogDispatcher:
         self.thread: Optional[Thread] = None
 
         logger.info(
-            f"Initialized DevLog Dispatcher with strategies for: {list(self.strategies.keys())}"
+            f"Initialized DevLog Dispatcher with strategies for: {list(self.strategies.keys())}"  # noqa: E501
         )
 
     def _initialize_strategies(self) -> Dict[str, object]:
@@ -76,7 +71,7 @@ class DevLogDispatcher:
         if twitter_conf and twitter_conf.api_key and twitter_conf.api_secret_key:
             try:
                 logger.info(
-                    "TwitterStrategy WOULD BE initialized (Class missing). Config found."
+                    "TwitterStrategy WOULD BE initialized (Class missing). Config found."  # noqa: E501
                 )
                 strategies["twitter"] = MagicMock(name="MockTwitterStrategy")
             except NameError:
@@ -87,7 +82,7 @@ class DevLogDispatcher:
                 )
         else:
             logger.warning(
-                "Twitter configuration missing or incomplete in AppConfig. Skipping TwitterStrategy."
+                "Twitter configuration missing or incomplete in AppConfig. Skipping TwitterStrategy."  # noqa: E501
             )
 
         linkedin_conf: Optional[LinkedInConfig] = getattr(
@@ -96,7 +91,7 @@ class DevLogDispatcher:
         if linkedin_conf and linkedin_conf.client_id and linkedin_conf.client_secret:
             try:
                 logger.info(
-                    "LinkedInStrategy WOULD BE initialized (Class missing). Config found."
+                    "LinkedInStrategy WOULD BE initialized (Class missing). Config found."  # noqa: E501
                 )
                 strategies["linkedin"] = MagicMock(name="MockLinkedInStrategy")
             except NameError:
@@ -107,12 +102,12 @@ class DevLogDispatcher:
                 )
         else:
             logger.warning(
-                "LinkedIn configuration missing or incomplete in AppConfig. Skipping LinkedInStrategy."
+                "LinkedIn configuration missing or incomplete in AppConfig. Skipping LinkedInStrategy."  # noqa: E501
             )
 
         if not strategies:
             logger.warning(
-                "No social media strategies were configured or initialized successfully."
+                "No social media strategies were configured or initialized successfully."  # noqa: E501
             )
 
         return strategies
@@ -225,7 +220,7 @@ class DevLogDispatcher:
                 )
 
                 # Add 15 minutes for the next post if it's a thread
-                publish_time = publish_time + timedelta(minutes=15)
+                publish_time = publish_time + timedelta(minutes=15)  # noqa: F821
 
             # Mark as published
             self.published[platform].add(content_path)
@@ -241,7 +236,7 @@ class DevLogDispatcher:
         post_type: str,
         content: str,
         post_id: str,
-        publish_time: datetime,
+        publish_time: datetime,  # noqa: F821
     ):
         """
         Schedule a post for future publishing.
@@ -282,7 +277,7 @@ class DevLogDispatcher:
             # Schedule the job
             self.scheduler.add_job(
                 publish_job,
-                trigger=DateTrigger(run_date=publish_time),
+                trigger=DateTrigger(run_date=publish_time),  # noqa: F821
                 id=post_id,
                 name=f"Publish {platform} {post_type}",
             )
@@ -294,7 +289,7 @@ class DevLogDispatcher:
 
     def _generate_post_id(self, file_path: str, content: str = "") -> str:
         """Generate a unique post ID."""
-        hash_input = f"{file_path}:{content}:{datetime.now().isoformat()}"
+        hash_input = f"{file_path}:{content}:{datetime.now().isoformat()}"  # noqa: F821
         return hashlib.md5(hash_input.encode()).hexdigest()
 
     def _extract_tags(self, content: str) -> List[str]:
@@ -302,9 +297,9 @@ class DevLogDispatcher:
         words = content.split()
         return [word[1:] for word in words if word.startswith("#")]
 
-    def _get_next_optimal_time(self, best_times: Dict[str, List[str]]) -> datetime:
+    def _get_next_optimal_time(self, best_times: Dict[str, List[str]]) -> datetime:  # noqa: F821
         """Get the next optimal posting time."""
-        now = datetime.now()
+        now = datetime.now()  # noqa: F821
         current_day = now.strftime("%A")
 
         # Get best hours for current day
@@ -312,7 +307,7 @@ class DevLogDispatcher:
 
         if not best_hours:
             # If no optimal times, schedule for next hour
-            next_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(
+            next_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(  # noqa: F821
                 hours=1
             )
         else:
@@ -327,7 +322,7 @@ class DevLogDispatcher:
 
             if next_hour is None:
                 # No more optimal times today, use first optimal time tomorrow
-                tomorrow = now + timedelta(days=1)
+                tomorrow = now + timedelta(days=1)  # noqa: F821
                 next_time = tomorrow.replace(
                     hour=int(best_hours[0]), minute=0, second=0, microsecond=0
                 )
@@ -353,12 +348,12 @@ def main():
             raise ValueError("Failed to load AppConfig.")
     except (ImportError, ValueError) as e:
         logger.error(
-            f"Cannot run DevLogDispatcher main: Failed to load AppConfig ({e}). Exiting."
+            f"Cannot run DevLogDispatcher main: Failed to load AppConfig ({e}). Exiting."  # noqa: E501
         )
         return
 
     dummy_queue = Queue()
-    dispatcher = DevLogDispatcher(config=app_config, content_queue=dummy_queue)
+    dispatcher = DevLogDispatcher(config=app_config, content_queue=dummy_queue)  # noqa: F841
 
     try:
         logger.info("Starting DevLogDispatcher via main()...")

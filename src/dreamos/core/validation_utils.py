@@ -48,7 +48,7 @@ def validate_field_type(
     """
     if not isinstance(value, expected_type):
         raise CoreValidationError(
-            f"{context} field '{field_name}' expected type {expected_type.__name__}, got {type(value).__name__}"
+            f"{context} field '{field_name}' expected type {expected_type.__name__}, got {type(value).__name__}"  # noqa: E501
         )
     logger.debug(
         f"{context} field '{field_name}' passed type check ({expected_type.__name__})."

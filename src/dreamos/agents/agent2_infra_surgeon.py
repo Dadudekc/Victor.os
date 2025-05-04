@@ -1,8 +1,6 @@
 import asyncio
-import json
 import logging
 import uuid
-from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
@@ -43,7 +41,7 @@ class Agent2InfraSurgeon(BaseAgent):
     Agent responsible for executing infrastructure-related tasks via GUI automation (Cursor).
     Interacts primarily by publishing CURSOR_INJECT_REQUEST events and listening for
     CURSOR_RETRIEVE_SUCCESS/FAILURE responses.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -63,7 +61,7 @@ class Agent2InfraSurgeon(BaseAgent):
         super().__init__(agent_id=agent_id, config=config, pbm=pbm, agent_bus=agent_bus)
         logger.info(f"Agent {self.agent_id} (Infra Surgeon) initializing...")
 
-        # Dictionary to track pending requests: {correlation_id: (asyncio.Event, Optional[Dict])}
+        # Dictionary to track pending requests: {correlation_id: (asyncio.Event, Optional[Dict])}  # noqa: E501
         # The Optional[Dict] will store the response data when received.
         self._pending_cursor_requests: Dict[
             str, Tuple[asyncio.Event, Optional[Dict]]
@@ -79,11 +77,11 @@ class Agent2InfraSurgeon(BaseAgent):
                 self._handle_cursor_response,  # Use the same handler for simplicity
             )
             logger.info(
-                f"[{self.agent_id}] Subscribed to CURSOR_RETRIEVE_SUCCESS and CURSOR_RETRIEVE_FAILURE events."
+                f"[{self.agent_id}] Subscribed to CURSOR_RETRIEVE_SUCCESS and CURSOR_RETRIEVE_FAILURE events."  # noqa: E501
             )
         else:
             logger.warning(
-                f"[{self.agent_id}] AgentBus not provided. Cannot subscribe to cursor response events."
+                f"[{self.agent_id}] AgentBus not provided. Cannot subscribe to cursor response events."  # noqa: E501
             )
 
         logger.info(f"Agent {self.agent_id} initialized.")
@@ -104,14 +102,14 @@ class Agent2InfraSurgeon(BaseAgent):
     async def _perform_task(self, task_details: Dict[str, Any]) -> Dict[str, Any]:
         """
         Executes a task by publishing a CURSOR_INJECT_REQUEST and waiting for a response.
-        """
+        """  # noqa: E501
         task_id = task_details.get("task_id", "UNKNOWN_TASK")
         prompt = task_details.get("prompt")  # Assuming task has a 'prompt' field
         if not prompt:
             prompt = task_details.get("description")
             if not prompt:
                 logger.error(
-                    f"[{self.agent_id}] Task {task_id} has no 'prompt' or 'description'. Cannot execute."
+                    f"[{self.agent_id}] Task {task_id} has no 'prompt' or 'description'. Cannot execute."  # noqa: E501
                 )
                 return {
                     "success": False,
@@ -122,7 +120,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
         if not self.agent_bus:
             logger.error(
-                f"[{self.agent_id}] AgentBus not available. Cannot execute task {task_id}."
+                f"[{self.agent_id}] AgentBus not available. Cannot execute task {task_id}."  # noqa: E501
             )
             return {
                 "success": False,
@@ -139,7 +137,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
         try:
             logger.info(
-                f"[{self.agent_id}] Publishing cursor inject request for CorrID: {correlation_id}..."
+                f"[{self.agent_id}] Publishing cursor inject request for CorrID: {correlation_id}..."  # noqa: E501
             )
             # Use the instance's agent_bus
             success = await publish_cursor_inject_event(
@@ -152,7 +150,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
             if not success:
                 logger.error(
-                    f"[{self.agent_id}] Failed to publish cursor inject event (CorrID: {correlation_id}). Aborting task {task_id}."
+                    f"[{self.agent_id}] Failed to publish cursor inject event (CorrID: {correlation_id}). Aborting task {task_id}."  # noqa: E501
                 )
                 # Clean up before returning
                 del self._pending_cursor_requests[correlation_id]
@@ -162,7 +160,7 @@ class Agent2InfraSurgeon(BaseAgent):
                 }
 
             logger.info(
-                f"[{self.agent_id}] Cursor inject request published (CorrID: {correlation_id}). Waiting for response (timeout: {DEFAULT_RESPONSE_TIMEOUT}s)..."
+                f"[{self.agent_id}] Cursor inject request published (CorrID: {correlation_id}). Waiting for response (timeout: {DEFAULT_RESPONSE_TIMEOUT}s)..."  # noqa: E501
             )
 
             # Wait for the response event to be set by the handler
@@ -172,11 +170,11 @@ class Agent2InfraSurgeon(BaseAgent):
                 )
             except asyncio.TimeoutError:
                 logger.error(
-                    f"[{self.agent_id}] Timeout waiting for cursor response for CorrID: {correlation_id} (Task: {task_id})."
+                    f"[{self.agent_id}] Timeout waiting for cursor response for CorrID: {correlation_id} (Task: {task_id})."  # noqa: E501
                 )
                 return {
                     "success": False,
-                    "summary": f"Timeout waiting for cursor response ({DEFAULT_RESPONSE_TIMEOUT}s).",
+                    "summary": f"Timeout waiting for cursor response ({DEFAULT_RESPONSE_TIMEOUT}s).",  # noqa: E501
                 }
 
             # Retrieve the response data stored by the handler
@@ -187,11 +185,11 @@ class Agent2InfraSurgeon(BaseAgent):
             if response_data is None:
                 # Should not happen if event was set, but safety check
                 logger.error(
-                    f"[{self.agent_id}] Response event triggered but no data found for CorrID: {correlation_id}."
+                    f"[{self.agent_id}] Response event triggered but no data found for CorrID: {correlation_id}."  # noqa: E501
                 )
                 return {
                     "success": False,
-                    "summary": "Internal error: Response event set, but no data retrieved.",
+                    "summary": "Internal error: Response event set, but no data retrieved.",  # noqa: E501
                 }
 
             # Process the received response data
@@ -217,7 +215,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
         except Exception as e:
             logger.exception(
-                f"[{self.agent_id}] Unexpected error during task {task_id} (CorrID: {correlation_id}): {e}"
+                f"[{self.agent_id}] Unexpected error during task {task_id} (CorrID: {correlation_id}): {e}"  # noqa: E501
             )
             return {"success": False, "summary": f"Unexpected error: {e}"}
         finally:
@@ -225,7 +223,7 @@ class Agent2InfraSurgeon(BaseAgent):
             if correlation_id in self._pending_cursor_requests:
                 del self._pending_cursor_requests[correlation_id]
                 logger.debug(
-                    f"[{self.agent_id}] Cleaned up pending request for CorrID: {correlation_id}."
+                    f"[{self.agent_id}] Cleaned up pending request for CorrID: {correlation_id}."  # noqa: E501
                 )
 
     async def _handle_cursor_response(self, event: BaseEvent):
@@ -235,7 +233,7 @@ class Agent2InfraSurgeon(BaseAgent):
         """
         correlation_id = event.data.get("correlation_id")
         logger.debug(
-            f"[{self.agent_id}] Received event {event.event_type} with CorrID: {correlation_id}"
+            f"[{self.agent_id}] Received event {event.event_type} with CorrID: {correlation_id}"  # noqa: E501
         )
 
         if correlation_id and correlation_id in self._pending_cursor_requests:
@@ -256,12 +254,12 @@ class Agent2InfraSurgeon(BaseAgent):
             )
 
             logger.info(
-                f"[{self.agent_id}] Matched response for CorrID: {correlation_id}. Signaling waiting task."
+                f"[{self.agent_id}] Matched response for CorrID: {correlation_id}. Signaling waiting task."  # noqa: E501
             )
             response_event.set()  # Signal the waiting _perform_task
         else:
             logger.warning(
-                f"[{self.agent_id}] Received cursor response event with unknown or missing CorrID: {correlation_id}. Event data: {event.data}"
+                f"[{self.agent_id}] Received cursor response event with unknown or missing CorrID: {correlation_id}. Event data: {event.data}"  # noqa: E501
             )
 
     # --- Main Autonomous Loop ---
@@ -284,7 +282,7 @@ class Agent2InfraSurgeon(BaseAgent):
                 has_active_task = False  # Placeholder
                 if has_active_task:
                     self.logger.debug(
-                        f"[{self.agent_id}] Currently processing an active task. Skipping queue check."
+                        f"[{self.agent_id}] Currently processing an active task. Skipping queue check."  # noqa: E501
                     )
                     await asyncio.sleep(5)  # Wait before next check
                     continue
@@ -300,7 +298,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
                 if not ready_tasks:
                     self.logger.info(
-                        f"[{self.agent_id}] No tasks found in the ready queue. Checking blockers/idling."
+                        f"[{self.agent_id}] No tasks found in the ready queue. Checking blockers/idling."  # noqa: E501
                     )
                     # 5. Blocker Resolution (Placeholder)
                     await self._check_for_blockers()
@@ -320,7 +318,7 @@ class Agent2InfraSurgeon(BaseAgent):
 
                 if not gui_tasks:
                     self.logger.info(
-                        f"[{self.agent_id}] No suitable GUI tasks found in the ready queue."
+                        f"[{self.agent_id}] No suitable GUI tasks found in the ready queue."  # noqa: E501
                     )
                     await asyncio.sleep(
                         self.config.agent_settings.get("idle_sleep_interval", 15)
@@ -334,12 +332,12 @@ class Agent2InfraSurgeon(BaseAgent):
 
                 if not task_id_to_claim:
                     self.logger.error(
-                        f"[{self.agent_id}] Found suitable task missing a task_id: {task_to_claim.get('name')}. Skipping."
+                        f"[{self.agent_id}] Found suitable task missing a task_id: {task_to_claim.get('name')}. Skipping."  # noqa: E501
                     )
                     continue
 
                 self.logger.info(
-                    f"[{self.agent_id}] Attempting to claim task: {task_id_to_claim} ('{task_to_claim.get('name')}')"
+                    f"[{self.agent_id}] Attempting to claim task: {task_id_to_claim} ('{task_to_claim.get('name')}')"  # noqa: E501
                 )
                 try:
                     claimed_task_details = await self.pbm.claim_task(
@@ -347,38 +345,38 @@ class Agent2InfraSurgeon(BaseAgent):
                     )
                     if claimed_task_details:
                         self.logger.info(
-                            f"[{self.agent_id}] Successfully claimed task {task_id_to_claim}."
+                            f"[{self.agent_id}] Successfully claimed task {task_id_to_claim}."  # noqa: E501
                         )
                         # Add to internal processing queue or call processing method
                         # Option A: Use BaseAgent's queue (if appropriate)
-                        # priority = self._get_priority_value(claimed_task_details.priority)
+                        # priority = self._get_priority_value(claimed_task_details.priority)  # noqa: E501
                         # await self._task_queue.put((priority, claimed_task_details))
 
-                        # Option B: Call _process_single_task directly (potentially simpler)
-                        # Requires converting dict -> TaskMessage if needed by _process_single_task
+                        # Option B: Call _process_single_task directly (potentially simpler)  # noqa: E501
+                        # Requires converting dict -> TaskMessage if needed by _process_single_task  # noqa: E501
                         task_message = TaskMessage(
                             **claimed_task_details
                         )  # Assuming direct conversion works
                         await self._process_single_task(
                             task=task_message, correlation_id=None
                         )
-                        # _process_single_task should handle status updates (COMPLETED/FAILED)
+                        # _process_single_task should handle status updates (COMPLETED/FAILED)  # noqa: E501
                     else:
-                        # This case shouldn't happen if claim_task doesn't raise error, but safety check
+                        # This case shouldn't happen if claim_task doesn't raise error, but safety check  # noqa: E501
                         self.logger.warning(
-                            f"[{self.agent_id}] Claim successful for {task_id_to_claim} but no details returned?"
+                            f"[{self.agent_id}] Claim successful for {task_id_to_claim} but no details returned?"  # noqa: E501
                         )
 
                 except TaskClaimError as e:
                     self.logger.warning(
-                        f"[{self.agent_id}] Failed to claim task {task_id_to_claim}: {e}"
+                        f"[{self.agent_id}] Failed to claim task {task_id_to_claim}: {e}"  # noqa: E501
                     )
                     # Task was likely claimed by another agent, continue loop
                     await asyncio.sleep(1)  # Small delay before checking again
                     continue
                 except Exception as e:
                     self.logger.exception(
-                        f"[{self.agent_id}] Unexpected error during task claim for {task_id_to_claim}: {e}"
+                        f"[{self.agent_id}] Unexpected error during task claim for {task_id_to_claim}: {e}"  # noqa: E501
                     )
                     await asyncio.sleep(5)
                     continue
@@ -408,7 +406,7 @@ class Agent2InfraSurgeon(BaseAgent):
             )
             if not await asyncio.to_thread(mailbox_path.exists):
                 self.logger.warning(
-                    f"[{self.agent_id}] Mailbox inbox directory not found: {mailbox_path}"
+                    f"[{self.agent_id}] Mailbox inbox directory not found: {mailbox_path}"  # noqa: E501
                 )
                 return
 
@@ -433,17 +431,17 @@ class Agent2InfraSurgeon(BaseAgent):
                         # Delete after successful processing
                         await delete_message(msg_path)
                         self.logger.info(
-                            f"[{self.agent_id}] Processed and deleted message: {msg_file}"
+                            f"[{self.agent_id}] Processed and deleted message: {msg_file}"  # noqa: E501
                         )
                     else:
                         self.logger.warning(
-                            f"[{self.agent_id}] Failed to read message content from {msg_file}. Skipping."
+                            f"[{self.agent_id}] Failed to read message content from {msg_file}. Skipping."  # noqa: E501
                         )
                         # Optionally delete corrupted/unreadable messages?
                         # await delete_message(msg_path)
                 except Exception as msg_proc_err:
                     self.logger.error(
-                        f"[{self.agent_id}] Error processing message {msg_file}: {msg_proc_err}",
+                        f"[{self.agent_id}] Error processing message {msg_file}: {msg_proc_err}",  # noqa: E501
                         exc_info=True,
                     )
                     # Decide whether to delete or leave the problematic message
@@ -454,22 +452,22 @@ class Agent2InfraSurgeon(BaseAgent):
             )
 
     async def _check_for_blockers(self):
-        """Placeholder for blocker checking logic. Agent 2 primarily focuses on executing claimed GUI tasks."""
-        # TODO: Implement scanning task boards for blockers/corruption if needed for Agent 2 specifically.
+        """Placeholder for blocker checking logic. Agent 2 primarily focuses on executing claimed GUI tasks."""  # noqa: E501
+        # TODO: Implement scanning task boards for blockers/corruption if needed for Agent 2 specifically.  # noqa: E501
         # For now, assume other agents (like Captains) handle systemic board health.
         self.logger.debug(
-            f"[{self.agent_id}] Checking for blockers (Agent 2 - Placeholder/No specific checks implemented)."
+            f"[{self.agent_id}] Checking for blockers (Agent 2 - Placeholder/No specific checks implemented)."  # noqa: E501
         )
         await asyncio.sleep(0.1)  # Prevent tight loop if called repeatedly
 
     # --- Overrides / Adaptations from BaseAgent ---
     # We need to ensure _process_single_task calls our _perform_task
     # OPTION 1: Override _process_single_task entirely (more control, more maintenance)
-    # OPTION 2: Leverage existing _process_single_task but customize parts (less clear how)
+    # OPTION 2: Leverage existing _process_single_task but customize parts (less clear how)  # noqa: E501
 
     # Let's try overriding _process_single_task for clarity
-    @with_error_handling(TaskProcessingError)
-    @with_performance_tracking("process_single_task_agent2")
+    @with_error_handling(TaskProcessingError)  # noqa: F821
+    @with_performance_tracking("process_single_task_agent2")  # noqa: F821
     async def _process_single_task(
         self, task: TaskMessage, correlation_id: Optional[str]
     ):
@@ -497,7 +495,7 @@ class Agent2InfraSurgeon(BaseAgent):
             if task_succeeded:
                 status = TaskStatus.COMPLETED
                 self.logger.info(
-                    f"[{self.agent_id}] Task {task_id} completed successfully via GUI interaction."
+                    f"[{self.agent_id}] Task {task_id} completed successfully via GUI interaction."  # noqa: E501
                 )
                 # Validation for GUI tasks IS the success flag from orchestrator
                 # We can skip flake8/py_compile validation steps here
@@ -506,7 +504,7 @@ class Agent2InfraSurgeon(BaseAgent):
             else:
                 status = TaskStatus.FAILED
                 self.logger.error(
-                    f"[{self.agent_id}] Task {task_id} failed during GUI interaction: {completion_summary}"
+                    f"[{self.agent_id}] Task {task_id} failed during GUI interaction: {completion_summary}"  # noqa: E501
                 )
                 validation_passed = False  # Explicitly mark validation as failed
                 validation_details = f"GUI task failed: {completion_summary}"
@@ -517,11 +515,11 @@ class Agent2InfraSurgeon(BaseAgent):
                     task_id, status, self.agent_id, completion_summary
                 )
                 self.logger.info(
-                    f"[{self.agent_id}] Updated task {task_id} status to {status.value} in PBM."
+                    f"[{self.agent_id}] Updated task {task_id} status to {status.value} in PBM."  # noqa: E501
                 )
             except Exception as pbm_e:
                 self.logger.error(
-                    f"[{self.agent_id}] Failed to update PBM status for {task_id} to {status.value}: {pbm_e}",
+                    f"[{self.agent_id}] Failed to update PBM status for {task_id} to {status.value}: {pbm_e}",  # noqa: E501
                     exc_info=True,
                 )
                 # Task might be stuck in CLAIMED state
@@ -553,7 +551,7 @@ class Agent2InfraSurgeon(BaseAgent):
                 )
             except Exception as pbm_e:
                 self.logger.error(
-                    f"[{self.agent_id}] Also failed to update PBM status to FAILED for {task_id} after exception: {pbm_e}",
+                    f"[{self.agent_id}] Also failed to update PBM status to FAILED for {task_id} after exception: {pbm_e}",  # noqa: E501
                     exc_info=True,
                 )
             # Publish failure event
@@ -563,11 +561,11 @@ class Agent2InfraSurgeon(BaseAgent):
             # Optionally publish agent error
             await self.publish_agent_error(
                 f"Unhandled exception processing task {task_id}",
-                details={"exception": str(e), "traceback": traceback.format_exc()},
+                details={"exception": str(e), "traceback": traceback.format_exc()},  # noqa: F821
                 task_id=task_id,
             )
         finally:
-            # TODO: Clean up active task tracking if BaseAgent doesn't do it automatically
+            # TODO: Clean up active task tracking if BaseAgent doesn't do it automatically  # noqa: E501
             self.logger.debug(f"[{self.agent_id}] Finished processing task {task_id}.")
 
 

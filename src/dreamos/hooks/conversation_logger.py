@@ -6,11 +6,9 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Correct imports based on identified structure
-from ..config import AppConfig
 from ..coordination.agent_bus import SimpleEventBus as AgentBus
 from ..coordination.event_types import EventType
 from ..events.base_event import BaseDreamEvent
-from ..identity.agent_identity import AgentIdentity
 
 # TODO: This class uses synchronous sqlite3 operations within event handlers
 # that might be called from an async context (AgentBus). This can block the
@@ -23,7 +21,7 @@ DATABASE_PATH = Path("runtime/logs/conversation_log.db")
 
 
 class ConversationLogger:
-    """Logs conversation turns (prompts/replies) to an SQLite database via AgentBus events."""
+    """Logs conversation turns (prompts/replies) to an SQLite database via AgentBus events."""  # noqa: E501
 
     def __init__(self, agent_bus: AgentBus, db_path: Path = DATABASE_PATH):
         self.agent_bus = agent_bus
@@ -68,17 +66,17 @@ class ConversationLogger:
                 content TEXT NOT NULL,   -- The actual text content
                 metadata TEXT          -- Optional JSON blob for extra context
             )
-            """
+            """  # noqa: E501
             )
             # Optional: Create indexes for faster querying
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_conversation_id ON conversation_turns (conversation_id);"
+                "CREATE INDEX IF NOT EXISTS idx_conversation_id ON conversation_turns (conversation_id);"  # noqa: E501
             )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_task_id ON conversation_turns (task_id);"
+                "CREATE INDEX IF NOT EXISTS idx_task_id ON conversation_turns (task_id);"  # noqa: E501
             )
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_timestamp ON conversation_turns (timestamp);"
+                "CREATE INDEX IF NOT EXISTS idx_timestamp ON conversation_turns (timestamp);"  # noqa: E501
             )
             logger.info("Database table 'conversation_turns' verified/created.")
         except sqlite3.Error as e:
@@ -97,10 +95,10 @@ class ConversationLogger:
             EventType.AGENT_PROMPT_RESPONSE.value, self._handle_agent_prompt_response
         )
         # Consider logging other relevant events like TOOL_CALL, TOOL_RESULT?
-        # self.agent_bus.register_handler(EventType.TOOL_CALL.value, self._handle_tool_call)
-        # self.agent_bus.register_handler(EventType.TOOL_RESULT.value, self._handle_tool_result)
+        # self.agent_bus.register_handler(EventType.TOOL_CALL.value, self._handle_tool_call)  # noqa: E501
+        # self.agent_bus.register_handler(EventType.TOOL_RESULT.value, self._handle_tool_result)  # noqa: E501
         logger.info(
-            "Registered conversation log event handlers for prompt requests and responses."
+            "Registered conversation log event handlers for prompt requests and responses."  # noqa: E501
         )
 
     def _log_turn(
@@ -118,7 +116,7 @@ class ConversationLogger:
 
         sql = """INSERT INTO conversation_turns
                  (conversation_id, task_id, timestamp, actor, turn_type, content, metadata)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"""
+                 VALUES (?, ?, ?, ?, ?, ?, ?)"""  # noqa: E501
 
         try:
             conn = self._get_db_connection()
@@ -135,7 +133,7 @@ class ConversationLogger:
                     metadata_json,
                 ),
             )
-            # logger.debug(f"Logged turn: Actor={actor}, Type={turn_type}, Task={task_id}")
+            # logger.debug(f"Logged turn: Actor={actor}, Type={turn_type}, Task={task_id}")  # noqa: E501
         except sqlite3.Error as e:
             logger.error(
                 f"Error logging conversation turn to database: {e}", exc_info=True
@@ -172,7 +170,7 @@ class ConversationLogger:
 
             if not prompt_content:
                 logger.warning(
-                    f"Skipping prompt request logging, missing prompt content in event: {event.event_type.value}"
+                    f"Skipping prompt request logging, missing prompt content in event: {event.event_type.value}"  # noqa: E501
                 )
                 return
 
@@ -215,7 +213,7 @@ class ConversationLogger:
 
             if not reply_content or not agent_id:
                 logger.warning(
-                    f"Skipping prompt response logging, missing response content or source_id in event: {event.event_type.value}"
+                    f"Skipping prompt response logging, missing response content or source_id in event: {event.event_type.value}"  # noqa: E501
                 )
                 return
 

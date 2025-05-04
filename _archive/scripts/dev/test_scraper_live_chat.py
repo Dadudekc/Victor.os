@@ -1,7 +1,6 @@
 # scripts/dev/test_scraper_live_chat.py
 import asyncio
 import logging
-import os
 import time
 
 # ADDED: Explicitly load .env file
@@ -57,10 +56,10 @@ async def main():
             and scraper_cfg.password.get_secret_value()
         )
         logger.error(
-            f"AppConfig check failed: Email found: {email_present}, Password found: {pass_present}. Check .env file and AppConfig structure."
+            f"AppConfig check failed: Email found: {email_present}, Password found: {pass_present}. Check .env file and AppConfig structure."  # noqa: E501
         )
         print(
-            "\nERROR: Missing login credentials in loaded config. Check .env file is loaded and vars are correct."
+            "\nERROR: Missing login credentials in loaded config. Check .env file is loaded and vars are correct."  # noqa: E501
         )
         return
     else:
@@ -99,7 +98,7 @@ async def main():
                 )
                 logger.info("Login appears successful after manual intervention.")
                 scraper_instance.save_cookies()
-            except:
+            except:  # noqa: E722
                 logger.error(
                     "Login still not detected after manual intervention. Aborting test."
                 )
@@ -114,9 +113,9 @@ async def main():
                     EC.presence_of_element_located(PROMPT_BOX)
                 )
                 logger.info("Login confirmed via cookies.")
-            except:
+            except:  # noqa: E722
                 logger.error(
-                    "Cookie-based login failed. Manual login might be required on next run. Aborting test."
+                    "Cookie-based login failed. Manual login might be required on next run. Aborting test."  # noqa: E501
                 )
                 return
 

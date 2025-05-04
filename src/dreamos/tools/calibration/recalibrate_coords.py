@@ -25,7 +25,7 @@ import pyautogui
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Calculate directly
 # EDIT END
 
-# NOTE: Assumes a potentially nested structure like { "agent_id": { "element_key": [X, Y] } }
+# NOTE: Assumes a potentially nested structure like { "agent_id": { "element_key": [X, Y] } }  # noqa: E501
 #       or a flat structure { "agent_id.element_key": [X, Y] }.
 #       Let's target the NESTED structure for better organization.
 DEFAULT_COORDS_FILE = (
@@ -35,7 +35,7 @@ CAPTURE_DELAY_SECONDS = 5  # Time user has to position the mouse
 
 # Configure logger
 # Moved basicConfig into main block
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')  # noqa: E501
 logger = logging.getLogger("CoordRecalibrator")
 
 
@@ -75,7 +75,7 @@ def capture_single_coordinate(identifier: str) -> list[int]:
 def update_coords_file(
     coords_file: Path, identifier: str, new_coords: list[int]
 ) -> bool:
-    """Updates the specified identifier in the coordinates JSON file. Handles nested keys with file locking."""
+    """Updates the specified identifier in the coordinates JSON file. Handles nested keys with file locking."""  # noqa: E501
     logger.info(f"Attempting to update {identifier} in {coords_file}")
 
     # Ensure parent directory exists before attempting to lock/open
@@ -90,7 +90,7 @@ def update_coords_file(
     # Split identifier for potential nesting (e.g., "agent_01.input_box")
     keys = identifier.split(".")
     if not keys:
-        logger.error(f"Invalid empty identifier provided.")
+        logger.error("Invalid empty identifier provided.")
         return False
 
     try:
@@ -117,7 +117,7 @@ def update_coords_file(
                     f"Failed to decode JSON from {coords_file}. Cannot update."
                 )
                 return False
-            # FileNotFoundError should be handled by portalocker or the initial check/mkdir
+            # FileNotFoundError should be handled by portalocker or the initial check/mkdir  # noqa: E501
 
             # Navigate or create nested structure
             current_level = all_coordinates
@@ -127,12 +127,12 @@ def update_coords_file(
                 else:  # Navigate deeper
                     if key not in current_level:
                         logger.warning(
-                            f"Creating missing key '{key}' in structure for identifier '{identifier}'"
+                            f"Creating missing key '{key}' in structure for identifier '{identifier}'"  # noqa: E501
                         )
                         current_level[key] = {}
                     elif not isinstance(current_level[key], dict):
                         logger.error(
-                            f"Existing key '{key}' for identifier '{identifier}' is not a dictionary. Cannot update nested structure."
+                            f"Existing key '{key}' for identifier '{identifier}' is not a dictionary. Cannot update nested structure."  # noqa: E501
                         )
                         return False
                     current_level = current_level[key]
@@ -167,7 +167,7 @@ def main():
     )
     parser.add_argument(
         "identifier",
-        help="The key identifier for the coordinate, potentially nested (e.g., 'agent_01.input_box', 'global.copy_button').",
+        help="The key identifier for the coordinate, potentially nested (e.g., 'agent_01.input_box', 'global.copy_button').",  # noqa: E501
     )
     parser.add_argument(
         "--file",
@@ -189,7 +189,7 @@ def main():
     # but getLogger should be sufficient if just setting level/format.
     logger = logging.getLogger("CoordRecalibrator")
     if args.debug:
-        # Ensure module logger also gets debug level if basicConfig didn't propagate fully
+        # Ensure module logger also gets debug level if basicConfig didn't propagate fully  # noqa: E501
         logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled.")
 

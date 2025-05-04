@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from dreamos.utils.file_io import (
     append_jsonl,
     read_json_file,

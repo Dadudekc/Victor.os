@@ -1,10 +1,8 @@
 # tests/dreamscape/agents/test_planner_agent.py
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch  # noqa: I001
 
 import pytest
-
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.coordination.agent_bus import AgentBus
 from dreamos.core.config import AppConfig  # Updated import
 from dreamos.core.coordination.base_agent import TaskMessage, TaskPriority, TaskStatus
 
@@ -117,7 +115,7 @@ async def test_handle_plan_request_missing_topic(planner_agent: ContentPlannerAg
 async def test_handle_plan_request_planning_exception(
     mock_sleep, planner_agent: ContentPlannerAgent
 ):
-    """Test the handle_plan_request handler when the internal logic raises an exception."""
+    """Test the handle_plan_request handler when the internal logic raises an exception."""  # noqa: E501
     topic = "Test Topic Beta"
     task = TaskMessage(
         task_id="plan-task-3",
@@ -132,7 +130,7 @@ async def test_handle_plan_request_planning_exception(
     # Simulate an error during the placeholder logic (e.g., make ContentPlan fail)
     # For simplicity, patch the ContentPlan import/call if it were complex,
     # or just raise an exception directly after the initial progress update.
-    original_content_plan = (
+    original_content_plan = (  # noqa: F841
         planner_agent.ContentPlan
     )  # If ContentPlan is a class attribute or import
     with patch(

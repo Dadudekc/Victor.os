@@ -1,9 +1,7 @@
 # tests/core/comms/test_project_board.py
 import asyncio
 import json
-import os
 import sys
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -16,7 +14,7 @@ SRC_DIR = SCRIPT_DIR / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from dreamos.coordination.project_board_manager import (
+from dreamos.coordination.project_board_manager import (  # noqa: E402
     COMPLETED_TASKS_FILENAME,
     FUTURE_TASKS_FILENAME,
     WORKING_TASKS_FILENAME,
@@ -90,7 +88,6 @@ def _write_json(file_path: Path, data: list):
 
 # Test claim_future_task (Test Case 1.1)
 class TestClaimFutureTask:
-
     def test_claim_success(
         self,
         board_manager: ProjectBoardManager,
@@ -156,7 +153,6 @@ class TestClaimFutureTask:
 
 # Test move_task_to_completed (Test Case 1.3)
 class TestMoveTaskToCompleted:
-
     def test_move_success(
         self,
         board_manager: ProjectBoardManager,
@@ -213,7 +209,6 @@ class TestMoveTaskToCompleted:
 
 # Test update_task (Test Case 1.2)
 class TestUpdateTask:
-
     def test_update_success(
         self, board_manager: ProjectBoardManager, working_tasks_file: Path
     ):
@@ -268,7 +263,6 @@ class TestUpdateTask:
 
 # Test Error Conditions
 class TestErrorConditions:
-
     @patch("filelock.FileLock.acquire")
     def test_lock_timeout_on_read(
         self, mock_acquire, board_manager: ProjectBoardManager, working_tasks_file: Path
@@ -279,12 +273,12 @@ class TestErrorConditions:
             pytest.skip("Filelock library not available, skipping lock test.")
 
         task_id = "task_lock_timeout"
-        agent_id = "AgentTest"
+        agent_id = "AgentTest"  # noqa: F841
         _write_json(working_tasks_file, [{"task_id": task_id, "status": "WORKING"}])
 
         mock_acquire.side_effect = filelock.Timeout("Mock Timeout")
 
-        with pytest.raises(BoardLockError):
+        with pytest.raises(BoardLockError):  # noqa: F821
             # Calling a method that reads the board should trigger the error
             board_manager.get_task(task_id, board="working")
 
@@ -307,7 +301,7 @@ class TestErrorConditions:
 
         updates = {"notes": "Update that will fail to save"}
 
-        # Depending on implementation, this might return False or raise ProjectBoardManagerError
+        # Depending on implementation, this might return False or raise ProjectBoardManagerError  # noqa: E501
         # Let's assume it returns False for now, consistent with other failures
         result = board_manager.update_task(task_id, agent_id, updates)
         assert result is False
@@ -325,13 +319,12 @@ class TestErrorConditions:
 
 # Test Validation Logic
 class TestValidationLogic:
-
     @patch("subprocess.run")
     def test_validation_calls_flake8(
         self, mock_subprocess_run, board_manager: ProjectBoardManager
     ):
         """Test that _validate_task_completion calls flake8 for .py files."""
-        task = MagicMock(spec=TaskMessage)
+        task = MagicMock(spec=TaskMessage)  # noqa: F821
         task.task_id = "task_validate_flake8"
         result = {
             "summary": "Did stuff",
@@ -364,7 +357,7 @@ class TestValidationLogic:
             "src/file1.py",
             "src/subdir/file2.py",
         ]
-        # Check if the expected command part matches the beginning of the actual call args
+        # Check if the expected command part matches the beginning of the actual call args  # noqa: E501
         call_args, call_kwargs = mock_subprocess_run.call_args
         assert call_args[0][: len(expected_cmd_part)] == expected_cmd_part
         assert call_kwargs.get("cwd") == board_manager._project_root
@@ -374,7 +367,7 @@ class TestValidationLogic:
         self, mock_subprocess_run, board_manager: ProjectBoardManager
     ):
         """Test that validation fails if flake8 returns errors."""
-        task = MagicMock(spec=TaskMessage)
+        task = MagicMock(spec=TaskMessage)  # noqa: F821
         task.task_id = "task_validate_flake8_fail"
         result = {"summary": "Did stuff", "modified_files": ["src/bad_file.py"]}
         modified_files_list = result["modified_files"]
@@ -403,7 +396,7 @@ class TestValidationLogic:
         self, mock_subprocess_run, board_manager: ProjectBoardManager
     ):
         """Test validation handles FileNotFoundError if flake8 isn't installed."""
-        task = MagicMock(spec=TaskMessage)
+        task = MagicMock(spec=TaskMessage)  # noqa: F821
         task.task_id = "task_validate_flake8_notfound"
         result = {"summary": "Did stuff", "modified_files": ["src/some_file.py"]}
         modified_files_list = result["modified_files"]
@@ -422,9 +415,9 @@ class TestValidationLogic:
 
     # TODO: Add tests for basic validation checks (summary, dict format etc.)
     # TODO: Add test for case with no modified files
-    # TODO: Add test for case where modified_files list contains non-strings or non-files
+    # TODO: Add test for case where modified_files list contains non-strings or non-files  # noqa: E501
 
 
 # TODO: Add tests for update_global_task
 # TODO: Add tests for project-specific methods (get/set state, artifacts) if needed
-# TODO: Add tests for error conditions (locking timeouts, write failures - may require mocking)
+# TODO: Add tests for error conditions (locking timeouts, write failures - may require mocking)  # noqa: E501

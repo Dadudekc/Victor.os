@@ -1,7 +1,7 @@
 # src/dreamos/core/health_checks/cursor_status_check.py
 import asyncio
 import logging
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, Literal
 
 # Assuming CursorOrchestrator is accessible via a getter or singleton pattern
 # Adjust import path as needed based on final location
@@ -31,7 +31,7 @@ CheckStatus = Literal["PASS", "WARN", "FAIL", "ERROR"]
 CHECK_NAME = "cursor_agent_status"
 # {{ EDIT END }}
 
-# TODO: Make EXPECTED_AGENT_IDS configurable or dynamically retrieved from orchestrator/registry.
+# TODO: Make EXPECTED_AGENT_IDS configurable or dynamically retrieved from orchestrator/registry.  # noqa: E501
 EXPECTED_AGENT_IDS = [f"agent_{i:03d}" for i in range(1, 9)]  # agent_001 to agent_008
 
 HEALTHY_STATUSES = ["IDLE", "INJECTING", "AWAITING_RESPONSE", "COPYING"]
@@ -46,7 +46,7 @@ async def check_cursor_agent_statuses() -> Dict[str, Any]:
 
     if not CURSOR_ORCHESTRATOR_AVAILABLE:
         logger.error(
-            f"{CHECK_NAME}: Cannot perform check: CursorOrchestrator module not available."
+            f"{CHECK_NAME}: Cannot perform check: CursorOrchestrator module not available."  # noqa: E501
         )
         details["error"] = "CursorOrchestrator unavailable"
         for agent_id in EXPECTED_AGENT_IDS:
@@ -58,7 +58,7 @@ async def check_cursor_agent_statuses() -> Dict[str, Any]:
         return {"check_name": CHECK_NAME, "status": "ERROR", "details": details}
 
     try:
-        # TODO: Replace direct instantiation with getter or dependency injection for CursorOrchestrator.
+        # TODO: Replace direct instantiation with getter or dependency injection for CursorOrchestrator.  # noqa: E501
         orchestrator = CursorOrchestrator()
     except Exception as e:
         logger.error(

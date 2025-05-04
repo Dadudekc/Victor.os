@@ -70,9 +70,9 @@ def validate_payload(payload: Dict[str, Any], schema_name: str) -> bool:
     """
     if not JSONSCHEMA_AVAILABLE:
         logger.warning(
-            "jsonschema library not installed. Cannot perform schema validation. Returning True."
+            "jsonschema library not installed. Cannot perform schema validation. Returning True."  # noqa: E501
         )
-        # Decide on behavior: fail open (True) or closed (False)? Open seems less disruptive for now.
+        # Decide on behavior: fail open (True) or closed (False)? Open seems less disruptive for now.  # noqa: E501
         return True
 
     schema = load_schema(schema_name)
@@ -91,7 +91,7 @@ def validate_payload(payload: Dict[str, Any], schema_name: str) -> bool:
         return False
     except Exception as e:
         logger.error(
-            f"An unexpected error occurred during schema validation for '{schema_name}': {e}",
+            f"An unexpected error occurred during schema validation for '{schema_name}': {e}",  # noqa: E501
             exc_info=True,
         )
         return False
@@ -100,9 +100,9 @@ def validate_payload(payload: Dict[str, Any], schema_name: str) -> bool:
     # if __name__ == "__main__":
     #     # ... (schema definition) ...
     #     # EDIT START: Remove commented-out print examples
-    #     # print(f"Validating good payload: {validate_payload(test_payload_valid, 'scraped_response')}") # Should be True
-    #     # print(f"Validating bad author: {validate_payload(test_payload_invalid_author, 'scraped_response')}") # Should be False
-    #     # print(f"Validating missing content: {validate_payload(test_payload_missing_content, 'scraped_response')}") # Should be False
-    #     # print(f"Validating non-existent schema: {validate_payload({}, 'non_existent')}") # Should be False
+    #     # print(f"Validating good payload: {validate_payload(test_payload_valid, 'scraped_response')}") # Should be True  # noqa: E501
+    #     # print(f"Validating bad author: {validate_payload(test_payload_invalid_author, 'scraped_response')}") # Should be False  # noqa: E501
+    #     # print(f"Validating missing content: {validate_payload(test_payload_missing_content, 'scraped_response')}") # Should be False  # noqa: E501
+    #     # print(f"Validating non-existent schema: {validate_payload({}, 'non_existent')}") # Should be False  # noqa: E501
     #     # EDIT END
     pass  # Keep pass if the block becomes empty

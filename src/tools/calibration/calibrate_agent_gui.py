@@ -4,13 +4,13 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 try:
     import pyautogui
 except ImportError:
     print(
-        "ERROR: pyautogui is required for this script. Please install it (`pip install pyautogui`)"
+        "ERROR: pyautogui is required for this script. Please install it (`pip install pyautogui`)"  # noqa: E501
     )
     exit(1)
 
@@ -75,10 +75,10 @@ def calibrate_element(element_name: str, agent_id: str) -> Dict[str, int]:
     print(f"Calibration for Agent: '{agent_id}', Element: '{element_name}'")
     print("-" * 40)
     print(
-        f"IMPORTANT: Please move your mouse cursor to the **CENTER** of the '{element_name}'."
+        f"IMPORTANT: Please move your mouse cursor to the **CENTER** of the '{element_name}'."  # noqa: E501
     )
     print(f"Keep the mouse still for {CAPTURE_DELAY} seconds after positioning.")
-    print(f"Capturing in...")
+    print("Capturing in...")
 
     for i in range(CAPTURE_DELAY, 0, -1):
         print(f"{i}...", end="", flush=True)
@@ -89,7 +89,7 @@ def calibrate_element(element_name: str, agent_id: str) -> Dict[str, int]:
         position = pyautogui.position()
         coords = {"x": position.x, "y": position.y}
         print(
-            f"\nCaptured Coordinates for '{element_name}': ({coords['x']}, {coords['y']})"
+            f"\nCaptured Coordinates for '{element_name}': ({coords['x']}, {coords['y']})"  # noqa: E501
         )
         return coords
     except Exception as e:
@@ -152,7 +152,7 @@ def main():
                 save_coords(coords_filepath, all_coords)
             else:
                 print(
-                    f"ERROR: Skipping remaining elements for agent '{agent_id}' due to capture error for '{element}'."
+                    f"ERROR: Skipping remaining elements for agent '{agent_id}' due to capture error for '{element}'."  # noqa: E501
                 )
                 calibration_successful_for_agent = False
                 break  # Stop calibrating this agent if one element fails
@@ -167,7 +167,7 @@ def main():
             # MODIFIED: Wait before starting next agent, if not the last one
             if i < num_agents - 1:
                 print(
-                    f"\nWaiting {AGENT_SWITCH_DELAY} seconds before calibrating next agent ({agent_ids_list[i+1]})..."
+                    f"\nWaiting {AGENT_SWITCH_DELAY} seconds before calibrating next agent ({agent_ids_list[i+1]})..."  # noqa: E501
                 )
                 time.sleep(AGENT_SWITCH_DELAY)
         else:

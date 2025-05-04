@@ -1,12 +1,10 @@
 """Client for interacting with Azure Blob Storage."""
 
-import asyncio  # Keep for placeholder sleep
-import logging
+import logging  # noqa: I001
 
 import tenacity  # Add tenacity for retry logic
 from azure.core.exceptions import AzureError, ResourceNotFoundError
 from azure.storage.blob.aio import BlobServiceClient  # Import async client
-
 from dreamos.utils.config_utils import get_config
 
 from . import APIError, IntegrationError
@@ -41,7 +39,7 @@ class AzureBlobClient:
                 )
         else:
             logger.warning(
-                "Azure Blob connection string not found in config (integrations.azure_blob.connection_string). Client non-functional."
+                "Azure Blob connection string not found in config (integrations.azure_blob.connection_string). Client non-functional."  # noqa: E501
             )
 
         if not self._functional:
@@ -64,7 +62,7 @@ class AzureBlobClient:
         """Uploads data to a blob in the specified container."""
         if not self.is_functional():
             raise IntegrationError(
-                "AzureBlobClient not functional (check connection string and initialization)."
+                "AzureBlobClient not functional (check connection string and initialization)."  # noqa: E501
             )
 
         logger.debug(
@@ -77,7 +75,7 @@ class AzureBlobClient:
                 )
                 await blob_client.upload_blob(data, overwrite=True)
                 logger.info(
-                    f"Successfully uploaded blob {blob_name} to container {container_name}."
+                    f"Successfully uploaded blob {blob_name} to container {container_name}."  # noqa: E501
                 )
         except ResourceNotFoundError:
             logger.error(f"Container '{container_name}' not found for blob upload.")
@@ -104,7 +102,7 @@ class AzureBlobClient:
         """Downloads data from a blob."""
         if not self.is_functional():
             raise IntegrationError(
-                "AzureBlobClient not functional (check connection string and initialization)."
+                "AzureBlobClient not functional (check connection string and initialization)."  # noqa: E501
             )
 
         logger.debug(
@@ -118,7 +116,7 @@ class AzureBlobClient:
                 download_stream = await blob_client.download_blob()
                 data = await download_stream.readall()
                 logger.info(
-                    f"Successfully downloaded blob {blob_name} from container {container_name} ({len(data)} bytes)."
+                    f"Successfully downloaded blob {blob_name} from container {container_name} ({len(data)} bytes)."  # noqa: E501
                 )
                 return data
         except ResourceNotFoundError:

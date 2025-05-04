@@ -1,14 +1,11 @@
 import asyncio
-import json
 import logging
-import subprocess
 import threading
 import time
 import traceback
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from ..core.agent_bus import AgentBus
@@ -65,7 +62,7 @@ class CommandSupervisor(Singleton):
         agent_bus (AgentBus): The shared AgentBus instance for communication.
         pending_approvals (Dict[str, SupervisorEvent]): Stores requests awaiting approval.
         approval_status (Dict[str, ApprovalStatus]): Tracks the status of each request.
-    """
+    """  # noqa: E501
 
     _instance = None
     _initialized = False
@@ -161,7 +158,7 @@ class CommandSupervisor(Singleton):
             correlation_id=event.correlation_id,
         )
         logger.info(
-            f"Requesting approval for command ID {command_id}: {request_payload.get('command')}"
+            f"Requesting approval for command ID {command_id}: {request_payload.get('command')}"  # noqa: E501
         )
         await self.agent_bus.publish(approval_event)
 
@@ -177,7 +174,7 @@ class CommandSupervisor(Singleton):
         original_request_event = None
 
         logger.info(
-            f"Received approval response for command ID {command_id}: Approved={approved}"
+            f"Received approval response for command ID {command_id}: Approved={approved}"  # noqa: E501
         )
 
         with self.lock:
@@ -189,7 +186,7 @@ class CommandSupervisor(Singleton):
                     self.approval_status[command_id] = ApprovalStatus.REJECTED
             else:
                 logger.warning(
-                    f"Received approval response for unknown or already processed command ID: {command_id}"
+                    f"Received approval response for unknown or already processed command ID: {command_id}"  # noqa: E501
                 )
                 return  # Ignore if command ID is not pending
 

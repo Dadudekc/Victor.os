@@ -56,7 +56,7 @@ try:
     logger.info(f"Final Result: {result}")
 except TransientError as e:
     logger.error(
-        f"Operation ultimately failed after {retryer.statistics.get('attempt_number', 'N/A')} attempts: {e}"
+        f"Operation ultimately failed after {retryer.statistics.get('attempt_number', 'N/A')} attempts: {e}"  # noqa: E501
     )
 except Exception as e:
     logger.error(f"An unexpected error occurred: {e}", exc_info=True)

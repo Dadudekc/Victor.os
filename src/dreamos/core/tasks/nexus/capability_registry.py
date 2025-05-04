@@ -4,16 +4,12 @@
 integrated within the Task Nexus.
 """
 
-import json
+import json  # noqa: I001
 import logging
 import os
-from dataclasses import asdict
 from datetime import datetime, timezone
 from threading import RLock
 from typing import Any, Dict, List, Optional
-
-from filelock import FileLock, Timeout
-from pydantic import ValidationError
 
 from dreamos.core.agents.capabilities.schema import AgentCapability
 
@@ -24,6 +20,8 @@ from dreamos.core.coordination.event_payloads import (
     CapabilityUnregisteredPayload,
 )
 from dreamos.core.coordination.event_types import EventType  # Import from new file
+from filelock import FileLock, Timeout
+from pydantic import ValidationError
 
 # EDIT END
 # Assuming utils exist or will be created
@@ -77,7 +75,7 @@ class CapabilityRegistry:
             with self._get_file_lock():
                 if not os.path.exists(self.registry_path):
                     logger.warning(
-                        f"Registry file not found at {self.registry_path}. Initializing empty registry."
+                        f"Registry file not found at {self.registry_path}. Initializing empty registry."  # noqa: E501
                     )
                     # Create an empty file if it doesn't exist
                     with open(self.registry_path, "w", encoding="utf-8") as f:
@@ -97,25 +95,25 @@ class CapabilityRegistry:
                                 )
                             except (TypeError, KeyError, ValidationError) as e:
                                 logger.error(
-                                    f"Failed to load capability {cap_id} for agent {agent_id}: Invalid data - {e}"
+                                    f"Failed to load capability {cap_id} for agent {agent_id}: Invalid data - {e}"  # noqa: E501
                                 )
                         loaded_capabilities[agent_id] = agent_caps
 
                     with self._memory_lock:
                         self._capabilities = loaded_capabilities
                     logger.info(
-                        f"Successfully loaded {sum(len(caps) for caps in self._capabilities.values())} capabilities for {len(self._capabilities)} agents."
+                        f"Successfully loaded {sum(len(caps) for caps in self._capabilities.values())} capabilities for {len(self._capabilities)} agents."  # noqa: E501
                     )
 
         except Timeout:
             logger.error(
-                f"Could not acquire lock for {self.registry_path} within {LOCK_TIMEOUT_SECONDS}s during load."
+                f"Could not acquire lock for {self.registry_path} within {LOCK_TIMEOUT_SECONDS}s during load."  # noqa: E501
             )
-            # Decide on behavior: raise error, use cached (if any), or operate without loading?
+            # Decide on behavior: raise error, use cached (if any), or operate without loading?  # noqa: E501
             # For now, log error and continue with potentially empty/stale cache.
         except json.JSONDecodeError:
             logger.exception(
-                f"Failed to decode JSON from {self.registry_path}. Registry might be corrupted."
+                f"Failed to decode JSON from {self.registry_path}. Registry might be corrupted."  # noqa: E501
             )
             # Potentially load backup or initialize empty
         except Exception as e:
@@ -136,7 +134,7 @@ class CapabilityRegistry:
 
         try:
             with self._get_file_lock():
-                # Simple atomic write using temp file + rename (replace with atomic_write_json if available)
+                # Simple atomic write using temp file + rename (replace with atomic_write_json if available)  # noqa: E501
                 temp_path = f"{self.registry_path}.tmp"
                 with open(temp_path, "w", encoding="utf-8") as f:
                     json.dump(serializable_data, f, indent=2)
@@ -144,7 +142,7 @@ class CapabilityRegistry:
                 logger.debug(f"Successfully saved registry to {self.registry_path}")
         except Timeout:
             logger.error(
-                f"Could not acquire lock for {self.registry_path} within {LOCK_TIMEOUT_SECONDS}s during save."
+                f"Could not acquire lock for {self.registry_path} within {LOCK_TIMEOUT_SECONDS}s during save."  # noqa: E501
             )
         except Exception as e:
             logger.exception(
@@ -158,7 +156,7 @@ class CapabilityRegistry:
         """Helper to safely dispatch registry-related events."""
         if not self._agent_bus:
             logger.warning(
-                f"AgentBus not available, skipping dispatch of event type {event_type.name}"
+                f"AgentBus not available, skipping dispatch of event type {event_type.name}"  # noqa: E501
             )  # EDIT: Use enum name
             return
 
@@ -205,7 +203,7 @@ class CapabilityRegistry:
                         cap_id
                     ].registered_at_utc
                 else:
-                    capability.registered_at_utc = now_utc_iso  # Set registration time for new capability for existing agent
+                    capability.registered_at_utc = now_utc_iso  # Set registration time for new capability for existing agent  # noqa: E501
 
             capability.last_updated_utc = now_utc_iso  # Always update this timestamp
             self._capabilities[agent_id][cap_id] = capability
@@ -242,12 +240,12 @@ class CapabilityRegistry:
                 ]:  # Remove agent entry if no capabilities left
                     del self._capabilities[agent_id]
                     logger.info(
-                        f"Removed agent '{agent_id}' from registry as they have no remaining capabilities."
+                        f"Removed agent '{agent_id}' from registry as they have no remaining capabilities."  # noqa: E501
                     )
                 removed = True
             else:
                 logger.warning(
-                    f"Attempted to unregister non-existent capability '{capability_id}' for agent '{agent_id}'."
+                    f"Attempted to unregister non-existent capability '{capability_id}' for agent '{agent_id}'."  # noqa: E501
                 )
 
         if removed:
@@ -315,7 +313,7 @@ class CapabilityRegistry:
                         required_version
                         and capability.metadata.version != required_version
                     ):
-                        # Note: This is exact match only. Semantic comparison (>=, <, ^) is complex.
+                        # Note: This is exact match only. Semantic comparison (>=, <, ^) is complex.  # noqa: E501
                         continue
                     # EDIT END
 
@@ -337,7 +335,7 @@ class CapabilityRegistry:
                     if not require_active or agent_caps[capability_id].is_active:
                         agent_ids.append(agent_id)
         logger.info(
-            f"Found {len(agent_ids)} agents for capability '{capability_id}' (require_active={require_active})."
+            f"Found {len(agent_ids)} agents for capability '{capability_id}' (require_active={require_active})."  # noqa: E501
         )
         return agent_ids
 
@@ -349,7 +347,7 @@ class CapabilityRegistry:
         is_active: Optional[bool] = None,
         last_verified_utc: Optional[str] = None,
     ) -> bool:
-        """Updates the status fields (is_active, last_verified_utc) for a specific capability."""
+        """Updates the status fields (is_active, last_verified_utc) for a specific capability."""  # noqa: E501
         updated = False
         with self._memory_lock:
             if (
@@ -360,7 +358,7 @@ class CapabilityRegistry:
                 if is_active is not None and capability.is_active != is_active:
                     capability.is_active = is_active
                     logger.info(
-                        f"Updated is_active status for {agent_id}/{capability_id} to {is_active}"
+                        f"Updated is_active status for {agent_id}/{capability_id} to {is_active}"  # noqa: E501
                     )
                     updated = True
                 if (
@@ -369,7 +367,7 @@ class CapabilityRegistry:
                 ):
                     capability.last_verified_utc = last_verified_utc
                     logger.info(
-                        f"Updated last_verified_utc for {agent_id}/{capability_id} to {last_verified_utc}"
+                        f"Updated last_verified_utc for {agent_id}/{capability_id} to {last_verified_utc}"  # noqa: E501
                     )
                     updated = True
 
@@ -381,14 +379,14 @@ class CapabilityRegistry:
                     )
             else:
                 logger.warning(
-                    f"Attempted to update status for non-existent capability '{capability_id}' for agent '{agent_id}'."
+                    f"Attempted to update status for non-existent capability '{capability_id}' for agent '{agent_id}'."  # noqa: E501
                 )
 
         if updated:
             self._save_registry()
             # Optionally dispatch an update event?
             # payload = CapabilityUpdatedPayload(...) # Define payload
-            # self._dispatch_registry_event(EventType.SYSTEM_CAPABILITY_UPDATED, payload.__dict__)
+            # self._dispatch_registry_event(EventType.SYSTEM_CAPABILITY_UPDATED, payload.__dict__)  # noqa: E501
 
         return updated
 

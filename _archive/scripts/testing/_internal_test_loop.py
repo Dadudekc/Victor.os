@@ -9,7 +9,6 @@ import os
 
 # Ensure core modules are importable (best effort)
 import sys
-import threading
 
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -34,7 +33,7 @@ except ImportError as e:
             logger.info(f"Adding {parent_dir} to sys.path")
             sys.path.insert(0, parent_dir)
         from dreamos.agents.tool_executor_agent import ToolExecutionAgent
-        from dreamos.coordination.agent_bus import AgentBus, BusError
+        from dreamos.coordination.agent_bus import AgentBus, BusError  # noqa: F401
         from dreamos.tools._core.registry import get_registry
 
         logger.info("Core components imported successfully after path adjustment.")

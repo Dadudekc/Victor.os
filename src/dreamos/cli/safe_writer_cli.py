@@ -28,7 +28,7 @@ try:
     from dreamos.core.utils.safe_file_writer import SafeWriteError, safe_write_file
 except ImportError as e:
     print(
-        f"ERROR: Failed to import safe_write_file. Ensure src is in PYTHONPATH or script is run correctly. Details: {e}",
+        f"ERROR: Failed to import safe_write_file. Ensure src is in PYTHONPATH or script is run correctly. Details: {e}",  # noqa: E501
         file=sys.stderr,
     )
     sys.exit(1)

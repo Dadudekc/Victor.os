@@ -12,7 +12,6 @@ from ..core.config import AppConfig  # Added missing import
 # import pyperclip # EDIT: No longer needed directly
 
 
-
 # EDIT: Import channel abstraction (assuming it exists based on usage)
 # This needs to be defined or imported correctly
 # Example: from ..core.comms import TaskChannel
@@ -59,14 +58,14 @@ def run(config: AppConfig, worker_id="worker-001"):
                     return True
                 else:
                     logger.warning(
-                        f"[{worker_id}] Bot click failed at {loc_tuple} for {image_name}. Retrying..."
+                        f"[{worker_id}] Bot click failed at {loc_tuple} for {image_name}. Retrying..."  # noqa: E501
                     )
             # else: # Location failed
-            #    logger.debug(f"[{worker_id}] Image {image_name} not found on attempt {_attempt+1}/{retry}.")
+            #    logger.debug(f"[{worker_id}] Image {image_name} not found on attempt {_attempt+1}/{retry}.")  # noqa: E501
 
             time.sleep(1)  # Wait before retrying
         logger.error(
-            f"[{worker_id}] Failed to locate/click image {image_name} after {retry} retries."
+            f"[{worker_id}] Failed to locate/click image {image_name} after {retry} retries."  # noqa: E501
         )
         return False
 
@@ -94,7 +93,7 @@ def run(config: AppConfig, worker_id="worker-001"):
                 return True
             time.sleep(RESPONSE_CHECK_INTERVAL)  # Use constant
         logger.warning(
-            f"[{worker_id}] Timeout waiting for idle state (image {image_name} persisted)."
+            f"[{worker_id}] Timeout waiting for idle state (image {image_name} persisted)."  # noqa: E501
         )
         return False
 
@@ -133,7 +132,7 @@ def run(config: AppConfig, worker_id="worker-001"):
         # Wait for code generation to complete using the bot helper
         if not wait_for_idle(assets_dir, "spinner.png"):
             logger.warning(
-                f"[{worker_id}] Timeout waiting for generation to complete for task {task_id}."
+                f"[{worker_id}] Timeout waiting for generation to complete for task {task_id}."  # noqa: E501
             )
             # Might not be fatal, attempt extraction anyway
             # return {"id": task_id, "error": "generation_timeout"}
@@ -155,12 +154,12 @@ def run(config: AppConfig, worker_id="worker-001"):
             if result_content is None:
                 raise RuntimeError("Failed to get clipboard content via bot.")
             logger.info(
-                f"[{worker_id}] Successfully extracted content ({len(result_content)} chars) for task {task_id} via clipboard."
+                f"[{worker_id}] Successfully extracted content ({len(result_content)} chars) for task {task_id} via clipboard."  # noqa: E501
             )
 
         except Exception as e:
             logger.error(
-                f"[{worker_id}] Failed to extract result via clipboard for task {task_id}: {e}",
+                f"[{worker_id}] Failed to extract result via clipboard for task {task_id}: {e}",  # noqa: E501
                 exc_info=True,
             )
             # Fallback if clipboard extraction fails
@@ -185,7 +184,7 @@ def run(config: AppConfig, worker_id="worker-001"):
             # EDIT: Use placeholder TaskChannel
             channel.push_result(ui_result)
             logger.info(
-                f"[{worker_id}] Pushed result for task {ui_result.get('id')}: Status {ui_result.get('status', 'unknown')}"
+                f"[{worker_id}] Pushed result for task {ui_result.get('id')}: Status {ui_result.get('status', 'unknown')}"  # noqa: E501
             )
 
         time.sleep(RESPONSE_CHECK_INTERVAL)  # Use constant for loop sleep

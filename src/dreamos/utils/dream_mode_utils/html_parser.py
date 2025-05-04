@@ -11,7 +11,7 @@ logger = logging.getLogger("HTMLParser")
 # This might need adjustment based on actual ChatGPT/Custom GPT interface
 STOP_GENERATING_SELECTOR = (
     By.XPATH,
-    "//button[contains(., 'Stop generating')] | //button[contains(@aria-label, 'Stop generating')] | //textarea[@disabled]",
+    "//button[contains(., 'Stop generating')] | //button[contains(@aria-label, 'Stop generating')] | //textarea[@disabled]",  # noqa: E501
 )
 
 

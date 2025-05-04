@@ -131,14 +131,14 @@ def scan_directory(
             findings = find_todos_in_file(file_path, patterns, directory)
             if findings:
                 logger.info(
-                    f"Found {len(findings)} item(s) in {file_path.relative_to(directory)}"
+                    f"Found {len(findings)} item(s) in {file_path.relative_to(directory)}"  # noqa: E501
                 )
                 for finding in findings:
                     write_log_entry(log_file, finding)
                 total_findings += len(findings)
 
     logger.info(
-        f"Scan complete. Scanned {scanned_files} files. Found {total_findings} total items."
+        f"Scan complete. Scanned {scanned_files} files. Found {total_findings} total items."  # noqa: E501
     )
 
 
@@ -153,7 +153,7 @@ def main():
         "--patterns",
         nargs="+",
         default=DEFAULT_PATTERNS,
-        help=f"List of patterns to search for (e.g., TODO FIXME). Default: {DEFAULT_PATTERNS}",
+        help=f"List of patterns to search for (e.g., TODO FIXME). Default: {DEFAULT_PATTERNS}",  # noqa: E501
     )
     parser.add_argument(
         "--log-file",
@@ -165,7 +165,7 @@ def main():
         "--ignore",
         nargs="*",
         default=[],
-        help=f"Additional directories or file names/extensions to ignore. Default ignores: {DEFAULT_IGNORE}",
+        help=f"Additional directories or file names/extensions to ignore. Default ignores: {DEFAULT_IGNORE}",  # noqa: E501
     )
     parser.add_argument(
         "--ext",

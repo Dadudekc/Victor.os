@@ -30,7 +30,7 @@ class BaseDispatcher:
         self.is_running = False
 
     def get_status(self):
-        """Return current status including running state, queue size, and current task."""
+        """Return current status including running state, queue size, and current task."""  # noqa: E501
         return {
             "is_running": self.is_running,
             "queue_size": self.task_queue.qsize(),

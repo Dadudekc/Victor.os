@@ -1,10 +1,8 @@
 # scripts/utils/simple_task_updater.py
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 # Setup logging
 logging.basicConfig(
@@ -24,7 +22,7 @@ try:
     from dreamos.utils.common_utils import get_utc_iso_timestamp
 except ImportError as e:
     logger.critical(
-        f"Error: Failed to import dreamos components. Ensure dependencies are met. Error: {e}"
+        f"Error: Failed to import dreamos components. Ensure dependencies are met. Error: {e}"  # noqa: E501
     )
     sys.exit(1)
 
@@ -44,7 +42,7 @@ def main():
     parser.add_argument(
         "--boards_dir",
         default=str(DEFAULT_BOARDS_BASE_DIR),
-        help=f"Path to the directory containing task board JSON files (default: {DEFAULT_BOARDS_BASE_DIR})",
+        help=f"Path to the directory containing task board JSON files (default: {DEFAULT_BOARDS_BASE_DIR})",  # noqa: E501
     )
 
     # Subparsers for actions
@@ -73,7 +71,7 @@ def main():
     parser_update.add_argument(
         "--board_file",
         default=WORKING_TASKS_FILENAME,
-        help=f"Target board file for update (e.g., '{WORKING_TASKS_FILENAME}'). Default: {WORKING_TASKS_FILENAME}",
+        help=f"Target board file for update (e.g., '{WORKING_TASKS_FILENAME}'). Default: {WORKING_TASKS_FILENAME}",  # noqa: E501
     )
     # Note: Moving to completed_tasks still needs ProjectBoardManager support
 
@@ -106,7 +104,7 @@ def main():
                 sys.exit(0)
             else:
                 logger.error(
-                    f"Failed to claim task '{args.task_id}'. Task may not exist, already claimed, or error occurred."
+                    f"Failed to claim task '{args.task_id}'. Task may not exist, already claimed, or error occurred."  # noqa: E501
                 )
                 sys.exit(1)
         except ProjectBoardError as e:
@@ -138,7 +136,7 @@ def main():
 
             # Use the new move_task_to_completed method
             logger.info(
-                f"Attempting to move task '{args.task_id}' to completed with status '{args.status}'"
+                f"Attempting to move task '{args.task_id}' to completed with status '{args.status}'"  # noqa: E501
             )
             try:
                 success = board_manager.move_task_to_completed(
@@ -151,7 +149,7 @@ def main():
                     sys.exit(0)
                 else:
                     logger.error(
-                        f"Failed to move task '{args.task_id}' to completed. Task may not exist in working tasks or error occurred."
+                        f"Failed to move task '{args.task_id}' to completed. Task may not exist in working tasks or error occurred."  # noqa: E501
                     )
                     sys.exit(1)
             except ProjectBoardError as e:
@@ -162,20 +160,20 @@ def main():
                 sys.exit(1)
             except Exception as e:
                 logger.error(
-                    f"An unexpected error occurred moving task '{args.task_id}' to completed: {e}",
+                    f"An unexpected error occurred moving task '{args.task_id}' to completed: {e}",  # noqa: E501
                     exc_info=True,
                 )
                 sys.exit(1)
         else:
             # For non-completion updates, use the existing update_working_task method
             logger.info(
-                f"Attempting to update task '{args.task_id}' status to '{args.status}' in '{args.board_file}'"
+                f"Attempting to update task '{args.task_id}' status to '{args.status}' in '{args.board_file}'"  # noqa: E501
             )
 
             # Check if target board is supported (redundant check now maybe, but safe)
             if args.board_file != WORKING_TASKS_FILENAME:
                 logger.error(
-                    f"Error: Updating non-completion status on board '{args.board_file}' is not supported. Only '{WORKING_TASKS_FILENAME}' update is implemented."
+                    f"Error: Updating non-completion status on board '{args.board_file}' is not supported. Only '{WORKING_TASKS_FILENAME}' update is implemented."  # noqa: E501
                 )
                 sys.exit(1)
 
@@ -185,12 +183,12 @@ def main():
                 )
                 if success:
                     logger.info(
-                        f"Task '{args.task_id}' updated successfully in '{args.board_file}'."
+                        f"Task '{args.task_id}' updated successfully in '{args.board_file}'."  # noqa: E501
                     )
                     sys.exit(0)
                 else:
                     logger.error(
-                        f"Failed to update task '{args.task_id}'. Task may not exist in '{args.board_file}' or an error occurred."
+                        f"Failed to update task '{args.task_id}'. Task may not exist in '{args.board_file}' or an error occurred."  # noqa: E501
                     )
                     sys.exit(1)
             except ProjectBoardError as e:

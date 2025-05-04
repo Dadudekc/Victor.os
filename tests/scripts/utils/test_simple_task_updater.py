@@ -1,5 +1,4 @@
 # tests/scripts/utils/test_simple_task_updater.py
-import json
 import subprocess
 import sys
 from pathlib import Path
@@ -47,7 +46,6 @@ def run_script(args: list[str]) -> subprocess.CompletedProcess:
 
 
 class TestSimpleTaskUpdaterScript:
-
     def test_claim_success(self, mock_board_manager: MagicMock):
         """Test Case 3.1: Claim action success."""
         task_id = "task_claim_1"

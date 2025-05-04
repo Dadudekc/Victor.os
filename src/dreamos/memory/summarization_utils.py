@@ -52,21 +52,21 @@ def summarize_segment_chunk(
     start_time_str = chunk[0].get("timestamp", "N/A")
     end_time_str = chunk[-1].get("timestamp", "N/A")
 
-    summary_text = f"[Placeholder summary for {count} entries from ~{start_time_str} to ~{end_time_str}]"
+    summary_text = f"[Placeholder summary for {count} entries from ~{start_time_str} to ~{end_time_str}]"  # noqa: E501
     if summarizer:
         try:
             summary_text = summarizer.summarize_entries(chunk)
             logger.info(
-                f"Generated actual summary for {count} entries using {type(summarizer).__name__}."
+                f"Generated actual summary for {count} entries using {type(summarizer).__name__}."  # noqa: E501
             )
         except Exception as e:
             logger.error(
                 f"Summarizer failed: {e}. Falling back to placeholder.", exc_info=True
             )
-            summary_text = f"[Summarizer Error ({e}). Placeholder summary for {count} entries from ~{start_time_str} to ~{end_time_str}]"
+            summary_text = f"[Summarizer Error ({e}). Placeholder summary for {count} entries from ~{start_time_str} to ~{end_time_str}]"  # noqa: E501
     else:
         logger.info(
-            f"Generated placeholder summary for {count} entries (no summarizer provided)."
+            f"Generated placeholder summary for {count} entries (no summarizer provided)."  # noqa: E501
         )
 
     summary_entry = {
@@ -102,7 +102,7 @@ def summarize_segment_file(
 
     Returns:
         True if the process completed (including no summarization needed), False if an error occurred.
-    """
+    """  # noqa: E501
     logger.info(f"Starting summarization process for: {file_path}")
     if not file_path.exists() or file_path.stat().st_size == 0:
         logger.warning(f"Summarization skipped: File not found or empty - {file_path}")
@@ -114,7 +114,7 @@ def summarize_segment_file(
 
     if summarize_chunk_size < min_entries_to_summarize:
         logger.warning(
-            f"Policy misconfiguration: summarize_n_oldest ({summarize_chunk_size}) < min_chunk_size ({min_entries_to_summarize}). Adjusting chunk size."
+            f"Policy misconfiguration: summarize_n_oldest ({summarize_chunk_size}) < min_chunk_size ({min_entries_to_summarize}). Adjusting chunk size."  # noqa: E501
         )
         summarize_chunk_size = min_entries_to_summarize
 
@@ -139,7 +139,7 @@ def summarize_segment_file(
         original_data = json.loads(json_str)
         if not isinstance(original_data, list):
             # EDIT START: Raise specific error
-            # logger.error(f"Summarization failed: Expected a list in file {file_path}, found {type(original_data)}")
+            # logger.error(f"Summarization failed: Expected a list in file {file_path}, found {type(original_data)}")  # noqa: E501
             # return False
             raise SummarizationError(
                 f"Expected a list in file {file_path}, found {type(original_data)}"
@@ -177,7 +177,7 @@ def summarize_segment_file(
             chunk_to_summarize = original_data[:summarize_chunk_size]
             remaining_data = original_data[summarize_chunk_size:]
             logger.info(
-                f"Identified chunk of {len(chunk_to_summarize)} entries for summarization in {file_path} (Total: {len(original_data)})"
+                f"Identified chunk of {len(chunk_to_summarize)} entries for summarization in {file_path} (Total: {len(original_data)})"  # noqa: E501
             )
 
             summary_entry = summarize_segment_chunk(
@@ -186,7 +186,7 @@ def summarize_segment_file(
 
             if "summary_error" in summary_entry:
                 # EDIT START: Raise specific error
-                err_msg = f"Summarization failed for chunk in {file_path}: {summary_entry['summary_error']}"
+                err_msg = f"Summarization failed for chunk in {file_path}: {summary_entry['summary_error']}"  # noqa: E501
                 logger.error(err_msg)
                 # return False
                 raise SummarizationError(err_msg)
@@ -195,7 +195,7 @@ def summarize_segment_file(
             new_data = [summary_entry] + remaining_data
 
             logger.info(
-                f"Saving summarized data to {file_path} ({len(new_data)} entries replacing {len(original_data)})..."
+                f"Saving summarized data to {file_path} ({len(new_data)} entries replacing {len(original_data)})..."  # noqa: E501
             )
             if _rewrite_memory_safely(file_path, new_data, is_compressed):
                 return True
@@ -207,11 +207,11 @@ def summarize_segment_file(
                 # EDIT END
         else:
             logger.info(
-                f"No summarization needed for {file_path} based on current policy/size ({len(original_data)} entries)."
+                f"No summarization needed for {file_path} based on current policy/size ({len(original_data)} entries)."  # noqa: E501
             )
             return True  # No action needed is considered success
     except Exception as e:
-        # Catch errors from summarize_segment_chunk (if it raises) or other unexpected issues
+        # Catch errors from summarize_segment_chunk (if it raises) or other unexpected issues  # noqa: E501
         logger.error(
             f"Error during summarization processing for {file_path}: {e}", exc_info=True
         )
@@ -253,9 +253,9 @@ async def summarize_conversations(
         SummarizationError: If the strategy is 'llm_abstractive' but no `llm_client`
                             is provided, or if the LLM call fails.
         ValueError: If an unknown strategy is provided.
-    """
+    """  # noqa: E501
     logger.debug(
-        f"Summarizing {len(conversations)} conversation entries using strategy: {strategy}"
+        f"Summarizing {len(conversations)} conversation entries using strategy: {strategy}"  # noqa: E501
     )
 
     if strategy == "simple_concat":
@@ -335,4 +335,4 @@ def _build_llm_summary_prompt(conversations: List[Dict[str, Any]]) -> str:
 #
 #     def summarize_entries(self, entries: List[Dict[str, Any]]) -> str:
 #         # Assuming entries are conversation dictionaries
-#         return summarize_conversations(entries, strategy='llm_abstractive', llm_client=self.llm_client)
+#         return summarize_conversations(entries, strategy='llm_abstractive', llm_client=self.llm_client)  # noqa: E501

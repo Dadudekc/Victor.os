@@ -46,7 +46,7 @@ def get_imports_from_file(file_path: Path) -> set[str]:
                     # For now, just capture the module name, might be relative.
                     if node.module:
                         imports.add(node.module.split(".")[0])  # Get top-level module
-                    # Also consider the names being imported if needed, but module is primary link
+                    # Also consider the names being imported if needed, but module is primary link  # noqa: E501
                     # for alias in node.names:
                     #     imports.add(alias.name)
     except SyntaxError as e:

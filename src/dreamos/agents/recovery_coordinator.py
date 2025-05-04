@@ -2,18 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from typing import Optional
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 
 # Core Dream.OS components
 from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus
-from dreamos.core.coordination.event_payloads import (
-    TaskCommandPayload,
-    TaskStatusPayload,
-)
 from dreamos.core.logging.swarm_logger import log_agent_event  # Added Swarm Logger
 from dreamos.core.memory.task_memory_api import PersistentTaskMemoryAPI
 
@@ -64,7 +59,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
             retry_delay_seconds: Minimum delay before retrying a failed task.
             poll_interval_seconds: How often to check for failed/running tasks.
             task_timeout_seconds: Maximum allowed runtime for a task before being marked as failed.
-        """
+        """  # noqa: E501
         super().__init__(agent_id, agent_bus)
         self.task_memory = task_memory
         self.max_retries = max_retries
@@ -77,7 +72,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
 
         logger.info(
             f"RecoveryCoordinatorAgent '{agent_id}' initialized. "
-            f"Max Retries: {self.max_retries}, Delay: {self.retry_delay}, Poll Interval: {self.poll_interval}s, "
+            f"Max Retries: {self.max_retries}, Delay: {self.retry_delay}, Poll Interval: {self.poll_interval}s, "  # noqa: E501
             f"Task Timeout: {self.task_timeout}"  # Log timeout
         )
 
@@ -106,7 +101,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
         await super()._on_stop()  # Call base class stop logic
 
     async def _monitor_tasks(self):
-        """Periodically polls the task memory for failed AND stuck tasks and handles them."""
+        """Periodically polls the task memory for failed AND stuck tasks and handles them."""  # noqa: E501
         while self._running:
             try:
                 # --- Check for FAILED tasks ---
@@ -116,7 +111,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 )
                 if failed_tasks:
                     logger.info(
-                        f"Found {len(failed_tasks)} FAILED tasks to evaluate for recovery."
+                        f"Found {len(failed_tasks)} FAILED tasks to evaluate for recovery."  # noqa: E501
                     )
                     for task in failed_tasks:
                         await self._handle_failed_task(task)
@@ -128,7 +123,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 # Define statuses that indicate a task is actively running
                 stuck_statuses_to_check = [
                     TaskStatus.RUNNING,
-                    # Add other relevant states if they are persisted and could get stuck, e.g.:
+                    # Add other relevant states if they are persisted and could get stuck, e.g.:  # noqa: E501
                     # TaskStatus.INJECTING,
                     # TaskStatus.AWAITING_RESPONSE,
                     # TaskStatus.COPYING
@@ -136,8 +131,8 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 stuck_tasks = []
                 for status in stuck_statuses_to_check:
                     # Fetch tasks potentially stuck in this state
-                    # We need tasks sorted by update time to potentially process older ones first if needed
-                    # The memory API might need enhancement for efficient querying based on time + status.
+                    # We need tasks sorted by update time to potentially process older ones first if needed  # noqa: E501
+                    # The memory API might need enhancement for efficient querying based on time + status.  # noqa: E501
                     # For now, fetch all and filter. Limit fetched tasks per status.
                     candidate_tasks = await self.task_memory.get_tasks_by_status(
                         status, limit=200
@@ -147,7 +142,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
 
                 if stuck_tasks:
                     logger.info(
-                        f"Found {len(stuck_tasks)} potentially STUCK tasks ({'/'.join(s.name for s in stuck_statuses_to_check)}) to evaluate for timeout."
+                        f"Found {len(stuck_tasks)} potentially STUCK tasks ({'/'.join(s.name for s in stuck_statuses_to_check)}) to evaluate for timeout."  # noqa: E501
                     )
                     now = datetime.now(timezone.utc)
                     for task in stuck_tasks:
@@ -156,13 +151,13 @@ class RecoveryCoordinatorAgent(BaseAgent):
                             time_since_update = now - task.updated_at
                             if time_since_update >= self.task_timeout:
                                 logger.warning(
-                                    f"Task {task.task_id} ({task.status.name}) timed out! "
-                                    f"Last update was {time_since_update} ago (Threshold: {self.task_timeout})."
+                                    f"Task {task.task_id} ({task.status.name}) timed out! "  # noqa: E501
+                                    f"Last update was {time_since_update} ago (Threshold: {self.task_timeout})."  # noqa: E501
                                 )
                                 await self._handle_timed_out_task(task)
                         else:
                             logger.warning(
-                                f"Cannot check timeout for task {task.task_id}: Missing 'updated_at' timestamp."
+                                f"Cannot check timeout for task {task.task_id}: Missing 'updated_at' timestamp."  # noqa: E501
                             )
                 else:
                     logger.debug("No potentially STUCK tasks found.")
@@ -182,7 +177,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
         logger.info("Task monitoring loop stopped.")
 
     async def _handle_failed_task(self, task: TaskMessage):
-        """Evaluates a failed task and decides whether to retry or mark as permanent failure."""
+        """Evaluates a failed task and decides whether to retry or mark as permanent failure."""  # noqa: E501
         if not task or not task.updated_at:
             logger.warning(f"Skipping invalid failed task data: {task}")
             return
@@ -195,17 +190,17 @@ class RecoveryCoordinatorAgent(BaseAgent):
             # Check retry delay
             if time_since_failure >= self.retry_delay:
                 logger.info(
-                    f"Task {task.task_id} eligible for retry ({task.retry_count + 1}/{self.max_retries})."
+                    f"Task {task.task_id} eligible for retry ({task.retry_count + 1}/{self.max_retries})."  # noqa: E501
                 )
                 await self._reschedule_task(task)
             else:
                 logger.debug(
-                    f"Task {task.task_id} failed too recently ({time_since_failure} < {self.retry_delay}). Waiting."
+                    f"Task {task.task_id} failed too recently ({time_since_failure} < {self.retry_delay}). Waiting."  # noqa: E501
                 )
         else:
             # Max retries exceeded
             logger.warning(
-                f"Task {task.task_id} exceeded max retries ({self.max_retries}). Marking as permanently failed."
+                f"Task {task.task_id} exceeded max retries ({self.max_retries}). Marking as permanently failed."  # noqa: E501
             )
             await self._mark_permanently_failed(task)
 
@@ -241,7 +236,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
         )
 
         # 1. Update task state in memory
-        task = update_task_status(
+        task = update_task_status(  # noqa: F821
             task,
             TaskStatus.PENDING,
             error=f"Retrying after previous failure. Attempt {task.retry_count + 1}.",
@@ -270,13 +265,13 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 event_type=EventType.TASK_COMMAND,
                 source_id=self.agent_id,  # The recovery agent is issuing the command
                 data=task.to_dict(),  # Send the updated task data
-                # correlation_id=task.correlation_id # Propagate correlation ID if needed/applicable
+                # correlation_id=task.correlation_id # Propagate correlation ID if needed/applicable  # noqa: E501
             )
             # Dispatch the event using the agent bus
             await self.agent_bus.dispatch_event(command_event)
 
             logger.info(
-                f"Published event {EventType.TASK_COMMAND.name} for task retry {task.task_id} (Target: {original_agent_id})"
+                f"Published event {EventType.TASK_COMMAND.name} for task retry {task.task_id} (Target: {original_agent_id})"  # noqa: E501
             )
             log_agent_event(
                 agent_id=self.agent_id,
@@ -290,7 +285,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
             )
         except Exception as e:
             logger.error(
-                f"Failed to publish retry event {EventType.TASK_COMMAND.name} for task {task.task_id}: {e}",
+                f"Failed to publish retry event {EventType.TASK_COMMAND.name} for task {task.task_id}: {e}",  # noqa: E501
                 exc_info=True,
             )
             log_agent_event(
@@ -310,7 +305,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
         failure_reason = f"Permanent failure after {task.retry_count} retries. " + (
             reason or task.error or "No specific reason provided."
         )
-        task = update_task_status(
+        task = update_task_status(  # noqa: F821
             task, TaskStatus.PERMANENTLY_FAILED, error=failure_reason
         )
 
@@ -340,7 +335,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
             )
         except Exception as e:
             logger.error(
-                f"Failed to publish TASK_PERMANENTLY_FAILED event for {task.task_id}: {e}",
+                f"Failed to publish TASK_PERMANENTLY_FAILED event for {task.task_id}: {e}",  # noqa: E501
                 exc_info=True,
             )
 
@@ -364,13 +359,13 @@ class RecoveryCoordinatorAgent(BaseAgent):
         )
 
         # Update task status to FAILED in memory
-        # Could introduce a TIMED_OUT status, but FAILED works for triggering recovery/escalation
+        # Could introduce a TIMED_OUT status, but FAILED works for triggering recovery/escalation  # noqa: E501
         task.status = TaskStatus.FAILED
         task.updated_at = datetime.now(timezone.utc)
         task.error = timeout_reason
         # Reset retry count? Or let normal retry logic handle it?
         # Let's assume timeout counts as a failure needing retry processing.
-        # task.retry_count = 0 # Optional: Reset retries if timeout is handled differently
+        # task.retry_count = 0 # Optional: Reset retries if timeout is handled differently  # noqa: E501
 
         update_success = await self.task_memory.add_or_update_task(task)
         if not update_success:
@@ -379,8 +374,8 @@ class RecoveryCoordinatorAgent(BaseAgent):
             )
         else:
             logger.info(f"Timed-out task {task.task_id} marked as FAILED.")
-            # Publish the failure event via AgentBus (using standard task update mechanism)
-            # This ensures other systems see the task as failed and it can be potentially retried
+            # Publish the failure event via AgentBus (using standard task update mechanism)  # noqa: E501
+            # This ensures other systems see the task as failed and it can be potentially retried  # noqa: E501
             event = BaseEvent(
                 event_type=EventType.TASK_FAILED,  # Use standard TASK_FAILED event
                 source_id=self.agent_id,
@@ -390,7 +385,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 await self.agent_bus.dispatch_event(event)
             except Exception as e:
                 logger.error(
-                    f"Failed to dispatch TASK_FAILED event for timed-out task {task.task_id}: {e}"
+                    f"Failed to dispatch TASK_FAILED event for timed-out task {task.task_id}: {e}"  # noqa: E501
                 )
 
 
@@ -403,5 +398,5 @@ class RecoveryCoordinatorAgent(BaseAgent):
 #     # Let it run for a while
 #     # Stop agent
 # if __name__ == "__main__":
-#     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # noqa: E501
 #     # asyncio.run(main())

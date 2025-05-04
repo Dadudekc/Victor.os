@@ -33,7 +33,6 @@ Environment variables honoured:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import random
@@ -41,13 +40,13 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional
 
 import pyautogui
 
 # ─── Optional libs ────────────────────────────────────────────────────────────
 try:
-    import pyperclip  # fast paste support
+    import pyperclip  # fast paste support  # noqa: F401
 
     _PASTE_OK = True
 except ImportError:

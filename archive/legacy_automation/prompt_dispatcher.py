@@ -2,10 +2,7 @@
 import asyncio  # Added asyncio
 import logging
 import random
-import time
 import uuid  # Added uuid
-from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 # Imports for AgentBus and TaskMessage (adjust paths as needed)
@@ -20,7 +17,7 @@ try:
     AGENT_BUS_AVAILABLE = True
 except ImportError as e:
     logging.error(
-        f"Failed to import AgentBus or TaskMessage: {e}. Dispatcher cannot use AgentBus."
+        f"Failed to import AgentBus or TaskMessage: {e}. Dispatcher cannot use AgentBus."  # noqa: E501
     )
     AgentBus = None
     TaskMessage = None
@@ -76,7 +73,7 @@ LOW_PRIORITY_KEYWORDS = {
 def scrape_new_prompts(
     scraper_instance: Optional[ChatGPTScraper],
 ) -> List[Dict[str, Any]]:
-    """Calls the ChatGPTScraper to fetch new messages/prompts. Returns list of dicts {prompt: str, metadata: dict}."""
+    """Calls the ChatGPTScraper to fetch new messages/prompts. Returns list of dicts {prompt: str, metadata: dict}."""  # noqa: E501
     if not scraper_instance:
         logger.warning("Scraper instance not available.")
         return []
@@ -93,7 +90,7 @@ def scrape_new_prompts(
         return []
     except AttributeError:
         logger.error(
-            f"Scraper instance missing expected method like 'fetch_new_messages'."
+            "Scraper instance missing expected method like 'fetch_new_messages'."
         )
         return []
     except Exception as e:
@@ -113,7 +110,7 @@ def determine_prompt_priority(prompt_data: Dict[str, Any]) -> Union[TaskPriority
         return TaskPriority[meta_priority_str]
 
     # 2. Check keywords in prompt text
-    # TODO: Add more sophisticated priority detection (keywords, metadata fields) -> Refined below
+    # TODO: Add more sophisticated priority detection (keywords, metadata fields) -> Refined below  # noqa: E501
     if any(keyword in prompt_text for keyword in CRITICAL_PRIORITY_KEYWORDS):
         logger.debug("Priority CRITICAL determined from keywords.")
         return TaskPriority.CRITICAL if TaskPriority else "CRITICAL"
@@ -181,7 +178,7 @@ async def publish_prompt_task(
             else priority
         )
         logger.info(
-            f"Published prompt task {task_id} (Priority: {priority_name}) to agent '{agent_id}' on topic '{command_topic}'"
+            f"Published prompt task {task_id} (Priority: {priority_name}) to agent '{agent_id}' on topic '{command_topic}'"  # noqa: E501
         )
 
     except Exception as e:
@@ -226,14 +223,14 @@ async def run_dispatcher_loop(interval: int = DISPATCH_INTERVAL_SECONDS):
         return
 
     logger.info(
-        f"Starting Prompt Dispatcher loop (interval: {interval}s)... Press Ctrl+C to stop."
+        f"Starting Prompt Dispatcher loop (interval: {interval}s)... Press Ctrl+C to stop."  # noqa: E501
     )
     while True:
         try:
             new_prompts_data = scrape_new_prompts(scraper)
             if new_prompts_data:
                 logger.info(
-                    f"Dispatching {len(new_prompts_data)} scraped prompts via AgentBus..."
+                    f"Dispatching {len(new_prompts_data)} scraped prompts via AgentBus..."  # noqa: E501
                 )
                 for prompt_data in new_prompts_data:
                     target_agent = route_prompt_to_agent(prompt_data)
@@ -247,7 +244,7 @@ async def run_dispatcher_loop(interval: int = DISPATCH_INTERVAL_SECONDS):
                         )
                     else:
                         logger.warning(
-                            f"Could not route prompt, discarding: {prompt_data.get('prompt', '')[:100]}..."
+                            f"Could not route prompt, discarding: {prompt_data.get('prompt', '')[:100]}..."  # noqa: E501
                         )
             else:
                 logger.debug("No new prompts to dispatch this cycle.")

@@ -4,7 +4,6 @@ import os
 # Adjust import path as needed based on test execution context
 import sys
 import unittest
-from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -12,7 +11,6 @@ from src.dreamos.tools._core.base import BaseTool, ToolContext, ToolParameter
 
 
 class TestBaseTool(unittest.TestCase):
-
     def setUp(self):
         # Setup that runs before each test method
         pass
@@ -55,7 +53,7 @@ class TestBaseTool(unittest.TestCase):
 
     # TODO: Add tests for parameter validation logic (if implemented in BaseTool)
     # TODO: Add tests for context handling (if applicable)
-    # TODO: Add tests for abstract execute method enforcement (though hard to test directly)
+    # TODO: Add tests for abstract execute method enforcement (though hard to test directly)  # noqa: E501
 
     # --- Test Cases for ToolContext --- #
 

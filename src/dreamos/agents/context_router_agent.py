@@ -57,7 +57,7 @@ class ContextRouterAgent(BaseAgent):
         self.logger.info(f"{self.AGENT_ID} initializing...")
         self.routing_rules = self._load_routing_rules()
         self.logger.info(
-            f"ContextRouterAgent initialized with {len(self.routing_rules.get('rules', []))} rules. Default: {self.routing_rules.get('default_agent')}"
+            f"ContextRouterAgent initialized with {len(self.routing_rules.get('rules', []))} rules. Default: {self.routing_rules.get('default_agent')}"  # noqa: E501
         )
 
     def _load_routing_rules(self) -> Dict:
@@ -70,7 +70,7 @@ class ContextRouterAgent(BaseAgent):
                 "rules": [rule.dict() for rule in router_config.rules],
                 "default_agent": router_config.default_agent,
             }
-            self.logger.info(f"Loaded routing rules from config.")
+            self.logger.info("Loaded routing rules from config.")
             return rules_dict
         else:
             self.logger.warning(
@@ -90,7 +90,7 @@ class ContextRouterAgent(BaseAgent):
             )
             self.logger.info(f"Subscribed to {task_event_type.value} events.")
             # Optionally subscribe to other task types like TASK_DIRECT
-            # await self.agent_bus.subscribe(EventType.TASK_DIRECT.value, self._handle_task_event)
+            # await self.agent_bus.subscribe(EventType.TASK_DIRECT.value, self._handle_task_event)  # noqa: E501
             # self.logger.info(f"Subscribed to {EventType.TASK_DIRECT.value} events.")
         except Exception as e:
             self.logger.exception(f"Failed to subscribe to task events: {e}")
@@ -108,7 +108,7 @@ class ContextRouterAgent(BaseAgent):
             self.logger.debug(f"Ignoring already routed event: {event.event_id}")
             return
 
-        # Extract task details and context (adjust keys based on actual TASK event structure)
+        # Extract task details and context (adjust keys based on actual TASK event structure)  # noqa: E501
         task_details = event.data.get("task", {})
         original_target_agent_id = event.data.get(
             "target_agent_id", task_details.get("assigned_agent_id")
@@ -132,7 +132,7 @@ class ContextRouterAgent(BaseAgent):
         # --- Routing Decision ---
         if new_target_agent_id and new_target_agent_id != original_target_agent_id:
             self.logger.info(
-                f"Routing task {event.event_id} from {original_target_agent_id} -> {new_target_agent_id} based on context: {context_metadata}"
+                f"Routing task {event.event_id} from {original_target_agent_id} -> {new_target_agent_id} based on context: {context_metadata}"  # noqa: E501
             )
 
             # Modify the original event's data
@@ -150,30 +150,30 @@ class ContextRouterAgent(BaseAgent):
             # Re-dispatch the *same event type* but with modified data
             routed_event = BaseEvent(
                 event_type=event.event_type,  # Use the original event type
-                source_id=self.AGENT_ID,  # Mark router as the source of the *dispatch action*
+                source_id=self.AGENT_ID,  # Mark router as the source of the *dispatch action*  # noqa: E501
                 event_id=event.event_id,  # Keep original event ID for tracing
                 correlation_id=correlation_id,  # Propagate correlation ID
                 data=modified_data,
             )
             try:
-                # IMPORTANT: Dispatching might trigger this handler again, loop prevention is key
+                # IMPORTANT: Dispatching might trigger this handler again, loop prevention is key  # noqa: E501
                 await self.agent_bus.dispatch_event(routed_event)
                 self.logger.debug(
                     f"Re-dispatched event {event.event_id} to {new_target_agent_id}."
                 )
             except Exception as e:
                 self.logger.exception(
-                    f"Failed to re-dispatch routed event {event.event_id} for {new_target_agent_id}: {e}"
+                    f"Failed to re-dispatch routed event {event.event_id} for {new_target_agent_id}: {e}"  # noqa: E501
                 )
         else:
-            # No routing needed or failed to determine new target, let original event proceed
+            # No routing needed or failed to determine new target, let original event proceed  # noqa: E501
             self.logger.debug(
-                f"No routing action needed for event {event.event_id}. Original target: {original_target_agent_id}"
+                f"No routing action needed for event {event.event_id}. Original target: {original_target_agent_id}"  # noqa: E501
             )
-            # If target couldn't be determined AT ALL (new_target_agent_id is None), maybe log error?
+            # If target couldn't be determined AT ALL (new_target_agent_id is None), maybe log error?  # noqa: E501
             if not new_target_agent_id:
                 self.logger.error(
-                    f"Could not determine target agent for task {event.event_id} based on context: {context_metadata}. Task may be lost if {original_target_agent_id} isn't listening."
+                    f"Could not determine target agent for task {event.event_id} based on context: {context_metadata}. Task may be lost if {original_target_agent_id} isn't listening."  # noqa: E501
                 )
 
     async def _determine_target_agent(
@@ -192,7 +192,7 @@ class ContextRouterAgent(BaseAgent):
             for keyword in keywords:
                 if keyword.lower() in context_str:
                     self.logger.debug(
-                        f"Routing rule matched: keyword '{keyword}' -> {target_agent_id}"
+                        f"Routing rule matched: keyword '{keyword}' -> {target_agent_id}"  # noqa: E501
                     )
                     return target_agent_id
 
@@ -216,7 +216,7 @@ class ContextRouterAgent(BaseAgent):
         event_type_subscribed = EventType.TASK_ASSIGNED
         handler_subscribed = self._handle_task_event
         try:
-            # Assuming agent_bus.unsubscribe exists and works with event_type.value and handler ref
+            # Assuming agent_bus.unsubscribe exists and works with event_type.value and handler ref  # noqa: E501
             await self.agent_bus.unsubscribe(
                 event_type_subscribed.value, handler_subscribed
             )

@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -35,7 +34,7 @@ EXCLUDE_DIRS = {
 
 
 def find_code_files(start_dir: Path) -> list[Path]:
-    """Find all code files recursively based on extensions, excluding specified directories."""
+    """Find all code files recursively based on extensions, excluding specified directories."""  # noqa: E501
     code_files = []
     for root, dirs, files in os.walk(start_dir):
         # Modify dirs in-place to exclude unwanted ones
@@ -96,7 +95,7 @@ def main():
         return
 
     logging.info(f"Found {len(asset_files)} asset files. Preparing for usage scan...")
-    # Create a simple map from asset filename (or maybe filename + immediate parent dir) to full path
+    # Create a simple map from asset filename (or maybe filename + immediate parent dir) to full path  # noqa: E501
     # Use filename as the primary key for simple string search
     asset_filenames = {Path(p).name: p for p in asset_files}
     usage_counts = defaultdict(int)
@@ -117,12 +116,12 @@ def main():
                 # Very basic heuristic: check if asset filename exists as a string
                 # This will have false positives and negatives but is a starting point
                 for asset_name, full_asset_path in asset_filenames.items():
-                    # Use regex to find the asset name potentially surrounded by quotes or path chars
+                    # Use regex to find the asset name potentially surrounded by quotes or path chars  # noqa: E501
                     # Making this more robust is hard - e.g. variable assembly
                     # Let's just do a simple string search for the filename for now
                     if asset_name in content:
                         usage_counts[full_asset_path] += 1
-                        # Maybe break after first match per file if only tracking *if* used?
+                        # Maybe break after first match per file if only tracking *if* used?  # noqa: E501
                         # For now, count all occurrences.
         except Exception as e:
             logging.warning(f"Could not read or process code file {code_file}: {e}")

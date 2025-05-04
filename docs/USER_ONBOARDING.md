@@ -17,7 +17,7 @@ Dream.OS is built around several key components, primarily located within the `s
 - **Configuration (`config.py`):** Centralized application settings and parameters, defined by Pydantic models in `src/dreamos/config.py` and typically loaded from `config/config.yaml`.
 - **Tools (`tools/`):** Reusable modules providing core capabilities to agents (`src/dreamos/tools/`). Examples include file manipulation, code search, and project structure analysis.
 - **Project Scanner (`tools/analysis/scanner/`):** A key tool that analyzes the codebase, identifies components, calculates complexity, and generates context files (`project_analysis.json`, `chatgpt_project_context.json`) used by agents and for observability. See [Understanding the Project Scanner](#understanding-the-project-scanner) below for more details.
-- **Core (`core/`):** *Note: This directory may be deprecated or refactored.* Historically contained foundational utilities for coordination, agent base classes, etc.
+- **Core (`core/`):** Foundational utilities for coordination, agent base classes, error handling, configuration, etc.
 - **Dashboard (`dashboard/`):** Optional PyQt-based GUI (`dashboard_ui.py`) for monitoring and interaction.
 - **CLI (`cli/main.py`):** Command-line interface for running tasks and interacting with the system.
 
@@ -143,7 +143,7 @@ The scanner (`src/dreamos/tools/analysis/scanner/`) is crucial for context and a
 
 - **`src/dreamos/`**: Core source code package.
   - `agents/`: Agent implementations.
-  - `core/`: *Potentially deprecated* - Core utilities (coordination, utils, schemas).
+  - `core/`: Foundational utilities for coordination, agent base classes, error handling, configuration, etc.
   - `tools/`: Agent tools (analysis, file ops, search).
   - `dashboard/`: Optional GUI components (`dashboard_ui.py`).
   - `cli/main.py`: Command-line entry point.

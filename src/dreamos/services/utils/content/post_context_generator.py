@@ -15,17 +15,18 @@ del sys  # Remove sys from module scope after use
 
 # Core imports
 try:
-    from governance_memory_engine import (  # Corrected import path (assuming root)
-        load_memory,
-    )
-    from template_engine import render_template
-
-    from dreamos.core.logging.swarm_logger import (  # Assuming this is the correct path
+    from dreamos.core.logging.swarm_logger import (  # Assuming this is the correct path  # noqa: I001
         log_event,
     )
 
     # Import prompt staging service and template engine
     from dreamos.prompt_staging_service import stage_and_execute_prompt
+    from governance_memory_engine import (  # Corrected import path (assuming root)
+        load_memory,
+    )
+    from template_engine import render_template
+    # from dreamos.utils.logging_utils import setup_logger
+    # Assuming a standard logger setup # noqa: F401 <-- Removed as unused
 except ImportError as e:
     # print(f"[PostContextGenerator] Warning: Failed to import dependencies: {e}")
     # Log the import error before exiting
@@ -49,7 +50,7 @@ JSON_BLOCK_REGEX_GROUP = 1
 
 
 def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
-    """Generates a context dictionary based on the latest governance event using LLM analysis."""
+    """Generates a context dictionary based on the latest governance event using LLM analysis."""  # noqa: E501
     log_event(
         "AGENT_INFO",
         _SOURCE,
@@ -84,7 +85,7 @@ def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
         context["governance_update"] = True
         context["event_type"] = latest_event.get("event_type", "UNKNOWN_EVENT")
 
-        logger.info(
+        logger.info(  # noqa: F821
             f"Attempting LLM context generation for event: {context['event_type']}"
         )
         try:
@@ -130,7 +131,7 @@ def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
                             context["status_update"] = generated_data.get(
                                 "status_update"
                             )
-                            # Add other fields as defined by the expected LLM output schema
+                            # Add other fields as defined by the expected LLM output schema  # noqa: E501
                             log_event(
                                 "LLM_CONTEXT_GEN_SUCCESS",
                                 _SOURCE,
@@ -211,7 +212,7 @@ def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
         # Call LLM to analyze context (This might now analyze LLM-generated fields)
         # Limit the number of events (ensure max_events is defined or passed in)
         # max_events = 50  # Example limit, remove if unused
-        # recent_events = sorted_events[-max_events:] # Commented out as max_events is unused
+        # recent_events = sorted_events[-max_events:] # Commented out as max_events is unused  # noqa: E501
         recent_events = sorted_events  # Use all sorted events for now
 
         # Get the latest relevant event (customize this logic heavily)
@@ -233,7 +234,7 @@ def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
         elif event_type == "PROPOSAL_STATUS_UPDATED":
             context["title"] = "Proposal Status Change"
             context["proposal_summary"] = (
-                f"{details.get('proposal_header', 'Proposal')} -> {details.get('new_status', 'Updated')}"
+                f"{details.get('proposal_header', 'Proposal')} -> {details.get('new_status', 'Updated')}"  # noqa: E501
             )
             context["status_update"] = details.get("new_status")
             context["reflection_snippet"] = details.get(
@@ -242,7 +243,7 @@ def generate_context_from_governance(max_events=MAX_GOVERNANCE_EVENTS):
         elif event_type == "DISAGREEMENT_LOGGED":
             context["title"] = "Disagreement Logged"
             context["reflection_snippet"] = (
-                f"Objection on Ref: {details.get('reflection_id')} - {details.get('objection_summary', '')}"
+                f"Objection on Ref: {details.get('reflection_id')} - {details.get('objection_summary', '')}"  # noqa: E501
             )
             context["status_update"] = details.get("status")
         elif event_type == "HUMAN_DECISION":

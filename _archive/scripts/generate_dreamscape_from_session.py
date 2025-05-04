@@ -7,13 +7,13 @@ from src.dreamos.services.utils.chatgpt_scraper import ChatGPTScraper
 
 DREAMSCAPE_INSTRUCTION = (
     "Based on the work done in this conversation, generate an episode "
-    "from the MMORPG called The Dreamscape. Don't mention actual tasks, code, or implementation steps. "
+    "from the MMORPG called The Dreamscape. Don't mention actual tasks, code, or implementation steps. "  # noqa: E501
     "Transform this into stylized narrative lore only. Keep it immersive."
 )
 
 
 async def main():
-    # config = AppConfig.load_from_env() # Assuming AppConfig has load_from_env or similar
+    # config = AppConfig.load_from_env() # Assuming AppConfig has load_from_env or similar  # noqa: E501
     # Let's use the standard load method for now
     config = AppConfig.load()
 
@@ -25,7 +25,7 @@ async def main():
             config=config
         ) as scraper:  # Assuming context manager usage
             print(
-                "📜 Navigating to current session and scrolling through full conversation..."
+                "📜 Navigating to current session and scrolling through full conversation..."  # noqa: E501
             )
             # Check if these methods exist on scraper
             await scraper.load_latest_conversation()
@@ -42,7 +42,7 @@ async def main():
 
     except ImportError:
         print(
-            "ERROR: Failed to import ChatGPTScraper. Is it implemented at src/dreamos/services/utils/chatgpt_scraper.py?"
+            "ERROR: Failed to import ChatGPTScraper. Is it implemented at src/dreamos/services/utils/chatgpt_scraper.py?"  # noqa: E501
         )
     except AttributeError as e:
         print(f"ERROR: ChatGPTScraper might be missing a required method: {e}")

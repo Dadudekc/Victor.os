@@ -117,7 +117,7 @@ def main():
     output_data = {
         "analysis_timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "manifest_source": str(MANIFEST_FILE),
-        "classification_rules_description": "Path-based heuristics: features, shared, assets (ext/path), core_dreamos, app_dreamscape, app_social, tooling, core_src_root, test, docs_config, unknown",
+        "classification_rules_description": "Path-based heuristics: features, shared, assets (ext/path), core_dreamos, app_dreamscape, app_social, tooling, core_src_root, test, docs_config, unknown",  # noqa: E501
         "domains": dict(domain_mapping),  # Convert defaultdict to dict for JSON
     }
 

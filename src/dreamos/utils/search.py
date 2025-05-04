@@ -35,7 +35,7 @@ def run_ripgrep_search(
         RuntimeError: If Ripgrep fails with an exit code > 1.
         TimeoutError: If the Ripgrep command times out.
         Exception: For other subprocess errors.
-    """
+    """  # noqa: E501
     if not is_ripgrep_installed():
         raise EnvironmentError(
             "Ripgrep command 'rg' not found in PATH. Cannot perform search."
@@ -53,7 +53,7 @@ def run_ripgrep_search(
             command,
             capture_output=True,
             text=True,
-            check=False,  # Don't raise exception on non-zero exit code (rg returns 1 if no matches)
+            check=False,  # Don't raise exception on non-zero exit code (rg returns 1 if no matches)  # noqa: E501
             timeout=timeout,
         )
 
@@ -63,7 +63,7 @@ def run_ripgrep_search(
 
         if exit_code > 1:  # Exit code 0=matches, 1=no matches, >1=error
             logger.error(
-                f"Ripgrep command failed with exit code {exit_code}. Command: '{command_str}'. Error: {error_output}"
+                f"Ripgrep command failed with exit code {exit_code}. Command: '{command_str}'. Error: {error_output}"  # noqa: E501
             )
             raise RuntimeError(f"Ripgrep error (Exit Code {exit_code}): {error_output}")
 
@@ -74,13 +74,13 @@ def run_ripgrep_search(
             return ""  # Return empty string for no matches
         else:
             logger.info(
-                f"Ripgrep search completed successfully for query '{query}' in '{path}'."
+                f"Ripgrep search completed successfully for query '{query}' in '{path}'."  # noqa: E501
             )
             return output
 
     except subprocess.TimeoutExpired:
         logger.error(
-            f"Ripgrep command timed out after {timeout} seconds. Command: '{command_str}'"
+            f"Ripgrep command timed out after {timeout} seconds. Command: '{command_str}'"  # noqa: E501
         )
         raise TimeoutError(f"Ripgrep command timed out after {timeout} seconds.")
     except Exception as e:

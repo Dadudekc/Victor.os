@@ -1,4 +1,4 @@
-import json
+import json  # noqa: I001
 import os
 import zlib
 from datetime import datetime, timedelta, timezone
@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from dreamos.memory.compaction_utils import (
     CompactionError,
     _rewrite_memory_safely,
@@ -297,7 +296,7 @@ def test_rewrite_memory_safely_non_serializable_fails(temp_file):
         pass
 
     data = [{"item": NonSerializable()}]
-    # Expect _rewrite_memory_safely to catch the TypeError from json.dumps and return False
+    # Expect _rewrite_memory_safely to catch the TypeError from json.dumps and return False  # noqa: E501
     assert _rewrite_memory_safely(temp_file, data, is_compressed=False) is False
 
 

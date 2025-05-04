@@ -1,15 +1,11 @@
-import json
 import logging
 import os
 import shutil
-import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Import mailbox utilities from the correct location
 from dreamos.core.comms.mailbox_utils import (
     MailboxMessagePriority,
-    MailboxMessageType,
     create_mailbox_message,
     list_mailbox_messages,
     read_mailbox_message,
@@ -17,7 +13,7 @@ from dreamos.core.comms.mailbox_utils import (
 )
 
 # Assuming safe rewrite function exists, adjust import if needed
-# from dreamos.memory.compaction_utils import _rewrite_memory_safely # No longer needed for sending
+# from dreamos.memory.compaction_utils import _rewrite_memory_safely # No longer needed for sending  # noqa: E501
 
 
 logger = logging.getLogger(__name__)
@@ -69,7 +65,7 @@ class MailboxHandler:
             # Optionally create outbox/failed dirs if needed
         except OSError as e:
             raise MailboxError(
-                f"Failed to create mailbox directories for agent {self.agent_id} under {self.agent_mailbox_dir}: {e}"
+                f"Failed to create mailbox directories for agent {self.agent_id} under {self.agent_mailbox_dir}: {e}"  # noqa: E501
             )
 
     def _get_target_inbox(self, target_agent_id: str) -> Path:
@@ -98,7 +94,7 @@ class MailboxHandler:
 
         Returns:
             The full path of the created message file if successful, None otherwise.
-        """
+        """  # noqa: E501
         target_inbox = self._get_target_inbox(target_agent_id)
 
         try:
@@ -106,8 +102,8 @@ class MailboxHandler:
             message_data = create_mailbox_message(
                 sender_agent_id=self.agent_id,
                 recipient_agent_id=target_agent_id,
-                subject=f"{message_type.capitalize()} from {self.agent_id}",  # Generate a basic subject
-                message_type=message_type,  # Assuming input 'message_type' fits standard types
+                subject=f"{message_type.capitalize()} from {self.agent_id}",  # Generate a basic subject  # noqa: E501
+                message_type=message_type,  # Assuming input 'message_type' fits standard types  # noqa: E501
                 body=payload,
                 priority=priority,
             )
@@ -119,7 +115,7 @@ class MailboxHandler:
                 filename_prefix=filename_prefix,
             )
             logger.info(
-                f"Sent message {Path(filepath).name} to agent {target_agent_id}'s inbox ({filepath})."
+                f"Sent message {Path(filepath).name} to agent {target_agent_id}'s inbox ({filepath})."  # noqa: E501
             )
             # Return the string representation of the Path object
             return str(filepath)
@@ -132,7 +128,7 @@ class MailboxHandler:
             return None
         except Exception as e:
             logger.error(
-                f"Unexpected error sending message to {target_agent_id} at {target_inbox}: {e}",
+                f"Unexpected error sending message to {target_agent_id} at {target_inbox}: {e}",  # noqa: E501
                 exc_info=True,
             )
             return None
@@ -178,15 +174,15 @@ class MailboxHandler:
         return messages
 
     def archive_message(self, message_filepath: Path) -> bool:
-        """Moves a processed message file (expected to be .json) from the inbox to the archive."""
+        """Moves a processed message file (expected to be .json) from the inbox to the archive."""  # noqa: E501
         # This remains synchronous for now, using shutil.move
         if not message_filepath.is_file() or message_filepath.parent != self.inbox_path:
             logger.error(
-                f"Cannot archive file '{message_filepath.name}': Not found in inbox {self.inbox_path}."
+                f"Cannot archive file '{message_filepath.name}': Not found in inbox {self.inbox_path}."  # noqa: E501
             )
             return False
 
-        # Ensure the archive directory exists (should be created in __init__, but double-check)
+        # Ensure the archive directory exists (should be created in __init__, but double-check)  # noqa: E501
         try:
             # Using os.makedirs for sync operation
             os.makedirs(self.archive_path, exist_ok=True)
@@ -203,7 +199,7 @@ class MailboxHandler:
             return True
         except Exception as e:
             logger.error(
-                f"Failed to archive message {message_filepath.name} to {self.archive_path}: {e}"
+                f"Failed to archive message {message_filepath.name} to {self.archive_path}: {e}"  # noqa: E501
             )
             return False
 

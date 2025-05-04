@@ -82,11 +82,11 @@ class AgentIdentityStore:
                     id: AgentIdentity.from_dict(id_data) for id, id_data in data.items()
                 }
                 logger.info(
-                    f"Loaded {len(self.identities)} agent identities from {self.store_file}"
+                    f"Loaded {len(self.identities)} agent identities from {self.store_file}"  # noqa: E501
                 )
             except json.JSONDecodeError as e:
                 logger.error(
-                    f"Error decoding JSON from {self.store_file}: {e}. Store might be corrupt.",
+                    f"Error decoding JSON from {self.store_file}: {e}. Store might be corrupt.",  # noqa: E501
                     exc_info=True,
                 )
                 # Decide on recovery strategy: backup? reset?
@@ -113,7 +113,7 @@ class AgentIdentityStore:
                 # Replace the original file with the temporary file
                 tmp_file.replace(self.store_file)
                 logger.debug(
-                    f"Saved {len(self.identities)} agent identities to {self.store_file}"
+                    f"Saved {len(self.identities)} agent identities to {self.store_file}"  # noqa: E501
                 )
             except IOError as e:
                 logger.error(
@@ -128,7 +128,7 @@ class AgentIdentityStore:
         role: str = "Generic Agent",
         metadata: Optional[Dict[str, Any]] = None,
     ) -> AgentIdentity:
-        """Registers a new agent or updates the last_seen timestamp of an existing one."""
+        """Registers a new agent or updates the last_seen timestamp of an existing one."""  # noqa: E501
         with self._lock:
             if agent_id in self.identities:
                 # Agent already exists, update last seen

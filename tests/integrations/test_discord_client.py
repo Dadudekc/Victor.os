@@ -1,5 +1,4 @@
-import pytest
-
+import pytest  # noqa: I001
 from dreamos.integrations.discord_client import DiscordClient
 
 

@@ -1,16 +1,15 @@
 import logging
 import os
 import subprocess
-import sys
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers import Observer
 
 if TYPE_CHECKING:
-    from dreamos.core.config import AppConfig
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CursorSessionManager:
     """
     Watches a directory for Cursor task files and launches Cursor IDE sessions to execute them.
-    """
+    """  # noqa: E501
 
     def __init__(self, tasks_dir="cursor/queued_tasks", cursor_cmd=None):
         # Directory to watch for new task files (.prompt.md or .task.json)

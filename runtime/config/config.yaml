@@ -6,3 +6,38 @@ logging:
   log_file: dream_os.log # Enable logging to runtime/logs/dream_os.log
 
 # Other sections can be added here as needed following AppConfig structure
+
+# {{ EDIT START: Add Swarm Configuration for Dynamic Agent Activation }}
+swarm:
+  fleet_size: 3 # Define the number of worker threads
+  active_agents:
+    # Worker-1: Runs the agent interacting with Cursor GUI via PBM/AgentBus
+    - worker_id_pattern: "Worker-1"
+      agent_module: "dreamos.agents.agent2_infra_surgeon"
+      agent_class: "Agent2InfraSurgeon"
+      agent_id_override: "Agent-2" # Explicitly assign Agent-2 ID
+
+    # Worker-2: Runs the agent monitoring for failed/stuck tasks
+    - worker_id_pattern: "Worker-2"
+      agent_module: "dreamos.agents.recovery_coordinator"
+      agent_class: "RecoveryCoordinatorAgent"
+      # agent_id_override: "RecoveryCoordinator" # Optional override
+
+    # Worker-3: Runs the agent routing tasks based on context
+    - worker_id_pattern: "Worker-3"
+      agent_module: "dreamos.agents.context_router_agent"
+      agent_class: "ContextRouterAgent"
+      # agent_id_override: "ContextRouter" # Optional override
+
+# TODO: Add configuration for ContextRouterAgent's routing_rules if needed
+# context_router:
+#   default_agent: "some_default_agent_id"
+#   rules:
+#     - keywords: ["refactor", "code quality"]
+#       target_agent_id: "Agent-2"
+#     - keywords: ["documentation", "text generation"]
+#       target_agent_id: "dreamscape_writer_001" # Example: If dreamscape is activated
+
+# Note: ChatGPTWebAgent is started separately as a dedicated thread in SwarmController
+# and does not need to be listed in active_agents here.
+# {{ EDIT END }}

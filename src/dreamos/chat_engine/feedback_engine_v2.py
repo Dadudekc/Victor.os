@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -16,7 +15,7 @@ class FeedbackEngineV2:
     """
     FeedbackEngineV2 analyzes failed prompts using an LLM and provides root cause analysis
     and recommended fixes based on archived failure data.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -88,9 +87,9 @@ class FeedbackEngineV2:
         prompt_data = entry.get("prompt", {})
 
         system_prompt = (
-            f"You are an AI assistant that diagnoses failed prompts.\n"
-            f"Analyze the following failed prompt details and provide a concise analysis of why it likely failed and recommend how to fix it.\n"
-            f"Focus on actionable advice."
+            "You are an AI assistant that diagnoses failed prompts.\n"
+            "Analyze the following failed prompt details and provide a concise analysis of why it likely failed and recommend how to fix it.\n"  # noqa: E501
+            "Focus on actionable advice."
         )
         user_prompt = (
             f"Failed Prompt Details:\n"
@@ -98,7 +97,7 @@ class FeedbackEngineV2:
             f"Prompt ID: {prompt_id}\n"
             f"Reason Given: {reason}\n"
             f"Retry Count: {retry_count}\n"
-            f"Original Prompt Data:\n```json\n{json.dumps(prompt_data, indent=2)}\n```\n"
+            f"Original Prompt Data:\n```json\n{json.dumps(prompt_data, indent=2)}\n```\n"  # noqa: E501
             f"----------------------\n"
             f"Analysis and Recommendation:"
         )
@@ -127,7 +126,7 @@ class FeedbackEngineV2:
                 )
             else:
                 logger.warning(
-                    "OpenAIClient lacks generate_chat_completion, using generate_text. Prompt format may be suboptimal."
+                    "OpenAIClient lacks generate_chat_completion, using generate_text. Prompt format may be suboptimal."  # noqa: E501
                 )
                 full_prompt = f"{system_prompt}\n\n{user_prompt}"
                 max_tokens = getattr(

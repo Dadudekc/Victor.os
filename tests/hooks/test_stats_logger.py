@@ -1,8 +1,7 @@
-from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from pathlib import Path  # noqa: I001
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 from dreamos.hooks.stats_logger import StatsLoggingHook
 
 # Remove the skipped stub function
@@ -77,8 +76,8 @@ def test_stats_logger_log_snapshot(
     assert snapshot_data["last_task"]["id"] == "t5"
     assert snapshot_data["last_task"]["status"] == "completed"
     assert snapshot_data["success_rate"] == 2 / 5
-    # Basic check for avg duration calculation - needs adjustment if timestamp format differs
-    # assert snapshot_data["avg_duration_seconds"] == pytest.approx((1.5 + 1.0 + 3.0) / 3)
+    # Basic check for avg duration calculation - needs adjustment if timestamp format differs  # noqa: E501
+    # assert snapshot_data["avg_duration_seconds"] == pytest.approx((1.5 + 1.0 + 3.0) / 3)  # noqa: E501
     assert "avg_duration_seconds" in snapshot_data  # Check presence for now
     assert snapshot_data["agent_stats"]["Agent1"] == {"completed": 2, "failed": 0}
     assert snapshot_data["agent_stats"]["Agent2"] == {"completed": 0, "failed": 1}

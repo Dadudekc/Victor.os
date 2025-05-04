@@ -10,12 +10,12 @@ from typing import Dict, List
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
-# Ensure log_validator exists and jsonschema is available (handled internally by validator)
+# Ensure log_validator exists and jsonschema is available (handled internally by validator)  # noqa: E501
 try:
     from src.dreamos.utils.log_validator import LOG_SCHEMAS, validate_log_file
 except ImportError as e:
     print(
-        f"Error: Failed to import log validator. Ensure src/dreamos/utils/log_validator.py exists and necessary dependencies (like jsonschema) are installed. Details: {e}"
+        f"Error: Failed to import log validator. Ensure src/dreamos/utils/log_validator.py exists and necessary dependencies (like jsonschema) are installed. Details: {e}"  # noqa: E501
     )
     sys.exit(1)
 
@@ -38,15 +38,15 @@ def load_schema_map(config_path: str, default_map: Dict[str, str]) -> Dict[str, 
                     return loaded_map
                 else:
                     logger.warning(
-                        f"Schema map config ({config_path}) is not a valid JSON dictionary. Using default map."
+                        f"Schema map config ({config_path}) is not a valid JSON dictionary. Using default map."  # noqa: E501
                     )
         except json.JSONDecodeError:
             logger.warning(
-                f"Failed to decode JSON from schema map config ({config_path}). Using default map."
+                f"Failed to decode JSON from schema map config ({config_path}). Using default map."  # noqa: E501
             )
         except Exception as e:
             logger.warning(
-                f"Error reading schema map config ({config_path}): {e}. Using default map."
+                f"Error reading schema map config ({config_path}): {e}. Using default map."  # noqa: E501
             )
     else:
         logger.info(f"Schema map config not found at {config_path}. Using default map.")
@@ -81,7 +81,7 @@ def find_jsonl_files(log_dir: str, recursive: bool = False) -> List[str]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Validate JSONL log files in runtime/logs against predefined schemas."
+        description="Validate JSONL log files in runtime/logs against predefined schemas."  # noqa: E501
     )
     parser.add_argument(
         "--log-dir",
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     log_directory = args.log_dir
     logger.info(
-        f"Starting JSONL log validation in directory: {log_directory} (Recursive: {args.recursive})"
+        f"Starting JSONL log validation in directory: {log_directory} (Recursive: {args.recursive})"  # noqa: E501
     )
 
     if not os.path.isdir(log_directory):
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         if schema_id_to_use:
             if schema_id_to_use not in LOG_SCHEMAS:
                 logger.error(
-                    f"Schema ID '{schema_id_to_use}' mapped for {filename} but not defined in log_validator.py. Skipping schema check."
+                    f"Schema ID '{schema_id_to_use}' mapped for {filename} but not defined in log_validator.py. Skipping schema check."  # noqa: E501
                 )
                 schema_id_to_use = None  # Fallback to JSON check only
             else:
@@ -162,7 +162,7 @@ if __name__ == "__main__":
             logger.error(f"Validation FAILED for {relative_path}. Summary: {summary}")
             for err in errors[:5]:  # Log first few errors for brevity
                 logger.error(
-                    f"  - Line {err['line_number']}: [{err['error_type']}] {err['message']}"
+                    f"  - Line {err['line_number']}: [{err['error_type']}] {err['message']}"  # noqa: E501
                 )
             if len(errors) > 5:
                 logger.error(f"  ... and {len(errors) - 5} more errors.")

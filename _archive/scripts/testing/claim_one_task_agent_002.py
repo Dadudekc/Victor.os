@@ -7,10 +7,10 @@ Finds the first PENDING task, marks it as CLAIMED, adds claimed_by, saves the fi
 
 MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
 """
+
 import argparse
 import json
 import logging
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -67,7 +67,7 @@ def claim_one_task(tasks_dir: Path, agent_id: str):
                 updated = True
                 claimed_task_id = task.get("task_id", task.get("id", "UNKNOWN_ID"))
                 logging.info(
-                    f"Agent '{agent_id}' claimed task '{claimed_task_id}' in {file_path.name}"
+                    f"Agent '{agent_id}' claimed task '{claimed_task_id}' in {file_path.name}"  # noqa: E501
                 )
                 break  # Claim only one task per file scan
 
@@ -88,7 +88,7 @@ def claim_one_task(tasks_dir: Path, agent_id: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=f"Simulate an agent claiming one PENDING task."
+        description="Simulate an agent claiming one PENDING task."
     )
     parser.add_argument(
         "--tasks-dir",

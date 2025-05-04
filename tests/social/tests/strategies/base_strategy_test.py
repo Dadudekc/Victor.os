@@ -1,16 +1,14 @@
 """Base test class for strategy tests."""
 
-from datetime import datetime
-from typing import Any, Dict
-from unittest.mock import Mock, patch
+from typing import Any, Dict  # noqa: I001
+from unittest.mock import Mock
 
 import pytest
+from dreamos.exceptions.strategy_exceptions import StrategyError
+from dreamos.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-
-from dreamos.exceptions.strategy_exceptions import StrategyError
-from dreamos.strategies.base_strategy import BaseSocialStrategy as BaseStrategy
 
 
 class MockStrategy(BaseStrategy):

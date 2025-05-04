@@ -14,7 +14,6 @@ import logging
 import os
 import sys
 import tempfile
-import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -64,7 +63,7 @@ def atomic_write_json(file_path: Path, data: List[Dict[str, Any]]):
     """Writes data to a file atomically using a temporary file and rename."""
     temp_file_path = None  # Define outside try block
     try:
-        # Create temp file in the same directory to ensure rename works across filesystems
+        # Create temp file in the same directory to ensure rename works across filesystems  # noqa: E501
         temp_fd, temp_path_str = tempfile.mkstemp(
             dir=file_path.parent, prefix=file_path.stem + "_", suffix=".tmp.json"
         )
@@ -94,7 +93,7 @@ def atomic_write_json(file_path: Path, data: List[Dict[str, Any]]):
                 logger.debug(f"Cleaned up temporary file: {temp_file_path}")
             except OSError as unlink_e:
                 logger.error(
-                    f"Error: Failed to remove temporary file {temp_file_path}: {unlink_e}"
+                    f"Error: Failed to remove temporary file {temp_file_path}: {unlink_e}"  # noqa: E501
                 )
 
 
@@ -133,15 +132,15 @@ def main():
         metavar="JSON_STRING",
         help="A JSON string representing the dictionary object to add to the list.",
     )
-    # Add other arguments for different operations (e.g., --update-id, --update-data, --delete-id)
+    # Add other arguments for different operations (e.g., --update-id, --update-data, --delete-id)  # noqa: E501
     # parser.add_argument("--update-id", type=str, help="ID of the item to update.")
-    # parser.add_argument("--update-json", type=str, help="JSON string of updates to apply.")
+    # parser.add_argument("--update-json", type=str, help="JSON string of updates to apply.")  # noqa: E501
     # parser.add_argument("--delete-id", type=str, help="ID of the item to delete.")
     parser.add_argument(
         "--id-field",
         type=str,
         default="task_id",
-        help="The dictionary key to use as the unique identifier for items (default: task_id).",
+        help="The dictionary key to use as the unique identifier for items (default: task_id).",  # noqa: E501
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable debug logging."
@@ -191,7 +190,7 @@ def main():
 
     if not modified:
         logger.info("No modifications performed.")
-        # Optionally exit here if no operation was specified, or just proceed to save (no-op save)
+        # Optionally exit here if no operation was specified, or just proceed to save (no-op save)  # noqa: E501
         # sys.exit(0)
 
     # --- Save ---
@@ -206,12 +205,12 @@ def main():
     reloaded_data = load_json_list(target_file_path)
     if reloaded_data is None:
         logger.critical(
-            "CRITICAL: Failed to reload and validate the saved file! State may be corrupt."
+            "CRITICAL: Failed to reload and validate the saved file! State may be corrupt."  # noqa: E501
         )
         sys.exit(4)  # Specific exit code for validation failure
     elif len(reloaded_data) != len(data):  # Basic sanity check
         logger.critical(
-            f"CRITICAL: Validation failed! Item count mismatch after save (Expected: {len(data)}, Found: {len(reloaded_data)}). State may be corrupt."
+            f"CRITICAL: Validation failed! Item count mismatch after save (Expected: {len(data)}, Found: {len(reloaded_data)}). State may be corrupt."  # noqa: E501
         )
         sys.exit(4)
     else:

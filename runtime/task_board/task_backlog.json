@@ -1,29 +1,3 @@
 [
-  // ... existing code ...
-  {
-    "task_id": "INVESTIGATE-DEPRECATED-CORE-DIR-AGENT4-AUTOID",
-    "name": "Investigate Potentially Deprecated core/ Directory",
-    "description": "The file `docs/USER_ONBOARDING.md` notes that the `core/` directory may be deprecated or refactored. Investigate the status of this directory, its contents, and whether it should be formally deprecated, removed, or refactored into other locations. Update relevant documentation.",
-    "priority": "Medium",
-    "status": "PENDING",
-    "task_type": "MAINTENANCE",
-    "dependencies": [],
-    "assigned_agent_id": null,
-    "created_timestamp": "placeholder_timestamp",
-    "last_updated_timestamp": "placeholder_timestamp",
-    "notes": "Triggered by Agent-4 during SCAN-PROTOCOL-INTEGRITY-AGENT4-AUTOID task based on findings in documentation."
-  },
-  {
-    "task_id": "VERIFY-NO-DEPRECATED-MAILBOX-FIELDS-AGENT4-AUTOID",
-    "name": "Verify Protocols/Code Do Not Use Deprecated Mailbox Fields",
-    "description": "Reports (`mailbox_schema_validation_report`, `messaging_format.md`) indicate mailbox fields 'sender' and 'recipient' are deprecated in favor of 'sender_agent_id' and 'recipient_agent_id'. Scan relevant protocol documents and agent codebases to ensure the deprecated fields are no longer referenced or used. Update any remaining usages.",
-    "priority": "Medium",
-    "status": "PENDING",
-    "task_type": "MAINTENANCE",
-    "dependencies": [],
-    "assigned_agent_id": null,
-    "created_timestamp": "placeholder_timestamp",
-    "last_updated_timestamp": "placeholder_timestamp",
-    "notes": "Triggered by Agent-4 during SCAN-PROTOCOL-INTEGRITY-AGENT4-AUTOID task based on findings in documentation and validation reports."
-  }
+  // No tasks remaining in backlog for Agent-4 currently
 ]

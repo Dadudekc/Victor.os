@@ -15,15 +15,13 @@ Key refactors
 *   **Quieter logs** – debug for tight loops, info for milestones.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import asyncio
 import datetime as _dt
 import importlib
 import json
 import logging
-import os
-import random
 import re
 import subprocess
 import sys
@@ -32,19 +30,17 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from _agent_coordination.tools.event_bus import EventBus
-from _agent_coordination.tools.event_type import EventType  # ← single source-of-truth
-
-from dreamos.agents.agent2_infra_surgeon import Agent2InfraSurgeon
+from dreamos._agent_coordination.tools.event_bus import EventBus
+from dreamos._agent_coordination.tools.event_type import EventType
 from dreamos.agents.chatgpt_web_agent import run_loop as chat_run_loop
-from dreamos.coordination.project_board_manager import ProjectBoardManager
 from dreamos.core.config import AppConfig
 from dreamos.core.tasks.nexus.task_nexus import TaskNexus
 from dreamos.feedback.feedback_engine_v2 import FeedbackEngineV2
 from dreamos.hooks.stats_logger import StatsLoggingHook
 
+from dreamos.automation.cursor_orchestrator import CursorOrchestrator
+
 from ...channels.local_blob_channel import LocalBlobChannel
-from ...core.coordination.base_agent import TaskStatus
 from .cursor_fleet_launcher import (
     assign_windows_to_monitors,
     get_cursor_windows,
@@ -103,11 +99,33 @@ class SwarmController:
         )
         self._start_stats_autologger(interval=stats_ivl)
 
+        # {{ EDIT START: Instantiate CursorOrchestrator }}
+        # Use the async factory function if available and run it
+        try:
+            # Need to run the async factory function in an event loop
+            # Since __init__ is synchronous, use asyncio.run() carefully or
+            # defer initialization that requires async context.
+            # Simpler approach: instantiate directly if possible, or call factory later.
+            # Let's assume direct instantiation or handle async init later in start().
+            # self.cursor_orchestrator = asyncio.run(get_cursor_orchestrator(config=config, agent_bus=self.event_bus))
+            # Direct instantiation (assuming __init__ is compatible):
+            self.cursor_orchestrator = CursorOrchestrator(
+                config=config, agent_bus=self.event_bus
+            )
+            logger.info("CursorOrchestrator instantiated.")
+        except Exception as e:
+            logger.critical(
+                f"Failed to instantiate CursorOrchestrator: {e}", exc_info=True
+            )
+            # Decide if this is fatal
+            raise RuntimeError(f"CursorOrchestrator instantiation failed: {e}") from e
+        # {{ EDIT END }}
+
     # --------------------------------------------------------------------- #
     # Public API
     # --------------------------------------------------------------------- #
     def start(self, initial_tasks: Optional[List[Dict[str, Any]]] = None) -> None:
-        """Bring up chat-producer, GUI agents, headless workers, then begin routing loop."""
+        """Bring up chat-producer, GUI agents, headless workers, then begin routing loop."""  # noqa: E501
         logger.info(f"🚀 SwarmController booting {self.fleet_size} agents")
 
         # 0) ChatGPT Web-agent (producer)
@@ -131,6 +149,16 @@ class SwarmController:
             assign_windows_to_monitors(windows)
         except Exception as tiling_err:  # pylint: disable=broad-except
             logger.warning(f"🪟 Window tiling skipped: {tiling_err}")
+
+        # {{ EDIT START: Start CursorOrchestrator Listener }}
+        # Needs to run in the background, likely async in its own task/thread
+        # Since start() is synchronous and manages threads, launch listener in thread
+        self._spawn_thread(
+            # Target the async start_listening method, needs an async runner
+            target=self._run_cursor_orchestrator_listener_async,
+            name="CursorOrchestratorListener",
+        )
+        # {{ EDIT END }}
 
         # 3) Headless workers
         for i in range(self.fleet_size):
@@ -156,6 +184,33 @@ class SwarmController:
         th = threading.Thread(target=target, args=args, name=name, daemon=True)
         th.start()
         self.workers.append(th)
+
+    # {{ EDIT START: Add async runner for Cursor Orchestrator Listener }}
+    def _run_cursor_orchestrator_listener_async(self) -> None:
+        """Wrapper to run the async start_listening method in a thread."""
+        worker_name = threading.current_thread().name
+        logger.info(f"Thread {worker_name} starting.")
+        try:
+            if self.cursor_orchestrator:
+                # Check if start_listening is async
+                if asyncio.iscoroutinefunction(
+                    self.cursor_orchestrator.start_listening
+                ):
+                    asyncio.run(self.cursor_orchestrator.start_listening())
+                else:
+                    # If not async (unlikely based on name), run directly
+                    # self.cursor_orchestrator.start_listening()
+                    logger.error(
+                        "CursorOrchestrator.start_listening is not an async function as expected."
+                    )
+            else:
+                logger.error("CursorOrchestrator instance not available.")
+        except Exception as e:
+            logger.critical(f"[{worker_name}] CRITICAL ERROR: {e}", exc_info=True)
+        finally:
+            logger.info(f"Thread {worker_name} finished.")
+
+    # {{ EDIT END }}
 
     # .........................................
     # Worker
@@ -190,7 +245,7 @@ class SwarmController:
                 if re.fullmatch(activation_conf.worker_id_pattern, worker_name):
                     agent_config_found = True
                     logger.info(
-                        f"[{worker_name}] Matched activation config: {activation_conf.agent_module}.{activation_conf.agent_class}"
+                        f"[{worker_name}] Matched activation config: {activation_conf.agent_module}.{activation_conf.agent_class}"  # noqa: E501
                     )
 
                     # Dynamically import the module
@@ -199,7 +254,7 @@ class SwarmController:
                         module = importlib.import_module(module_path)
                     except ImportError as e:
                         logger.critical(
-                            f"[{worker_name}] Failed to import agent module {module_path}: {e}"
+                            f"[{worker_name}] Failed to import agent module {module_path}: {e}"  # noqa: E501
                         )
                         return  # Cannot proceed
 
@@ -208,12 +263,12 @@ class SwarmController:
                         AgentClass = getattr(module, activation_conf.agent_class)
                     except AttributeError:
                         logger.critical(
-                            f"[{worker_name}] Agent class {activation_conf.agent_class} not found in module {module_path}."
+                            f"[{worker_name}] Agent class {activation_conf.agent_class} not found in module {module_path}."  # noqa: E501
                         )
                         return  # Cannot proceed
 
                     # Prepare arguments for instantiation (common args)
-                    # Specific agents might need more/different args - requires more complex config or introspection
+                    # Specific agents might need more/different args - requires more complex config or introspection  # noqa: E501
                     agent_id = (
                         activation_conf.agent_id_override
                         or f"{activation_conf.agent_class}_{worker_name}"
@@ -223,7 +278,7 @@ class SwarmController:
                         "config": self.config,
                         "agent_bus": self.event_bus,
                         # Conditionally add PBM if the agent expects it (best effort)
-                        # A better approach might involve dependency injection or capability checks
+                        # A better approach might involve dependency injection or capability checks  # noqa: E501
                     }
                     if (
                         hasattr(AgentClass, "__init__")
@@ -231,16 +286,16 @@ class SwarmController:
                     ):
                         if not self.nexus or not self.nexus.board_manager:
                             logger.error(
-                                f"[{worker_name}] Agent {AgentClass.__name__} requires PBM, but it's not available in TaskNexus."
+                                f"[{worker_name}] Agent {AgentClass.__name__} requires PBM, but it's not available in TaskNexus."  # noqa: E501
                             )
                             # Decide how to handle: skip agent, raise error?
-                            # For now, skip instantiation if PBM is required but missing.
+                            # For now, skip instantiation if PBM is required but missing.  # noqa: E501
                             return
                         agent_args["pbm"] = self.nexus.board_manager
 
                     # Instantiate the agent
                     logger.info(
-                        f"[{worker_name}] Instantiating {AgentClass.__name__} with ID {agent_id}..."
+                        f"[{worker_name}] Instantiating {AgentClass.__name__} with ID {agent_id}..."  # noqa: E501
                     )
                     agent_instance = AgentClass(**agent_args)
                     logger.info(
@@ -250,7 +305,7 @@ class SwarmController:
 
             if not agent_config_found:
                 logger.warning(
-                    f"[{worker_name}] No activation config found for this worker. Skipping agent instantiation."
+                    f"[{worker_name}] No activation config found for this worker. Skipping agent instantiation."  # noqa: E501
                 )
                 return
 
@@ -269,7 +324,7 @@ class SwarmController:
             return
 
         logger.info(
-            f"[{worker_name}] Starting agent {agent_instance.agent_id}'s autonomous loop..."
+            f"[{worker_name}] Starting agent {agent_instance.agent_id}'s autonomous loop..."  # noqa: E501
         )
         agent_task = None
         try:
@@ -278,7 +333,7 @@ class SwarmController:
                 agent_instance, "run_autonomous_loop"
             ) or not asyncio.iscoroutinefunction(agent_instance.run_autonomous_loop):
                 logger.error(
-                    f"[{worker_name}] Agent {agent_instance.agent_id} does not have a valid async 'run_autonomous_loop' method."
+                    f"[{worker_name}] Agent {agent_instance.agent_id} does not have a valid async 'run_autonomous_loop' method."  # noqa: E501
                 )
                 return
             agent_task = asyncio.create_task(agent_instance.run_autonomous_loop())
@@ -287,13 +342,13 @@ class SwarmController:
             while not self._stop_event.is_set():
                 if agent_task.done():
                     logger.info(
-                        f"[{worker_name}] Agent {agent_instance.agent_id} loop task finished unexpectedly."
+                        f"[{worker_name}] Agent {agent_instance.agent_id} loop task finished unexpectedly."  # noqa: E501
                     )
                     # Check for exceptions
                     exc = agent_task.exception()
                     if exc:
                         logger.error(
-                            f"[{worker_name}] Agent loop task finished with error: {exc}",
+                            f"[{worker_name}] Agent loop task finished with error: {exc}",  # noqa: E501
                             exc_info=exc,
                         )
                     break  # Exit worker loop if agent loop finishes
@@ -309,7 +364,7 @@ class SwarmController:
             if self._stop_event.is_set():
                 if agent_task and not agent_task.done():
                     logger.info(
-                        f"[{worker_name}] Stop event set. Cancelling agent {agent_instance.agent_id} loop..."
+                        f"[{worker_name}] Stop event set. Cancelling agent {agent_instance.agent_id} loop..."  # noqa: E501
                     )
                     agent_task.cancel()
                     try:
@@ -317,15 +372,15 @@ class SwarmController:
                         await asyncio.wait_for(agent_task, timeout=5.0)
                     except asyncio.CancelledError:
                         logger.info(
-                            f"[{worker_name}] Agent {agent_instance.agent_id} loop successfully cancelled."
+                            f"[{worker_name}] Agent {agent_instance.agent_id} loop successfully cancelled."  # noqa: E501
                         )
                     except asyncio.TimeoutError:
                         logger.warning(
-                            f"[{worker_name}] Timeout waiting for agent {agent_instance.agent_id} loop cancellation."
+                            f"[{worker_name}] Timeout waiting for agent {agent_instance.agent_id} loop cancellation."  # noqa: E501
                         )
                     except Exception as e:
                         logger.error(
-                            f"[{worker_name}] Error during agent task cancellation/cleanup: {e}",
+                            f"[{worker_name}] Error during agent task cancellation/cleanup: {e}",  # noqa: E501
                             exc_info=True,
                         )
 

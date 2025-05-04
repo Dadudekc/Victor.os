@@ -10,6 +10,7 @@ from pathlib import Path
 # EDIT START: Replace argparse with click
 # import argparse
 import click
+import yaml
 
 # from dreamos.core.orchestrator import Orchestrator # INCORRECT/STALE IMPORT
 from dreamos.automation.execution.swarm_controller import SwarmController
@@ -37,8 +38,33 @@ def cli(ctx, config):
     """DreamOS Command Line Interface"""
     ctx.ensure_object(dict)
     try:
-        # Instantiate AppConfig directly, passing CLI arg if provided
-        loaded_config = AppConfig(_config_file=config)
+        # {{ EDIT START: Update config loading }}
+        # Instantiate AppConfig directly - uses pydantic-settings sources
+        # (Init > Env > DotEnv > Default YAML)
+        loaded_config = AppConfig()
+
+        # If a specific --config file was passed via CLI, load it and override
+        if config:
+            logger.info(f"CLI --config specified: {config}. Attempting override.")
+            if config.exists():
+                try:
+                    with open(config, "r") as f:
+                        override_data = yaml.safe_load(f) or {}
+                    # Update the initially loaded config with override data
+                    # model_copy(update=...) creates a new instance with updated fields
+                    loaded_config = loaded_config.model_copy(update=override_data)
+                    logger.info(f"Successfully applied overrides from {config}")
+                except Exception as e:
+                    logger.error(f"Failed to load or apply override config {config}: {e}")
+                    # Decide if this is fatal or just a warning
+                    sys.exit(1) # Make it fatal for now
+            else:
+                logger.error(f"Specified --config file does not exist: {config}")
+                sys.exit(1)
+
+        # loaded_config = AppConfig(_config_file=config) # OLD loading
+        # {{ EDIT END }}
+
         setup_logging(loaded_config)
         ctx.obj["config"] = loaded_config
         logger.info("DreamOS CLI starting...")
@@ -62,11 +88,11 @@ async def run(ctx):
     try:
         # orchestrator = Orchestrator(config) # EDIT: Remove old instantiation
         # logger.info("Orchestrator initialized.") # EDIT: Remove old log
-        # logger.info("Running Orchestrator... (Add main loop/task execution here)") # EDIT: Remove old log
+        # logger.info("Running Orchestrator... (Add main loop/task execution here)") # EDIT: Remove old log  # noqa: E501
         # # Example: await orchestrator.start() or await orchestrator.run_task(...)
         # # For now, just log and exit gracefully
         # await asyncio.sleep(1)  # Placeholder for actual run logic
-        # logger.info("Orchestrator run complete (placeholder). Exiting.") # EDIT: Remove old log
+        # logger.info("Orchestrator run complete (placeholder). Exiting.") # EDIT: Remove old log  # noqa: E501
 
         # {{ EDIT START: Instantiate and run SwarmController }}
         # TODO: Handle initial tasks loading if needed
@@ -84,7 +110,7 @@ async def run(ctx):
         controller = SwarmController(config=config)
         logger.info("SwarmController initialized.")
         # Note: controller.start() is blocking and contains the main loop internally
-        # It also handles worker threads, so we don't need separate asyncio tasks here usually.
+        # It also handles worker threads, so we don't need separate asyncio tasks here usually.  # noqa: E501
         # However, `start` itself is NOT async. Need to run it appropriately.
         # Running blocking `start` in executor to not block main CLI thread if needed,
         # OR just run it directly if CLI's purpose is just to launch the controller.
@@ -117,7 +143,7 @@ async def run(ctx):
 #     # This structure might need refinement based on how click async is best handled
 #     # For now, assume click handles invoking the async `run` command
 #     # The `cli()` function itself isn't async, but commands under it can be.
-#     # We might need `asyncio.run(cli(standalone_mode=False))` or similar depending on Click version
+#     # We might need `asyncio.run(cli(standalone_mode=False))` or similar depending on Click version  # noqa: E501
 #     pass # Click handles execution via the decorator typically
 
 if __name__ == "__main__":

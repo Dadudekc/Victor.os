@@ -1,13 +1,9 @@
 """Broadcasts coordination directives to agents via AgentBus."""
 
-import asyncio
 import logging
-import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent
-from dreamos.core.coordination.event_payloads import BroadcastPayload
-from dreamos.core.coordination.event_types import EventType
+from dreamos.coordination.agent_bus import AgentBus
 from dreamos.core.coordination.events import (
     CoordinationDirectiveData,
     CoordinationDirectiveEvent,
@@ -45,18 +41,18 @@ async def broadcast_to_agents(
             agent_bus=bus,
             source_id="task_monitor"
         )
-    """
+    """  # noqa: E501
     # Extract directive and params from content
     directive = directive_content.get("directive", "GENERIC_DIRECTIVE")
     params = directive_content.get("params", {})
-    # Include any other top-level keys from directive_content in params for backward compatibility?
+    # Include any other top-level keys from directive_content in params for backward compatibility?  # noqa: E501
     # Or enforce structure? Let's enforce structure for now.
     other_params = {
         k: v for k, v in directive_content.items() if k not in ["directive", "params"]
     }
     if other_params:
         logger.warning(
-            f"Extra keys found in directive_content: {other_params.keys()}. Moving to params."
+            f"Extra keys found in directive_content: {other_params.keys()}. Moving to params."  # noqa: E501
         )
         params.update(other_params)
 
@@ -79,13 +75,13 @@ async def broadcast_to_agents(
 
     # logger.info(f"Broadcasting directive via AgentBus: {payload}")
     logger.info(
-        f"Broadcasting directive event via AgentBus: Type={event.event_type.name}, Source={event.source_id}"
+        f"Broadcasting directive event via AgentBus: Type={event.event_type.name}, Source={event.source_id}"  # noqa: E501
     )
     logger.debug(f"Broadcast Event Details: {event}")
     try:
         # await agent_bus.dispatch_event(EventType.COORDINATION_DIRECTIVE, payload)
         await agent_bus.dispatch_event(event)
-        # logger.debug(f"Successfully dispatched broadcast event: {payload.get('type')}")
+        # logger.debug(f"Successfully dispatched broadcast event: {payload.get('type')}")  # noqa: E501
         logger.debug(f"Successfully dispatched broadcast event: {event.event_id}")
     except Exception as e:
         logger.error(

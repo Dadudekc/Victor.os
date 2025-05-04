@@ -38,7 +38,7 @@ def read_json_file(file_path: Path, description: str) -> dict | list | None:
 
 def main():
     summary_lines = [
-        f"# Project Audit Summary",
+        "# Project Audit Summary",
         f"Generated: {datetime.now(timezone.utc).isoformat()}",
         "",
         "This report summarizes the findings of the automated project structure audit.",
@@ -71,7 +71,7 @@ def main():
         )
     else:
         summary_lines.append(
-            "- *Import graph file (`import-graph.json`) not found or could not be read.*"
+            "- *Import graph file (`import-graph.json`) not found or could not be read.*"  # noqa: E501
         )
 
     if orphaned_data is not None and isinstance(orphaned_data, dict):
@@ -80,7 +80,7 @@ def main():
         summary_lines.append(f"- Potentially orphaned Python modules found: {count}")
         if count > 0:
             summary_lines.append(
-                "  - **Note:** Analysis based on AST parsing; requires manual verification."
+                "  - **Note:** Analysis based on AST parsing; requires manual verification."  # noqa: E501
             )
             summary_lines.append("  - **Files (first 10):**")
             for i, f in enumerate(files[:10]):
@@ -91,7 +91,7 @@ def main():
                 )
     else:
         summary_lines.append(
-            "- *Orphaned files report (`orphaned-files.json`) not found or could not be read.*"
+            "- *Orphaned files report (`orphaned-files.json`) not found or could not be read.*"  # noqa: E501
         )
     summary_lines.append("")
 
@@ -109,10 +109,10 @@ def main():
         summary_lines.append("- Files classified by domain based on path:")
         for domain, count in sorted(domain_counts.items()):
             summary_lines.append(f"  - `{domain}`: {count} files")
-        summary_lines.append(f"  - (See `domains.json` for details)")
+        summary_lines.append("  - (See `domains.json` for details)")
     else:
         summary_lines.append(
-            "- *Domain classification file (`domains.json`) not found or could not be read.*"
+            "- *Domain classification file (`domains.json`) not found or could not be read.*"  # noqa: E501
         )
     summary_lines.append("")
 
@@ -131,18 +131,18 @@ def main():
         )
         if count > 0:
             summary_lines.append(
-                "  - **Note:** Analysis based on simple filename presence in code; requires manual verification."
+                "  - **Note:** Analysis based on simple filename presence in code; requires manual verification."  # noqa: E501
             )
             summary_lines.append("  - **Files:**")
             for f in files:
                 summary_lines.append(f"    - `{f}`")
         else:
             summary_lines.append(
-                "  - All identified assets had at least one potential reference found in the code scan."
+                "  - All identified assets had at least one potential reference found in the code scan."  # noqa: E501
             )
     else:
         summary_lines.append(
-            "- *Unreferenced assets report (`unreferenced-assets.json`) not found or could not be read.*"
+            "- *Unreferenced assets report (`unreferenced-assets.json`) not found or could not be read.*"  # noqa: E501
         )
     summary_lines.append("")
 

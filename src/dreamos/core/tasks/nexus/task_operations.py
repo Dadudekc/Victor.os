@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class TaskOperationsHandler:
-    """Handles core task operations like getting, adding, updating, and checking dependencies."""
+    """Handles core task operations like getting, adding, updating, and checking dependencies."""  # noqa: E501
 
     def __init__(
         self,
         board_manager: ProjectBoardManager,
         capability_handler: CapabilityHandler,
-        # agent_registry_handler: AgentRegistryHandler, # Needed for dependency check - PBM handles now?
+        # agent_registry_handler: AgentRegistryHandler, # Needed for dependency check - PBM handles now?  # noqa: E501
         future_tasks_path: Path,  # Needed for add_task
         future_tasks_lock_path: Path,  # Needed for add_task
     ):
@@ -41,7 +41,7 @@ class TaskOperationsHandler:
 
     # --- Dependency Check Helper --- (Moved from TaskNexus)
     async def _check_dependencies_met(self, dependency_ids: List[str]) -> bool:
-        """Checks if all dependency tasks are marked COMPLETED using ProjectBoardManager."""
+        """Checks if all dependency tasks are marked COMPLETED using ProjectBoardManager."""  # noqa: E501
         if not dependency_ids:
             return True
         if not self.board_manager:
@@ -60,7 +60,7 @@ class TaskOperationsHandler:
                     break
                 if dep_task.get("status", "").upper() != "COMPLETED":
                     logger.debug(
-                        f"Dependency task {dep_id} not COMPLETED (status: {dep_task.get('status')})."
+                        f"Dependency task {dep_id} not COMPLETED (status: {dep_task.get('status')})."  # noqa: E501
                     )
                     all_met = False
                     break
@@ -78,7 +78,7 @@ class TaskOperationsHandler:
     async def get_next_task(
         self, agent_id: str, type_filter: Optional[str] = None
     ) -> Optional[Dict]:
-        """Claims and returns the next available task, checking capabilities and dependencies."""
+        """Claims and returns the next available task, checking capabilities and dependencies."""  # noqa: E501
         if not self.board_manager:
             logger.error("ProjectBoardManager not available, cannot get next task.")
             return None
@@ -148,13 +148,13 @@ class TaskOperationsHandler:
                             }
                         except Exception as e_caps:
                             logger.error(
-                                f"Failed to get capabilities for {agent_id}: {e_caps}. Skipping check."
+                                f"Failed to get capabilities for {agent_id}: {e_caps}. Skipping check."  # noqa: E501
                             )
                             agent_capabilities_set = set()
 
                     if not set(required_capabilities).issubset(agent_capabilities_set):
                         logger.debug(
-                            f"Agent {agent_id} missing capabilities for {candidate_task_id}. Skipping."
+                            f"Agent {agent_id} missing capabilities for {candidate_task_id}. Skipping."  # noqa: E501
                         )
                         continue
 
@@ -177,7 +177,7 @@ class TaskOperationsHandler:
                     )
                     if claim_successful:
                         logger.info(
-                            f"Agent {agent_id} successfully claimed {candidate_task_id}."
+                            f"Agent {agent_id} successfully claimed {candidate_task_id}."  # noqa: E501
                         )
                         claimed_task_data = await asyncio.to_thread(
                             self.board_manager.get_task,
@@ -186,20 +186,20 @@ class TaskOperationsHandler:
                         )
                         if not claimed_task_data:
                             logger.error(
-                                f"Claim success but failed to retrieve {candidate_task_id} from working board!"
+                                f"Claim success but failed to retrieve {candidate_task_id} from working board!"  # noqa: E501
                             )
                         break  # Exit loop on successful claim
                     else:
                         logger.warning(
-                            f"Agent {agent_id} failed claim for {candidate_task_id} (likely claimed/lock timeout)."
+                            f"Agent {agent_id} failed claim for {candidate_task_id} (likely claimed/lock timeout)."  # noqa: E501
                         )
                 except (ProjectBoardError, TaskNotFoundError) as e_claim:
                     logger.warning(
-                        f"Claim failed for {candidate_task_id}: {e_claim}. Continuing search."
+                        f"Claim failed for {candidate_task_id}: {e_claim}. Continuing search."  # noqa: E501
                     )
                 except Exception as e_unexp_claim:
                     logger.error(
-                        f"Unexpected error during claim for {candidate_task_id}: {e_unexp_claim}",
+                        f"Unexpected error during claim for {candidate_task_id}: {e_unexp_claim}",  # noqa: E501
                         exc_info=True,
                     )
 
@@ -249,7 +249,7 @@ class TaskOperationsHandler:
         notes: Optional[str] = None,
         **kwargs,
     ) -> bool:
-        """Updates a task's status and other fields on the working board via ProjectBoardManager."""
+        """Updates a task's status and other fields on the working board via ProjectBoardManager."""  # noqa: E501
         if not self.board_manager:
             logger.error(
                 "ProjectBoardManager not available, cannot update task status."
@@ -284,11 +284,11 @@ class TaskOperationsHandler:
                 updates[key] = value
             else:
                 logger.warning(
-                    f"Ignoring disallowed extra update field '{key}' in update_task_status."
+                    f"Ignoring disallowed extra update field '{key}' in update_task_status."  # noqa: E501
                 )
 
         try:
-            log_msg = f"Delegating update for task {task_id} to status {status} via ProjectBoardManager."
+            log_msg = f"Delegating update for task {task_id} to status {status} via ProjectBoardManager."  # noqa: E501
             logger.info(log_msg)
             success = await asyncio.to_thread(
                 self.board_manager.update_working_task, task_id, updates
@@ -297,7 +297,7 @@ class TaskOperationsHandler:
                 logger.info(f"ProjectBoardManager successfully updated task {task_id}.")
             else:
                 logger.warning(
-                    f"ProjectBoardManager failed to update task {task_id} (task not found or write error)."
+                    f"ProjectBoardManager failed to update task {task_id} (task not found or write error)."  # noqa: E501
                 )
             return success
         # THIS IS THE BLOCK WITH THE ORIGINAL SYNTAX ERROR - ensure it's correct here
@@ -308,7 +308,7 @@ class TaskOperationsHandler:
             return False
         except Exception as e_unexp:  # Catch unexpected errors during delegation
             logger.error(
-                f"Unexpected error during task update delegation for {task_id}: {e_unexp}",
+                f"Unexpected error during task update delegation for {task_id}: {e_unexp}",  # noqa: E501
                 exc_info=True,
             )
             return False
@@ -338,7 +338,7 @@ class TaskOperationsHandler:
                 )
             else:
                 logger.warning(
-                    f"Unsupported board '{board}' specified for get_all_tasks. Use 'working', 'ready', or 'completed'."
+                    f"Unsupported board '{board}' specified for get_all_tasks. Use 'working', 'ready', or 'completed'."  # noqa: E501
                 )
                 return []
 

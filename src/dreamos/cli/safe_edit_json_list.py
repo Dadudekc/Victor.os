@@ -19,7 +19,7 @@ except ImportError:
     filelock = None
     FILELOCK_AVAILABLE = False
     logging.warning(
-        "safe_edit_json_list: filelock library not found. File editing will not be fully concurrency-safe."
+        "safe_edit_json_list: filelock library not found. File editing will not be fully concurrency-safe."  # noqa: E501
     )
 
 # --- JSON Schema Validation --- ADDED START
@@ -99,7 +99,7 @@ def _atomic_write_json(target_path: Path, data: List[Dict[str, Any]]) -> None:
     "--item-id-key",
     default="task_id",
     show_default=True,
-    help="The dictionary key within list items used for identification (e.g., 'task_id', 'id').",
+    help="The dictionary key within list items used for identification (e.g., 'task_id', 'id').",  # noqa: E501
 )
 @click.option("--item-id", help="The ID of the item to remove or update.")
 @click.option(
@@ -117,7 +117,7 @@ def _atomic_write_json(target_path: Path, data: List[Dict[str, Any]]) -> None:
     "--schema-file",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     default=None,
-    help="Optional path to a JSON schema file to validate the entire list against before writing.",
+    help="Optional path to a JSON schema file to validate the entire list against before writing.",  # noqa: E501
 )
 def safe_edit_json_list(
     target_file: Path,
@@ -160,7 +160,7 @@ def safe_edit_json_list(
     if schema_file:
         if not JSONSCHEMA_AVAILABLE or not jsonschema:
             logger.warning(
-                f"--schema-file provided ({schema_file}), but jsonschema library is not available. Skipping validation."
+                f"--schema-file provided ({schema_file}), but jsonschema library is not available. Skipping validation."  # noqa: E501
             )
         else:
             try:
@@ -244,7 +244,7 @@ def safe_edit_json_list(
                 )
                 # Decide if not found is an error or just a no-op
                 # For robustness, treat as no-op for now.
-                # click.echo(f"Warning: Item with {item_id_key}={item_id} not found.", err=True)
+                # click.echo(f"Warning: Item with {item_id_key}={item_id} not found.", err=True)  # noqa: E501
 
         elif action == "update":
             logger.debug(f"Attempting to update item with {item_id_key}={item_id}")
@@ -252,12 +252,12 @@ def safe_edit_json_list(
             for i, item in enumerate(data):
                 if isinstance(item, dict) and str(item.get(item_id_key)) == item_id:
                     item_index = i
-                    found_item = item  # Keep original for logging/comparison
+                    found_item = True  # noqa: F841
                     break
 
             if item_index != -1:
                 logger.debug(
-                    f"Found item at index {item_index}. Applying updates: {parsed_item_data}"
+                    f"Found item at index {item_index}. Applying updates: {parsed_item_data}"  # noqa: E501
                 )
                 # Simple merge: update existing keys, add new ones
                 data[item_index].update(parsed_item_data)
@@ -268,12 +268,12 @@ def safe_edit_json_list(
                     f"Item with {item_id_key}={item_id} not found for update."
                 )
                 # Decide if not found is an error or just a no-op
-                # click.echo(f"Warning: Item with {item_id_key}={item_id} not found.", err=True)
+                # click.echo(f"Warning: Item with {item_id_key}={item_id} not found.", err=True)  # noqa: E501
 
         # Write back if modified
         if modified:
             logger.info(
-                f"Data modified (original count: {original_count}, new count: {len(data)}). Writing back to {target_file}"
+                f"Data modified (original count: {original_count}, new count: {len(data)}). Writing back to {target_file}"  # noqa: E501
             )
 
             # --- JSON Schema Validation --- ADDED START
@@ -285,15 +285,15 @@ def safe_edit_json_list(
                     jsonschema.validate(instance=data, schema=schema)
                     logger.info("Schema validation passed.")
                 except jsonschema.ValidationError as e:
-                    # Log the full error for debugging, but maybe only show concise error to user?
+                    # Log the full error for debugging, but maybe only show concise error to user?  # noqa: E501
                     logger.error(
                         f"Schema validation failed for modified data: {e}",
                         exc_info=False,
                     )
-                    # Potentially log data that failed validation if not too large/sensitive
-                    # logger.debug(f"Data that failed validation: {json.dumps(data, indent=2)}")
+                    # Potentially log data that failed validation if not too large/sensitive  # noqa: E501
+                    # logger.debug(f"Data that failed validation: {json.dumps(data, indent=2)}")  # noqa: E501
                     click.echo(
-                        f"Error: Modified data failed schema validation (schema: {schema_file}). Changes not written. Validation error: {e.message}",
+                        f"Error: Modified data failed schema validation (schema: {schema_file}). Changes not written. Validation error: {e.message}",  # noqa: E501
                         err=True,
                     )
                     # Do not write the invalid data - exit before _atomic_write_json
@@ -306,14 +306,14 @@ def safe_edit_json_list(
             )
         else:
             logger.info(
-                f"No modifications made for action '{action}' (item not found or no changes). File not rewritten."
+                f"No modifications made for action '{action}' (item not found or no changes). File not rewritten."  # noqa: E501
             )
             click.echo(
-                f"Success: No changes needed for file {target_file} (action: {action}).",
+                f"Success: No changes needed for file {target_file} (action: {action}).",  # noqa: E501
                 err=False,
             )
 
-    except filelock.Timeout as e:
+    except filelock.Timeout:
         logger.error(f"Timeout ({lock_timeout}s) acquiring lock for {target_file}.")
         click.echo(f"Error: Timeout acquiring lock for {target_file}", err=True)
         sys.exit(1)

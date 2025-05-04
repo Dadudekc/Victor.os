@@ -1,10 +1,7 @@
 import asyncio
 import hashlib
 import logging
-import os
-import time
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
@@ -32,7 +29,9 @@ MAX_LOCK_WAIT_SECONDS = 30
 
 
 async def affirm_onboarding_contract(
-    agent_id: str, agent_name: str, config: "AppConfig"  # Accept config object
+    agent_id: str,
+    agent_name: str,
+    config: "AppConfig",  # Accept config object
 ) -> bool:
     """
     Automates the agent onboarding contract affirmation process (async).
@@ -128,7 +127,7 @@ async def affirm_onboarding_contract(
                                 return loaded_data
                             else:
                                 logger.warning(
-                                    f"YAML file {contracts_yaml_path} has unexpected structure. Re-initializing."
+                                    f"YAML file {contracts_yaml_path} has unexpected structure. Re-initializing."  # noqa: E501
                                 )
                                 return {"agents": []}  # Reset if structure is wrong
 
@@ -176,7 +175,7 @@ async def affirm_onboarding_contract(
                         "name": agent_name,
                         "contract_hash": protocol_hash,
                         "timestamp_utc": utc_timestamp,
-                        "notes": f"Contract affirmed by {agent_name} ({agent_id}).",  # Add default note
+                        "notes": f"Contract affirmed by {agent_name} ({agent_id}).",  # Add default note  # noqa: E501
                     }
                 )
                 logger.info(f"Appended new contract entry for Agent {agent_id}.")
@@ -215,7 +214,7 @@ async def affirm_onboarding_contract(
         return False
     except Exception as e:
         logger.exception(
-            f"An unexpected error occurred during contract affirmation for {agent_id}: {e}"
+            f"An unexpected error occurred during contract affirmation for {agent_id}: {e}"  # noqa: E501
         )
         return False
 

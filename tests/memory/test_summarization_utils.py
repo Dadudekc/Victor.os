@@ -1,20 +1,15 @@
-import json
+import json  # noqa: I001
 import os
 import zlib  # Needed for checking compressed data
-from datetime import datetime, timezone  # Added
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pydantic import BaseModel
-
 from dreamos.core.config import SummarizationPolicyConfig  # Updated import
 from dreamos.core.utils.summarizer import BaseSummarizer  # For mocking
 
 # Adjust the import path based on your project structure
-from dreamos.memory.summarization_utils import SummarizationError  # Import custom error
 from dreamos.memory.summarization_utils import (
-    SummarizationTask,
+    SummarizationError,  # Import custom error
     _build_llm_summary_prompt,
     _rewrite_memory_safely,
     summarize_conversations,
@@ -54,7 +49,7 @@ def create_segment_file(tmp_path):
     def _creator(filename: str, data: list):
         file_path = tmp_path / filename
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        # Use _rewrite_memory_safely to ensure consistent creation (e.g., handling compression)
+        # Use _rewrite_memory_safely to ensure consistent creation (e.g., handling compression)  # noqa: E501
         # For simplicity here, just write directly. Adapt if _rewrite is needed.
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f)
@@ -143,7 +138,7 @@ async def test_summarize_segment_triggers_summarization(
     ]
     segment_path = create_segment_file(segment_filename, data)
 
-    # Patch the rewrite function to avoid actual file modification during assertion phase
+    # Patch the rewrite function to avoid actual file modification during assertion phase  # noqa: E501
     # and check its call arguments
     with patch(
         "dreamos.memory.summarization_utils._rewrite_memory_safely"
@@ -154,7 +149,6 @@ async def test_summarize_segment_triggers_summarization(
             "summarize_entries",
             wraps=mock_summarizer_instance.summarize_entries,
         ) as mock_summarize_method:
-
             summarize_segment_file(
                 file_path=segment_path,
                 summarizer=mock_summarizer_instance,
@@ -168,7 +162,7 @@ async def test_summarize_segment_triggers_summarization(
             # Check the data passed to the rewrite function
             rewritten_data = mock_rewrite.call_args[0][1]
             assert isinstance(rewritten_data, list)
-            # Should contain 1 summary chunk + remaining raw entries (7 total - 3 summarized chunk size = 4 raw)
+            # Should contain 1 summary chunk + remaining raw entries (7 total - 3 summarized chunk size = 4 raw)  # noqa: E501
             assert len(rewritten_data) == 1 + (
                 len(data) - sample_policy.summarization_chunk_size
             )
@@ -209,7 +203,6 @@ async def test_summarize_segment_not_needed_below_threshold(
             "dreamos.memory.summarization_utils.summarize_segment_chunk"
         ) as mock_summarize_chunk,
     ):
-
         result = summarize_segment_file(
             file_path=segment_path,
             summarizer=mock_summarizer_instance,
@@ -256,7 +249,6 @@ async def test_summarize_segment_handles_existing_summary(
             "summarize_entries",
             wraps=mock_summarizer_instance.summarize_entries,
         ) as mock_summarize_method:
-
             summarize_segment_file(
                 file_path=segment_path,
                 summarizer=mock_summarizer_instance,
@@ -264,14 +256,14 @@ async def test_summarize_segment_handles_existing_summary(
             )
 
             # Assertions
-            mock_summarize_method.assert_called_once()  # Should summarize the new entries
+            mock_summarize_method.assert_called_once()  # Should summarize the new entries  # noqa: E501
             mock_rewrite.assert_called_once()
 
             # Check rewritten data
             rewritten_data = mock_rewrite.call_args[0][1]
             assert (
                 len(rewritten_data) == 3
-            )  # Old Summary + New Summary + Remaining Raw (6 new - 3 summarized = 3 raw)
+            )  # Old Summary + New Summary + Remaining Raw (6 new - 3 summarized = 3 raw)  # noqa: E501
 
             # Check order and types
             assert (
@@ -307,7 +299,7 @@ async def test_summarize_segment_file_not_found(
         with patch.object(
             mock_summarizer_instance, "summarize_entries"
         ) as mock_summarize_method:
-            # Call the function - it should catch the FileNotFoundError internally and log it
+            # Call the function - it should catch the FileNotFoundError internally and log it  # noqa: E501
             try:
                 summarize_segment_file(
                     file_path=non_existent_path,
@@ -320,7 +312,7 @@ async def test_summarize_segment_file_not_found(
             # Assertions: Nothing should have happened
             mock_summarize_method.assert_not_called()
             mock_rewrite.assert_not_called()
-            # We could also check logs if logging is mocked, but ensuring no crash and no calls is sufficient here.
+            # We could also check logs if logging is mocked, but ensuring no crash and no calls is sufficient here.  # noqa: E501
 
 
 @pytest.mark.asyncio
@@ -381,7 +373,6 @@ async def test_summarize_segment_with_compression(
         ) as mock_rewrite_wrapper,
         patch("dreamos.memory.compaction_utils.os.replace") as mock_os_replace,
     ):
-
         summarize_segment_file(
             file_path=segment_path,
             summarizer=mock_summarizer_instance,
@@ -398,7 +389,7 @@ async def test_summarize_segment_with_compression(
         # 2. os.replace was called (by the rewrite function)
         mock_os_replace.assert_called_once()
 
-        # 3. The file that *would* have been replaced is compressed and contains correct data
+        # 3. The file that *would* have been replaced is compressed and contains correct data  # noqa: E501
         temp_file_path = mock_os_replace.call_args[0][0]
         final_target_path = mock_os_replace.call_args[0][1]
         assert final_target_path == str(segment_path)
@@ -440,7 +431,6 @@ async def test_summarize_segment_file_empty_file(
             "dreamos.memory.summarization_utils.summarize_segment_chunk"
         ) as mock_summarize_chunk,
     ):
-
         result = summarize_segment_file(
             file_path=segment_path,
             summarizer=mock_summarizer_instance,
@@ -471,7 +461,6 @@ async def test_summarize_segment_file_invalid_json(
         ) as mock_summarize_chunk,
         patch("dreamos.memory.summarization_utils.logger.error") as mock_log_error,
     ):  # Check logs
-
         result = summarize_segment_file(
             file_path=segment_path,
             summarizer=mock_summarizer_instance,
@@ -599,7 +588,7 @@ def sample_conversations():
         {"sender": "User", "content": "Tell me a joke.", "timestamp": "T3"},
         {
             "sender": "Agent",
-            "content": "Why did the scarecrow win an award? Because he was outstanding in his field!",
+            "content": "Why did the scarecrow win an award? Because he was outstanding in his field!",  # noqa: E501
             "timestamp": "T4",
         },
     ]
@@ -687,7 +676,7 @@ def test_build_llm_summary_prompt_basic(sample_conversations):
     assert "Agent (T2): Hi! How can I help?" in prompt
     assert "User (T3): Tell me a joke." in prompt
     assert (
-        "Agent (T4): Why did the scarecrow win an award? Because he was outstanding in his field!"
+        "Agent (T4): Why did the scarecrow win an award? Because he was outstanding in his field!"  # noqa: E501
         in prompt
     )
 

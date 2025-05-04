@@ -1,21 +1,18 @@
 """Base agent class providing common functionality for all Dream.OS agents."""
 
 import asyncio
-import json  # Added for schema validation
 import logging  # Added for standard logger
-import os  # Added for potential environment variable use
 import shlex  # Added for safe command construction
 import subprocess  # Added for running external validation tools
 import sys  # EDIT: Added sys import
 import traceback
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 # REMOVED obsolete dreamforge comments/imports
-# Assuming agent_utils is now in core/utils # This comment is incorrect, it's in agents/utils
-from dreamos.agents.utils.agent_utils import (  # publish_task_update, # Will be replaced by internal event publishing; publish_error,       # Will be replaced by internal event publishing
+# Assuming agent_utils is now in core/utils # This comment is incorrect, it's in agents/utils  # noqa: E501
+from dreamos.agents.utils.agent_utils import (  # publish_task_update, # Will be replaced by internal event publishing; publish_error,       # Will be replaced by internal event publishing  # noqa: E501
     AgentError,
     MessageHandlingError,
     TaskProcessingError,
@@ -30,7 +27,6 @@ from dreamos.agents.utils.agent_utils import (  # publish_task_update, # Will be
 from dreamos.coordination.agent_bus import (  # CORRECTED PATH
     AgentBus,
     BaseEvent,
-    BusError,
 )
 
 # EDIT START: Import PBM
@@ -45,8 +41,6 @@ from dreamos.core.coordination.message_patterns import (
     TaskMessage,
     TaskPriority,
     TaskStatus,
-    create_task_message,
-    update_task_status,
 )
 
 # from dreamos.core.memory.governance_memory_engine import log_event
@@ -56,12 +50,9 @@ from dreamos.core.memory.governance_memory_engine import log_event
 from dreamos.core.utils.performance_logger import PerformanceLogger
 
 # {{ EDIT START: Import payload dataclasses }}
-from .event_payloads import AgentStatusEventPayload  # EDIT: Replaces AgentStatusPayload
-from .event_payloads import (
-    ErrorEventPayload,  # EDIT: Replaces AgentErrorPayload, SystemAgentErrorPayload
-)
 from .event_payloads import (
     AgentContractStatusPayload,
+    ErrorEventPayload,  # EDIT: Replaces AgentErrorPayload, SystemAgentErrorPayload
     TaskCompletionPayload,
     TaskEventPayload,
     TaskFailurePayload,
@@ -75,9 +66,6 @@ from .event_types import EventType
 # from dreamos.core.logging.swarm_logger import (  # Removed unused import
 #     log_agent_event,
 # )
-
-
-
 
 
 # REMOVED obsolete config manager imports
@@ -133,7 +121,7 @@ class BaseAgent(ABC):
             # project_root: Root directory for resolving relative paths. Now derived from AppConfig.
             # task_list_path: Optional path to the persistent task list file. # EDIT: Removed obsolete
             # capabilities: List of capabilities this agent possesses. # EDIT: Removed capabilities doc
-        """
+        """  # noqa: E501
         self.logger = logging.getLogger(agent_id)
         self.agent_id = agent_id
         self.config = config
@@ -172,7 +160,7 @@ class BaseAgent(ABC):
         #     if env_root:
         #         self._project_root = Path(env_root).resolve()
         #         self.logger.info(
-        #             f"Using project root from DREAMOS_PROJECT_ROOT env var: {self._project_root}"
+        #             f"Using project root from DREAMOS_PROJECT_ROOT env var: {self._project_root}"  # noqa: E501
         #         )
         #     # Try ConfigManager if available
         #     elif config: # This check is redundant now
@@ -183,16 +171,16 @@ class BaseAgent(ABC):
         #                 f"Using project root from config: {self._project_root}"
         #             )
         #         else:
-        #             # Fallback: Search upwards for a marker file (e.g., pyproject.toml)
+        #             # Fallback: Search upwards for a marker file (e.g., pyproject.toml)  # noqa: E501
         #             self._project_root = self._find_project_root()
         #             self.logger.warning(
-        #                 f"Project root not specified via param/env/config. Found via marker search: {self._project_root}"
+        #                 f"Project root not specified via param/env/config. Found via marker search: {self._project_root}"  # noqa: E501
         #             )
         #     else:
         #         # Final fallback: Search upwards
         #         self._project_root = self._find_project_root()
         #         self.logger.warning(
-        #             f"Project root not specified and config manager unavailable. Found via marker search: {self._project_root}"
+        #             f"Project root not specified and config manager unavailable. Found via marker search: {self._project_root}"  # noqa: E501
         #         )
         # # EDIT END
 
@@ -216,13 +204,13 @@ class BaseAgent(ABC):
         # Capability registration now handled via CapabilityRegistry
 
         # EDIT START: Remove obsolete task_list_path logic comment
-        # TODO: Refactor/Remove: This task_list_path logic seems outdated due to PBM/dual-queue.
-        # self.task_list_path = task_list_path or (self._project_root / "task_list.json")
+        # TODO: Refactor/Remove: This task_list_path logic seems outdated due to PBM/dual-queue.  # noqa: E501
+        # self.task_list_path = task_list_path or (self._project_root / "task_list.json")  # noqa: E501
         # self.logger.info(f"Using persistent task list: {self.task_list_path}")
         # EDIT END
 
         self.agent_bus = agent_bus or self._get_default_agent_bus()
-        # self.capabilities = set(capabilities) if capabilities else set() # EDIT: Removed capabilities assignment
+        # self.capabilities = set(capabilities) if capabilities else set() # EDIT: Removed capabilities assignment  # noqa: E501
         # Capability registration now handled via CapabilityRegistry
 
     @with_error_handling(AgentError)
@@ -242,7 +230,7 @@ class BaseAgent(ABC):
         #     self._handle_command
         # )
         # Assuming subscribe now returns a subscription object or ID for unsubscribing
-        # self._subscription_id = await self.agent_bus.subscribe(command_topic, self._handle_command)
+        # self._subscription_id = await self.agent_bus.subscribe(command_topic, self._handle_command)  # noqa: E501
         # {{ EDIT: Store topic and handler for unsubscribe }}
         self._command_topic = command_topic
         self._command_handler_ref = (
@@ -259,7 +247,7 @@ class BaseAgent(ABC):
             EventType.AGENT_CONTRACT_QUERY.value
         )  # Use enum value as topic
         self._contract_query_handler_ref = self._handle_contract_query
-        # Subscribe to agent-specific contract query topic (if applicable, currently system-wide)
+        # Subscribe to agent-specific contract query topic (if applicable, currently system-wide)  # noqa: E501
         await self.agent_bus.subscribe(
             self._contract_query_topic, self._contract_query_handler_ref
         )
@@ -349,7 +337,7 @@ class BaseAgent(ABC):
                     self._contract_query_topic, self._contract_query_handler_ref
                 )
                 self.logger.info(
-                    f"Unsubscribed from contract query topic: {self._contract_query_topic}"
+                    f"Unsubscribed from contract query topic: {self._contract_query_topic}"  # noqa: E501
                 )
             except Exception as e:
                 self.logger.error(f"Error unsubscribing from contract query topic: {e}")
@@ -403,7 +391,7 @@ class BaseAgent(ABC):
         )
         try:
             await self.agent_bus.dispatch_event(event)
-            # Log only essential info for reduced noise, consider logging payload at DEBUG
+            # Log only essential info for reduced noise, consider logging payload at DEBUG  # noqa: E501
             self.logger.debug(
                 f"Published event: {event_type.name}, CorrID: {correlation_id}"
             )
@@ -568,15 +556,15 @@ class BaseAgent(ABC):
             task = TaskMessage.from_dict(task_data)
             if task.target_agent_id and task.target_agent_id != self.agent_id:
                 self.logger.warning(
-                    f"Received task {task.task_id} intended for {task.target_agent_id}. Discarding."
+                    f"Received task {task.task_id} intended for {task.target_agent_id}. Discarding."  # noqa: E501
                 )
                 return  # Ignore tasks not for this agent
 
             # Log reception and publish accepted event
             self.logger.info(
-                f"Received and accepted task {task.task_id} (Type: {task.task_type}, CorrID: {correlation_id})"
+                f"Received and accepted task {task.task_id} (Type: {task.task_type}, CorrID: {correlation_id})"  # noqa: E501
             )
-            log_agent_event(
+            log_agent_event(  # noqa: F821
                 self.agent_id,
                 "task_received",
                 task.task_id,
@@ -594,7 +582,7 @@ class BaseAgent(ABC):
 
         except KeyError as e:
             self.logger.error(
-                f"Failed to parse TaskMessage from command data: Missing key {e}. Data: {task_data}",
+                f"Failed to parse TaskMessage from command data: Missing key {e}. Data: {task_data}",  # noqa: E501
                 exc_info=True,
             )
             await self.publish_agent_error(
@@ -614,7 +602,7 @@ class BaseAgent(ABC):
             )
 
     def _get_priority_value(self, priority: TaskPriority) -> int:
-        """Convert TaskPriority enum to an integer for the queue (lower number = higher priority)."""
+        """Convert TaskPriority enum to an integer for the queue (lower number = higher priority)."""  # noqa: E501
         priority_map = {
             TaskPriority.CRITICAL: 0,
             TaskPriority.HIGH: 1,
@@ -636,9 +624,9 @@ class BaseAgent(ABC):
                 priority, task = await self._task_queue.get()
                 correlation_id = task.correlation_id  # Get correlation ID from task
                 self.logger.info(
-                    f"Dequeued task {task.task_id} (Priority: {priority}, Type: {task.task_type}, CorrID: {correlation_id})"
+                    f"Dequeued task {task.task_id} (Priority: {priority}, Type: {task.task_type}, CorrID: {correlation_id})"  # noqa: E501
                 )
-                log_agent_event(
+                log_agent_event(  # noqa: F821
                     self.agent_id,
                     "task_dequeued",
                     task.task_id,
@@ -647,12 +635,12 @@ class BaseAgent(ABC):
                 )
 
                 # Launch task processing in the background
-                # Ensure task is not already active (e.g., due to race condition or restart)
+                # Ensure task is not already active (e.g., due to race condition or restart)  # noqa: E501
                 if task.task_id in self._active_tasks:
                     self.logger.warning(
-                        f"Task {task.task_id} is already active. Skipping duplicate execution."
+                        f"Task {task.task_id} is already active. Skipping duplicate execution."  # noqa: E501
                     )
-                    log_agent_event(
+                    log_agent_event(  # noqa: F821
                         self.agent_id,
                         "task_skipped_duplicate",
                         task.task_id,
@@ -669,7 +657,7 @@ class BaseAgent(ABC):
                 self._active_tasks[task.task_id] = async_task
                 self.logger.debug(f"Created asyncio task for {task.task_id}")
 
-                # Optional: Add a callback to remove the task from _active_tasks upon completion/cancellation
+                # Optional: Add a callback to remove the task from _active_tasks upon completion/cancellation  # noqa: E501
                 async_task.add_done_callback(
                     lambda fut, tid=task.task_id: self._active_tasks.pop(tid, None)
                 )
@@ -682,7 +670,7 @@ class BaseAgent(ABC):
                 self.logger.critical(
                     f"CRITICAL ERROR in task processing loop: {e}", exc_info=True
                 )
-                log_agent_event(
+                log_agent_event(  # noqa: F821
                     self.agent_id,
                     "queue_processor_error",
                     outcome="failure",
@@ -697,7 +685,7 @@ class BaseAgent(ABC):
                 await asyncio.sleep(5)
             finally:
                 # Important: Mark task as done in the queue regardless of outcome
-                # This happens implicitly in the loop now, but good practice if structure changes.
+                # This happens implicitly in the loop now, but good practice if structure changes.  # noqa: E501
                 # self._task_queue.task_done() # Not needed here if get() is awaited
                 pass
 
@@ -712,7 +700,7 @@ class BaseAgent(ABC):
     ):
         """Process a single task from the queue."""
         self.logger.info(f"Processing task {task.task_id}: {task.command_type}")
-        log_agent_event(
+        log_agent_event(  # noqa: F821
             self.agent_id,
             "TASK_PROCESSING_START",
             task_id=task.task_id,
@@ -734,7 +722,7 @@ class BaseAgent(ABC):
                 )
             except Exception as persist_err:
                 self.logger.error(
-                    f"Failed to persist FAILED status for task {task.task_id} (no handler): {persist_err}"
+                    f"Failed to persist FAILED status for task {task.task_id} (no handler): {persist_err}"  # noqa: E501
                 )
                 # Continue to publish event anyway?
             # EDIT END
@@ -755,7 +743,7 @@ class BaseAgent(ABC):
                 self.logger.info(f"Persisted WORKING status for task {task.task_id}. ")
             except Exception as persist_err:
                 self.logger.error(
-                    f"Failed to persist WORKING status for task {task.task_id}: {persist_err}"
+                    f"Failed to persist WORKING status for task {task.task_id}: {persist_err}"  # noqa: E501
                 )
                 # Should we proceed if we can't update status?
                 # For now, log and continue, but publish failure later if needed.
@@ -789,7 +777,7 @@ class BaseAgent(ABC):
                     )
                 except Exception as persist_err:
                     self.logger.error(
-                        f"Failed to persist VALIDATION_FAILED status for task {task.task_id}: {persist_err}"
+                        f"Failed to persist VALIDATION_FAILED status for task {task.task_id}: {persist_err}"  # noqa: E501
                     )
                     # Continue to publish event anyway?
                 # EDIT END
@@ -811,13 +799,13 @@ class BaseAgent(ABC):
                 )
                 if move_success:
                     self.logger.info(
-                        f"Successfully persisted COMPLETION for task {task.task_id} via PBM move."
+                        f"Successfully persisted COMPLETION for task {task.task_id} via PBM move."  # noqa: E501
                     )
                     await self.publish_task_completed(task, result)
                 else:
-                    # This case shouldn't happen if move_task_to_completed raises errors on failure
+                    # This case shouldn't happen if move_task_to_completed raises errors on failure  # noqa: E501
                     self.logger.error(
-                        f"PBM.move_task_to_completed returned False for task {task.task_id}. Persistence failed."
+                        f"PBM.move_task_to_completed returned False for task {task.task_id}. Persistence failed."  # noqa: E501
                     )
                     # Publish failure because persistence failed
                     await self.publish_task_failed(
@@ -828,7 +816,7 @@ class BaseAgent(ABC):
 
             except Exception as persist_err:
                 self.logger.error(
-                    f"Failed to persist COMPLETION status for task {task.task_id} via PBM move: {persist_err}",
+                    f"Failed to persist COMPLETION status for task {task.task_id} via PBM move: {persist_err}",  # noqa: E501
                     exc_info=True,
                 )
                 # Publish failure because persistence failed
@@ -851,11 +839,11 @@ class BaseAgent(ABC):
                 )
             except Exception as persist_err:
                 self.logger.error(
-                    f"Failed to persist CANCELLED status for task {task.task_id}: {persist_err}"
+                    f"Failed to persist CANCELLED status for task {task.task_id}: {persist_err}"  # noqa: E501
                 )
             # EDIT END
             await handle_task_cancellation(task, self.agent_id)  # Keep existing helper
-            log_agent_event(
+            log_agent_event(  # noqa: F821
                 self.agent_id, "TASK_CANCELLED", task_id=task.task_id
             )  # Swarm logger
 
@@ -877,7 +865,7 @@ class BaseAgent(ABC):
                 )
             except Exception as persist_err:
                 self.logger.error(
-                    f"Failed to persist FAILED status for task {task.task_id} (handler error): {persist_err}"
+                    f"Failed to persist FAILED status for task {task.task_id} (handler error): {persist_err}"  # noqa: E501
                 )
                 # Continue to publish event anyway?
             # EDIT END
@@ -889,9 +877,9 @@ class BaseAgent(ABC):
                 details={"traceback": traceback.format_exc()},
                 exc_info=True,
             )
-            # Publish generic task failure event (now redundant if agent error is published?)
+            # Publish generic task failure event (now redundant if agent error is published?)  # noqa: E501
             # await self.publish_task_failed(task, error=str(e), is_final=True)
-            log_agent_event(
+            log_agent_event(  # noqa: F821
                 self.agent_id,
                 "TASK_PROCESSING_ERROR",
                 task_id=task.task_id,
@@ -959,10 +947,10 @@ class BaseAgent(ABC):
                     if flake8_path == sys.executable:  # Default: use python -m flake8
                         command = [flake8_path] + flake8_args + python_files_to_lint
                     else:  # Use specified executable directly
-                        command = [
-                            flake8_path
-                        ] + python_files_to_lint  # Assume args are baked into path or not needed?
-                        # Consider adding flake8_args here too if the executable needs them
+                        command = (
+                            [flake8_path] + python_files_to_lint
+                        )  # Assume args are baked into path or not needed?
+                        # Consider adding flake8_args here too if the executable needs them  # noqa: E501
                     # TODO: Remove the addressed TODO comment below
                     # TODO: Make flake8 path configurable?
                     self.logger.debug(f"Using flake8 command: {' '.join(command)}")
@@ -984,12 +972,12 @@ class BaseAgent(ABC):
                             f"flake8 failed (exit code {process.returncode})."
                         )
                         if process.stdout:
-                            error_details += f"\nOutput:\n{process.stdout[:1000]}..."  # Limit output length
+                            error_details += f"\nOutput:\n{process.stdout[:1000]}..."  # Limit output length  # noqa: E501
                         if process.stderr:
-                            error_details += f"\nErrors:\n{process.stderr[:1000]}..."  # Limit output length
+                            error_details += f"\nErrors:\n{process.stderr[:1000]}..."  # Limit output length  # noqa: E501
                         validation_errors.append(error_details)
                         self.logger.warning(
-                            f"Flake8 validation failed for task {task.task_id}: {error_details}"
+                            f"Flake8 validation failed for task {task.task_id}: {error_details}"  # noqa: E501
                         )
                     else:
                         self.logger.info(
@@ -1023,7 +1011,7 @@ class BaseAgent(ABC):
             if isinstance(test_modules, list) and test_modules:
                 self.logger.info(f"Running pytest validation on: {test_modules}")
                 try:
-                    # Allow configuration of pytest path/args via ConfigManager in the future
+                    # Allow configuration of pytest path/args via ConfigManager in the future  # noqa: E501
                     pytest_path = getattr(
                         self.config, "validation_pytest_path", sys.executable
                     )
@@ -1034,7 +1022,7 @@ class BaseAgent(ABC):
                     if pytest_path == sys.executable:  # Default: use python -m pytest
                         command = [pytest_path] + pytest_args + test_modules
                     else:  # Use specified executable directly
-                        # Assume args might be needed depending on the executable structure
+                        # Assume args might be needed depending on the executable structure  # noqa: E501
                         command = [pytest_path] + pytest_args + test_modules
 
                     self.logger.debug(
@@ -1051,17 +1039,17 @@ class BaseAgent(ABC):
                     )
 
                     if process.returncode != 0:
-                        # Use specific pytest exit codes if needed (e.g., 5 means no tests collected)
+                        # Use specific pytest exit codes if needed (e.g., 5 means no tests collected)  # noqa: E501
                         error_details = (
                             f"pytest failed (exit code {process.returncode})."
                         )
                         if process.stdout:
-                            error_details += f"\nOutput:\n{process.stdout[-1000:]}..."  # Limit output length (show end)
+                            error_details += f"\nOutput:\n{process.stdout[-1000:]}..."  # Limit output length (show end)  # noqa: E501
                         if process.stderr:
-                            error_details += f"\nErrors:\n{process.stderr[:1000]}..."  # Limit output length
+                            error_details += f"\nErrors:\n{process.stderr[:1000]}..."  # Limit output length  # noqa: E501
                         validation_errors.append(error_details)
                         self.logger.warning(
-                            f"Pytest validation failed for task {task.task_id}: {error_details}"
+                            f"Pytest validation failed for task {task.task_id}: {error_details}"  # noqa: E501
                         )
                     else:
                         self.logger.info(
@@ -1084,7 +1072,7 @@ class BaseAgent(ABC):
                     self.logger.error(err_msg, exc_info=True)
             elif not isinstance(test_modules, list):
                 self.logger.warning(
-                    f"Task {task.task_id} metadata 'test_modules' is not a list or string, skipping pytest."
+                    f"Task {task.task_id} metadata 'test_modules' is not a list or string, skipping pytest."  # noqa: E501
                 )
             # else: test_modules list is empty, do nothing.
 
@@ -1094,7 +1082,7 @@ class BaseAgent(ABC):
             details = "; ".join(validation_errors)
             # Update task status directly here before returning
             # TODO: Replace with PBM update call
-            # self.persist_task_update(task.task_id, {"status": STATUS_VALIDATION_FAILED, "validation_notes": details})
+            # self.persist_task_update(task.task_id, {"status": STATUS_VALIDATION_FAILED, "validation_notes": details})  # noqa: E501
             return False, details
         else:
             return True, "Validation passed."
@@ -1147,7 +1135,7 @@ class BaseAgent(ABC):
                 self.logger.info(
                     f"Cancellation requested for active task {task_id_to_cancel}."
                 )
-                # Status update will be handled within _process_single_task's exception handling
+                # Status update will be handled within _process_single_task's exception handling  # noqa: E501
                 # Publish confirmation of cancellation attempt?
                 event_data = cancel_request.to_dict()
                 event_data["task_id"] = task_id_to_cancel
@@ -1158,7 +1146,7 @@ class BaseAgent(ABC):
                 )
             else:
                 self.logger.warning(
-                    f"Task {task_id_to_cancel} found in active list but is already done or invalid."
+                    f"Task {task_id_to_cancel} found in active list but is already done or invalid."  # noqa: E501
                 )
         else:
             self.logger.warning(

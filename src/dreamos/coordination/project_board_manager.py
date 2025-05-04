@@ -7,12 +7,9 @@ import json
 import logging
 import os
 import sys
-import tempfile
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
-
-import click  # Add click import
+from typing import Any, Dict, List, Literal, Optional
 
 try:
     import filelock
@@ -43,8 +40,8 @@ from ..core.errors import (
 
 logger = logging.getLogger(__name__)
 
-# Default paths relative to project root (assuming PROJECT_ROOT is defined elsewhere or passed in)
-# Need to resolve how PROJECT_ROOT is accessed here. For now, assume relative paths are handled.
+# Default paths relative to project root (assuming PROJECT_ROOT is defined elsewhere or passed in)  # noqa: E501
+# Need to resolve how PROJECT_ROOT is accessed here. For now, assume relative paths are handled.  # noqa: E501
 # The proposal uses runtime/config/config.yaml structure which defines PROJECT_ROOT.
 # This utility might need access to AppConfig or a similar mechanism.
 DEFAULT_FUTURE_TASKS_FILENAME = "future_tasks.json"  # Define filenames
@@ -106,7 +103,7 @@ class ProjectBoardManager:
         )
         # EDIT END
 
-        logger.info(f"ProjectBoardManager initialized.")
+        logger.info("ProjectBoardManager initialized.")
         logger.info(f"  Using Configured Task Boards Dir: {self.boards_base_dir}")
         logger.info(f"  Backlog: {self.backlog_path.name}")
         logger.info(f"  Ready Queue: {self.ready_queue_path.name}")
@@ -114,7 +111,7 @@ class ProjectBoardManager:
         logger.info(f"  Completed Tasks: {self.completed_tasks_path}")
         if not FILELOCK_AVAILABLE:
             logger.warning(
-                "Filelock library not found. Board operations will not be fully concurrency-safe."
+                "Filelock library not found. Board operations will not be fully concurrency-safe."  # noqa: E501
             )
 
         # Load the schema during initialization
@@ -148,7 +145,7 @@ class ProjectBoardManager:
             # Fallback for other files, though primarily board files expected
             lock_path = file_path.with_suffix(file_path.suffix + ".lock")
             logger.warning(
-                f"Generating fallback lock path for non-standard board file: {file_path}"
+                f"Generating fallback lock path for non-standard board file: {file_path}"  # noqa: E501
             )
 
         try:
@@ -176,9 +173,9 @@ class ProjectBoardManager:
             # Use _read_board_file helper inside the lock
             loaded_data = self._read_board_file(file_path)
             logger.debug(
-                f"Loaded {len(loaded_data)} tasks from {file_path.name} using helper (within lock)."
+                f"Loaded {len(loaded_data)} tasks from {file_path.name} using helper (within lock)."  # noqa: E501
                 if lock_acquired_by_us
-                else f"Loaded {len(loaded_data)} tasks from {file_path.name} using helper (no lock)."
+                else f"Loaded {len(loaded_data)} tasks from {file_path.name} using helper (no lock)."  # noqa: E501
             )
 
         except filelock.Timeout as e:  # Specifically catch lock timeout
@@ -200,12 +197,12 @@ class ProjectBoardManager:
                         f"Failed to release lock for {file_path}: {e}", exc_info=True
                     )
 
-        # Ensure return type consistency (though _read_board_file should already ensure it)
+        # Ensure return type consistency (though _read_board_file should already ensure it)  # noqa: E501
         return loaded_data if isinstance(loaded_data, list) else []
 
-    # {{ EDIT START: Add helper for reading board files gracefully from core/comms version }}
+    # {{ EDIT START: Add helper for reading board files gracefully from core/comms version }}  # noqa: E501
     def _read_board_file(self, file_path: Path) -> list:
-        """Reads a board file (JSON list), handling empty or corrupt files gracefully."""
+        """Reads a board file (JSON list), handling empty or corrupt files gracefully."""  # noqa: E501
         if not file_path.exists():
             logger.debug(
                 f"Board file not found: {file_path.name}, returning empty list."
@@ -224,25 +221,25 @@ class ProjectBoardManager:
             loaded_data = json.loads(content)
             if not isinstance(loaded_data, list):
                 logger.error(
-                    f"Invalid task file format: Expected a JSON list in {file_path.name}, got {type(loaded_data)}."
+                    f"Invalid task file format: Expected a JSON list in {file_path.name}, got {type(loaded_data)}."  # noqa: E501
                 )
                 # Consider self-healing by overwriting with []?
                 return []
             return loaded_data
         except json.JSONDecodeError as e:
             logger.error(
-                f"Error decoding JSON from {file_path.name}: {e}. Treating as empty list."
+                f"Error decoding JSON from {file_path.name}: {e}. Treating as empty list."  # noqa: E501
             )
             # TODO: Consider attempting to overwrite with `[]` to self-heal?
             return []
         except IOError as e:
             logger.error(
-                f"IOError reading board file {file_path.name}: {e}. Returning empty list."
+                f"IOError reading board file {file_path.name}: {e}. Returning empty list."  # noqa: E501
             )
             return []
         except Exception as e:
             logger.exception(
-                f"Unexpected error reading board file {file_path.name}: {e}. Returning empty list."
+                f"Unexpected error reading board file {file_path.name}: {e}. Returning empty list."  # noqa: E501
             )
             return []
 
@@ -295,11 +292,11 @@ class ProjectBoardManager:
         # EDIT END
 
         try:
-            # Determine schema path relative to this file or project root - REMOVED HARDCODED LOGIC
+            # Determine schema path relative to this file or project root - REMOVED HARDCODED LOGIC  # noqa: E501
             # schema_path = Path(__file__).parent / "tasks" / "task-schema.json" # OLD
 
             if not schema_path.exists():
-                # Fallback using project root (if available and different) - REMOVED FALLBACK
+                # Fallback using project root (if available and different) - REMOVED FALLBACK  # noqa: E501
                 # alt_path = ( ... ) # OLD
                 # if alt_path.exists(): # OLD
                 #    schema_path = alt_path # OLD
@@ -332,16 +329,16 @@ class ProjectBoardManager:
         try:
             jsonschema.validate(instance=task_data, schema=self._task_schema)
             logger.debug(
-                f"Task validation successful for task_id: {task_data.get('task_id', 'UNKNOWN')}"
+                f"Task validation successful for task_id: {task_data.get('task_id', 'UNKNOWN')}"  # noqa: E501
             )
             return True
         except jsonschema.exceptions.ValidationError as e:
             logger.error(
-                f"Task validation failed for task_id: {task_data.get('task_id', 'UNKNOWN')}: {e.message}"
+                f"Task validation failed for task_id: {task_data.get('task_id', 'UNKNOWN')}: {e.message}"  # noqa: E501
             )
             # EDIT: Use imported central error
             raise TaskValidationError(
-                f"Task {task_data.get('task_id', 'UNKNOWN')} failed schema validation: {e.message}"
+                f"Task {task_data.get('task_id', 'UNKNOWN')} failed schema validation: {e.message}"  # noqa: E501
             ) from e
         except Exception as e:
             logger.exception(f"Unexpected error during task validation: {e}")
@@ -373,7 +370,7 @@ class ProjectBoardManager:
             ) from e
         except Exception as e:
             logger.error(
-                f"Unexpected error during atomic write to {file_path} (temp: {temp_file_path}): {e}",
+                f"Unexpected error during atomic write to {file_path} (temp: {temp_file_path}): {e}",  # noqa: E501
                 exc_info=True,
             )
             # Clean up temp file on any other error
@@ -408,9 +405,9 @@ class ProjectBoardManager:
             # Use atomic write helper inside the lock
             self._atomic_write(file_path, data)
             logger.debug(
-                f"Saved {len(data)} tasks to {file_path.name} using atomic write (within lock)."
+                f"Saved {len(data)} tasks to {file_path.name} using atomic write (within lock)."  # noqa: E501
                 if lock_acquired_by_us
-                else f"Saved {len(data)} tasks to {file_path.name} using atomic write (no lock)."
+                else f"Saved {len(data)} tasks to {file_path.name} using atomic write (no lock)."  # noqa: E501
             )
 
         except filelock.Timeout as e:
@@ -588,7 +585,7 @@ class ProjectBoardManager:
         # Double-check validation after adding metadata (optional but safer)
         if not self._validate_task(new_task):
             logger.warning(
-                f"Task {task_id} failed validation *after* adding metadata. Aborting add."
+                f"Task {task_id} failed validation *after* adding metadata. Aborting add."  # noqa: E501
             )
             return False
 
@@ -598,7 +595,7 @@ class ProjectBoardManager:
             # Check for duplicate ID before adding
             if any(t.get("task_id") == task_id for t in backlog):
                 logger.error(
-                    f"Task ID {task_id} already exists in the backlog. Cannot add duplicate."
+                    f"Task ID {task_id} already exists in the backlog. Cannot add duplicate."  # noqa: E501
                 )
                 # EDIT: Use imported central error
                 raise ProjectBoardError(f"Duplicate Task ID {task_id} in backlog.")
@@ -686,7 +683,7 @@ class ProjectBoardManager:
     def delete_task(
         self, task_id: str, agent_id: str, board: Literal["backlog", "ready", "working"]
     ) -> bool:
-        """Deletes a task by ID from the specified board (backlog, ready, or working)."""
+        """Deletes a task by ID from the specified board (backlog, ready, or working)."""  # noqa: E501
         target_path = None
         load_func = None
         save_func = None
@@ -701,31 +698,31 @@ class ProjectBoardManager:
             load_func = self._load_ready_queue
             save_func = self._save_ready_queue
         elif board == "working":
-            target_path = self.working_tasks_path
+            target_path = self.working_tasks_path  # noqa: F841
             load_func = self._load_working_tasks
             save_func = self._save_working_tasks
         else:
             logger.error(
-                f"Invalid board specified for deletion: {board}. Must be 'backlog', 'ready', or 'working'."
+                f"Invalid board specified for deletion: {board}. Must be 'backlog', 'ready', or 'working'."  # noqa: E501
             )
             # EDIT: Use imported central error
             raise ValueError("Invalid board for deletion")
 
         try:
             tasks = load_func()
-            original_length = len(tasks)
+            original_length = len(tasks)  # noqa: F841
             task_index = self._find_task_index(tasks, task_id)
 
             if task_index is None:
                 logger.warning(
-                    f"Task {task_id} not found on {board_name} board for deletion by {agent_id}."
+                    f"Task {task_id} not found on {board_name} board for deletion by {agent_id}."  # noqa: E501
                 )
                 # Return True as the task is already gone?
                 # Or False because the delete action wasn't performed?
                 # Let's return False to indicate the task wasn't found *to be* deleted.
                 return False
 
-            deleted_task = tasks.pop(task_index)
+            deleted_task = tasks.pop(task_index)  # noqa: F841
             logger.info(
                 f"Task {task_id} removed from {board_name} board by {agent_id}."
             )
@@ -740,7 +737,7 @@ class ProjectBoardManager:
             raise e  # Re-raise instead of returning False
         except Exception as e:
             logger.exception(
-                f"An unexpected error occurred deleting task {task_id} from {board_name}."
+                f"An unexpected error occurred deleting task {task_id} from {board_name}."  # noqa: E501
             )
             # EDIT: Wrap unexpected exceptions in PBM error
             raise ProjectBoardError(
@@ -766,7 +763,7 @@ class ProjectBoardManager:
 
             if completed_lock:
                 logger.debug(f"Acquiring lock for {self.completed_tasks_path}...")
-                # Use a shorter timeout for the second lock acquisition to avoid deadlock?
+                # Use a shorter timeout for the second lock acquisition to avoid deadlock?  # noqa: E501
                 # For now, use the standard timeout.
                 completed_lock.acquire()
                 completed_lock_acquired = True
@@ -803,7 +800,7 @@ class ProjectBoardManager:
             # Validate final task structure (optional)
             if not self._validate_task(task_to_move):
                 logger.error(
-                    f"Task {task_id} failed validation before moving to completed. Aborting move."
+                    f"Task {task_id} failed validation before moving to completed. Aborting move."  # noqa: E501
                 )
                 # How to handle rollback? Need careful thought.
                 # For now, log and raise error.
@@ -815,7 +812,7 @@ class ProjectBoardManager:
             # Add to completed list
             completed_tasks = self._read_board_file(self.completed_tasks_path)
             # Check for duplicates in completed? Generally okay to overwrite?
-            # For simplicity, just append. Could add logic to update existing if preferred.
+            # For simplicity, just append. Could add logic to update existing if preferred.  # noqa: E501
             completed_tasks.append(task_to_move)
             logger.debug(f"Task {task_id} added to completed list in memory.")
 
@@ -826,7 +823,7 @@ class ProjectBoardManager:
             )
             self._atomic_write(self.completed_tasks_path, completed_tasks)
             logger.debug(
-                f"Saved updated completed tasks file ({self.completed_tasks_path.name})."
+                f"Saved updated completed tasks file ({self.completed_tasks_path.name})."  # noqa: E501
             )
             # --- End Critical Section ---
 
@@ -836,7 +833,7 @@ class ProjectBoardManager:
         except (BoardLockError, TaskNotFoundError, TaskValidationError) as e:
             logger.error(f"Failed to move task {task_id} to completed: {e}")
             # Rollback is complex here. Did we modify lists in memory?
-            # Best effort: Log the failure. The state might be inconsistent if one save failed.
+            # Best effort: Log the failure. The state might be inconsistent if one save failed.  # noqa: E501
             raise e  # Re-raise instead of returning False
         except Exception as e:
             logger.exception(
@@ -861,7 +858,7 @@ class ProjectBoardManager:
 
     # --- New Dual-Queue Methods ---
     def claim_ready_task(self, task_id: str, agent_id: str) -> bool:
-        """Atomically claims a task from the ready queue and moves it to the working board."""
+        """Atomically claims a task from the ready queue and moves it to the working board."""  # noqa: E501
         logger.info(
             f"Agent {agent_id} attempting to claim task {task_id} from ready queue..."
         )
@@ -920,12 +917,12 @@ class ProjectBoardManager:
                 current_status.upper() not in claimable_statuses
             ):  # Check uppercase status
                 logger.warning(
-                    f"Attempted to claim task {task_id} from ready queue with non-claimable status: {current_status}"
+                    f"Attempted to claim task {task_id} from ready queue with non-claimable status: {current_status}"  # noqa: E501
                 )
                 # Should we put it back? For now, log and fail.
                 # EDIT: Use imported central error
                 raise ProjectBoardError(
-                    f"Task {task_id} has non-claimable status {current_status} in ready queue."
+                    f"Task {task_id} has non-claimable status {current_status} in ready queue."  # noqa: E501
                 )
 
             # Update task details for working board
@@ -935,12 +932,12 @@ class ProjectBoardManager:
             task_to_move["timestamp_claimed_utc"] = now
             task_to_move["timestamp_updated"] = now
             # Optionally add history entry
-            # self._add_history(task_to_move, agent_id, "CLAIMED_FROM_READY") # EDIT: Commented out due to AttributeError
+            # self._add_history(task_to_move, agent_id, "CLAIMED_FROM_READY") # EDIT: Commented out due to AttributeError  # noqa: E501
 
             # Validate before adding to working
             if not self._validate_task(task_to_move):
                 logger.error(
-                    f"Task {task_id} failed validation before adding to working tasks. Aborting claim."
+                    f"Task {task_id} failed validation before adding to working tasks. Aborting claim."  # noqa: E501
                 )
                 # Need rollback strategy
                 # EDIT: Use imported central error
@@ -972,12 +969,12 @@ class ProjectBoardManager:
         except (BoardLockError, TaskNotFoundError, TaskValidationError) as e:
             logger.error(f"Failed to claim task {task_id} from ready queue: {e}")
             # TODO: Implement rollback if task_to_move is not None?
-            # (e.g., add task_to_move back to ready_queue list and save only ready_queue)
+            # (e.g., add task_to_move back to ready_queue list and save only ready_queue)  # noqa: E501
             # Requires careful state management.
             raise e  # Re-raise instead of returning False
         except Exception as e:
             logger.exception(
-                f"An unexpected error occurred claiming task {task_id} from ready queue."
+                f"An unexpected error occurred claiming task {task_id} from ready queue."  # noqa: E501
             )
             # TODO: Rollback?
             raise ProjectBoardError(f"Failed to claim ready task {task_id}: {e}") from e
@@ -1051,12 +1048,12 @@ class ProjectBoardManager:
                 current_status.upper() not in promotable_statuses
             ):  # Check uppercase status
                 logger.warning(
-                    f"Attempted to promote task {task_id} from backlog with non-promotable status: {current_status}"
+                    f"Attempted to promote task {task_id} from backlog with non-promotable status: {current_status}"  # noqa: E501
                 )
                 # Put it back? Log and fail.
                 # EDIT: Use imported central error
                 raise ProjectBoardError(
-                    f"Task {task_id} has non-promotable status {current_status} in backlog."
+                    f"Task {task_id} has non-promotable status {current_status} in backlog."  # noqa: E501
                 )
 
             # Update task timestamp (optional, indicates promotion time)
@@ -1069,7 +1066,7 @@ class ProjectBoardManager:
             # Validate before adding to ready queue
             if not self._validate_task(task_to_move):
                 logger.error(
-                    f"Task {task_id} failed validation before adding to ready queue. Aborting promotion."
+                    f"Task {task_id} failed validation before adding to ready queue. Aborting promotion."  # noqa: E501
                 )
                 # Need rollback strategy
                 # EDIT: Use imported central error
@@ -1082,7 +1079,7 @@ class ProjectBoardManager:
             # Check for duplicates in ready queue?
             if any(t.get("task_id") == task_id for t in ready_queue):
                 logger.error(
-                    f"Task {task_id} already exists in the ready queue. Cannot promote duplicate."
+                    f"Task {task_id} already exists in the ready queue. Cannot promote duplicate."  # noqa: E501
                 )
                 # Need rollback strategy
                 # EDIT: Use imported central error
@@ -1115,10 +1112,10 @@ class ProjectBoardManager:
             # EDIT START: Implement Rollback
             if task_to_move is not None:
                 logger.warning(
-                    f"Attempting rollback for task {task_id} during promotion failure..."
+                    f"Attempting rollback for task {task_id} during promotion failure..."  # noqa: E501
                 )
                 try:
-                    # Ensure backlog lock is still held if possible (should be if we got here)
+                    # Ensure backlog lock is still held if possible (should be if we got here)  # noqa: E501
                     if backlog_lock_acquired and backlog_lock.is_locked:
                         backlog = self._read_board_file(
                             self.backlog_path
@@ -1132,11 +1129,11 @@ class ProjectBoardManager:
                             # Save ONLY the backlog during rollback
                             self._atomic_write(self.backlog_path, backlog)
                             logger.info(
-                                f"Rollback: Saved updated backlog ({self.backlog_path.name})."
+                                f"Rollback: Saved updated backlog ({self.backlog_path.name})."  # noqa: E501
                             )
                         else:
                             logger.warning(
-                                f"Rollback skipped: Task {task_id} already found in backlog."
+                                f"Rollback skipped: Task {task_id} already found in backlog."  # noqa: E501
                             )
                     else:
                         logger.error("Rollback failed: Backlog lock not held.")
@@ -1162,23 +1159,23 @@ class ProjectBoardManager:
                         if not any(t.get("task_id") == task_id for t in backlog):
                             backlog.append(task_to_move)
                             logger.info(
-                                f"Rollback: Re-added task {task_id} to backlog list (unexpected error path)."
+                                f"Rollback: Re-added task {task_id} to backlog list (unexpected error path)."  # noqa: E501
                             )
                             self._atomic_write(self.backlog_path, backlog)
                             logger.info(
-                                f"Rollback: Saved updated backlog (unexpected error path)."
+                                "Rollback: Saved updated backlog (unexpected error path)."  # noqa: E501
                             )
                         else:
                             logger.warning(
-                                f"Rollback skipped: Task {task_id} already found in backlog (unexpected error path)."
+                                f"Rollback skipped: Task {task_id} already found in backlog (unexpected error path)."  # noqa: E501
                             )
                     else:
                         logger.error(
-                            "Rollback failed: Backlog lock not held (unexpected error path)."
+                            "Rollback failed: Backlog lock not held (unexpected error path)."  # noqa: E501
                         )
                 except Exception as rb_err:
                     logger.error(
-                        f"Error during promotion rollback for task {task_id} (unexpected error path): {rb_err}",
+                        f"Error during promotion rollback for task {task_id} (unexpected error path): {rb_err}",  # noqa: E501
                         exc_info=True,
                     )
             # EDIT END
@@ -1212,7 +1209,7 @@ class ProjectBoardManager:
         try:
             config = AppConfig.load()  # Load default config
             # Override board dir if provided via CLI? For now, use config's value.
-            # boards_dir = args.boards_dir if args.boards_dir else config.paths.central_task_boards
+            # boards_dir = args.boards_dir if args.boards_dir else config.paths.central_task_boards  # noqa: E501
             return cls(config=config, lock_timeout=args.lock_timeout)
         except Exception as e:
             logger.error(
@@ -1285,7 +1282,7 @@ if __name__ == "__main__":
     # Add elif blocks for other commands (add, get, etc.)
     # elif args.command == 'add':
     #     # Requires defining parser_add and handling its arguments
-    #     details = json.loads(args.task_details) # Assuming details passed as JSON string
+    #     details = json.loads(args.task_details) # Assuming details passed as JSON string  # noqa: E501
     #     agent = args.agent_id
     #     if pbm.add_task_to_backlog(details, agent):
     #         print("Task added successfully.")

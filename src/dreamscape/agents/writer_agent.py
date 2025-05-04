@@ -5,18 +5,16 @@ import logging
 import traceback  # Added for error details
 
 # from datetime import datetime, timezone # Removed unused import
-from typing import Any, Dict, Optional  # Removed Type
+from typing import Any, Dict  # Removed Type
 
 # EDIT START: Add missing imports
-import openai  # Though not used directly if client abstracts it
-
 from dreamos.core.config import AppConfig  # Updated import
 from dreamos.core.coordination.agent_bus import AgentBus  # Removed BaseEvent, EventType
 
 # {{ EDIT START: Updated Imports }}
-from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus
+from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage
 
-# from dreamos.core.utils.llm_provider import BaseLLMProvider, OpenAILLMProvider # Removed unused import
+# from dreamos.core.utils.llm_provider import BaseLLMProvider, OpenAILLMProvider # Removed unused import  # noqa: E501
 from dreamos.integrations.openai_client import (  # Import the specific client
     OpenAIClient,
     OpenAIClientError,
@@ -42,7 +40,7 @@ logger = logging.getLogger(__name__)
 # {{ EDIT START: Inherit from BaseAgent }}
 class ContentWriterAgent(BaseAgent):
     # {{ EDIT END }}
-    """Generates content drafts based on provided ContentPlans, handling tasks of type 'WRITE_CONTENT_DRAFT'."""
+    """Generates content drafts based on provided ContentPlans, handling tasks of type 'WRITE_CONTENT_DRAFT'."""  # noqa: E501
 
     WRITE_COMMAND_TYPE = "WRITE_CONTENT_DRAFT"
 
@@ -83,7 +81,7 @@ class ContentWriterAgent(BaseAgent):
         )
 
         logger.info(
-            f"ContentWriterAgent ({self.agent_id}) initialized and ready for '{self.WRITE_COMMAND_TYPE}' tasks."
+            f"ContentWriterAgent ({self.agent_id}) initialized and ready for '{self.WRITE_COMMAND_TYPE}' tasks."  # noqa: E501
         )
 
     # {{ EDIT END }}
@@ -97,7 +95,7 @@ class ContentWriterAgent(BaseAgent):
             logger.info(f"OpenAI Client ready for {self.agent_id}.")
         else:
             logger.warning(
-                f"{self.agent_id} started but OpenAI client is not available/configured."
+                f"{self.agent_id} started but OpenAI client is not available/configured."  # noqa: E501
             )
         # EDIT END
         await asyncio.sleep(0)  # Yield control
@@ -125,7 +123,7 @@ class ContentWriterAgent(BaseAgent):
 
         if not plan_data or not isinstance(plan_data, dict):
             logger.error(
-                f"Task {task.task_id}: Writing request received without valid plan data in params."
+                f"Task {task.task_id}: Writing request received without valid plan data in params."  # noqa: E501
             )
             return {"error": "Invalid or missing 'plan' in task parameters"}
 
@@ -134,7 +132,7 @@ class ContentWriterAgent(BaseAgent):
             plan = ContentPlan(**plan_data)
         except Exception as e:  # Catch potential errors during plan parsing
             logger.error(
-                f"Task {task.task_id}: Failed to parse ContentPlan from task params: {e}",
+                f"Task {task.task_id}: Failed to parse ContentPlan from task params: {e}",  # noqa: E501
                 exc_info=True,
             )
             return {
@@ -201,7 +199,7 @@ class ContentWriterAgent(BaseAgent):
 
             draft = ContentDraft(title=title, body=body, plan=plan)
             logger.info(
-                f"Task {task.task_id}: Generated draft via LLM for topic: '{plan.topic}'."
+                f"Task {task.task_id}: Generated draft via LLM for topic: '{plan.topic}'."  # noqa: E501
             )
 
             await self.publish_task_progress(task, 0.9, "Draft generation complete.")
@@ -225,7 +223,7 @@ class ContentWriterAgent(BaseAgent):
                 f"Exception during draft generation: {type(e).__name__}: {str(e)}"
             )
             logger.error(
-                f"Task {task.task_id}: Error generating draft for topic '{plan.topic}': {e}",
+                f"Task {task.task_id}: Error generating draft for topic '{plan.topic}': {e}",  # noqa: E501
                 exc_info=True,
             )
             # Return error details
@@ -238,21 +236,21 @@ class ContentWriterAgent(BaseAgent):
 
     # {{ EDIT END }}
 
-    # {{ EDIT START: Add helper methods for prompt building and parsing }} # Keep this edit block if methods are new
+    # {{ EDIT START: Add helper methods for prompt building and parsing }} # Keep this edit block if methods are new  # noqa: E501
     def _build_writing_prompt(self, plan: ContentPlan) -> str:
         """Builds the prompt for the LLM to generate content based on a plan."""
         outline_str = "\n".join([f"- {item}" for item in plan.outline])
         prompt = (
-            f"You are a content writer for a software development blog called Digital Dreamscape.\n"
-            f"Your task is to write a blog post draft based on the following topic and outline.\n\n"
+            f"You are a content writer for a software development blog called Digital Dreamscape.\n"  # noqa: E501
+            f"Your task is to write a blog post draft based on the following topic and outline.\n\n"  # noqa: E501
             f"Topic: {plan.topic}\n\n"
             f"Outline:\n{outline_str}\n\n"
             f"Instructions:\n"
-            f"- Write engaging and informative content suitable for a developer audience.\n"
+            f"- Write engaging and informative content suitable for a developer audience.\n"  # noqa: E501
             f"- Follow the structure provided by the outline.\n"
-            f"- Start the response with a suitable Title for the blog post, prefixed with 'Title: '.\n"
+            f"- Start the response with a suitable Title for the blog post, prefixed with 'Title: '.\n"  # noqa: E501
             f"- After the title, provide the main Body of the blog post.\n"
-            f"- Use Markdown for formatting (e.g., headings for outline sections, code blocks if appropriate).\n"
+            f"- Use Markdown for formatting (e.g., headings for outline sections, code blocks if appropriate).\n"  # noqa: E501
             f"- Aim for clarity and accuracy.\n\n"
             f"Title: [Your Title Here]\n\n"
             f"Body:\n[Your Blog Post Body Here]"
@@ -277,7 +275,7 @@ class ContentWriterAgent(BaseAgent):
                 if potential_title:
                     title = potential_title
                     title_found = True
-                    # Assume body starts after title line, potentially skipping blank lines
+                    # Assume body starts after title line, potentially skipping blank lines  # noqa: E501
                     start_body_index = i + 1
                     while (
                         start_body_index < len(lines)
@@ -316,6 +314,6 @@ class ContentWriterAgent(BaseAgent):
     #     ...
     # async def handle_write_request_event(self, event_data: Dict[str, Any]):
     #     ...
-    # async def publish_event(self, event_type: DreamscapeEventType, payload: Dict[str, Any]):
+    # async def publish_event(self, event_type: DreamscapeEventType, payload: Dict[str, Any]):  # noqa: E501
     #     ...
     # {{ EDIT END }}

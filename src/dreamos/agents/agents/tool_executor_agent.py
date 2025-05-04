@@ -3,23 +3,13 @@
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus
-from dreamos.core.coordination.enums import AgentStatus
-from dreamos.core.coordination.event_payloads import (
-    ToolExecutionRequestPayload,
-    ToolExecutionResultPayload,
-)
-from dreamos.core.coordination.event_types import EventType
+from typing import Any, Dict, List
 
 # from dreamos.core.coordination.base_agent import BaseAgent # Removed unused import
-# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # Removed unused AgentBus
+# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # Removed unused AgentBus  # noqa: E501
 from dreamos.core.events.base_event import BaseDreamEvent
-from dreamos.core.tools.tool_registry import ToolExecutionError, UnknownToolError
 from dreamos.tools._core.base import ToolContext  # Ensure ToolContext is imported
-from dreamos.tools.registry import ToolRegistry, get_registry  # Uncommented this
+from dreamos.tools.registry import get_registry  # Uncommented this
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +37,7 @@ class ToolExecutionAgent:
                                 'error_step': Optional[int],
                                 'error_message': Optional[str]
                             }
-        """
+        """  # noqa: E501
         if not isinstance(plan, list):
             logger.error(f"Invalid plan format: Expected list, got {type(plan)}.")
             return {
@@ -65,7 +55,7 @@ class ToolExecutionAgent:
 
             if not isinstance(step, dict) or "tool" not in step or "args" not in step:
                 logger.error(
-                    f"Invalid step format at index {i}: {step}. Must have 'tool' and 'args'."
+                    f"Invalid step format at index {i}: {step}. Must have 'tool' and 'args'."  # noqa: E501
                 )
                 return {
                     "status": "failure",
@@ -105,7 +95,7 @@ class ToolExecutionAgent:
                 context_key = f"step_{i}_result"
                 execution_context[context_key] = step_result
                 logger.info(
-                    f"Step {step_num} completed. Result stored in context as '{context_key}'."
+                    f"Step {step_num} completed. Result stored in context as '{context_key}'."  # noqa: E501
                 )
 
             except Exception as e:

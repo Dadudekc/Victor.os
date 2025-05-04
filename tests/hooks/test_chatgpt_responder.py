@@ -1,8 +1,6 @@
-import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch  # noqa: I001
 
 import pytest
-
 from dreamos.hooks.chatgpt_responder import ChatGPTResponder
 
 # Remove the skipped stub function
@@ -116,7 +114,7 @@ def test_respond_to_mailbox_no_messages():
     assert len(updated_mailbox["messages"]) == 0
 
 
-# Test cases for when scraper/adapter is missing (optional, depends on desired robustness)
+# Test cases for when scraper/adapter is missing (optional, depends on desired robustness)  # noqa: E501
 @patch("dreamos.hooks.chatgpt_responder.ChatGPTScraper", side_effect=ImportError)
 @patch("dreamos.hooks.chatgpt_responder.OpenAIAdapter", MagicMock())
 def test_responder_init_dev_mode_scraper_missing(MockAdapter, MockScraper):

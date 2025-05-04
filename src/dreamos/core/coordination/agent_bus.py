@@ -1,29 +1,5 @@
 # --- Simple Pub/Sub Implementation ---
 
-import asyncio
-import logging
-import time
-import uuid
-from collections import defaultdict, deque
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    DefaultDict,
-    Deque,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
-
-from pydantic import ValidationError
-
-from ..events.base_event import BaseDreamEvent
-from .event_types import EventType
 
 # Corrected relative imports (assuming events and errors are siblings under core)
 # REMOVED Obsolete Edit/TODO comments
@@ -54,10 +30,10 @@ class MessageValidationError(BusError):
 #     Uses asyncio for non-blocking operations.
 #
 #     Core Concepts:
-#         - Topics: Hierarchical strings (e.g., "agent.status.online", "task.lifecycle.created").
+#         - Topics: Hierarchical strings (e.g., "agent.status.online", "task.lifecycle.created").  # noqa: E501
 #         - Events: Pydantic models inheriting from BaseEvent, containing data.
 #         - Subscribers: Coroutine functions that handle specific event types on topics.
-#         - Wildcards: Supports single-level (#) and multi-level (*) wildcards in topic subscriptions.
+#         - Wildcards: Supports single-level (#) and multi-level (*) wildcards in topic subscriptions.  # noqa: E501
 #     """
 #
 #     # ... existing code ...

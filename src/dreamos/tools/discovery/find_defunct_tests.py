@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-import os
 from pathlib import Path
 
 # Setup logging
@@ -10,7 +9,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Define constants for default paths relative to the project root (assumed to be parent of src)
+# Define constants for default paths relative to the project root (assumed to be parent of src)  # noqa: E501
 DEFAULT_SRC_DIR = "src/dreamos"
 DEFAULT_TESTS_DIR = "tests"
 DEFAULT_OUTPUT_FILE = "runtime/logs/defunct_tests.jsonl"
@@ -118,7 +117,7 @@ def find_defunct_tests(
     excluded_count = original_count - len(test_files)
     if excluded_count > 0:
         logger.info(
-            f"Excluded {excluded_count} test files based on directory patterns: {resolved_excluded_dirs}"
+            f"Excluded {excluded_count} test files based on directory patterns: {resolved_excluded_dirs}"  # noqa: E501
         )
     # {{ EDIT END }}
 
@@ -126,7 +125,7 @@ def find_defunct_tests(
         f"Found {len(source_files)} source Python files (excluding __init__.py)."
     )
     logger.info(
-        f"Found {len(test_files)} test Python files (excluding __init__.py, conftest.py, excluded dirs)."
+        f"Found {len(test_files)} test Python files (excluding __init__.py, conftest.py, excluded dirs)."  # noqa: E501
     )  # Updated log
 
     defunct_tests = []
@@ -140,18 +139,18 @@ def find_defunct_tests(
             )  # Keep track of sources we expect tests for
             if not potential_source.exists():
                 logger.warning(
-                    f"Potential defunct test: {test_file} -> {potential_source} (Source missing)"
+                    f"Potential defunct test: {test_file} -> {potential_source} (Source missing)"  # noqa: E501
                 )
                 defunct_tests.append(test_file)
             # else:
-            # logger.debug(f"Test mapping: {test_file} -> {potential_source} (Source exists)")
+            # logger.debug(f"Test mapping: {test_file} -> {potential_source} (Source exists)")  # noqa: E501
         else:
-            # Test didn't map using the heuristic, could be integration, utils test, etc.
+            # Test didn't map using the heuristic, could be integration, utils test, etc.  # noqa: E501
             # Or it could be defunct if it tested a module that's now gone.
             # For now, we only flag tests whose *mapped* source is missing.
             # A more advanced check could see if the *directory* still exists.
             logger.debug(
-                f"Test file {test_file} did not map to a source file using the current heuristic."
+                f"Test file {test_file} did not map to a source file using the current heuristic."  # noqa: E501
             )
 
     # Ensure output directory exists
@@ -174,7 +173,7 @@ def find_defunct_tests(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Find defunct test files (tests whose corresponding source module might be missing)."
+        description="Find defunct test files (tests whose corresponding source module might be missing)."  # noqa: E501
     )
     parser.add_argument(
         "--src-dir",
@@ -194,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--exclude-dirs",
         type=str,
-        help=f"Comma-separated list of directory names to exclude within tests dir (e.g., fixtures,integration). Defaults: {','.join(DEFAULT_EXCLUDE_DIRS) if 'DEFAULT_EXCLUDE_DIRS' in locals() else 'fixtures,integration,snapshots,__pycache__'}",
+        help=f"Comma-separated list of directory names to exclude within tests dir (e.g., fixtures,integration). Defaults: {','.join(DEFAULT_EXCLUDE_DIRS) if 'DEFAULT_EXCLUDE_DIRS' in locals() else 'fixtures,integration,snapshots,__pycache__'}",  # noqa: E501, F821
     )
 
     args = parser.parse_args()

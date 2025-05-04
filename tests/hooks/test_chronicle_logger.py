@@ -1,9 +1,6 @@
-import threading
-from pathlib import Path
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch  # noqa: I001
 
 import pytest
-
 from dreamos.coordination.agent_bus import (  # Assuming EventType might be used
     BaseEvent,
     EventType,
@@ -52,7 +49,7 @@ def test_chronicle_logger_init(
     # Check if file was created with header (if it didn't exist)
     # mock_file_open.assert_called_with(chronicle_file, 'w', encoding='utf-8')
     # handle = mock_file_open()
-    # handle.write.assert_called_once_with("# Dreamscape Chronicle\n---\n\n") # Check header write
+    # handle.write.assert_called_once_with("# Dreamscape Chronicle\n---\n\n") # Check header write  # noqa: E501
     assert hook.chronicle_path == chronicle_file
     MockLock.assert_called_once()  # Check lock was created
     assert hook._lock == mock_lock_instance
@@ -120,7 +117,7 @@ def test_chronicle_logger_handle_event(
         chronicle_file, "a", encoding="utf-8"
     )  # Opened in append mode
     handle = mock_file_open()
-    # Check that write was called (content check is implicitly done by testing _format_entry)
+    # Check that write was called (content check is implicitly done by testing _format_entry)  # noqa: E501
     assert handle.write.call_count == 1
     # Check the content roughly
     written_content = handle.write.call_args[0][0]

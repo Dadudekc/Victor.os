@@ -1,12 +1,8 @@
-import asyncio
-from datetime import datetime, timezone
+import asyncio  # noqa: I001
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
-
 from dreamos.agents.utils.agent_utils import (
-    AgentError,
-    MessageHandlingError,
     TaskProcessingError,
     format_agent_report,
     handle_task_cancellation,
@@ -23,7 +19,6 @@ from dreamos.core.coordination.message_patterns import (
     TaskStatus,
 )
 from dreamos.core.utils.performance_logger import PerformanceLogger
-from dreamos.utils.common_utils import get_utc_iso_timestamp
 
 # --- Test format_agent_report (Synchronous) ---
 
@@ -126,7 +121,7 @@ async def test_with_performance_tracking_success():
     assert result == "Tracked: data"
 
     mock_perf_logger.track_operation.assert_called_once_with("test_operation")
-    # Check that the context manager's __aenter__ and __aexit__ were called (MagicMock tracks this)
+    # Check that the context manager's __aenter__ and __aexit__ were called (MagicMock tracks this)  # noqa: E501
     mock_context.__aenter__.assert_called_once()
     mock_context.__aexit__.assert_called_once()
 
@@ -150,7 +145,7 @@ async def test_with_performance_tracking_no_logger():
 
     result_bad = await tracked_func(mock_agent_bad_logger, "data2")
     assert result_bad == f"Tracked: {mock_agent_bad_logger.agent_id} data2"
-    # We expect warnings to be logged by the decorator itself, but difficult to assert here without capturing logs
+    # We expect warnings to be logged by the decorator itself, but difficult to assert here without capturing logs  # noqa: E501
 
 
 # --- Test publish_task_update ---

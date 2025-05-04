@@ -23,7 +23,6 @@ except ImportError as e:
     module_load_error, f"Skipping tests due to module load error: {module_load_error}"
 )
 class TestGovernanceMemoryEngine(unittest.TestCase):
-
     def setUp(self):
         """Set up a temporary directory and override the log file path for tests."""
         self.test_dir = tempfile.mkdtemp()
@@ -101,7 +100,7 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
     def test_log_event_error_handling(self):
         """Test error handling (e.g., if the log file is not writable)."""
         # Make the file non-writable (difficult to do reliably cross-platform)
-        # Instead, we can simulate an error by temporarily setting path to an invalid location
+        # Instead, we can simulate an error by temporarily setting path to an invalid location  # noqa: E501
         invalid_path = os.path.join(self.test_dir, "non_existent_dir", "log.jsonl")
         governance_memory_engine.GOVERNANCE_LOG_FILE = invalid_path
 
@@ -115,7 +114,7 @@ class TestGovernanceMemoryEngine(unittest.TestCase):
 if __name__ == "__main__":
     if module_load_error:
         print(
-            f"\nCannot run tests: Failed to import governance_memory_engine module from dreamos."
+            "\nCannot run tests: Failed to import governance_memory_engine module from dreamos."  # noqa: E501
         )
         print(f"Error: {module_load_error}")
     else:

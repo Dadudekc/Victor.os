@@ -36,7 +36,7 @@ class TemplateEngine:
         Raises:
             jinja2.TemplateError: If there is an error during template parsing or rendering.
             Exception: For other unexpected errors.
-        """
+        """  # noqa: E501
         if not isinstance(template_string, str):
             logger.error("Template must be a string.")
             raise TypeError("Template must be a string.")
@@ -45,7 +45,7 @@ class TemplateEngine:
             template = self.env.from_string(template_string)
             rendered_output = template.render(context)
             logger.debug(
-                f"Successfully rendered template string. Output length: {len(rendered_output)}"
+                f"Successfully rendered template string. Output length: {len(rendered_output)}"  # noqa: E501
             )
             return rendered_output
         except jinja2.TemplateError as e:

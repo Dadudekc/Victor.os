@@ -2,17 +2,17 @@
 import argparse
 import json
 import logging
+import math
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
-import math
 
 try:
     import pyautogui
     import pyperclip
 except ImportError:
     print(
-        "ERROR: pyautogui and pyperclip are required. Install with `pip install pyautogui pyperclip`"
+        "ERROR: pyautogui and pyperclip are required. Install with `pip install pyautogui pyperclip`"  # noqa: E501
     )
     exit(1)
 
@@ -21,7 +21,7 @@ try:
     from dreamos.core.bots.orchestrator_bot import OrchestratorBot
 except ImportError as e:
     raise ImportError(
-        "OrchestratorBot must be available for GUI validation. Please check your PYTHONPATH and dependencies."
+        "OrchestratorBot must be available for GUI validation. Please check your PYTHONPATH and dependencies."  # noqa: E501
     ) from e
 # EDIT END
 
@@ -41,7 +41,7 @@ TEST_PROMPT = "Ping from Dream.OS Validator"
 RESPONSE_WAIT_SECONDS = 5  # Time to wait after injection before trying to copy response
 ACTION_DELAY = 0.5  # Small delay between pyautogui actions
 
-# EDIT: Instantiate OrchestratorBot (assuming no critical config needed for basic actions)
+# EDIT: Instantiate OrchestratorBot (assuming no critical config needed for basic actions)  # noqa: E501
 # For a real scenario, config might be needed and passed via args or loaded
 try:
     bot = OrchestratorBot(
@@ -78,7 +78,7 @@ def find_and_activate_window(window_title: str):
         window = target_windows[0]
         if not window.isActive:
             logging.warning(
-                f"Target window '{window_title}' found but not active. Attempting to activate."
+                f"Target window '{window_title}' found but not active. Attempting to activate."  # noqa: E501
             )
             try:
                 window.activate()
@@ -117,7 +117,7 @@ def inject_test_prompt(
             return False
     else:
         logging.warning(
-            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."
+            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."  # noqa: E501
         )
 
     try:
@@ -151,7 +151,7 @@ def retrieve_response(
     element = "copy_button"
     if element not in coords:
         logging.error(
-            f"Missing '{element}' coordinates for agent '{agent_id}'. Cannot retrieve response."
+            f"Missing '{element}' coordinates for agent '{agent_id}'. Cannot retrieve response."  # noqa: E501
         )
         return None
 
@@ -165,7 +165,7 @@ def retrieve_response(
             return None
     else:
         logging.warning(
-            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."
+            f"[{agent_id}] Bypassing window activation check due to --force-unsafe-clicks flag."  # noqa: E501
         )
 
     original_clipboard = ""
@@ -224,18 +224,22 @@ def save_results(filepath: Path, results: Dict[str, Optional[str]]):
 def _validate_coordinates(coords_data: Dict[str, Any], results: Dict[str, Any]):
     for name, data in coords_data.items():
         if not isinstance(data, dict) or "x" not in data or "y" not in data:
-            results["errors"][name] = f"Invalid structure, missing 'x' or 'y'. Data: {data}"
+            results["errors"][name] = (
+                f"Invalid structure, missing 'x' or 'y'. Data: {data}"
+            )
             continue
         x, y = data["x"], data["y"]
         if not isinstance(x, int) or not isinstance(y, int):
-            results["errors"][name] = f"Invalid types, 'x' or 'y' not integers. Got: ({type(x)}, {type(y)})"
+            results["errors"][name] = (
+                f"Invalid types, 'x' or 'y' not integers. Got: ({type(x)}, {type(y)})"
+            )
             continue
         # Check if coordinates are within screen bounds (optional but recommended)
         try:
             screen_width, screen_height = pyautogui.size()
             if not (0 <= x < screen_width and 0 <= y < screen_height):
                 results["warnings"].append(
-                    f"Coordinate '{name}' ({x},{y}) is outside screen bounds ({screen_width}x{screen_height})."
+                    f"Coordinate '{name}' ({x},{y}) is outside screen bounds ({screen_width}x{screen_height})."  # noqa: E501
                 )
         except Exception as e:
             # Handle cases where screen size cannot be obtained (headless env?)
@@ -247,26 +251,32 @@ def _validate_coordinates(coords_data: Dict[str, Any], results: Dict[str, Any]):
 def _check_coordinate_overlap(coords_data: Dict[str, Any], results: Dict[str, Any]):
     for name1, coord1 in coords_data.items():
         for name2, coord2 in coords_data.items():
-            if name1 >= name2: # Avoid self-comparison and duplicates
+            if name1 >= name2:  # Avoid self-comparison and duplicates
                 continue
-            distance = math.sqrt((coord1["x"] - coord2["x"])**2 + (coord1["y"] - coord2["y"])**2)
+            distance = math.sqrt(
+                (coord1["x"] - coord2["x"]) ** 2 + (coord1["y"] - coord2["y"]) ** 2
+            )
             if distance < 10:
                 results["warnings"].append(
-                    f"Coordinates '{name1}' ({coord1['x']},{coord1['y']}) and '{name2}' ({coord2['x']},{coord2['y']}) are very close (distance: {distance:.2f} < 10). Potential overlap?"
+                    f"Coordinates '{name1}' ({coord1['x']},{coord1['y']}) and '{name2}' ({coord2['x']},{coord2['y']}) are very close (distance: {distance:.2f} < 10). Potential overlap?"  # noqa: E501
                 )
 
 
 def _check_accessibility(coords_data: Dict[str, Any], results: Dict[str, Any]):
     # This requires integration with accessibility tools or more advanced UI inspection
-    logger.info("Accessibility checks require manual verification or specific OS tools.")
-    results["info"].append("Accessibility check skipped (requires manual verification).")
+    logger.info(  # noqa: F821
+        "Accessibility checks require manual verification or specific OS tools."
+    )
+    results["info"].append(
+        "Accessibility check skipped (requires manual verification)."
+    )
     # Example placeholder for future:
     # for name, data in coords_data.items():
     #     x, y = data['x'], data['y']
     #     try:
     #         element = accessibility_tool.get_element_at(x, y)
     #         if not element or not element.is_clickable():
-    #             results["warnings"].append(f"Element at '{name}' ({x},{y}) might not be accessible/clickable.")
+    #             results["warnings"].append(f"Element at '{name}' ({x},{y}) might not be accessible/clickable.")  # noqa: E501
     #     except Exception as e:
     #         results["errors"][name] = f"Accessibility check failed: {e}"
 
@@ -276,22 +286,18 @@ def _check_for_duplicates(coords_data: Dict[str, Any], results: Dict[str, Any]):
     for name, data in coords_data.items():
         # Ensure data is valid before checking
         if name in results["errors"]:
-             continue
+            continue
         coord_tuple = (data["x"], data["y"])
         if coord_tuple in seen_coords:
             results["errors"].setdefault("duplicate_coordinates", []).append(
-                f"Duplicate coordinate value ({coord_tuple[0]},{coord_tuple[1]}) found for '{name}' and '{seen_coords[coord_tuple]}'."
+                f"Duplicate coordinate value ({coord_tuple[0]},{coord_tuple[1]}) found for '{name}' and '{seen_coords[coord_tuple]}'."  # noqa: E501
             )
         else:
             seen_coords[coord_tuple] = name
 
 
 def validate_gui_coordinates(coords_file: str, min_distance: float) -> Dict[str, Any]:
-    results = {
-        "errors": {},
-        "warnings": [],
-        "info": []
-    }
+    results = {"errors": {}, "warnings": [], "info": []}
 
     coords_data = load_coords(Path(coords_file))
     if coords_data is None:
@@ -301,14 +307,14 @@ def validate_gui_coordinates(coords_file: str, min_distance: float) -> Dict[str,
     _validate_coordinates(coords_data, results)
     _check_coordinate_overlap(coords_data, results)
     _check_for_duplicates(coords_data, results)
-    _check_accessibility(coords_data, results) # Basic placeholder
+    _check_accessibility(coords_data, results)  # Basic placeholder
 
     return results
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Validate GUI coordinates by injecting a test prompt and retrieving the response."
+        description="Validate GUI coordinates by injecting a test prompt and retrieving the response."  # noqa: E501
     )
     parser.add_argument(
         "agent_ids",
@@ -316,7 +322,7 @@ def main():
     )
     parser.add_argument(
         "target_window_title",
-        help="Exact title of the target Cursor window(s). Used unless --force-unsafe-clicks is set.",
+        help="Exact title of the target Cursor window(s). Used unless --force-unsafe-clicks is set.",  # noqa: E501
     )
     parser.add_argument(
         "--coords_file",
@@ -326,13 +332,13 @@ def main():
     parser.add_argument(
         "--output_file",
         default=str(DEFAULT_OUTPUT_PATH),
-        help=f"Path to save the validation results JSON (default: {DEFAULT_OUTPUT_PATH})",
+        help=f"Path to save the validation results JSON (default: {DEFAULT_OUTPUT_PATH})",  # noqa: E501
     )
     parser.add_argument(
         "--wait",
         type=int,
         default=RESPONSE_WAIT_SECONDS,
-        help=f"Seconds to wait for response after injection (default: {RESPONSE_WAIT_SECONDS})",
+        help=f"Seconds to wait for response after injection (default: {RESPONSE_WAIT_SECONDS})",  # noqa: E501
     )
     parser.add_argument(
         "--force-unsafe-clicks",
@@ -349,7 +355,7 @@ def main():
         "-o",
         "--output",
         default=str(DEFAULT_OUTPUT_PATH),
-        help=f"Path to save the validation results JSON file. Default: {DEFAULT_OUTPUT_PATH}",
+        help=f"Path to save the validation results JSON file. Default: {DEFAULT_OUTPUT_PATH}",  # noqa: E501
     )
 
     args = parser.parse_args()
@@ -372,7 +378,7 @@ def main():
     print(f"Validating Agents: {', '.join(agent_ids_list)}")
     if force_unsafe:
         print(
-            "WARNING: Running with --force-unsafe-clicks. Window activation checks bypassed!"
+            "WARNING: Running with --force-unsafe-clicks. Window activation checks bypassed!"  # noqa: E501
         )
     else:
         print(f"Target Window Title: '{window_title}'")

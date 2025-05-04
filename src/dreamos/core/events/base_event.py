@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -34,7 +34,7 @@ class BaseDreamEvent(BaseModel):
     )
     source_id: str = Field(
         ...,
-        description="Identifier of the agent or system component that originated the event.",
+        description="Identifier of the agent or system component that originated the event.",  # noqa: E501
     )
     event_type: EventType = Field(..., description="The canonical type of the event.")
     data: Dict[str, Any] = Field(
@@ -42,7 +42,7 @@ class BaseDreamEvent(BaseModel):
     )
     correlation_id: Optional[str] = Field(
         None,
-        description="Optional identifier to correlate related events, like request/response pairs.",
+        description="Optional identifier to correlate related events, like request/response pairs.",  # noqa: E501
     )
 
     class Config:

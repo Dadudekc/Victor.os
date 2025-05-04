@@ -1,16 +1,15 @@
-import asyncio
+import asyncio  # noqa: I001
 import logging
 import os
-import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
+from dreamos.core.errors import DreamOSError
+
 # import filelock # F401 unused
 from filelock import FileLock as ExternalFileLock
 from filelock import Timeout
-
-from dreamos.core.errors import DreamOSError
 
 logger = logging.getLogger(__name__)
 

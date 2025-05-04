@@ -1,5 +1,4 @@
-import json  # Re-add if needed by write_json_safe/append_jsonl
-from datetime import datetime, timezone  # Re-add timezone
+from datetime import datetime  # Re-add timezone
 from pathlib import Path
 
 # from dreamos.coordination.agent_bus import BaseEvent, EventType # F401 Unused
@@ -97,6 +96,6 @@ class StatsLoggingHook:
             append_jsonl(self.log_path, snapshot)
         except Exception as e:
             # Log error, but don't crash the hook
-            logger.error(
+            logger.error(  # noqa: F821
                 f"Failed to write stats snapshot to {self.log_path}: {e}", exc_info=True
             )

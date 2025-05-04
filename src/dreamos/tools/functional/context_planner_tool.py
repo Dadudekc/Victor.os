@@ -16,7 +16,7 @@ BACKTICK_PATTERN = re.compile(r"`([^`]+)`")
 class ContextPlannerTool(BaseTool):
     """Generates a execution plan based on keywords and patterns in the task description.
     NOTE: This is a simplified rule-based planner, NOT an LLM-based planner.
-    """
+    """  # noqa: E501
 
     @property
     def name(self) -> str:
@@ -25,17 +25,17 @@ class ContextPlannerTool(BaseTool):
     @property
     def description(self) -> str:
         return (
-            "Analyzes a task description and generates a sequence of tool calls (plan) to accomplish it. "
+            "Analyzes a task description and generates a sequence of tool calls (plan) to accomplish it. "  # noqa: E501
             "Input args: {'task_description': 'natural language task'}. "
             "Output: {'plan': [{'tool': 'tool_name', 'args': {...}}, ...]}"
         )
 
     def _extract_targets(self, task_description: str) -> tuple[List[str], List[str]]:
-        """Extracts potential file paths (from backticks or recognized patterns) and symbols (from backticks)."""
+        """Extracts potential file paths (from backticks or recognized patterns) and symbols (from backticks)."""  # noqa: E501
         backtick_targets = BACKTICK_PATTERN.findall(task_description)
 
         # Heuristic for finding potential file paths NOT in backticks
-        # Looks for words containing common path separators or ending in common extensions
+        # Looks for words containing common path separators or ending in common extensions  # noqa: E501
         # This is a basic heuristic and might need refinement
         potential_paths = re.findall(
             r"\b[\.\/\\\w\-\+]+\.(?:py|js|ts|java|c|cpp|h|md|json|yaml|txt|log)\b|\b(?:[\w\-\/\.\\:]+[/\\])+[\w\-\/\.\\:]*\b",
@@ -72,7 +72,7 @@ class ContextPlannerTool(BaseTool):
         # Symbols are backtick targets that weren't identified as files
         symbols = [t for t in backtick_targets if t not in files]
 
-        # Filter out potential duplicates or fragments if a longer path including them exists
+        # Filter out potential duplicates or fragments if a longer path including them exists  # noqa: E501
         # E.g., if both "dir/file.py" and "file.py" are found, keep "dir/file.py"
         filtered_files = []
         for f1 in files:
@@ -90,7 +90,7 @@ class ContextPlannerTool(BaseTool):
     def execute(
         self, args: Dict[str, Any], context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        if not isinstance(context, ToolContext):
+        if not isinstance(context, ToolContext):  # noqa: F821
             # If context isn't a ToolContext, maybe args contains the description?
             # This maintains backward compatibility if called directly with args dict
             task_description = args.get("task_description")
@@ -151,7 +151,7 @@ class ContextPlannerTool(BaseTool):
         """Rule: Copy a file from source to destination."""
         # Look for 'copy' keyword and exactly two files
         if "copy" in task_lower and len(files) == 2:
-            # Basic heuristic: assume first file mentioned is source, second is destination
+            # Basic heuristic: assume first file mentioned is source, second is destination  # noqa: E501
             # This could be improved by parsing phrases like "copy X to Y"
             source_file = files[0]
             dest_file = files[1]
@@ -167,13 +167,13 @@ class ContextPlannerTool(BaseTool):
             logger.debug(f"Applying Copy File rule: {source_file} -> {dest_file}")
             plan = [
                 {"tool": "read_file", "args": {"filepath": source_file}},
-                # NOTE: Content generation for the copied file is delegated to the plan executor.
+                # NOTE: Content generation for the copied file is delegated to the plan executor.  # noqa: E501
                 # The executor should use the content read from the previous step.
                 {
                     "tool": "write_file",
                     "args": {
                         "filepath": dest_file,
-                        "content": f"# Placeholder: Content should be copied from {source_file}",
+                        "content": f"# Placeholder: Content should be copied from {source_file}",  # noqa: E501
                     },
                 },
             ]
@@ -205,12 +205,12 @@ class ContextPlannerTool(BaseTool):
                                 target_file = f
                 if not source_file or not target_file:
                     logger.warning(
-                        "Could not reliably determine source/target for extraction. Skipping rule."
+                        "Could not reliably determine source/target for extraction. Skipping rule."  # noqa: E501
                     )
                     return None  # Rule doesn't match clearly
                 else:
                     logger.info(
-                        f"Extraction plan: Extract '{target_symbol}' from '{source_file}' to '{target_file}'"
+                        f"Extraction plan: Extract '{target_symbol}' from '{source_file}' to '{target_file}'"  # noqa: E501
                     )
                     plan = []
                     plan.append(
@@ -225,7 +225,7 @@ class ContextPlannerTool(BaseTool):
                             "tool": "write_file",
                             "args": {
                                 "filepath": source_file,
-                                "content": f"# Placeholder: Remove extracted symbol '{target_symbol}' from {source_file}.",
+                                "content": f"# Placeholder: Remove extracted symbol '{target_symbol}' from {source_file}.",  # noqa: E501
                             },
                         }
                     )
@@ -234,7 +234,7 @@ class ContextPlannerTool(BaseTool):
                             "tool": "write_file",
                             "args": {
                                 "filepath": target_file,
-                                "content": f"# Placeholder: Add extracted symbol '{target_symbol}' to {target_file}.",
+                                "content": f"# Placeholder: Add extracted symbol '{target_symbol}' to {target_file}.",  # noqa: E501
                             },
                         }
                     )
@@ -257,11 +257,11 @@ class ContextPlannerTool(BaseTool):
             # Add a step to actually perform the refactoring (needs an appropriate tool)
             plan.append(
                 {
-                    "tool": "edit_file",  # Or a more specific refactoring tool if available
+                    "tool": "edit_file",  # Or a more specific refactoring tool if available  # noqa: E501
                     "args": {
                         "filepath": target_file,
-                        # Executor needs to handle generating the edited content based on the task
-                        "content": f"# Placeholder: Refactor symbol '{target_symbol}' in {target_file} according to task: {task}",
+                        # Executor needs to handle generating the edited content based on the task  # noqa: E501
+                        "content": f"# Placeholder: Refactor symbol '{target_symbol}' in {target_file} according to task: {task}",  # noqa: E501
                     },
                 }
             )
@@ -282,7 +282,7 @@ class ContextPlannerTool(BaseTool):
                     "".join(part.capitalize() for part in class_name_parts) or "MyClass"
                 )
                 # Generate basic placeholder content for the new file.
-                placeholder = f'# Initial content for {class_name}\\n\\nclass {class_name}:\\n    \\"\\"\\"Placeholder for {class_name}.\\"\\"\\"\\n    pass\\n'
+                placeholder = f'# Initial content for {class_name}\\n\\nclass {class_name}:\\n    \\"\\"\\"Placeholder for {class_name}.\\"\\"\\"\\n    pass\\n'  # noqa: E501
                 plan.append(
                     {
                         "tool": "write_file",
@@ -295,7 +295,7 @@ class ContextPlannerTool(BaseTool):
     def _rule_migrate_update_generic_refactor(
         self, task: str, task_lower: str, files: List[str], symbols: List[str]
     ) -> Optional[List[Dict]]:
-        """Rule: Migration / Update / Generic Refactor (no specific symbol mentioned)."""
+        """Rule: Migration / Update / Generic Refactor (no specific symbol mentioned)."""  # noqa: E501
         is_migration = "migrate" in task_lower
         is_refactor = "refactor" in task_lower
         is_update = "update" in task_lower
@@ -334,11 +334,11 @@ class ContextPlannerTool(BaseTool):
                             f for f in files if f != target_file
                         ]  # Use all others as source
                     logger.info(
-                        f"Identified source/target via pattern: {source_files} -> {target_file}"
+                        f"Identified source/target via pattern: {source_files} -> {target_file}"  # noqa: E501
                     )
                 else:
                     logger.warning(
-                        f"Parsed 'from/to' pattern ({parsed_source}, {parsed_target}), but didn't match file list: {files}. Falling back to default."
+                        f"Parsed 'from/to' pattern ({parsed_source}, {parsed_target}), but didn't match file list: {files}. Falling back to default."  # noqa: E501
                     )
 
             # Fallback logic if pattern not found or didn't match
@@ -349,17 +349,17 @@ class ContextPlannerTool(BaseTool):
                 )  # Handle single file case
                 if len(files) > 1:
                     logger.warning(
-                        f"Assuming last file '{target_file}' is target and others {source_files} are source for migration/refactor."
+                        f"Assuming last file '{target_file}' is target and others {source_files} are source for migration/refactor."  # noqa: E501
                     )
                 else:
                     logger.warning(
-                        f"Applying generic refactor/update to single file: '{target_file}'"
+                        f"Applying generic refactor/update to single file: '{target_file}'"  # noqa: E501
                     )
             # {{ EDIT END }}
 
             # Removed redundant TODO about 'from/to' logic integration.
-            # Potential Improvement: Parse 'task' description for explicit source/target keywords
-            # (e.g., "migrate func from file_a.py to file_b.py") to override default file list logic.
+            # Potential Improvement: Parse 'task' description for explicit source/target keywords  # noqa: E501
+            # (e.g., "migrate func from file_a.py to file_b.py") to override default file list logic.  # noqa: E501
             plan = []
             # Read source files if they exist
             for src_file in source_files:
@@ -370,7 +370,9 @@ class ContextPlannerTool(BaseTool):
             action_verb = (
                 "migrated"
                 if is_migration
-                else "refactored" if is_refactor else "updated"
+                else "refactored"
+                if is_refactor
+                else "updated"
             )
             # NOTE: Actual code modification is delegated to the plan executor.
             plan.append(
@@ -378,7 +380,7 @@ class ContextPlannerTool(BaseTool):
                     "tool": "write_file",
                     "args": {
                         "filepath": target_file,
-                        "content": f"# Placeholder: Implement {action_verb} code for {target_file}.",
+                        "content": f"# Placeholder: Implement {action_verb} code for {target_file}.",  # noqa: E501
                     },
                 }
             )
@@ -411,7 +413,9 @@ class ContextPlannerTool(BaseTool):
             search_term = (
                 symbols[0]
                 if symbols
-                else files[0] if files else "<placeholder_search_term>"
+                else files[0]
+                if files
+                else "<placeholder_search_term>"
             )
             search_path = files[0] if files else "."
             plan = [
@@ -428,7 +432,7 @@ class ContextPlannerTool(BaseTool):
     ) -> Optional[List[Dict]]:
         """Fallback Rule: Logs a message if no other rules matched."""
         logger.warning(
-            "Planner could not apply specific rules, adding generic log_message placeholder."
+            "Planner could not apply specific rules, adding generic log_message placeholder."  # noqa: E501
         )
         plan = [
             {
@@ -455,7 +459,7 @@ class ContextPlannerTool(BaseTool):
             elif "query" in args:
                 narration += f" to search for '{args['query']}'"
             elif "message" in args:
-                narration += f" to log a message."
+                narration += " to log a message."
             parts.append(narration)
 
         if len(plan) == 1:

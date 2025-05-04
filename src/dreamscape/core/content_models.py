@@ -56,7 +56,7 @@ class ContentDraft(BaseModel):
             "examples": [
                 {
                     "title": "Exploring AgentBus Integration with Dreamscape",
-                    "body": "## Introduction: Why connect Dreamscape?\n\n[Placeholder content...]\n\n## AgentBus Basics Recap\n\n[Placeholder content...]",
+                    "body": "## Introduction: Why connect Dreamscape?\n\n[Placeholder content...]\n\n## AgentBus Basics Recap\n\n[Placeholder content...]",  # noqa: E501
                     "plan": {
                         "topic": "Integrating AgentBus with Dreamscape",
                         "outline": ["Introduction...", "AgentBus Basics..."],

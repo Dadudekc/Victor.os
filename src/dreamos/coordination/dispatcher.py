@@ -1,6 +1,3 @@
-from enum import Enum, auto
-
-
 class Event:
     # Minimal Event class stub for imports
     def __init__(self, type, data, source_id):

@@ -56,7 +56,7 @@ async def test_retrieve(orchestrator: CursorOrchestrator, agent_id: str):
     response = await orchestrator.retrieve_response(agent_id)
     if response is not None:
         logger.info(
-            f"[SUCCESS] retrieve_response for {agent_id} returned (length {len(response)}): {response[:100]}..."
+            f"[SUCCESS] retrieve_response for {agent_id} returned (length {len(response)}): {response[:100]}..."  # noqa: E501
         )
     else:
         logger.error(
@@ -113,7 +113,7 @@ async def main(args):
         await test_health_check(orchestrator, target_agent)
 
     if args.action == "all" or args.action == "inject":
-        prompt = args.prompt or f"Test prompt for {target_agent} at {time.time()}"
+        prompt = args.prompt or f"Test prompt for {target_agent} at {time.time()}"  # noqa: F821
         await test_inject(orchestrator, target_agent, prompt)
 
     if args.action == "all" or args.action == "retrieve":
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--prompt",
-        help="The prompt text to inject (required for 'inject' action if not using 'all'). Default is a test message.",
+        help="The prompt text to inject (required for 'inject' action if not using 'all'). Default is a test message.",  # noqa: E501
     )
 
     # Add check for prompt if action is inject
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     if temp_args.action == "inject" and not temp_args.prompt:
         # Generate default prompt if not provided for inject action
         pass  # Default prompt is now handled in main()
-        # parser.error("The --prompt argument is required when action is 'inject' (and not 'all')")
+        # parser.error("The --prompt argument is required when action is 'inject' (and not 'all')")  # noqa: E501
 
     args = parser.parse_args()
 

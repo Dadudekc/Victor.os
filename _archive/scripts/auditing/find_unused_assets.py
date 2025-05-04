@@ -23,7 +23,7 @@ def main():
             asset_usage_map = usage_data["asset_usage"]
             if not isinstance(asset_usage_map, dict):
                 logging.error(
-                    f"Invalid format in {ASSET_USAGE_FILE}. 'asset_usage' is not a dictionary."
+                    f"Invalid format in {ASSET_USAGE_FILE}. 'asset_usage' is not a dictionary."  # noqa: E501
                 )
                 return
 
@@ -37,7 +37,7 @@ def main():
         logging.error(f"Error reading asset usage file {ASSET_USAGE_FILE}: {e}")
         return
 
-    logging.info(f"Identifying assets with zero usage count...")
+    logging.info("Identifying assets with zero usage count...")
     unused_assets = []
     for asset_path, count in asset_usage_map.items():
         if count == 0:

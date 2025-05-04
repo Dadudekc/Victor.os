@@ -7,8 +7,8 @@ class AgentStatus(Enum):
     UNKNOWN = "UNKNOWN"  # Status hasn't been determined yet
     STARTING = "STARTING"  # Agent is initializing
     IDLE = "IDLE"  # Agent is initialized and waiting for tasks
-    BUSY = "BUSY"  # Agent is actively working on a task (can be refined later, e.g., WORKING, THINKING)
-    BLOCKED = "BLOCKED"  # Agent is unable to proceed (e.g., waiting for external resource, dependency)
+    BUSY = "BUSY"  # Agent is actively working on a task (can be refined later, e.g., WORKING, THINKING)  # noqa: E501
+    BLOCKED = "BLOCKED"  # Agent is unable to proceed (e.g., waiting for external resource, dependency)  # noqa: E501
     ERROR = "ERROR"  # Agent encountered an unrecoverable error
     STOPPING = "STOPPING"  # Agent is shutting down gracefully
     SHUTDOWN_READY = (

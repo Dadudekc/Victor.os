@@ -5,14 +5,11 @@ import json
 import logging  # Import logging
 import shutil
 import sys  # Added for sys.modules check
-import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional  # Added type hinting
 
 from dreamos.core.comms.mailbox_utils import write_mailbox_message
-from dreamos.core.errors import ConfigurationError
-from dreamos.utils.common_utils import get_utc_iso_timestamp, load_json_file
 
 # Attempt to import BaseAgent - Path needs verification
 try:
@@ -44,7 +41,7 @@ try:
     from dreamos.agents.utils.agent_utils import write_mailbox_message
 except ImportError:
     logging.warning(
-        "[TheaRelayAgent WARNING] Could not import write_mailbox_message. Using dummy implementation."
+        "[TheaRelayAgent WARNING] Could not import write_mailbox_message. Using dummy implementation."  # noqa: E501
     )
 
     def write_mailbox_message(path: Path, content: Dict[str, Any]):
@@ -134,7 +131,7 @@ class TheaRelayAgent(BaseAgent):
             or not agent_id.startswith("Agent-")
         ):
             self.log.warning(
-                f"Invalid recipient_agent_id format: '{agent_id}'. Expected 'Agent-X'. Skipping."
+                f"Invalid recipient_agent_id format: '{agent_id}'. Expected 'Agent-X'. Skipping."  # noqa: E501
             )
             return None
         # Ensure target agent mailbox exists
@@ -235,14 +232,14 @@ class TheaRelayAgent(BaseAgent):
             else:
                 # Invalid response content, move to error directory
                 self.log.warning(
-                    f"Invalid response content in {file.name}. Moving to error directory."
+                    f"Invalid response content in {file.name}. Moving to error directory."  # noqa: E501
                 )
                 self._move_file(file, self.error_dir)
                 error_count += 1
 
         if files_found > 0:
             self.log.info(
-                f"Processing cycle complete. Processed: {processed_count}, Errors/Skipped: {error_count}."
+                f"Processing cycle complete. Processed: {processed_count}, Errors/Skipped: {error_count}."  # noqa: E501
             )
 
     # This run method assumes BaseAgent uses asyncio
@@ -270,14 +267,14 @@ class TheaRelayAgent(BaseAgent):
 # This won't work correctly without the full agent runner infrastructure
 if __name__ == "__main__":
     print(
-        "Attempting basic execution of TheaRelayAgent (for testing purposes only - single pass)."
+        "Attempting basic execution of TheaRelayAgent (for testing purposes only - single pass)."  # noqa: E501
     )
     logging.basicConfig(level=logging.INFO)  # Setup basic logging for standalone test
 
     # Check if a dummy BaseAgent is being used
     if "dreamos.core.coordination.base_agent" not in sys.modules:
         print(
-            "WARNING: Running with Dummy BaseAgent. Real agent execution environment required."
+            "WARNING: Running with Dummy BaseAgent. Real agent execution environment required."  # noqa: E501
         )
 
     agent = TheaRelayAgent()

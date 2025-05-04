@@ -8,8 +8,8 @@ logging.basicConfig(
 
 IMPORT_GRAPH_FILE = Path("import-graph.json")
 OUTPUT_FILE = Path("orphaned-files.json")
-# Consider common entry points or implicitly used files that shouldn't be marked orphaned
-# e.g., main scripts, config files, __init__.py often imported implicitly or run directly
+# Consider common entry points or implicitly used files that shouldn't be marked orphaned  # noqa: E501
+# e.g., main scripts, config files, __init__.py often imported implicitly or run directly  # noqa: E501
 KNOWN_ENTRY_POINTS_OR_USED = {
     "src/__main__.py",  # Example potential entry point
     "src/main.py",
@@ -36,11 +36,11 @@ def find_orphaned_modules(graph_path: Path) -> list[str]:
         return []
 
     defined_modules = set(import_graph.keys())
-    imported_modules_flat = set()
+    imported_modules_flat = set()  # noqa: F841
 
     # Map imported top-level names back to potential file paths within src/
     # This requires understanding the project structure & sys.path potentially
-    # Simplistic approach: Check if an import name matches the start of a defined module path
+    # Simplistic approach: Check if an import name matches the start of a defined module path  # noqa: E501
     # e.g., import 'dreamos' might refer to files in 'src/dreamos/...'
 
     # Collect all unique top-level import names mentioned
@@ -64,7 +64,7 @@ def find_orphaned_modules(graph_path: Path) -> list[str]:
                 potentially_imported_project_modules.add(defined_module)
             # Could add more checks (e.g., relative imports based on graph keys)
 
-    # Alternative: A simpler check might be needed if the graph only contains stdlib/external imports
+    # Alternative: A simpler check might be needed if the graph only contains stdlib/external imports  # noqa: E501
     # Let's check how many project files are actually listed in the values
     imported_in_graph_values = set()
     module_stems = {
@@ -74,7 +74,7 @@ def find_orphaned_modules(graph_path: Path) -> list[str]:
 
     for module, imports_list in import_graph.items():
         # Determine the package context of the importing module
-        # package_context = module.replace('src/', '').rsplit('/', 1)[0].replace('/', '.') if '/' in module else ''
+        # package_context = module.replace('src/', '').rsplit('/', 1)[0].replace('/', '.') if '/' in module else ''  # noqa: E501
 
         for imp_name in imports_list:
             # Try to resolve imp_name relative to known modules
@@ -94,7 +94,7 @@ def find_orphaned_modules(graph_path: Path) -> list[str]:
                 ]
                 if matched_defined:
                     imported_in_graph_values.add(matched_defined[0])
-            # Also consider package imports (importing a directory implicitly imports __init__.py)
+            # Also consider package imports (importing a directory implicitly imports __init__.py)  # noqa: E501
             possible_init_path = (
                 f"src/{possible_module_path_stem.replace('.', '/')}/__init__.py"
             )
@@ -114,7 +114,7 @@ def find_orphaned_modules(graph_path: Path) -> list[str]:
     orphaned = {o for o in orphaned if not o.endswith("__init__.py")}
 
     logging.info(
-        f"Found {len(orphaned)} potentially orphaned modules (excluding __init__.py and entry points)."
+        f"Found {len(orphaned)} potentially orphaned modules (excluding __init__.py and entry points)."  # noqa: E501
     )
 
     return sorted(list(orphaned))

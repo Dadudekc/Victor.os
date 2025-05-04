@@ -11,7 +11,6 @@ MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
 import argparse
 import json
 import logging
-import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -84,7 +83,7 @@ def parse_json_file(path: Path) -> list:
 
 
 def parse_md_file(path: Path) -> list:
-    """Parse a Markdown task list and return list of (description, file, line) tuples."""
+    """Parse a Markdown task list and return list of (description, file, line) tuples."""  # noqa: E501
     tasks = []
     # More flexible pattern for Markdown tasks (e.g., *, -, + checklists)
     pattern = re.compile(r"^\s*[*\-+]\s+\[.?\]\s*(.+)")
@@ -176,7 +175,7 @@ if __name__ == "__main__":
         "--exclude",
         action="append",
         default=[],
-        help="Directory or file name pattern to exclude (can be specified multiple times).",
+        help="Directory or file name pattern to exclude (can be specified multiple times).",  # noqa: E501
     )
     args = parser.parse_args()
     exclude_list = args.exclude + DEFAULT_EXCLUDE_PATTERNS

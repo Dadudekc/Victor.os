@@ -9,14 +9,7 @@ from datetime import datetime
 from dreamos.chat_engine.chat_scraper_service import ChatScraperService
 from dreamos.chat_engine.discord_dispatcher import DiscordDispatcher
 from dreamos.chat_engine.prompt_execution_service import PromptExecutionService
-from dreamos.core.bus_utils import BusError, EventType, Message
-from dreamos.core.coordination.base_agent import BaseAgent
-from dreamos.core.coordination.message_patterns import (
-    create_event_message,
-    create_task_message,
-)
 from dreamos.feedback.feedback_engine import FeedbackEngine
-from dreamos.services.utils.chatgpt_scraper import ChatGPTScraper, ChatInteraction
 
 try:
     from chat_mate_config import Config
@@ -131,7 +124,7 @@ class ChatCycleController:
     def process_chat(self, chat):
         """
         Executes prompts on a single chat, processes responses, updates memory, and dispatches feedback.
-        """
+        """  # noqa: E501
         chat_title = chat.get("title", "Untitled")
         chat_link = chat.get("link")
 
@@ -281,7 +274,7 @@ class ChatCycleController:
         )
         os.makedirs(prompt_dir, exist_ok=True)
 
-        filename = f"{sanitize_filename(chat_title)}_{sanitize_filename(prompt_name)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        filename = f"{sanitize_filename(chat_title)}_{sanitize_filename(prompt_name)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"  # noqa: E501
         file_path = os.path.join(prompt_dir, filename)
 
         try:

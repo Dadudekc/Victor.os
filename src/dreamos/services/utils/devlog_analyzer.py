@@ -92,7 +92,7 @@ class DevLogAnalyzer:
                     """
                     INSERT INTO posts (id, platform, post_type, content, publish_time, tags, url)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
+                    """,  # noqa: E501
                     (
                         post_id,
                         platform,

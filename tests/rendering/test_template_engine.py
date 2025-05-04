@@ -9,12 +9,11 @@ sys.path.insert(0, project_root)
 
 # Import from core module
 try:
-    from jinja2 import Environment, FileSystemLoader
-
     # Attempt to import necessary components for re-initialization if needed
-    from dreamos.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR
+    from dreamos.template_engine import TEMPLATE_DIR as ENGINE_TEMPLATE_DIR  # noqa: I001, F401
     from dreamos.template_engine import env as engine_env
     from dreamos.template_engine import render_template
+    from jinja2 import Environment, FileSystemLoader  # noqa: F401
 
     module_load_error = None
 except ImportError as e:
@@ -33,7 +32,6 @@ TEST_TEMPLATE_DIR = os.path.join(TESTS_DIR, "test_templates")
     module_load_error, f"Skipping tests due to module load error: {module_load_error}"
 )
 class TestTemplateEngine(unittest.TestCase):
-
     original_loader = None
     original_filters = None
 
@@ -58,7 +56,7 @@ class TestTemplateEngine(unittest.TestCase):
             )
         else:
             print(
-                "WARNING: Engine environment not found, tests might rely on default setup or fail."
+                "WARNING: Engine environment not found, tests might rely on default setup or fail."  # noqa: E501
             )
 
     @classmethod
@@ -104,7 +102,7 @@ class TestTemplateEngine(unittest.TestCase):
         )
 
     def test_render_with_missing_variable(self):
-        """Test rendering when a variable used in the template is missing from context."""
+        """Test rendering when a variable used in the template is missing from context."""  # noqa: E501
         # Jinja2 default behavior is to render missing variables as empty strings
         context = {"name": "OnlyName"}
         expected = "Hello OnlyName! Value: "  # data.value becomes empty string
@@ -115,7 +113,7 @@ class TestTemplateEngine(unittest.TestCase):
 if __name__ == "__main__":
     if module_load_error:
         print(
-            f"\nCannot run tests: Failed to import template_engine module from dreamos."
+            "\nCannot run tests: Failed to import template_engine module from dreamos."
         )
         print(f"Error: {module_load_error}")
     else:

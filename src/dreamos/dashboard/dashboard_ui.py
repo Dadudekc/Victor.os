@@ -1,16 +1,13 @@
-import logging
+import logging  # noqa: I001
 import os
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont, QIcon
+from dreamos.coordination.agent_bus import AgentBus, EventType
+from dreamos.dashboard.models import AgentModel, MailboxModel, TaskModel
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (
-    QAction,
     QApplication,
-    QDialog,
-    QDialogButtonBox,
-    QFrame,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -18,19 +15,12 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QPushButton,
-    QScrollArea,
-    QSizePolicy,
-    QSpacerItem,
-    QSplitter,
     QTableView,
     QTabWidget,
     QTextEdit,
     QVBoxLayout,
     QWidget,
 )
-
-from dreamos.coordination.agent_bus import AgentBus, EventType
-from dreamos.dashboard.models import AgentModel, MailboxModel, TaskModel
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +58,7 @@ class Dashboard(QMainWindow):
         self.agent_table.setAlternatingRowColors(True)
         self.agent_table.setSelectionBehavior(QTableView.SelectRows)
         self.agent_table.setWordWrap(False)
-        # self.agent_table.horizontalHeader().setStretchLastSection(True) # Stretch last column
+        # self.agent_table.horizontalHeader().setStretchLastSection(True) # Stretch last column  # noqa: E501
         overview_layout.addWidget(QLabel("<b>Agent Status</b>"))
         overview_layout.addWidget(self.agent_table, 2)  # Give agent table more stretch
 
@@ -210,7 +200,7 @@ class Dashboard(QMainWindow):
             valid_agents_for_rate = 0
 
             for agent in agents:
-                # Define breach criteria (example: status is failure or low success metric)
+                # Define breach criteria (example: status is failure or low success metric)  # noqa: E501
                 is_breaching = (
                     agent.get("status", "").lower() == "failure"
                 )  # Simple example
@@ -221,7 +211,7 @@ class Dashboard(QMainWindow):
                 if is_breaching:
                     breaching_count += 1
 
-                # Calculate average success rate (requires a success metric in agent data)
+                # Calculate average success rate (requires a success metric in agent data)  # noqa: E501
                 success_rate = agent.get("success_rate")  # Example field
                 if success_rate is not None:
                     total_success_rate += success_rate

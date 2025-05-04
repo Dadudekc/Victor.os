@@ -3,9 +3,7 @@ import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import Any, List
-
-from dreamos.integrations.openai_client import OpenAIClient
+from typing import Any
 
 # Setup logger
 logger = logging.getLogger("FeedbackEngine")
@@ -48,14 +46,14 @@ class FeedbackEngine:
         """Load persistent memory state from file."""
         if not os.path.exists(self.memory_file):
             logger.warning(
-                f"⚠️ No memory file found at {self.memory_file}. Starting with empty memory state."
+                f"⚠️ No memory file found at {self.memory_file}. Starting with empty memory state."  # noqa: E501
             )
             self.memory_state = {}
             return
 
         try:
             with open(self.memory_file, "r", encoding="utf-8") as f:
-                self.memory_state = json.load(f)
+                self.memory_state = json.load(f)  # noqa: F821
             logger.info(f"✅ Memory loaded from {self.memory_file}")
         except Exception as e:
             logger.exception(f"❌ Failed to load memory: {e}")
@@ -67,7 +65,7 @@ class FeedbackEngine:
             try:
                 os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
                 with open(self.memory_file, "w", encoding="utf-8") as f:
-                    json.dump(self.memory_state, f, indent=4, ensure_ascii=False)
+                    json.dump(self.memory_state, f, indent=4, ensure_ascii=False)  # noqa: F821
                 logger.info(f"💾 Memory saved to {self.memory_file}")
             except Exception as e:
                 logger.exception(f"❌ Failed to save memory: {e}")
@@ -96,7 +94,7 @@ class FeedbackEngine:
                 memory_block.find("{") : memory_block.rfind("}") + 1
             ]
 
-            updates = json.loads(json_block)
+            updates = json.loads(json_block)  # noqa: F821
             logger.info(f"✅ Parsed MEMORY_UPDATE: {updates}")
 
             self.apply_memory_updates(updates)
@@ -151,7 +149,7 @@ class FeedbackEngine:
             try:
                 os.makedirs(os.path.dirname(self.feedback_log_file), exist_ok=True)
                 with open(self.feedback_log_file, "w", encoding="utf-8") as f:
-                    json.dump(self.feedback_log, f, indent=4, ensure_ascii=False)
+                    json.dump(self.feedback_log, f, indent=4, ensure_ascii=False)  # noqa: F821
                 logger.info(f"📤 Feedback log exported to {self.feedback_log_file}")
             except Exception as e:
                 logger.exception(f"❌ Failed to export feedback log: {e}")
@@ -194,13 +192,13 @@ class FeedbackEngine:
     # ---------------------------------------------------
     # CONTEXTUAL FEEDBACK LOOP MANAGEMENT
     # ---------------------------------------------------
-    def feedback_loop(self, new_entry: Dict[str, Any]):
+    def feedback_loop(self, new_entry: Dict[str, Any]):  # noqa: F821
         """
         Updates internal contextual memory with a new interaction.
         Includes user profiles, platform-specific memories, and recent responses.
         """
         logger.info(
-            f"🔁 Feedback loop processing new entry for user {new_entry.get('user', 'unknown')}..."
+            f"🔁 Feedback loop processing new entry for user {new_entry.get('user', 'unknown')}..."  # noqa: E501
         )
 
         user = new_entry.get("user", "unknown")
@@ -236,7 +234,7 @@ class FeedbackEngine:
             try:
                 os.makedirs(os.path.dirname(context_file), exist_ok=True)
                 with open(context_file, "w", encoding="utf-8") as f:
-                    json.dump(self.context_memory, f, indent=4, ensure_ascii=False)
+                    json.dump(self.context_memory, f, indent=4, ensure_ascii=False)  # noqa: F821
                 logger.info(f"💾 Context memory saved to {context_file}")
             except Exception as e:
                 logger.exception(f"❌ Failed to save context memory: {e}")

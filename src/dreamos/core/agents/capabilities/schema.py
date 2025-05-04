@@ -4,18 +4,18 @@
 in the centralized registry.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-# TODO: Consider standardizing on Pydantic models instead of @dataclass for consistency and validation.
+# TODO: Consider standardizing on Pydantic models instead of @dataclass for consistency and validation.  # noqa: E501
 
 # Type alias for flexibility, could be replaced by a more specific JSON Schema type
 JsonSchema = Dict[str, Any]
 
 
 class CapabilitySchema(BaseModel):
-    """Defines the expected input, output, and error data structures for a capability."""
+    """Defines the expected input, output, and error data structures for a capability."""  # noqa: E501
 
     input_schema: Optional[JsonSchema] = None
     output_schema: Optional[JsonSchema] = None
@@ -70,10 +70,10 @@ class CapabilityResourceRequirements(BaseModel):
 
 
 class AgentCapability(BaseModel):
-    """Represents a single capability offered by an agent, registered in the central registry."""
+    """Represents a single capability offered by an agent, registered in the central registry."""  # noqa: E501
 
     agent_id: str  # ID of the agent offering this capability
-    capability_id: str  # Unique identifier for this capability across the swarm (e.g., "code.python.format.black")
+    capability_id: str  # Unique identifier for this capability across the swarm (e.g., "code.python.format.black")  # noqa: E501
 
     # Nested structures for organization
     schema_definition: CapabilitySchema = Field(default_factory=CapabilitySchema)

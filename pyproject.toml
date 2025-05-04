@@ -94,12 +94,20 @@ build-backend = "poetry.core.masonry.api"
 [tool.mypy]
 ignore_missing_imports = true
 
+# {{ EDIT START: Configure ruff lint section }}
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"] # Base selection
+# ignore = [] # Keep ignore commented/empty for global rules
+
+[tool.ruff.lint.per-file-ignores] # Add specific ignores
+"runtime/agent_prototypes/Agent-1/visual_wait_prototype.py" = ["E501"]
+"src/dreamos/automation/execution/swarm_controller.py" = ["E501"]
+"src/dreamos/services/utils/content/post_context_generator.py" = ["E501"]
+"tests/utils/test_protocol_compliance_utils.py" = ["E402"]
+
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "I"]
-
-# Remove the duplicated sections from the previous attempt below this line
-# // ... existing code ...
+# {{ EDIT END }}
 
 # {{ EDIT START: Add Black and isort config }}
 [tool.black]

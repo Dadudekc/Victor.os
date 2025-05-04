@@ -7,7 +7,6 @@ MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -26,7 +25,7 @@ try:
     )
 except ImportError:
     logging.error(
-        "Failed to import summarization tools. Ensure PYTHONPATH is set or script is run from project root."
+        "Failed to import summarization tools. Ensure PYTHONPATH is set or script is run from project root."  # noqa: E501
     )
     # Fallback defaults if import fails, though script will likely fail later
     DEFAULT_KEEP_RECENT_N = 100
@@ -60,7 +59,7 @@ if __name__ == "__main__":
         "--max-age-days",
         type=int,
         default=DEFAULT_MAX_AGE_DAYS,
-        help=f"Summarize entries older than this many days (default: {DEFAULT_MAX_AGE_DAYS})",
+        help=f"Summarize entries older than this many days (default: {DEFAULT_MAX_AGE_DAYS})",  # noqa: E501
     )
 
     args = parser.parse_args()

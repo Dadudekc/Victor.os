@@ -32,7 +32,7 @@ class TaskMemoryLayer:
         Args:
             memory_file_rel: Optional relative path to the memory file from project root.
                                Defaults to DEFAULT_MEMORY_FILE_REL.
-        """
+        """  # noqa: E501
         # Determine project root dynamically
         # Assumes this file is at src/dreamos/memory/layers/task_memory_layer.py
         self.project_root = Path(__file__).resolve().parents[4]
@@ -45,23 +45,23 @@ class TaskMemoryLayer:
         logger.info(f"TaskMemoryLayer initialized. Using file: {self.memory_file}")
 
     def _load_memory(self):
-        """Loads memory data from the JSON file. Handles file not found and decode errors."""
+        """Loads memory data from the JSON file. Handles file not found and decode errors."""  # noqa: E501
         with self._lock:
             try:
                 if self.memory_file.exists():
                     with open(self.memory_file, "r", encoding="utf-8") as f:
                         self._memory_data = json.load(f)
                     logger.debug(
-                        f"Loaded {len(self._memory_data)} task records from {self.memory_file}"
+                        f"Loaded {len(self._memory_data)} task records from {self.memory_file}"  # noqa: E501
                     )
                 else:
                     logger.info(
-                        f"Memory file not found at {self.memory_file}. Starting with empty memory."
+                        f"Memory file not found at {self.memory_file}. Starting with empty memory."  # noqa: E501
                     )
                     self._memory_data = {}
             except json.JSONDecodeError:
                 logger.error(
-                    f"Failed to decode JSON from {self.memory_file}. Starting with empty memory.",
+                    f"Failed to decode JSON from {self.memory_file}. Starting with empty memory.",  # noqa: E501
                     exc_info=True,
                 )
                 self._memory_data = {}
@@ -74,7 +74,7 @@ class TaskMemoryLayer:
                 self._memory_data = {}
 
     def _save_memory(self):
-        """Saves the current memory data to the JSON file. Assumes lock is already held."""
+        """Saves the current memory data to the JSON file. Assumes lock is already held."""  # noqa: E501
         try:
             # Ensure the directory exists
             self.memory_file.parent.mkdir(parents=True, exist_ok=True)
@@ -127,7 +127,7 @@ class TaskMemoryLayer:
         Returns:
             A dictionary containing the task's recorded data (outcome, notes, timestamp),
             or None if the task_id is not found.
-        """
+        """  # noqa: E501
         with self._lock:
             task_data = self._memory_data.get(task_id)
             if task_data:
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         print(f"  Recalled Data: {recalled_data}")
         assert (
             recalled_data.get("outcome") == outcome_to_test
-        ), f"Outcome mismatch! Expected {outcome_to_test}, got {recalled_data.get('outcome')}"
+        ), f"Outcome mismatch! Expected {outcome_to_test}, got {recalled_data.get('outcome')}"  # noqa: E501
         assert (
             recalled_data.get("notes") == notes_to_test
         ), f"Notes mismatch! Expected {notes_to_test}, got {recalled_data.get('notes')}"
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         logger.error("Verification FAILED! Task data not recalled.")
 
     # 5. Recall non-existent task
-    logger.info(f"\n5. Recalling non-existent task...")
+    logger.info("\n5. Recalling non-existent task...")
     non_existent_data = layer2.recall_task("non_existent_task_id")
     assert non_existent_data is None, "Recall of non-existent task should return None."
     logger.info("Recall of non-existent task PASSED.")

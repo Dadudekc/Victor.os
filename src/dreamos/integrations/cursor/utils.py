@@ -4,8 +4,7 @@
 
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, Optional
+from typing import Optional
 
 # Assuming AgentBus is accessible, potentially via a singleton or context
 # Adjust import based on actual AgentBus location and access pattern
@@ -46,7 +45,7 @@ async def publish_cursor_inject_event(
     effective_bus = bus
     if effective_bus is None:
         logger.warning(
-            "AgentBus instance not provided to publish_cursor_inject_event. Attempting singleton access via get_agent_bus(). Explicit passing is preferred."
+            "AgentBus instance not provided to publish_cursor_inject_event. Attempting singleton access via get_agent_bus(). Explicit passing is preferred."  # noqa: E501
         )
         try:
             effective_bus = get_agent_bus()  # Assuming a singleton accessor
@@ -84,7 +83,7 @@ async def publish_cursor_inject_event(
             EventType.CURSOR_INJECT_REQUEST, event_payload_dict
         )  # Publish the dict
         logger.info(
-            f"Published {EventType.CURSOR_INJECT_REQUEST.name} event for target {target_agent_id} (CorrID: {correlation_id})"
+            f"Published {EventType.CURSOR_INJECT_REQUEST.name} event for target {target_agent_id} (CorrID: {correlation_id})"  # noqa: E501
         )
         return True
     except Exception as e:

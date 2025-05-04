@@ -10,19 +10,20 @@ src_path = project_root / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-# We still need the original AGENT_MAILBOX_ROOT for constructing the expected path string
+# We still need the original AGENT_MAILBOX_ROOT for constructing the expected path string  # noqa: E501
 # Now we can import the module to test
-# AGENT_MAILBOX_ROOT is evaluated at import time, so we need to import the function *after* patching
+# AGENT_MAILBOX_ROOT is evaluated at import time, so we need to import the function *after* patching  # noqa: E501
 # Or, patch the constant within the function's scope. We'll use the latter.
-from dreamos.utils.protocol_compliance_utils import (
+from dreamos.utils.protocol_compliance_utils import (  # noqa: E402
     AGENT_MAILBOX_ROOT as ORIGINAL_AGENT_MAILBOX_ROOT,
 )
-from dreamos.utils.protocol_compliance_utils import check_mailbox_structure
+from dreamos.utils.protocol_compliance_utils import (
+    check_mailbox_structure,  # noqa: E402
+)
 
 
 class TestProtocolComplianceUtils(unittest.TestCase):
-
-    # No longer patching Path at the class level, will patch AGENT_MAILBOX_ROOT inside each test
+    # No longer patching Path at the class level, will patch AGENT_MAILBOX_ROOT inside each test  # noqa: E501
     def test_check_mailbox_structure_exists(self):
         """Test check_mailbox_structure when the directory exists."""
         agent_id = "test_agent_001"
@@ -32,7 +33,7 @@ class TestProtocolComplianceUtils(unittest.TestCase):
         # 1. Create the final mock path object (agent_id/inbox)
         mock_final_path = MagicMock(spec=Path)
         mock_final_path.is_dir.return_value = True
-        # Ensure the string representation matches the expected *real* path for assertion messages
+        # Ensure the string representation matches the expected *real* path for assertion messages  # noqa: E501
         mock_final_path.__str__.return_value = expected_path_str
 
         # 2. Create the intermediate mock path object (agent_id)

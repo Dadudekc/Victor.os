@@ -1,15 +1,11 @@
 """
 DevLog Content Generator - Transform ChatGPT conversations into engaging developer content.
 Processes chat history into structured blog posts, technical articles, and social media content.
-"""
+"""  # noqa: E501
 
 import json
-import logging
-import os
-import re
-import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -19,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from ..config import settings  # Using relative import consistently
 from ..core.strategies.linkedin_strategy import LinkedInStrategy
 
-# from utils.chatgpt_scraper import ChatGPTScraper # This causes circular import, remove if ChatGPTScraper doesn't need DevLogGenerator
+# from utils.chatgpt_scraper import ChatGPTScraper # This causes circular import, remove if ChatGPTScraper doesn't need DevLogGenerator  # noqa: E501
 # from utils.strategies import TwitterStrategy, LinkedInStrategy # Incorrect import
 # Correct imports assuming strategies are in social/core/strategies/
 from ..core.strategies.twitter_strategy import TwitterStrategy
@@ -67,7 +63,7 @@ class DevLogGenerator:
         self.strategies = strategies
         self.template_dir = "templates"
         self.env = Environment(loader=FileSystemLoader(self.template_dir))
-        # self.scraper = ChatGPTScraper(headless=True) # Scraper should likely be passed in or obtained differently
+        # self.scraper = ChatGPTScraper(headless=True) # Scraper should likely be passed in or obtained differently  # noqa: E501
         logger.info("Initialized DevLog Generator")
 
     def process_conversation(self, chat_data: Dict[str, Any]) -> DevLogPost:
@@ -234,7 +230,7 @@ class DevLogGenerator:
                 description=post.description,
                 key_learnings=post.key_learnings[:3],  # Top 3 learnings
                 tags=post.tags,
-                url=f"https://blog.dream.os/posts/{post.date.strftime('%Y-%m-%d')}-{post.title.lower().replace(' ', '-')}",
+                url=f"https://blog.dream.os/posts/{post.date.strftime('%Y-%m-%d')}-{post.title.lower().replace(' ', '-')}",  # noqa: E501
             )
             posts.append({"type": "main", "content": main_post})
 
@@ -358,7 +354,7 @@ class DevLogGenerator:
     def auto_publish(
         self,
         chat_data: Dict[str, Any],
-        # dispatcher: 'DevLogDispatcher', # Dispatcher likely passed separately or obtained via service locator
+        # dispatcher: 'DevLogDispatcher', # Dispatcher likely passed separately or obtained via service locator  # noqa: E501
         blog_output_dir: str = "content/posts",
         social_output_dir: str = "content/social",
     ) -> bool:
@@ -381,7 +377,7 @@ class DevLogGenerator:
             # Generate blog post
             blog_file = (
                 Path(blog_output_dir)
-                / f"{post.date.strftime('%Y-%m-%d')}-{post.title.lower().replace(' ', '-')}.md"
+                / f"{post.date.strftime('%Y-%m-%d')}-{post.title.lower().replace(' ', '-')}.md"  # noqa: E501
             )
             if not self.generate_blog_post(post, str(blog_file)):
                 logger.error("Failed to generate blog post")
@@ -404,7 +400,7 @@ class DevLogGenerator:
                     logger.info(f"Generated {platform} content: {social_file}")
 
             logger.info(
-                f"Successfully generated content from conversation for potential dispatch."
+                "Successfully generated content from conversation for potential dispatch."  # noqa: E501
             )
             return True
 

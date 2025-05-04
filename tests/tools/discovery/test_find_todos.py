@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from dreamos.tools.discovery.find_todos import find_todos_in_file
 
 # Remove the skipped stub function
@@ -74,7 +72,7 @@ def test_find_todos_in_file_empty_file(tmp_path: Path):
     assert len(findings) == 0
 
 
-# TODO: Add tests for scan_directory which requires more setup (mocking os.walk or creating directory structure)
+# TODO: Add tests for scan_directory which requires more setup (mocking os.walk or creating directory structure)  # noqa: E501
 
 
 # Test scan_directory

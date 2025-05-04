@@ -1,9 +1,5 @@
 import json
-import uuid
-from datetime import datetime, timezone
 from pathlib import Path
-
-import pytest
 
 from dreamos.services.event_logger import log_structured_event
 

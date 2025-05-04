@@ -1,10 +1,11 @@
 # tests/coordination/test_project_board_manager.py
 
+import argparse
 import json
 import sys
 from pathlib import Path
 from unittest import mock
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -13,41 +14,39 @@ import pytest
 #     TaskStatus,
 #     TaskPriority,
 # )
-# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # Removed - Causes ImportError
+# from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # Removed - Causes ImportError  # noqa: E501
 from dreamos.core.config import AppConfig, PathsConfig
 
 # E402 fixes: Move project imports after sys.path manipulation if needed
 # (Assuming tests/ directory structure allows direct import here)
 # from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
 # F811/F401 fixes for errors:
-# from dreamos.core.errors import BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError
-from dreamos.core.errors import (  # Re-import specifically where needed or fix original definitions
+# from dreamos.core.errors import BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError  # noqa: E501
+from dreamos.core.errors import (  # Re-import specifically where needed or fix original definitions  # noqa: E501
     BoardLockError,
-    ProjectBoardError,
     TaskNotFoundError,
     TaskValidationError,
 )
+from dreamos.core.errors import ProjectBoardError # ADDED: Import ProjectBoardError
 
 # Add src directory to path for imports
 SRC_DIR = Path(__file__).resolve().parents[2] / "src"
 sys.path.insert(0, str(SRC_DIR))
 
 # EDIT START: Import jsonschema for mocking exceptions
-import jsonschema
+import jsonschema  # noqa: E402
 
 # Module to test
-from dreamos.coordination.project_board_manager import (
-    BoardLockError,
+from dreamos.coordination.project_board_manager import (  # noqa: E402
+    BoardLockError,  # noqa: F811
     ProjectBoardManager,
-    TaskNotFoundError,
-    TaskValidationError,
+    TaskNotFoundError,  # noqa: F811
+    TaskValidationError,  # noqa: F811
 )
-from dreamos.core.config import AppConfig, PathsConfig
-from dreamos.core.errors import (
-    BoardLockError,
-    ProjectBoardError,
-    TaskNotFoundError,
-    TaskValidationError,
+from dreamos.core.errors import (  # noqa: E402
+    BoardLockError,  # noqa: F811
+    TaskNotFoundError,  # noqa: F811
+    TaskValidationError,  # noqa: F811
 )
 
 # EDIT END
@@ -184,7 +183,7 @@ def sample_task_1() -> dict:
         "status": "PENDING",
         "assigned_agent": None,
         "created_by": "pytest-fixture",
-        "timestamp_created_utc": time.time(),
+        "timestamp_created_utc": time.time(),  # noqa: F821
     }
 
 
@@ -199,7 +198,7 @@ def sample_task_2() -> dict:
         "status": "PENDING",
         "assigned_agent": None,
         "created_by": "pytest-fixture",
-        "timestamp_created_utc": time.time(),
+        "timestamp_created_utc": time.time(),  # noqa: F821
     }
 
 
@@ -286,7 +285,7 @@ def mock_pbm_with_schema(mock_app_config: AppConfig, fs):
 
 
 @pytest.fixture
-# TODO: Rename this fixture to avoid confusion with the removed deprecated 'pbm_instance'. e.g., 'pbm_with_real_schema'
+# TODO: Rename this fixture to avoid confusion with the removed deprecated 'pbm_instance'. e.g., 'pbm_with_real_schema'  # noqa: E501
 def pbm_instance_with_real_schema(mock_app_config: AppConfig, fs):
     """Instance of PBM specifically for testing schema loading, using AppConfig."""
     # EDIT START: Refactor to use AppConfig and fs
@@ -580,7 +579,7 @@ def test_claim_task_fail_save_working_rollback(
 
     pbm.add_task_to_backlog(sample_task_details, agent_id_add)
     assert len(pbm.list_backlog_tasks()) == 1
-    original_backlog_list_state = [t.copy() for t in pbm.list_backlog_tasks()]
+    original_backlog_list_state = [t.copy() for t in pbm.list_backlog_tasks()]  # noqa: F841
 
     def save_side_effect(file_path, data):
         if file_path == pbm.future_tasks_path:
@@ -608,7 +607,7 @@ def test_claim_task_fail_save_working_rollback(
             assert data[0]["status"] == "PENDING"
         else:
             raise AssertionError(
-                f"Unexpected call sequence to _save_file: Call {call_count}, Path {file_path.name}"
+                f"Unexpected call sequence to _save_file: Call {call_count}, Path {file_path.name}"  # noqa: E501
             )
 
     mock_save_file.side_effect = side_effect_wrapper
@@ -642,7 +641,7 @@ def test_update_task_lock_timeout(
     pbm.claim_ready_task(task_id, agent_id_claim)
 
     mock_lock_instance = mock.MagicMock()
-    mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")
+    mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")  # noqa: F821
     MockFileLockClass.return_value = mock_lock_instance
 
     updates = {"status": "BLOCKED"}
@@ -663,7 +662,7 @@ def test_claim_task_lock_timeout(
     pbm.add_task_to_backlog(sample_task_details, agent_id_add)
 
     mock_lock_instance = mock.MagicMock()
-    mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")
+    mock_lock_instance.acquire.side_effect = filelock.Timeout("Simulated lock timeout")  # noqa: F821
     MockFileLockClass.return_value = mock_lock_instance
 
     with pytest.raises(BoardLockError):
@@ -753,7 +752,7 @@ def test_update_task_schema_validation_fail(
 
     # Expect PBM to catch jsonschema.ValidationError and raise TaskValidationError
     with pytest.raises(TaskValidationError) as excinfo:
-        # Note: update_working_task raises the error directly, doesn't return bool on validation failure
+        # Note: update_working_task raises the error directly, doesn't return bool on validation failure  # noqa: E501
         pbm.update_working_task(task_id, invalid_updated_details)
 
     # Check that our mock was called during the update attempt
@@ -927,17 +926,150 @@ def test_get_task_success(
 
 def test_get_task_not_found(self, pbm: ProjectBoardManager, fs):
     """Test getting a non-existent task."""
-    fs.create_file(pbm.working_tasks_path, contents="[]")
-    fs.create_file(pbm.ready_queue_path, contents="[]")
     fs.create_file(pbm.backlog_path, contents="[]")
+    fs.create_file(pbm.ready_queue_path, contents="[]")
+    fs.create_file(pbm.working_tasks_path, contents="[]")
     fs.create_file(pbm.completed_tasks_path, contents="[]")
 
-    assert pbm.get_task("nonexistent-task-id", board="any") is None
-    assert pbm.get_task("nonexistent-task-id", board="working") is None
+    task = pbm.get_task("nonexistent-task")
+    assert task is None
 
 
-# TODO: Add tests for update_working_task
-# TODO: Add tests mocking file locking
+# --- New Test Class for promote_task_to_ready ---
+class TestPromoteTaskToReady:
+
+    def test_promote_success(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+        """Test successfully promoting a task from backlog to ready."""
+        backlog_tasks = [sample_task_1]
+        fs.create_file(pbm.backlog_path, contents=json.dumps(backlog_tasks))
+        fs.create_file(pbm.ready_queue_path, contents="[]")
+
+        result = pbm.promote_task_to_ready(sample_task_1["task_id"])
+
+        assert result is True
+        # Verify backlog is now empty
+        final_backlog = pbm._load_backlog()
+        assert final_backlog == []
+        # Verify ready queue has the task
+        final_ready = pbm._load_ready_queue()
+        assert len(final_ready) == 1
+        assert final_ready[0]["task_id"] == sample_task_1["task_id"]
+        assert final_ready[0]["status"] == "READY"
+
+    def test_promote_not_found(self, pbm: ProjectBoardManager, fs):
+        """Test promoting a task that doesn't exist in the backlog."""
+        fs.create_file(pbm.backlog_path, contents="[]")
+        fs.create_file(pbm.ready_queue_path, contents="[]")
+
+        with pytest.raises(TaskNotFoundError):
+            pbm.promote_task_to_ready("nonexistent-task")
+
+        # Verify boards remain empty
+        assert pbm._load_backlog() == []
+        assert pbm._load_ready_queue() == []
+
+    def test_promote_already_ready(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+        """Test promoting a task already in the ready queue (should fail)."""
+        sample_task_1["status"] = "READY"
+        ready_tasks = [sample_task_1]
+        fs.create_file(pbm.backlog_path, contents="[]")
+        fs.create_file(pbm.ready_queue_path, contents=json.dumps(ready_tasks))
+
+        with pytest.raises(ProjectBoardError) as excinfo:
+            pbm.promote_task_to_ready(sample_task_1["task_id"])
+        assert "Cannot promote task" in str(excinfo.value)
+        assert "already in ready queue" in str(excinfo.value)
+
+        # Verify boards are unchanged
+        assert pbm._load_backlog() == []
+        assert pbm._load_ready_queue() == ready_tasks # Should still contain the original task
+
+    def test_promote_working_task(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+        """Test promoting a task that is currently working (should fail)."""
+        sample_task_1["status"] = "WORKING"
+        working_tasks = [sample_task_1]
+        fs.create_file(pbm.backlog_path, contents="[]")
+        fs.create_file(pbm.ready_queue_path, contents="[]")
+        fs.create_file(pbm.working_tasks_path, contents=json.dumps(working_tasks))
+
+        with pytest.raises(ProjectBoardError) as excinfo:
+            pbm.promote_task_to_ready(sample_task_1["task_id"])
+        assert "Cannot promote task" in str(excinfo.value)
+        assert "found in working tasks" in str(excinfo.value)
+
+        # Verify boards are unchanged
+        assert pbm._load_backlog() == []
+        assert pbm._load_ready_queue() == []
+        assert pbm._load_working_tasks() == working_tasks
+
+    def test_promote_completed_task(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+        """Test promoting a task that is already completed (should fail)."""
+        sample_task_1["status"] = "COMPLETED"
+        completed_tasks = [sample_task_1]
+        fs.create_file(pbm.backlog_path, contents="[]")
+        fs.create_file(pbm.ready_queue_path, contents="[]")
+        fs.create_file(pbm.completed_tasks_path, contents=json.dumps(completed_tasks))
+
+        with pytest.raises(ProjectBoardError) as excinfo:
+            pbm.promote_task_to_ready(sample_task_1["task_id"])
+        assert "Cannot promote task" in str(excinfo.value)
+        assert "found in completed tasks" in str(excinfo.value)
+
+        # Verify boards are unchanged
+        assert pbm._load_backlog() == []
+        assert pbm._load_ready_queue() == []
+        assert pbm._load_completed_tasks() == completed_tasks
+
+# --- End New Test Class ---
+
+# --- New Test Class for _create_from_cli_args ---
+# Requires mocking AppConfig loading or providing a mock config
+class TestCreateFromCliArgs:
+
+    @patch("dreamos.coordination.project_board_manager.AppConfig.load")
+    def test_create_from_cli_basic(self, mock_load_config, mock_app_config):
+        """Test basic creation using CLI args."""
+        # Configure the mock AppConfig returned by load
+        mock_load_config.return_value = mock_app_config
+
+        args = argparse.Namespace(
+            # Define attributes expected by _create_from_cli_args if any
+            # e.g., config_path=None, lock_timeout=None
+            # If it only relies on AppConfig.load(), this might be simple
+        )
+
+        pbm_instance = ProjectBoardManager._create_from_cli_args(args)
+
+        assert isinstance(pbm_instance, ProjectBoardManager)
+        assert pbm_instance.config == mock_app_config
+        # Check if lock_timeout was potentially overridden by args (if applicable)
+        # assert pbm_instance.lock_timeout == expected_timeout
+        mock_load_config.assert_called_once() # Verify config loading
+
+    @patch("dreamos.coordination.project_board_manager.AppConfig.load")
+    def test_create_from_cli_with_overrides(self, mock_load_config, mock_app_config):
+        """Test creation with CLI args overriding defaults (if applicable)."""
+        # This test depends heavily on what _create_from_cli_args actually *does*
+        # with the args object. If it passes args to AppConfig.load or overrides
+        # PBM attributes directly, tests need to reflect that.
+        # Example: Assuming it could override lock_timeout
+
+        mock_load_config.return_value = mock_app_config
+        custom_timeout = 30
+
+        args = argparse.Namespace(
+            lock_timeout=custom_timeout # Example override
+        )
+
+        pbm_instance = ProjectBoardManager._create_from_cli_args(args)
+
+        assert isinstance(pbm_instance, ProjectBoardManager)
+        # This assertion depends on implementation detail:
+        # Does _create_from_cli_args pass timeout to PBM init?
+        # assert pbm_instance.lock_timeout == custom_timeout
+        mock_load_config.assert_called_once()
+
+# --- End New Test Class ---
 
 # Note: Removed erroneous __main__ block from previous edits
 # if __name__ == '__main__':

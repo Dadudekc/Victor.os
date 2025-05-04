@@ -18,3 +18,7 @@ local_blob/
 # Potentially ignore large memory files if they are rebuilt
 # governance_memory.jsonl
 # master_task_list.json
+
+# Analysis Reports
+analysis_reports/flake8_report.txt
+analysis_reports/flake8_report_after_ruff.txt

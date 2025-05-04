@@ -15,7 +15,7 @@ SRC_DIR = Path(__file__).resolve().parents[2] / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from dreamos.core.coordination.message_patterns import (
+from dreamos.core.coordination.message_patterns import (  # noqa: E402
     TaskMessage,
     TaskPriority,
     TaskStatus,
@@ -23,7 +23,7 @@ from dreamos.core.coordination.message_patterns import (
 
 # Imports (adjust paths if necessary)
 # Assuming TaskMemoryLayer is the concrete implementation for PersistentTaskMemoryAPI
-from dreamos.memory.layers.task_memory_layer import TaskMemoryLayer
+from dreamos.memory.layers.task_memory_layer import TaskMemoryLayer  # noqa: E402
 
 # --- Configuration ---
 # Match the timeout configured in RecoveryCoordinatorAgent
@@ -42,7 +42,7 @@ async def simulate_long_running_task():
     logger.info("Starting task timeout simulation...")
 
     try:
-        # Initialize the task memory layer (uses default path: runtime/memory/task_memory.json)
+        # Initialize the task memory layer (uses default path: runtime/memory/task_memory.json)  # noqa: E501
         # NOTE: Ensure this path matches what RecoveryCoordinatorAgent uses
         task_memory = TaskMemoryLayer()
 
@@ -70,7 +70,7 @@ async def simulate_long_running_task():
         )
 
         logger.info(
-            f"Creating/Updating task {task_id} with status RUNNING and timestamp {past_timestamp.isoformat()}"
+            f"Creating/Updating task {task_id} with status RUNNING and timestamp {past_timestamp.isoformat()}"  # noqa: E501
         )
 
         # --- Add/Update the task in memory ---
@@ -86,14 +86,14 @@ async def simulate_long_running_task():
                     f"Successfully added/updated task {task_id} in task memory."
                 )
                 logger.info(
-                    f"RecoveryCoordinatorAgent should detect this task as timed out on its next poll cycle (within {task_memory.poll_interval}s?)."
+                    f"RecoveryCoordinatorAgent should detect this task as timed out on its next poll cycle (within {task_memory.poll_interval}s?)."  # noqa: E501
                 )  # Need poll interval info
             else:
                 logger.error(f"Failed to add/update task {task_id} in task memory.")
         else:
             # Fallback: Try modifying the internal data directly (less safe)
             logger.warning(
-                "`add_or_update_task` method not found directly on TaskMemoryLayer. Attempting direct modification (may not persist correctly)."
+                "`add_or_update_task` method not found directly on TaskMemoryLayer. Attempting direct modification (may not persist correctly)."  # noqa: E501
             )
             with task_memory._lock:
                 task_memory._memory_data[task_id] = (
@@ -101,10 +101,10 @@ async def simulate_long_running_task():
                 )  # Use dict representation
                 task_memory._save_memory()  # Trigger save
             logger.info(
-                f"Directly modified task memory for {task_id}. Persistence relies on _save_memory()."
+                f"Directly modified task memory for {task_id}. Persistence relies on _save_memory()."  # noqa: E501
             )
             logger.info(
-                f"RecoveryCoordinatorAgent should detect this task as timed out on its next poll cycle."
+                "RecoveryCoordinatorAgent should detect this task as timed out on its next poll cycle."  # noqa: E501
             )
 
     except ImportError as e:

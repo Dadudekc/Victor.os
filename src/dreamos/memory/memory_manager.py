@@ -14,7 +14,7 @@ Unified memory subsystem for Dream.OS
 ###########################################################################
 # Imports
 ###########################################################################
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import json
 import logging
@@ -28,13 +28,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from cachetools import LRUCache
-from jinja2 import Environment, FileSystemLoader
-from pydantic import BaseModel, Field, validator
-
 from dreamos.coordination.agent_bus import AgentBus
 from dreamos.core.coordination.agent_bus import MemoryEvent
 from dreamos.core.coordination.event_payloads import MemoryEventData
 from dreamos.core.coordination.event_types import EventType
+from jinja2 import Environment, FileSystemLoader
 
 from ..core.config import AppConfig
 
@@ -275,7 +273,7 @@ class UnifiedMemoryManager:
     • LRU + compressed JSON per segment (system / prompts / feedback / context / interactions)
     • SQLite long-term store
     • Jinja2 narrative helpers
-    """
+    """  # noqa: E501
 
     # TODO: This class uses threading.Lock internally and manages DatabaseManager
     # which also uses threading.Lock. This makes the UnifiedMemoryManager synchronous
@@ -300,7 +298,7 @@ class UnifiedMemoryManager:
             db_path: Path to SQLite DB (defaults to config memory path + db name).
             template_dir: Path to Jinja2 templates (defaults to config path + templates).
             compression_level: Zlib compression level (0-9).
-        """
+        """  # noqa: E501
         self.lock = threading.Lock()
         self.compression_level = compression_level
         self._config = AppConfig.load()  # Load config for paths
@@ -435,8 +433,8 @@ class UnifiedMemoryManager:
 
         except Exception as e:
             logger.error(f"Error during get for {seg}/{key}: {e}", exc_info=True)
-            status = "FAILURE"
-            message = str(e)
+            status = "FAILURE"  # noqa: F841
+            message = str(e)  # noqa: F841
             value = None  # Ensure value is None on error
         finally:
             # Dispatch event regardless of success/failure
@@ -481,8 +479,8 @@ class UnifiedMemoryManager:
 
         except Exception as e:
             logger.error(f"Error during delete for {seg}/{key}: {e}", exc_info=True)
-            status = "FAILURE"
-            message = str(e)
+            status = "FAILURE"  # noqa: F841
+            message = str(e)  # noqa: F841
             deleted = False  # Ensure flag is False on error
         finally:
             # Dispatch event
@@ -589,7 +587,7 @@ class UnifiedMemoryManager:
                 self._check_and_compact(conv_key)
             except Exception as e:
                 logger.error(
-                    f"Compaction check failed after recording interaction to segment '{conv_key}': {e}",
+                    f"Compaction check failed after recording interaction to segment '{conv_key}': {e}",  # noqa: E501
                     exc_info=True,
                 )
         # {{END: Trigger Compaction Check}}
@@ -680,12 +678,12 @@ class UnifiedMemoryManager:
                     os.remove(temp_file_path)
                 except OSError as rm_err:
                     logger.error(
-                        f"Failed to remove temporary compaction file '{temp_file_path}': {rm_err}"
+                        f"Failed to remove temporary compaction file '{temp_file_path}': {rm_err}"  # noqa: E501
                     )
             raise  # Re-raise the exception after logging and cleanup attempt
         except Exception as e:  # Catch any other unexpected errors
             logger.error(
-                f"Unexpected error during memory rewrite for segment '{segment_id}': {e}",
+                f"Unexpected error during memory rewrite for segment '{segment_id}': {e}",  # noqa: E501
                 exc_info=True,
             )
             if temp_file_path and os.path.exists(temp_file_path):
@@ -693,7 +691,7 @@ class UnifiedMemoryManager:
                     os.remove(temp_file_path)
                 except OSError as rm_err:
                     logger.error(
-                        f"Failed to remove temporary compaction file '{temp_file_path}' on unexpected error: {rm_err}"
+                        f"Failed to remove temporary compaction file '{temp_file_path}' on unexpected error: {rm_err}"  # noqa: E501
                     )
             raise
 
@@ -730,15 +728,15 @@ class UnifiedMemoryManager:
                             timestamps_found = True
                         except (ValueError, TypeError):
                             logger.warning(
-                                f"Segment '{segment_id}': Could not parse timestamp '{entry.get('timestamp')}' in entry during time-based compaction. Entry kept."
+                                f"Segment '{segment_id}': Could not parse timestamp '{entry.get('timestamp')}' in entry during time-based compaction. Entry kept."  # noqa: E501
                             )
                             compacted_list.append(entry)  # Keep if timestamp is bad
                     else:
-                        # Keep entries without timestamps if policy is time_based (conservative)
+                        # Keep entries without timestamps if policy is time_based (conservative)  # noqa: E501
                         compacted_list.append(entry)
                 if not timestamps_found:
                     logger.warning(
-                        f"Segment '{segment_id}': Time-based compaction policy applied, but no valid 'timestamp' fields found in list entries. Falling back to keep_n."
+                        f"Segment '{segment_id}': Time-based compaction policy applied, but no valid 'timestamp' fields found in list entries. Falling back to keep_n."  # noqa: E501
                     )
                     policy = "keep_n"  # Fallback if no timestamps
                 else:
@@ -771,7 +769,7 @@ class UnifiedMemoryManager:
                             timestamps_found = True
                         except (ValueError, TypeError):
                             logger.warning(
-                                f"Segment '{segment_id}': Could not parse timestamp '{entry.get('timestamp')}' in dict entry '{key}' during time-based compaction. Entry kept."
+                                f"Segment '{segment_id}': Could not parse timestamp '{entry.get('timestamp')}' in dict entry '{key}' during time-based compaction. Entry kept."  # noqa: E501
                             )
                             compacted_dict[key] = entry  # Keep if timestamp is bad
                     else:
@@ -779,7 +777,7 @@ class UnifiedMemoryManager:
                         compacted_dict[key] = entry
                 if not timestamps_found:
                     logger.warning(
-                        f"Segment '{segment_id}': Time-based compaction policy applied, but no valid 'timestamp' fields found in dict values. Falling back to keep_n."
+                        f"Segment '{segment_id}': Time-based compaction policy applied, but no valid 'timestamp' fields found in dict values. Falling back to keep_n."  # noqa: E501
                     )
                     policy = "keep_n"  # Fallback if no timestamps
                 else:
@@ -787,14 +785,14 @@ class UnifiedMemoryManager:
 
             if policy == "keep_n":
                 logger.warning(
-                    f"Segment '{segment_id}': Keep-N compaction policy is ambiguous for dictionaries. No compaction applied."
+                    f"Segment '{segment_id}': Keep-N compaction policy is ambiguous for dictionaries. No compaction applied."  # noqa: E501
                 )
-                # Keep-N on dict is complex: sort keys? Keep random? For now, do nothing.
+                # Keep-N on dict is complex: sort keys? Keep random? For now, do nothing.  # noqa: E501
                 compacted_data = data  # No change
 
         else:
             logger.warning(
-                f"Segment '{segment_id}' compaction skipped: Data is not a list or dict."
+                f"Segment '{segment_id}' compaction skipped: Data is not a list or dict."  # noqa: E501
             )
             return  # Cannot compact non-list/dict data with these policies
 
@@ -805,12 +803,12 @@ class UnifiedMemoryManager:
         )
         if compacted_count < original_count:
             logger.info(
-                f"Compacting segment '{segment_id}' ({policy} policy): Reduced from {original_count} to {compacted_count} entries."
+                f"Compacting segment '{segment_id}' ({policy} policy): Reduced from {original_count} to {compacted_count} entries."  # noqa: E501
             )
             self._rewrite_memory_safely(segment_id, compacted_data)
         else:
             logger.info(
-                f"Segment '{segment_id}' checked for compaction, but no entries were removed based on policy '{policy}'."
+                f"Segment '{segment_id}' checked for compaction, but no entries were removed based on policy '{policy}'."  # noqa: E501
             )
 
     def _check_and_compact(self, segment_id: str):
@@ -828,7 +826,7 @@ class UnifiedMemoryManager:
             size_threshold = self.compaction_config.get("threshold_max_size_mb", 1.0)
             triggered = size_mb > size_threshold
 
-            # Check entry threshold if size threshold not met (avoid reading large file if already over size)
+            # Check entry threshold if size threshold not met (avoid reading large file if already over size)  # noqa: E501
             data = None
             if not triggered:
                 entry_threshold = self.compaction_config.get(
@@ -842,7 +840,7 @@ class UnifiedMemoryManager:
                         if entry_count > entry_threshold:
                             triggered = True
                             logger.info(
-                                f"Segment '{segment_id}' compaction triggered by entry count ({entry_count} > {entry_threshold})."
+                                f"Segment '{segment_id}' compaction triggered by entry count ({entry_count} > {entry_threshold})."  # noqa: E501
                             )
                     else:
                         # Cannot check entry count for non-list/dict types
@@ -851,7 +849,7 @@ class UnifiedMemoryManager:
             if triggered:
                 if size_mb > size_threshold:  # Log reason if size was the trigger
                     logger.info(
-                        f"Segment '{segment_id}' compaction triggered by size ({size_mb:.2f} MB > {size_threshold:.2f} MB)."
+                        f"Segment '{segment_id}' compaction triggered by size ({size_mb:.2f} MB > {size_threshold:.2f} MB)."  # noqa: E501
                     )
                 # Read data if not already read for entry check
                 if data is None:

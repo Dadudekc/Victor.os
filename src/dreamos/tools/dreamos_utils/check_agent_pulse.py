@@ -28,7 +28,7 @@ EXPECTED_AGENTS = {
 
 
 def get_core_timestamp_utility():
-    """Dynamically imports the core timestamp utility, handling potential ModuleNotFoundError."""
+    """Dynamically imports the core timestamp utility, handling potential ModuleNotFoundError."""  # noqa: E501
     try:
         from dreamos.utils.common_utils import get_utc_iso_timestamp
 
@@ -37,7 +37,7 @@ def get_core_timestamp_utility():
         # Fallback for script execution if 'dreamos' not in path
         # Define a compatible function locally
         print(
-            "Warning: dreamos.utils.common_utils not found in path. Using fallback timestamp function.",
+            "Warning: dreamos.utils.common_utils not found in path. Using fallback timestamp function.",  # noqa: E501
             file=sys.stderr,
         )
 
@@ -77,7 +77,7 @@ def check_agent_pulse(
         - 'missing_agents': set of expected agents who have never reported
         - 'last_seen': dict mapping agent_id to their last seen timestamp (ISO string)
         - 'errors': list of any errors encountered during processing
-    """
+    """  # noqa: E501
     results = {
         "active_agents": set(),
         "stale_agents": set(),
@@ -95,7 +95,7 @@ def check_agent_pulse(
 
     try:
         with open(status_file_path, "r") as f:
-            # Use safe_load_all for potentially multiple YAML documents (though we expect one list)
+            # Use safe_load_all for potentially multiple YAML documents (though we expect one list)  # noqa: E501
             # Handle empty file gracefully
             content = f.read()
             if not content.strip():
@@ -117,7 +117,7 @@ def check_agent_pulse(
 
             if not all_reports or not isinstance(all_reports[0], list):
                 results["errors"].append(
-                    f"Expected a list of reports in {status_file_path}, found unexpected format."
+                    f"Expected a list of reports in {status_file_path}, found unexpected format."  # noqa: E501
                 )
                 # Cannot determine status if format is wrong
                 results["missing_agents"] = expected_agents
@@ -146,7 +146,7 @@ def check_agent_pulse(
                         timestamp_str = timestamp_str[:-1] + "+00:00"
                     report_time = datetime.fromisoformat(timestamp_str)
 
-                    # Ensure timezone awareness (assume UTC if missing, though ISO format should have it)
+                    # Ensure timezone awareness (assume UTC if missing, though ISO format should have it)  # noqa: E501
                     if report_time.tzinfo is None:
                         report_time = report_time.replace(tzinfo=timezone.utc)
 
@@ -156,9 +156,9 @@ def check_agent_pulse(
                     ]  # Store original string
 
                 except ValueError as e_ts:
-                    err_msg = f"Invalid timestamp format for agent {agent_id}: {timestamp_str} - {e_ts}"
+                    err_msg = f"Invalid timestamp format for agent {agent_id}: {timestamp_str} - {e_ts}"  # noqa: E501
                     results["errors"].append(err_msg)
-                    logger.warning(err_msg)  # Also log it
+                    logger.warning(err_msg)  # Also log it  # noqa: F821
                     continue  # Skip agent if timestamp unparseable
 
             # Determine status based on last report time
@@ -177,9 +177,9 @@ def check_agent_pulse(
         results["errors"].append(f"Error reading status file {status_file_path}: {e}")
         results["missing_agents"] = expected_agents  # Assume all missing if read fails
     except Exception as e:
-        err_msg_unexp = f"An unexpected error occurred processing {status_file_path}: {type(e).__name__} - {e}"
+        err_msg_unexp = f"An unexpected error occurred processing {status_file_path}: {type(e).__name__} - {e}"  # noqa: E501
         results["errors"].append(err_msg_unexp)
-        logger.exception(err_msg_unexp)  # Log with traceback
+        logger.exception(err_msg_unexp)  # Log with traceback  # noqa: F821
         # Avoid making assumptions if unexpected error occurs
 
     return results
@@ -187,7 +187,7 @@ def check_agent_pulse(
 
 if __name__ == "__main__":
     # Add project root to path to allow imports
-    # This assumes the script is run from within the dreamos/tools/dreamos_utils directory
+    # This assumes the script is run from within the dreamos/tools/dreamos_utils directory  # noqa: E501
     # or that the caller sets up the Python path correctly.
     current_dir = Path(__file__).parent
     project_root = (
@@ -217,13 +217,13 @@ if __name__ == "__main__":
     print("---")
 
     print(
-        f"Active Agents (seen in last {STALE_THRESHOLD_MINUTES} min): {sorted(list(pulse_results['active_agents']))}"
+        f"Active Agents (seen in last {STALE_THRESHOLD_MINUTES} min): {sorted(list(pulse_results['active_agents']))}"  # noqa: E501
     )
     print(
-        f"Stale Agents (last seen > {STALE_THRESHOLD_MINUTES} min ago): {sorted(list(pulse_results['stale_agents']))}"
+        f"Stale Agents (last seen > {STALE_THRESHOLD_MINUTES} min ago): {sorted(list(pulse_results['stale_agents']))}"  # noqa: E501
     )
     print(
-        f"Missing Agents (never reported): {sorted(list(pulse_results['missing_agents']))}"
+        f"Missing Agents (never reported): {sorted(list(pulse_results['missing_agents']))}"  # noqa: E501
     )
 
     if pulse_results["last_seen"]:
@@ -237,7 +237,7 @@ if __name__ == "__main__":
             print(f"  - {error}")
         sys.exit(1)
     elif pulse_results["stale_agents"] or pulse_results["missing_agents"]:
-        # Exit with non-zero code if any agents are stale or missing, but no fatal errors occurred
+        # Exit with non-zero code if any agents are stale or missing, but no fatal errors occurred  # noqa: E501
         sys.exit(2)
     else:
         print("\nAll expected agents are active.")

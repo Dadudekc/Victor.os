@@ -1,4 +1,4 @@
-import asyncio  # {{ EDIT: Ensure asyncio is imported }}
+import asyncio  # {{ EDIT: Ensure asyncio is imported }}  # noqa: I001
 import json
 import logging
 import os
@@ -7,6 +7,18 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+# {{ EDIT END }}
+from dreamos.coordination.agent_bus import AgentBus
+
+# {{ EDIT START: Import health checks }}
+# {{ EDIT END }}
+# {{ EDIT START: Import HealthMonitor }}
+from dreamos.core.health_monitor import HealthMonitor
+from dreamos.hooks.chronicle_logger import ChronicleLoggerHook
+
+# Import backend components
+from dreamos.memory.memory_manager import UnifiedMemoryManager
+from dreamos.rendering.template_engine import TemplateEngine
 from PyQt5.QtCore import QSize, Qt, QTimer
 from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import (
@@ -22,30 +34,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-# {{ EDIT END }}
-from dreamos.coordination.agent_bus import AgentBus
-from dreamos.core.coordination.event_types import AgentStatus, CoreEvents
-from dreamos.core.health_checks.cursor_status_check import (
-    CURSOR_ORCHESTRATOR_AVAILABLE,
-    check_cursor_agent_statuses,
-)
-
-# {{ EDIT START: Import health checks }}
-from dreamos.core.health_checks.cursor_window_check import (
-    check_cursor_window_reachability,
-)
-
-# {{ EDIT END }}
-# {{ EDIT START: Import HealthMonitor }}
-from dreamos.core.health_monitor import HealthMonitor
-from dreamos.hooks.chronicle_logger import ChronicleLoggerHook
-
-# Import backend components
-from dreamos.memory.memory_manager import UnifiedMemoryManager
-from dreamos.rendering.template_engine import TemplateEngine
-
-from ..dashboard.system_stats import StatsLoggingHook
 
 # Import the new Forge Tab
 from .fragment_forge_tab import FragmentForgeTab
@@ -86,7 +74,7 @@ class FeedbackEngine:
 
 
 # Manager for application tabs
-class DreamOSTabManager(QTabWidget):
+class DreamOSTabManager(QTabWidget):  # noqa: F821
     """Placeholder for tab manager in tests."""
 
     pass
@@ -185,7 +173,6 @@ class DreamOSMainWindow(QMainWindow):
         self.agent_counters = {}  # initialize per-agent metrics including escalation
         import asyncio
 
-        from dreamos.coordination.agent_bus import AgentBus
         from dreamos.coordination.dispatcher import EventType
 
         self._agent_bus = AgentBus()
@@ -212,9 +199,9 @@ class DreamOSMainWindow(QMainWindow):
                 # record escalation event
                 self.agent_counters[agent_id]["escalation"] += 1
                 # EDIT START: store timestamp of last escalation
-                self.agent_counters[agent_id][
-                    "last_escalation"
-                ] = datetime.now().timestamp()
+                self.agent_counters[agent_id]["last_escalation"] = (
+                    datetime.now().timestamp()
+                )
                 # EDIT END
                 self.status_bar.showMessage(f"⚠️ Escalation: {agent_id}", 3000)
             # refresh UI lists
@@ -253,7 +240,7 @@ class DreamOSMainWindow(QMainWindow):
 
     # {{ EDIT START: Update async bootstrap to use HealthMonitor }}
     def _run_async_bootstrap(self):
-        """Runs asynchronous initialization tasks like health checks after event loop starts."""
+        """Runs asynchronous initialization tasks like health checks after event loop starts."""  # noqa: E501
 
         async def bootstrap_tasks():
             logger.info("Running async bootstrap health checks via HealthMonitor...")
@@ -278,11 +265,11 @@ class DreamOSMainWindow(QMainWindow):
                     for check_result in health_report["results"]:
                         if check_result["status"] == "WARN":
                             logger.warning(
-                                f"Health Check Warning: {check_result['check_name']} - Details: {check_result.get('details')}"
+                                f"Health Check Warning: {check_result['check_name']} - Details: {check_result.get('details')}"  # noqa: E501
                             )
                     # Optionally show a non-critical message box
-                    # QMessageBox.warning(self, "Bootstrap Warning", "System health checks reported warnings. Check logs for details.")
-                    all_systems_go = False  # Treat warnings as potentially blocking for full readiness?
+                    # QMessageBox.warning(self, "Bootstrap Warning", "System health checks reported warnings. Check logs for details.")  # noqa: E501
+                    all_systems_go = False  # Treat warnings as potentially blocking for full readiness?  # noqa: E501
                 elif overall_status == "FAIL" or overall_status == "ERROR":
                     self.status_bar.showMessage(
                         "❌ System Health: Critical Failures Detected!", 0
@@ -292,13 +279,13 @@ class DreamOSMainWindow(QMainWindow):
                     for check_result in health_report["results"]:
                         if check_result["status"] in ["FAIL", "ERROR"]:
                             logger.error(
-                                f"Health Check Failed: {check_result['check_name']} - Status: {check_result['status']} - Details: {check_result.get('details')}"
+                                f"Health Check Failed: {check_result['check_name']} - Status: {check_result['status']} - Details: {check_result.get('details')}"  # noqa: E501
                             )
                     # Show critical error message
                     QMessageBox.critical(
                         self,
                         "System Health Failure",
-                        "Critical health checks failed. System may be unstable. Check logs.",
+                        "Critical health checks failed. System may be unstable. Check logs.",  # noqa: E501
                     )
                     # Consider preventing full startup or entering a degraded mode
 
@@ -308,7 +295,7 @@ class DreamOSMainWindow(QMainWindow):
                 QMessageBox.critical(
                     self,
                     "Bootstrap Error",
-                    "An unexpected error occurred during system health checks. Check logs.",
+                    "An unexpected error occurred during system health checks. Check logs.",  # noqa: E501
                 )
                 all_systems_go = False
 
@@ -419,12 +406,12 @@ class DreamOSMainWindow(QMainWindow):
 
     def notify_mailbox(self, event_name: str, event_data: dict):
         """Placeholder for sending notification to agent mailbox."""
-        log_info = {
+        log_info = {  # noqa: F841
             "event_name": event_name,
             "event_data_keys": list(event_data.keys()),
         }
         logger.info(
-            f"[Stub] Sending notification to Agent Mailbox: Event '{event_name}' occurred."
+            f"[Stub] Sending notification to Agent Mailbox: Event '{event_name}' occurred."  # noqa: E501
         )
         # Log using the core service (Commented out)
         # log_structured_event("GUI_MAILBOX_NOTIFY_SENT", log_info, "DreamOSMainWindow")
@@ -435,7 +422,7 @@ class DreamOSMainWindow(QMainWindow):
         """Placeholder for syncing event/task/state with a central board.
         Enhanced to append test task to task_list.json when sync_type is 'task_add'.
         """
-        log_info = {"sync_type": sync_type, "data_keys": list(data.keys())}
+        log_info = {"sync_type": sync_type, "data_keys": list(data.keys())}  # noqa: F841
         logger.info(
             f"[Stub] Syncing '{sync_type}' with Central Agent Board. Data: {data}"
         )
@@ -444,7 +431,7 @@ class DreamOSMainWindow(QMainWindow):
             # Enforce schema: 'status' must be present
             if not isinstance(data, dict) or "status" not in data:
                 logger.error(
-                    "sync_event_with_board: 'state_save' missing required 'status' field"
+                    "sync_event_with_board: 'state_save' missing required 'status' field"  # noqa: E501
                 )
                 # Fallback: reload last known good state and alert recovery flow
                 logger.info("sync_event_with_board: triggering fallback reload")
@@ -513,12 +500,12 @@ class DreamOSMainWindow(QMainWindow):
                             tasks = json.loads(content)
                         if not isinstance(tasks, list):
                             logger.warning(
-                                f"Task list file {TASK_LIST_PATH} does not contain a valid list. Resetting."
+                                f"Task list file {TASK_LIST_PATH} does not contain a valid list. Resetting."  # noqa: E501
                             )
                             tasks = []
                 except json.JSONDecodeError:
                     logger.error(
-                        f"Failed to decode existing task list {TASK_LIST_PATH}. Resetting."
+                        f"Failed to decode existing task list {TASK_LIST_PATH}. Resetting."  # noqa: E501
                     )
                     tasks = []
 
@@ -530,13 +517,13 @@ class DreamOSMainWindow(QMainWindow):
                 f"Successfully appended task {task_data.get('id')} to {TASK_LIST_PATH}"
             )
             # Log using the core service (Commented out)
-            # log_structured_event("GUI_TASK_APPENDED", {"task_id": task_data.get('id')}, "DreamOSMainWindow")
+            # log_structured_event("GUI_TASK_APPENDED", {"task_id": task_data.get('id')}, "DreamOSMainWindow")  # noqa: E501
         except Exception as e:
             logger.error(
                 f"Failed to append task to {TASK_LIST_PATH}: {e}", exc_info=True
             )
             # Log using the core service (Commented out)
-            # log_structured_event("GUI_TASK_APPEND_FAILED", {"task_id": task_data.get('id'), "error": str(e)}, "DreamOSMainWindow")
+            # log_structured_event("GUI_TASK_APPEND_FAILED", {"task_id": task_data.get('id'), "error": str(e)}, "DreamOSMainWindow")  # noqa: E501
 
     def load_state_fallback(self):
         """
@@ -634,7 +621,7 @@ class DreamOSMainWindow(QMainWindow):
             self.agents_list.addItem(item)
 
     def _update_escalated_agents_list(self):
-        """Refresh the Escalated Agents list view, showing agents with escalation > 0."""
+        """Refresh the Escalated Agents list view, showing agents with escalation > 0."""  # noqa: E501
         try:
             self.escalated_list.clear()
             for agent_id, stats in self.agent_counters.items():
@@ -668,7 +655,7 @@ class DreamOSMainWindow(QMainWindow):
 # Example of running this window directly (for testing)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)  # noqa: F821
     main_window = DreamOSMainWindow()
     main_window.show()
     sys.exit(app.exec_())

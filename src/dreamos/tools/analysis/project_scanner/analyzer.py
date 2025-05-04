@@ -14,7 +14,7 @@ except ImportError:
     Language = None
     Parser = None
     logger.warning(
-        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."
+        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
     )
 
 
@@ -33,7 +33,7 @@ class LanguageAnalyzer:
         """
         if not Language or not Parser:
             logger.warning(
-                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."
+                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
             )
             return None
 
@@ -185,7 +185,7 @@ class LanguageAnalyzer:
                         # Attempt to represent other base types reasonably
                         try:
                             base_classes.append(ast.dump(base))
-                        except:
+                        except:  # noqa: E722
                             base_classes.append("complex_base")
                 classes[node.name] = {
                     "methods": method_names,
@@ -244,7 +244,7 @@ class LanguageAnalyzer:
                 elif node.type == "impl_item":
                     impl_type_node = node.child_by_field_name("type")
                     if impl_type_node:
-                        # Handle potential complex impl types like generics `<T>` or traits `Trait for Struct`
+                        # Handle potential complex impl types like generics `<T>` or traits `Trait for Struct`  # noqa: E501
                         # This is a simplified representation
                         impl_name = (
                             impl_type_node.text.decode("utf-8")
@@ -269,7 +269,7 @@ class LanguageAnalyzer:
                     _traverse(child)
             except Exception as traverse_err:
                 logger.warning(
-                    f"Error during Rust AST traversal: {traverse_err} on node type {node.type}"
+                    f"Error during Rust AST traversal: {traverse_err} on node type {node.type}"  # noqa: E501
                 )
 
         _traverse(tree.root_node)
@@ -316,7 +316,7 @@ class LanguageAnalyzer:
         def get_node_text(node):
             try:
                 return node.text.decode("utf-8")
-            except:
+            except:  # noqa: E722
                 return "<decode_error>"
 
         def _traverse(node):
@@ -328,7 +328,7 @@ class LanguageAnalyzer:
                         functions.append(get_node_text(name_node))
                 elif node_type == "method_definition":  # For methods inside classes
                     name_node = node.child_by_field_name("name")
-                    # Optionally capture method name if needed, currently focusing on top-level functions
+                    # Optionally capture method name if needed, currently focusing on top-level functions  # noqa: E501
                 elif node_type == "class_declaration":
                     name_node = node.child_by_field_name("name")
                     if name_node:
@@ -347,9 +347,7 @@ class LanguageAnalyzer:
                     or node_type == "variable_declaration"
                 ):
                     # arrow functions assigned to const/let/var
-                    for (
-                        child
-                    ) in (
+                    for child in (
                         node.named_children
                     ):  # Use named_children for potentially more robust iteration
                         if child.type == "variable_declarator":
@@ -380,7 +378,7 @@ class LanguageAnalyzer:
                                 "route",
                             }:
                                 path_str = "/unknown"
-                                # Extract path from first argument if it's a string literal
+                                # Extract path from first argument if it's a string literal  # noqa: E501
                                 if args_node.child_count > 0:
                                     first_arg = args_node.children[0]
                                     if first_arg.type == "string":
@@ -402,7 +400,7 @@ class LanguageAnalyzer:
                     _traverse(child)
             except Exception as traverse_err:
                 logger.warning(
-                    f"Error during JS/TS AST traversal: {traverse_err} on node type {node.type}"
+                    f"Error during JS/TS AST traversal: {traverse_err} on node type {node.type}"  # noqa: E501
                 )
 
         _traverse(root)

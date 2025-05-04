@@ -3,7 +3,7 @@
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
@@ -12,14 +12,14 @@ from click.testing import CliRunner
 # Assuming tests are run from the project root (D:\Dream.os)
 SCRIPT_PATH = Path("src/dreamos/cli/safe_edit_json_list.py").resolve()
 # Ensure the script's directory is in the path for imports within the script itself
-# sys.path.insert(0, str(SCRIPT_PATH.parent.parent.parent)) # Already handled in script, but safer?
+# sys.path.insert(0, str(SCRIPT_PATH.parent.parent.parent)) # Already handled in script, but safer?  # noqa: E501
 
 # Import the target function IF NEEDED directly (usually test via CLI runner)
 # If the script uses __name__ == "__main__", import the click command object
 try:
     from src.dreamos.cli.safe_edit_json_list import (
-        SafeEditError,
-        _atomic_write_json,
+        SafeEditError,  # noqa: F401
+        _atomic_write_json,  # noqa: F401
         safe_edit_json_list,
     )
 except ImportError as e:

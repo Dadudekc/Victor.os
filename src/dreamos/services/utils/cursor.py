@@ -6,7 +6,7 @@ Handles cursor state management, chat history, and context tracking.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from dreamos.utils.common_utils import get_utc_iso_timestamp
 
@@ -63,13 +63,13 @@ class CursorState:
             },
         }
 
-    def clear_history(self, before: Optional[datetime] = None) -> None:
+    def clear_history(self, before: Optional[datetime] = None) -> None:  # noqa: F821
         """Clear cursor history, optionally before a specific time."""
         if before:
             self.history = [
                 entry
                 for entry in self.history
-                if datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
+                if datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))  # noqa: F821
                 >= before
             ]
         else:

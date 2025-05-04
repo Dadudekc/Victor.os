@@ -1,11 +1,8 @@
-import json
 import logging
 import math
 from datetime import datetime, timezone
-from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
-from uuid import UUID, uuid4
+from typing import Any, Dict, List, Optional, Union
 
 # EDIT START: Import core utility
 # from datetime import datetime, timezone
@@ -14,13 +11,8 @@ from dreamos.utils.common_utils import get_utc_iso_timestamp
 # EDIT END
 # Removed: from src.tools.dreamos_utils.base import load_json_file, save_json_file
 # Use consolidated utils now:
-from dreamos.utils.file_io import read_json_file, write_json_atomic
 
 # {{ EDIT START: Import ProjectBoardManager }}
-from ..comms.project_board import (  # Assuming relative path
-    ProjectBoardError,
-    ProjectBoardManager,
-)
 
 # {{ EDIT END }}
 
@@ -29,9 +21,9 @@ logger = logging.getLogger(__name__)  # Define logger at module level
 
 # {{ EDIT START: Deprecate unsafe direct file access functions }}
 def read_tasks(task_list_path: Union[str, Path]) -> Optional[List[Dict[str, Any]]]:
-    """DEPRECATED: Read tasks list directly from JSON file. UNSAFE without locking. Use ProjectBoardManager."""
+    """DEPRECATED: Read tasks list directly from JSON file. UNSAFE without locking. Use ProjectBoardManager."""  # noqa: E501
     logger.error(
-        f"Direct use of task_utils.read_tasks({task_list_path}) is DEPRECATED and UNSAFE due to lack of locking. Use ProjectBoardManager methods."
+        f"Direct use of task_utils.read_tasks({task_list_path}) is DEPRECATED and UNSAFE due to lack of locking. Use ProjectBoardManager methods."  # noqa: E501
     )
     return None  # Indicate failure/deprecation
     # tasks = read_json_file(task_list_path)
@@ -57,9 +49,9 @@ def read_tasks(task_list_path: Union[str, Path]) -> Optional[List[Dict[str, Any]
 
 
 def write_tasks(task_list_path: Union[str, Path], tasks: List[Dict[str, Any]]) -> bool:
-    """DEPRECATED: Write tasks list atomically to JSON file. UNSAFE without locking. Use ProjectBoardManager."""
+    """DEPRECATED: Write tasks list atomically to JSON file. UNSAFE without locking. Use ProjectBoardManager."""  # noqa: E501
     logger.error(
-        f"Direct use of task_utils.write_tasks({task_list_path}) is DEPRECATED and UNSAFE due to lack of locking. Use ProjectBoardManager methods."
+        f"Direct use of task_utils.write_tasks({task_list_path}) is DEPRECATED and UNSAFE due to lack of locking. Use ProjectBoardManager methods."  # noqa: E501
     )
     return False  # Indicate failure/deprecation
     # try:
@@ -133,7 +125,7 @@ def _calculate_task_score(task_data: Dict[str, Any]) -> Dict[str, Any]:
             duration_sec: float = (end_dt - start_dt).total_seconds()
             if duration_sec < 0:
                 logger.warning(
-                    f"Task {task_data.get('task_id', 'UNKNOWN')} has negative duration ({duration_sec}s). Clamping to 0."
+                    f"Task {task_data.get('task_id', 'UNKNOWN')} has negative duration ({duration_sec}s). Clamping to 0."  # noqa: E501
                 )
                 duration_sec = 0.0
             # Avoid log(0 or negative) issues
@@ -143,7 +135,7 @@ def _calculate_task_score(task_data: Dict[str, Any]) -> Dict[str, Any]:
             details_list.append(f"Duration: {duration_sec:.2f}s.")
         except (ValueError, TypeError) as e:
             logger.warning(
-                f"Could not parse task timestamps for scoring task {task_data.get('task_id', 'UNKNOWN')}: {started_at_str}, {completed_at_str}. Error: {e}"
+                f"Could not parse task timestamps for scoring task {task_data.get('task_id', 'UNKNOWN')}: {started_at_str}, {completed_at_str}. Error: {e}"  # noqa: E501
             )
             # Keep default 0.5 efficiency on parse error
             details_list.append("Could not parse task timestamps.")
@@ -166,17 +158,17 @@ def update_task_status(
 ) -> bool:
     """DEPRECATED - Use TaskNexus or ProjectBoardManager methods directly."""
     logger.error(
-        "Direct use of task_utils.update_task_status is DEPRECATED and UNSAFE due to lack of locking. Use TaskNexus or ProjectBoardManager methods."
+        "Direct use of task_utils.update_task_status is DEPRECATED and UNSAFE due to lack of locking. Use TaskNexus or ProjectBoardManager methods."  # noqa: E501
     )
     # Return False to indicate failure/deprecation
     return False
     # {{ EDIT START: Replace unsafe logic with placeholder/deprecation warning }}
-    # """Update a task's status and optionally other fields like results, timestamps, and scores.
+    # """Update a task's status and optionally other fields like results, timestamps, and scores.  # noqa: E501
     #
     # Uses atomic write for safety BUT LACKS LOCKING - DEPRECATED.
     # """
     # # Note: Read-Modify-Write on shared file is fragile under concurrency.
-    # logger.warning(f"Attempting UNSAFE update for task {task_id} in {task_list_path}. Use ProjectBoardManager.")
+    # logger.warning(f"Attempting UNSAFE update for task {task_id} in {task_list_path}. Use ProjectBoardManager.")  # noqa: E501
     #
     # tasks = read_tasks(task_list_path)
     # if tasks is None:
@@ -190,11 +182,11 @@ def update_task_status(
     #      if t.get('task_id') == task_id:
     #         task_found = True
     #         target_task_index = i
-    #         logger.debug(f"Found task {task_id} at index {i}. Updating status to {status}.")
+    #         logger.debug(f"Found task {task_id} at index {i}. Updating status to {status}.")  # noqa: E501
     #         break
     #
     # if not task_found or target_task_index is None:
-    #     logger.warning(f"Task ID '{task_id}' not found in {task_list_path} for update.")
+    #     logger.warning(f"Task ID '{task_id}' not found in {task_list_path} for update.")  # noqa: E501
     #     return False
     #
     # try:
@@ -206,7 +198,7 @@ def update_task_status(
     #     updated = True # Assume update happens if task is found
     #
     #     # Update optional fields from kwargs
-    #     allowed_updates = {'result_status', 'started_at', 'completed_at', 'result_data', 'error_message', 'progress', 'notes'} # Added notes
+    #     allowed_updates = {'result_status', 'started_at', 'completed_at', 'result_data', 'error_message', 'progress', 'notes'} # Added notes  # noqa: E501
     #     fields_updated: List[str] = []
     #     for key, value in kwargs.items():
     #          if key in allowed_updates:
@@ -214,7 +206,7 @@ def update_task_status(
     #                    target_task[key] = value
     #                    fields_updated.append(key)
     #          else:
-    #               logger.warning(f"Attempted to update non-allowed field '{key}' for task {task_id}")
+    #               logger.warning(f"Attempted to update non-allowed field '{key}' for task {task_id}")  # noqa: E501
     #     if fields_updated:
     #          logger.debug(f"Updated fields for task {task_id}: {fields_updated}")
     #
@@ -225,15 +217,15 @@ def update_task_status(
     #     # Calculate score if task is COMPLETED
     #     if status == 'COMPLETED' and original_status != status:
     #         # Ensure completed_at is set
-    #         if 'completed_at' not in target_task or target_task.get('completed_at') is None:
-    #              completed_at_ts = kwargs.get('completed_at') or get_utc_iso_timestamp()
+    #         if 'completed_at' not in target_task or target_task.get('completed_at') is None:  # noqa: E501
+    #              completed_at_ts = kwargs.get('completed_at') or get_utc_iso_timestamp()  # noqa: E501
     #              target_task['completed_at'] = completed_at_ts
     #              if not kwargs.get('completed_at'):
-    #                   logger.warning(f"Task {task_id} marked COMPLETED without explicit completed_at. Using current time: {completed_at_ts}")
+    #                   logger.warning(f"Task {task_id} marked COMPLETED without explicit completed_at. Using current time: {completed_at_ts}")  # noqa: E501
     #
     #         # Ensure started_at exists for scoring
-    #         if 'started_at' not in target_task or target_task.get('started_at') is None:
-    #              logger.warning(f"Task {task_id} marked COMPLETED without started_at timestamp. Score calculation may be inaccurate.")
+    #         if 'started_at' not in target_task or target_task.get('started_at') is None:  # noqa: E501
+    #              logger.warning(f"Task {task_id} marked COMPLETED without started_at timestamp. Score calculation may be inaccurate.")  # noqa: E501
     #
     #         # Add scoring if not present or force update?
     #         target_task['scoring'] = _calculate_task_score(target_task)
@@ -245,10 +237,10 @@ def update_task_status(
     # # Write back the entire updated list
     # if updated:
     #     if write_tasks(task_list_path, tasks):
-    #         logger.info(f"Successfully updated task {task_id} status to {status} in {task_list_path}")
+    #         logger.info(f"Successfully updated task {task_id} status to {status} in {task_list_path}")  # noqa: E501
     #         return True
     #     else:
-    #         logger.error(f"Failed to write updates for task {task_id} to {task_list_path}")
+    #         logger.error(f"Failed to write updates for task {task_id} to {task_list_path}")  # noqa: E501
     #         return False
     # else:
     #     logger.debug(f"No updates applied for task {task_id} in {task_list_path}")

@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional  # Added for type hints
 from ..core.config import AppConfig
 
 # EDIT START: Load config to get path
-# Define log path relative to potential runtime directory, avoid hardcoding 'memory' top-level
+# Define log path relative to potential runtime directory, avoid hardcoding 'memory' top-level  # noqa: E501
 # TODO: Centralize log/runtime path configuration -> DONE
 # LOG_DIR = os.path.join("runtime", "logs") # REMOVED
 # LOG_PATH = os.path.join(LOG_DIR, "performance.jsonl") # REMOVED
@@ -30,15 +30,15 @@ except Exception as e:
         os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
     except OSError as e_mkdir:
         logging.error(
-            f"Failed to create fallback performance log directory {os.path.dirname(LOG_PATH)}: {e_mkdir}"
+            f"Failed to create fallback performance log directory {os.path.dirname(LOG_PATH)}: {e_mkdir}"  # noqa: E501
         )
-# Ensure log directory exists (handled by AppConfig._ensure_dirs_exist or fallback above)
+# Ensure log directory exists (handled by AppConfig._ensure_dirs_exist or fallback above)  # noqa: E501
 # try: # REMOVED
 #     os.makedirs(LOG_DIR, exist_ok=True) # REMOVED
 # except OSError as e: # REMOVED
 #     # Log error but allow continuation if possible # REMOVED
-#     logging.basicConfig() # Ensure basicConfig is called if logger not set up # REMOVED
-#     logging.error(f"Failed to create performance log directory {LOG_DIR}: {e}") # REMOVED
+#     logging.basicConfig() # Ensure basicConfig is called if logger not set up # REMOVED  # noqa: E501
+#     logging.error(f"Failed to create performance log directory {LOG_DIR}: {e}") # REMOVED  # noqa: E501
 # EDIT END
 
 # Logger specific to performance logging
@@ -66,7 +66,7 @@ class PerformanceLogger:
             end_time = datetime.now(timezone.utc)
             duration = (end_time - start_time).total_seconds()
             perf_logger_instance.debug(
-                f"Finished operation '{operation_name}' for agent {self.agent_id}. Duration: {duration:.3f}s"
+                f"Finished operation '{operation_name}' for agent {self.agent_id}. Duration: {duration:.3f}s"  # noqa: E501
             )
             # Optionally log operation summary here if needed, beyond just task outcomes
             self._log_entry(
@@ -101,7 +101,7 @@ class PerformanceLogger:
                 duration_ms = int((end_dt - start_dt).total_seconds() * 1000)
             except ValueError:
                 perf_logger_instance.warning(
-                    f"Could not parse timestamps to calculate duration for task {task_id}"
+                    f"Could not parse timestamps to calculate duration for task {task_id}"  # noqa: E501
                 )
 
         entry = {
@@ -133,7 +133,7 @@ class PerformanceLogger:
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry_dict) + "\n")
             perf_logger_instance.debug(
-                f"Logged performance entry: {entry_dict.get('event_type', 'N/A')} - {entry_dict.get('task_id') or entry_dict.get('operation_name')}"
+                f"Logged performance entry: {entry_dict.get('event_type', 'N/A')} - {entry_dict.get('task_id') or entry_dict.get('operation_name')}"  # noqa: E501
             )
         except Exception as e:
             perf_logger_instance.error(

@@ -220,9 +220,9 @@ python src/dreamos/tools/dreamos_utils/get_current_utc_iso.py
 **Operation:**
 1.  Lists all `.msg` files in the target directory.
 2.  Attempts to read each file and parse it as JSON.
-3.  Expects JSON objects with keys: `sender`, `target`, `message_type`, `payload`, `timestamp_utc_iso`.
+3.  Expects JSON objects with keys: `sender_agent_id`, `recipient_agent_id`, `message_type`, `payload`, `timestamp_utc_iso`.
 4.  Aggregates counts of total messages, processed messages, and messages by type.
-5.  Optionally (with `-v`), lists the most recent messages grouped by sender and target.
+5.  Optionally (with `-v`), lists the most recent messages grouped by `sender_agent_id` and `recipient_agent_id`.
 6.  Reports any file reading or JSON parsing errors.
 7.  Optionally (with `--archive`), moves successfully parsed `.msg` files to an `archive/` subdirectory within the target directory.
 

@@ -10,7 +10,6 @@ Files from the current day are not archived.
 """
 
 import logging
-import os
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -102,7 +101,7 @@ def archive_mailbox(agent_mailbox_dir: Path):
                 error_count += 1
 
     logger.info(
-        f"Finished processing mailbox {agent_mailbox_dir.name}. Archived: {archived_count}, Errors: {error_count}."
+        f"Finished processing mailbox {agent_mailbox_dir.name}. Archived: {archived_count}, Errors: {error_count}."  # noqa: E501
     )
     return archived_count, error_count
 
@@ -130,7 +129,7 @@ def main():
             total_errors += errors
 
     logger.info(
-        f"Agent mailbox archival finished. Total Archived: {total_archived} file(s). Total Errors: {total_errors}."
+        f"Agent mailbox archival finished. Total Archived: {total_archived} file(s). Total Errors: {total_errors}."  # noqa: E501
     )
 
 

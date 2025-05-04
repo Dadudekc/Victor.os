@@ -1,12 +1,22 @@
 # core/config.py
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, List, Optional
 
 import yaml
-from pydantic import BaseModel, Field, FilePath, SecretStr, ValidationError, validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import (
+    BaseModel,
+    Field,
+    FilePath,
+    SecretStr,
+    model_validator,
+    FieldInfo,
+)
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 # Adjusted imports to reflect new location within core
 # REMOVED: Unused AgentBus import
@@ -15,11 +25,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from .errors import ConfigurationError as CoreConfigurationError
 
 # Define project root relative to this file (now three levels up to repo root)
-# NOTE (Captain-Agent-5): Calculating PROJECT_ROOT based on __file__ location can be fragile.
+# NOTE (Captain-Agent-5): Calculating PROJECT_ROOT based on __file__ location can be fragile.  # noqa: E501
 # Consider using a marker file search or environment variable for more robustness.
 # However, the PathsConfig allows overriding this value during initialization.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
+
+logger = logging.getLogger(__name__)
 
 # --- Pydantic Models for Config Structure ---
 
@@ -132,11 +144,9 @@ class GuiAutomationConfig(BaseModel):
     type_interval_seconds: float = 0.01  # Add typing interval
     retry_attempts: int = 3  # Add retry attempts
     retry_delay_seconds: float = 0.5  # Add retry delay
-    copy_attempts: int = (
-        2  # Add copy attempts config (for TASK_AGENT8-CONFIG-CURSORORCH-COPYATTEMPTS-001)
-    )
+    copy_attempts: int = 2  # Add copy attempts config (for TASK_AGENT8-CONFIG-CURSORORCH-COPYATTEMPTS-001)  # noqa: E501
 
-    # Add validators if needed, e.g., for path existence (though FilePath handles basic check)
+    # Add validators if needed, e.g., for path existence (though FilePath handles basic check)  # noqa: E501
 
 
 # EDIT END
@@ -146,19 +156,19 @@ class GuiAutomationConfig(BaseModel):
 class AgentActivationConfig(BaseModel):
     worker_id_pattern: str = Field(
         ...,
-        description="Regex pattern to match worker names (e.g., 'Worker-.*' or 'Worker-(1|3)')",
+        description="Regex pattern to match worker names (e.g., 'Worker-.*' or 'Worker-(1|3)')",  # noqa: E501
     )
     agent_module: str = Field(
         ...,
-        description="Full module path to the agent class (e.g., 'dreamos.agents.agent2_infra_surgeon')",
+        description="Full module path to the agent class (e.g., 'dreamos.agents.agent2_infra_surgeon')",  # noqa: E501
     )
     agent_class: str = Field(
         ...,
-        description="Name of the agent class within the module (e.g., 'Agent2InfraSurgeon')",
+        description="Name of the agent class within the module (e.g., 'Agent2InfraSurgeon')",  # noqa: E501
     )
     agent_id_override: Optional[str] = Field(
         None,
-        description="Optional specific agent_id to assign, otherwise derived or default used.",
+        description="Optional specific agent_id to assign, otherwise derived or default used.",  # noqa: E501
     )
 
 
@@ -186,7 +196,7 @@ class SwarmConfig(BaseModel):
 
 # Main Application Configuration Model
 class AppConfig(BaseSettings):
-    """Main application configuration loaded from environment variables and/or config file."""
+    """Main application configuration loaded from environment variables and/or config file."""  # noqa: E501
 
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
@@ -194,75 +204,76 @@ class AppConfig(BaseSettings):
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
     gui_automation: GuiAutomationConfig = Field(default_factory=GuiAutomationConfig)
-    # {{ EDIT START: Add Swarm Config }}
     swarm: SwarmConfig = Field(default_factory=SwarmConfig)
-    # {{ EDIT END }}
-
-    # Add other top-level config sections as needed (e.g., agent_bus, database)
 
     # Configuration loading behavior
     model_config = SettingsConfigDict(
         env_prefix="DREAMOS_",  # Example prefix: DREAMOS_OPENAI_API_KEY
         env_nested_delimiter="__",  # Example: DREAMOS_CHATGPT_SCRAPER__EMAIL
-        env_file=".env",  # Optionally load from .env file
+        env_file=".env",  # Default .env file to check
         env_file_encoding="utf-8",
         extra="ignore",  # Ignore extra fields found in config sources
+        yaml_file=DEFAULT_CONFIG_PATH, # Pass default path to custom source
     )
 
-    # Custom initialization to load from YAML file as well
-    # NOTE: _config_file argument is handled by pydantic-settings if file path loading is desired
-    # Or implement custom __init__ / model_post_init if complex loading logic required
-
+    # {{ EDIT START: Implement settings_customise_sources }}
     @classmethod
-    def load(cls, config_file: Optional[Path] = None) -> "AppConfig":
-        """Loads configuration, prioritizing env vars over config file."""
-        # pydantic-settings handles .env loading automatically.
-        # For YAML, we might need custom logic if not using its built-in features fully.
-        # This is a basic example, assumes pydantic-settings handles most things.
-        try:
-            # Instantiate using pydantic-settings (handles env vars, .env)
-            instance = cls()
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        # Add file_secret_settings if/when needed
+        # file_secret_settings: PydanticBaseSettingsSource,
+        # Add yaml_settings source parameter (though we instantiate it below)
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Define the priority order for loading settings sources."""
+        return (
+            init_settings,  # 1. Values passed during initialization
+            env_settings,  # 2. Environment variables
+            dotenv_settings,  # 3. Values from .env file
+            YamlConfigSettingsSource(settings_cls), # 4. Values from config.yaml
+            # Add file_secret_settings here if needed
+        )
+    # {{ EDIT END }}
 
-            # If a specific YAML file is provided, or default exists, load and merge
-            yaml_config_data = {}
-            load_path = config_file if config_file else DEFAULT_CONFIG_PATH
-            if load_path.exists():
-                try:
-                    with open(load_path, "r") as f:
-                        yaml_config_data = yaml.safe_load(f) or {}
-                    # Simplified YAML merge logic (Env vars take priority)
-                    temp_instance = cls.model_validate(yaml_config_data)
-                    final_data = temp_instance.model_dump()
-                    final_data.update(instance.model_dump(exclude_unset=True))
-                    instance = cls.model_validate(final_data)
-                except Exception as e:
-                    logging.warning(
-                        f"Could not load or parse YAML config at {load_path}: {e}"
-                    )
-
-            # Ensure paths are absolute after loading and potential merging
-            instance.paths.runtime = instance.paths.runtime.resolve()
-            instance.paths.logs = instance.paths.logs.resolve()
-            instance.paths.agent_comms = instance.paths.agent_comms.resolve()
-            instance.paths.central_task_boards = (
-                instance.paths.central_task_boards.resolve()
+    # Ensure paths are absolute after loading (Pydantic v2 uses model_post_init)
+    @model_validator(mode='after')
+    def resolve_paths(self) -> "AppConfig":
+        """Ensures all configured paths are absolute after validation."""
+        if self.paths:
+            self.paths.runtime = self.paths.runtime.resolve()
+            self.paths.logs = self.paths.logs.resolve()
+            self.paths.agent_comms = self.paths.agent_comms.resolve()
+            self.paths.central_task_boards = (
+                self.paths.central_task_boards.resolve()
             )
-            instance.paths.task_schema = instance.paths.task_schema.resolve()
-            instance.paths.project_root = instance.paths.project_root.resolve()
-            if instance.gui_automation:
-                instance.gui_automation.input_coords_file_path = (
-                    instance.gui_automation.input_coords_file_path.resolve()
-                )
-                instance.gui_automation.copy_coords_file_path = (
-                    instance.gui_automation.copy_coords_file_path.resolve()
-                )
+            self.paths.task_schema = self.paths.task_schema.resolve()
+            self.paths.project_root = self.paths.project_root.resolve()
+        if self.gui_automation:
+            self.gui_automation.input_coords_file_path = (
+                self.gui_automation.input_coords_file_path.resolve()
+            )
+            self.gui_automation.copy_coords_file_path = (
+                self.gui_automation.copy_coords_file_path.resolve()
+            )
+        # Resolve log file path if relative
+        if self.logging and self.logging.log_file:
+            log_path = Path(self.logging.log_file)
+            if not log_path.is_absolute():
+                 # Assume relative to paths.logs directory
+                 self.logging.log_file = str(self.paths.logs / log_path)
+            else:
+                 self.logging.log_file = str(log_path.resolve())
 
-            return instance
+        return self
 
-        except ValidationError as e:
-            raise CoreConfigurationError(f"Configuration validation failed: {e}") from e
-        except Exception as e:
-            raise CoreConfigurationError(f"Failed to load configuration: {e}") from e
+# Configuration Error Exception
+class ConfigurationError(CoreConfigurationError):
+    """Custom exception for configuration errors specific to this module."""
+
+    pass
 
 
 # --- Logging Setup Function ---
@@ -318,7 +329,7 @@ def setup_logging(config: AppConfig):
         except Exception as e:
             # Log error to console if file logging fails
             print(
-                f"ERROR: Failed to configure file logging to {config.logging.log_file}: {e}"
+                f"ERROR: Failed to configure file logging to {config.logging.log_file}: {e}"  # noqa: E501
             )
             logging.error(
                 f"Failed to configure file logging to {config.logging.log_file}: {e}",
@@ -337,22 +348,135 @@ def setup_logging(config: AppConfig):
         logging.getLogger("openai").setLevel(logging.WARNING)
 
         logging.info(
-            f"Logging configured. Level: {config.logging.level}, Console: {config.logging.log_to_console}, File: {config.logging.log_file or 'Disabled'}"
+            f"Logging configured. Level: {config.logging.level}, Console: {config.logging.log_to_console}, File: {config.logging.log_file or 'Disabled'}"  # noqa: E501
         )
         _logging_configured = True
     else:
         logging.warning("No logging handlers configured.")
 
 
+# {{ EDIT START: Add YamlConfigSettingsSource }}
+class YamlConfigSettingsSource(PydanticBaseSettingsSource):
+    """
+    A settings source class that loads variables from a YAML file.
+    Handles potential file not found errors.
+    """
+
+    def __init__(
+        self,
+        settings_cls: type[BaseSettings],
+        yaml_file: Optional[Path] = None,
+        yaml_file_encoding: Optional[str] = None,
+    ):
+        super().__init__(settings_cls)
+        # Attempt to get path/encoding from model_config, fallback to defaults/passed args  # noqa: E501
+        yaml_file_from_config = settings_cls.model_config.get("yaml_file")
+        self.yaml_file = yaml_file or yaml_file_from_config or DEFAULT_CONFIG_PATH
+
+        yaml_encoding_from_config = settings_cls.model_config.get(
+            "yaml_file_encoding"
+        )
+        self.yaml_file_encoding = (
+            yaml_file_encoding
+            or yaml_encoding_from_config
+            or "utf-8"
+        )
+        self.config = self._load_config()
+
+    def _load_config(self) -> dict[str, Any]:
+        if not self.yaml_file.exists():
+            # Use logger if available, otherwise print
+            msg = f"YAML config file not found at {self.yaml_file}, skipping YAML source."
+            try:
+                logger.warning(msg)
+            except NameError:
+                print(f"Warning: {msg}")
+            return {}
+        try:
+            with open(self.yaml_file, "r", encoding=self.yaml_file_encoding) as f:
+                return yaml.safe_load(f) or {}
+        except Exception as e:
+            msg = (
+                f"Error loading YAML config from {self.yaml_file}: {e}"
+            )
+            try:
+                logger.error(msg)
+            except NameError:
+                print(f"Error: {msg}")
+            # Depending on strictness, could raise error or return empty
+            return {}
+
+    def get_field_value(
+        self, field: "FieldInfo", field_name: str
+    ) -> tuple[Any, str, bool]:
+        # This method is not strictly needed if __call__ loads the whole file
+        # and pydantic handles the field mapping.
+        # Kept for potential future field-specific logic from YAML.
+        # Returning None indicates the source doesn't provide this specific field directly. # noqa: E501
+        # Let Pydantic handle extracting nested values from the loaded self.config dict # noqa: E501
+        return self.config.get(field_name), field_name, False
+
+    def prepare_field_value(
+        self, field_name: str, field: "FieldInfo", value: Any, value_is_complex: bool
+    ) -> Any:
+        # Can add specific value preparations if needed
+        return value
+
+    def __call__(self) -> dict[str, Any]:
+        return self.config
+
+
+# --- Loading Function ---
+
+_config: Optional[AppConfig] = None
+
+
+def load_config(config_path: Optional[Path] = None) -> AppConfig:
+    """Loads the application configuration, ensuring it's a singleton."""
+    global _config
+    if _config is None:
+        try:
+            # Pass the specified path (or None to use defaults) to the model init
+            # It will be picked up by the YamlConfigSettingsSource if relevant
+            yaml_path = config_path or DEFAULT_CONFIG_PATH # Ensure path is used if provided # noqa: E501
+            # Override model_config directly for this instance if path is provided
+            # This is a bit hacky, ideally YamlConfigSettingsSource would handle this more cleanly # noqa: E501
+            if config_path:
+                _config = AppConfig(
+                    _settings_config_dict={"yaml_file": config_path}
+                )
+            else:
+                 _config = AppConfig()
+
+            # Ensure logging is set up after config is loaded
+            setup_logging(_config)
+            logger.info(f"Configuration loaded successfully. Project Root: {_config.paths.project_root}") # noqa: E501
+        except Exception as e:
+            # Use logger if possible, otherwise print
+            msg = f"Failed to load application configuration: {e}"
+            try:
+                logger.critical(msg, exc_info=True)
+            except NameError: # Logger might not be configured yet
+                 print(f"CRITICAL ERROR: {msg}")
+            raise ConfigurationError(msg) from e
+    return _config
+
+
+def get_config() -> AppConfig:
+    """Returns the loaded configuration instance, loading it if necessary."""
+    if _config is None:
+        return load_config()
+    return _config
+
 # # Example Usage (for testing if run directly) - REMOVED/COMMENTED
-# # Kept commented for reference during development, but should be removed for production.
+# # Kept commented for reference during development, but should be removed for production.  # noqa: E501
 # if __name__ == "__main__":
 #     import traceback # Add traceback import for direct run test
 #     logging.basicConfig(level=logging.INFO) # Basic config for direct run
 #     try:
 #         print("Attempting to load configuration...")
 #         # Set dummy env var for testing
-#         os.environ['DREAMOS_OPENAI__API_KEY'] = 'test_key_from_env' # Corrected delimiter
+#         os.environ['DREAMOS_OPENAI__API_KEY'] = 'test_key_from_env' # Corrected delimiter  # noqa: E501
 #         os.environ['DREAMOS_LOGGING__LEVEL'] = 'DEBUG' # Test env var override
 #
 #         # Load default config first (relies on BaseSettings defaults)
@@ -375,7 +499,7 @@ def setup_logging(config: AppConfig):
 #         logging.info(f"ChatGPT Password Set: {bool(config.chatgpt_scraper.password)}")
 #
 #         # Test accessing a nested value
-#         logging.debug(f"Dreamscape Planner Model: {config.dreamscape.planner_agent.llm_model}")
+#         logging.debug(f"Dreamscape Planner Model: {config.dreamscape.planner_agent.llm_model}")  # noqa: E501
 #
 #     except CoreConfigurationError as e:
 #         logging.error(f"CONFIGURATION ERROR: {e}", exc_info=True)

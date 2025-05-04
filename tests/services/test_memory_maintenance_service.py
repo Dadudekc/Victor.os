@@ -1,6 +1,4 @@
 import asyncio
-import os
-import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -9,17 +7,13 @@ import pytest
 # Adjust imports based on project structure
 from dreamos.core.config import (
     AppConfig,
-    CompactionPolicyConfig,
     MemoryMaintenanceConfig,
     PathsConfig,
-    SummarizationPolicyConfig,
 )
 from dreamos.core.utils.file_locking import (  # For mocking lock context
-    FileLock,
     LockAcquisitionError,
 )
 from dreamos.core.utils.summarizer import BaseSummarizer
-from dreamos.memory.compaction_utils import CompactableSegment, compact_segment
 from dreamos.services.memory_maintenance_service import MemoryMaintenanceService
 
 # --- Fixtures ---
@@ -166,7 +160,7 @@ async def test_process_agent_memory_snapshot_and_process(
     mock_app_config,
     tmp_path,
 ):
-    """Test _process_agent_memory correctly creates snapshot, processes segments, and cleans up."""
+    """Test _process_agent_memory correctly creates snapshot, processes segments, and cleans up."""  # noqa: E501
     agent_id = "agent_test_001"
     agent_memory_dir = mock_app_config.paths.get_memory_base_path() / agent_id
     agent_memory_dir.mkdir()
@@ -194,13 +188,13 @@ async def test_process_agent_memory_snapshot_and_process(
 
     # 2. Processing called for each segment found in snapshot
     #    Need to simulate that copytree actually created the files in the snapshot dir
-    #    for glob to find them. Since copytree is mocked, we check calls to _process_segment_file.
+    #    for glob to find them. Since copytree is mocked, we check calls to _process_segment_file.  # noqa: E501
     #    The glob happens inside _process_agent_memory *after* the mocked copytree.
     #    This is tricky. Let's assert based on expected calls to _process_segment_file.
     #    We expect it to be called twice IF glob worked on the (mocked) snapshot.
-    #    A more robust test might involve patching Path.glob within the function's scope.
+    #    A more robust test might involve patching Path.glob within the function's scope.  # noqa: E501
     #    For now, let's check call count assuming the implementation correctly globs.
-    #    Expected paths would be snapshot_dir / "segment1.json", snapshot_dir / "segment2.json.gz"
+    #    Expected paths would be snapshot_dir / "segment1.json", snapshot_dir / "segment2.json.gz"  # noqa: E501
     assert mock_process_segment.call_count == 2
     # Check paths passed (order might vary depending on glob)
     call_args_list = mock_process_segment.call_args_list
@@ -345,7 +339,7 @@ async def test_process_agent_memory_replacement_failure(
     # Check that the third rename (.old -> original rollback) was attempted
     assert (
         mock_os_rename.call_count == 3
-    ), "Expected 3 rename calls: original->old, snapshot->original (fail), old->original (rollback)"
+    ), "Expected 3 rename calls: original->old, snapshot->original (fail), old->original (rollback)"  # noqa: E501
     # Verify the arguments of the third (rollback) call
     rollback_call = mock_os_rename.call_args_list[2]
     assert rollback_call[0][0] == original_old_dir
@@ -390,7 +384,7 @@ async def test_process_agent_memory_lock_failure(
     # Make the lock acquisition fail
     mock_filelock.return_value.__aenter__.side_effect = LockAcquisitionError("Timeout")
 
-    # Expect the function to log the error and return, not raise LockAcquisitionError upwards
+    # Expect the function to log the error and return, not raise LockAcquisitionError upwards  # noqa: E501
     await maintenance_service._process_agent_memory(agent_memory_dir)
 
     # Assertions
@@ -475,10 +469,10 @@ async def test_process_agent_memory_snapshot_failure(
     cleaned_snapshot = False
     for call in mock_rmtree.call_args_list:
         if call[0][0] == snapshot_dir:
-            cleaned_snapshot = True
+            cleaned_snapshot = True  # noqa: F841
             break
-    # We don't strictly require cleanup if copytree fails early, but it's good if it tries.
-    # assert cleaned_snapshot, "Snapshot directory cleanup should be attempted even if copytree fails."
+    # We don't strictly require cleanup if copytree fails early, but it's good if it tries.  # noqa: E501
+    # assert cleaned_snapshot, "Snapshot directory cleanup should be attempted even if copytree fails."  # noqa: E501
     # No processing or replacement should occur
 
 

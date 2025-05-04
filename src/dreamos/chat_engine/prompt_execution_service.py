@@ -87,7 +87,7 @@ class PromptExecutionService:
         Returns a list of responses.
         """
         logger.info(
-            f"🔁 Starting sequential prompt execution on a single chat ({len(prompt_list)} prompts)..."
+            f"🔁 Starting sequential prompt execution on a single chat ({len(prompt_list)} prompts)..."  # noqa: E501
         )
         responses = []
 
@@ -220,7 +220,7 @@ class PromptExecutionService:
             # Find all message elements, select the last one
             messages = self.driver.find_elements(
                 "xpath",
-                "//div[contains(@class, 'prose') and not(contains(@class, 'markdown'))]",
+                "//div[contains(@class, 'prose') and not(contains(@class, 'markdown'))]",  # noqa: E501
             )
             if not messages:
                 logger.warning("⚠️ No messages found.")

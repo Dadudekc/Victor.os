@@ -1,4 +1,3 @@
-import inspect
 import logging
 from typing import Any, Dict, List
 
@@ -20,7 +19,7 @@ class ToolRegistry:
             self._tools[tool_name] = tool_instance
         else:
             logger.warning(
-                f"Placeholder register called for tool without a 'name' attribute: {type(tool_instance)}"
+                f"Placeholder register called for tool without a 'name' attribute: {type(tool_instance)}"  # noqa: E501
             )
 
     def get_tool(self, tool_name: str) -> Any | None:

@@ -1,5 +1,3 @@
-import os
-
 # unused_variable = 1
 
 

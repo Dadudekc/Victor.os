@@ -1,7 +1,6 @@
 # src/dreamos/tools/analysis/dead_code.py
 # MOVED FROM: src/dreamos/tools/code_analysis/dead_code.py by Agent 5 (2025-04-28)
 import logging
-import os
 import re
 import shutil
 import subprocess
@@ -34,7 +33,7 @@ def find_dead_code(
             'confidence': 90, # extracted from message
             'message': 'unused variable unused_variable (90% confidence)' # Raw vulture line
         }
-    """
+    """  # noqa: E501
     target_path = Path(target_path)
     logger.info(
         f"Scanning for dead code in: {target_path} (min confidence: {min_confidence}%)"
@@ -71,15 +70,15 @@ def find_dead_code(
             # Check stderr for actual errors if stdout is empty.
             if not result.stdout.strip():
                 logger.error(
-                    f"Vulture command failed. Return code: {result.returncode}. Stderr: {result.stderr.strip()}"
+                    f"Vulture command failed. Return code: {result.returncode}. Stderr: {result.stderr.strip()}"  # noqa: E501
                 )
                 # return None # Optionally return None on non-zero exit code if desired
 
         lines = result.stdout.splitlines()
         findings = []
         for line in lines:
-            # Example line: core/utils.py:77: unused function `calculate_mean` (60% confidence)
-            if f"% confidence)" not in line:
+            # Example line: core/utils.py:77: unused function `calculate_mean` (60% confidence)  # noqa: E501
+            if "% confidence)" not in line:
                 continue  # Skip lines without confidence indication
 
             try:
@@ -100,7 +99,7 @@ def find_dead_code(
                     except ValueError:
                         pass  # Keep confidence 0 if parsing fails
 
-                # TODO: Add more robust parsing to extract item type and name if needed -> Current regex seems sufficient for common cases
+                # TODO: Add more robust parsing to extract item type and name if needed -> Current regex seems sufficient for common cases  # noqa: E501
                 finding = {
                     "file": file_path_str,
                     "line": int(line_num_str),
@@ -124,11 +123,11 @@ def find_dead_code(
                     f"Could not parse Vulture line: '{line}'. Error: {parse_error}"
                 )
                 # Add raw line if parsing fails?
-                # findings.append({'file': 'unknown', 'line': 0, 'confidence': 0, 'message': line})
+                # findings.append({'file': 'unknown', 'line': 0, 'confidence': 0, 'message': line})  # noqa: E501
 
         if not findings:
             logger.info(
-                f"No unused code found in {target_path} with >= {min_confidence}% confidence."
+                f"No unused code found in {target_path} with >= {min_confidence}% confidence."  # noqa: E501
             )
         else:
             logger.info(
@@ -139,7 +138,7 @@ def find_dead_code(
 
     except FileNotFoundError:
         logger.error(
-            f"'{vulture_cmd}' command not found during subprocess run. This shouldn't happen after shutil.which check."
+            f"'{vulture_cmd}' command not found during subprocess run. This shouldn't happen after shutil.which check."  # noqa: E501
         )
         return None
     except Exception as e:
@@ -148,7 +147,7 @@ def find_dead_code(
 
 
 # Example of how an agent might use this:
-# from dreamos.tools.analysis.dead_code import find_dead_code # UPDATED EXAMPLE IMPORT PATH
+# from dreamos.tools.analysis.dead_code import find_dead_code # UPDATED EXAMPLE IMPORT PATH  # noqa: E501
 #
 # target = "src/dreamos/coordination"
 # dead_code_results = find_dead_code(target, min_confidence=70)
@@ -157,6 +156,6 @@ def find_dead_code(
 # elif dead_code_results:
 #     print("Dead code found:")
 #     for item in dead_code_results:
-#         print(f"- {item['file']}:{item['line']} ({item['confidence']}%) {item['message']}")
+#         print(f"- {item['file']}:{item['line']} ({item['confidence']}%) {item['message']}")  # noqa: E501
 # else:
 #     print("No dead code found.")

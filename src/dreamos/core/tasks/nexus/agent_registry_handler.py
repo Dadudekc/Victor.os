@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class AgentRegistryHandler:
-    """Handles agent heartbeat recording, registry loading/saving, and stale task reclamation."""
+    """Handles agent heartbeat recording, registry loading/saving, and stale task reclamation."""  # noqa: E501
 
     def __init__(
         self,
@@ -65,7 +65,7 @@ class AgentRegistryHandler:
                 loaded_data = json.loads(content)
                 if not isinstance(loaded_data, dict):
                     logger.error(
-                        f"Registry file {file_path} did not contain a dictionary. Returning default."
+                        f"Registry file {file_path} did not contain a dictionary. Returning default."  # noqa: E501
                     )
                     return default_return
                 # Convert timestamps to float, handle potential errors
@@ -75,7 +75,7 @@ class AgentRegistryHandler:
                         agents_data[str(k)] = float(v)
                     except (ValueError, TypeError):
                         logger.warning(
-                            f"Invalid timestamp value '{v}' for agent '{k}' in {file_path}. Skipping."
+                            f"Invalid timestamp value '{v}' for agent '{k}' in {file_path}. Skipping."  # noqa: E501
                         )
                 return agents_data
         except json.JSONDecodeError:
@@ -86,7 +86,7 @@ class AgentRegistryHandler:
             return default_return
         except LockAcquisitionError:
             logger.error(
-                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning cached."
+                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning cached."  # noqa: E501
             )
             return dict(self.agents)  # Return potentially stale cache on timeout
         except Exception as e:
@@ -160,7 +160,7 @@ class AgentRegistryHandler:
                     return True
                 else:
                     logger.error(
-                        f"Failed to save agent registry after recording heartbeat for {agent_name}."
+                        f"Failed to save agent registry after recording heartbeat for {agent_name}."  # noqa: E501
                     )
                     return False
         except LockAcquisitionError:
@@ -190,7 +190,7 @@ class AgentRegistryHandler:
         }
         if len(active_agents) < len(self.agents):
             logger.debug(
-                f"Returning {len(active_agents)} active agents (filtered from {len(self.agents)} cached by TTL)."
+                f"Returning {len(active_agents)} active agents (filtered from {len(self.agents)} cached by TTL)."  # noqa: E501
             )
         return active_agents
 
@@ -213,7 +213,7 @@ class AgentRegistryHandler:
                 loaded_data = json.loads(content)
                 if not isinstance(loaded_data, list):
                     logger.error(
-                        f"Task board file {file_path} did not contain a list. Returning default."
+                        f"Task board file {file_path} did not contain a list. Returning default."  # noqa: E501
                     )
                     return default_return
                 return loaded_data
@@ -225,7 +225,7 @@ class AgentRegistryHandler:
             return default_return
         except LockAcquisitionError:
             logger.error(
-                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning default."
+                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning default."  # noqa: E501
             )
             return default_return
         except Exception as e:
@@ -236,7 +236,7 @@ class AgentRegistryHandler:
         """Moves stale WORKING tasks back to the future board."""
         reclaimed = []
         try:
-            # Acquire all necessary locks simultaneously using contextlib.AsyncExitStack if needed,
+            # Acquire all necessary locks simultaneously using contextlib.AsyncExitStack if needed,  # noqa: E501
             # but simple nesting is fine for a fixed number of locks.
             async with filelock.FileLock(
                 str(self.agent_registry_lock_path), timeout=self.lock_timeout
@@ -247,7 +247,6 @@ class AgentRegistryHandler:
                     async with filelock.FileLock(
                         str(self.future_tasks_lock_path), timeout=self.lock_timeout
                     ):
-
                         now = time.time()
                         agents = (
                             await self._load_json_registry()
@@ -280,13 +279,13 @@ class AgentRegistryHandler:
                                         "task_id", task.get("id", "UNKNOWN")
                                     )
                                     logger.warning(
-                                        f"Reclaiming stale task {task_id} claimed by {agent} (Last HB: {last_hb})"
+                                        f"Reclaiming stale task {task_id} claimed by {agent} (Last HB: {last_hb})"  # noqa: E501
                                     )
                                     task["status"] = "PENDING"
                                     task.pop("claimed_by", None)
                                     task.pop("assigned_agent", None)
                                     task["notes"] = (
-                                        f"(Reclaimed due to agent timeout at {datetime.now(timezone.utc).isoformat()}) "
+                                        f"(Reclaimed due to agent timeout at {datetime.now(timezone.utc).isoformat()}) "  # noqa: E501
                                         + task.get("notes", "")
                                     )
                                     task["timestamp_updated"] = datetime.now(
@@ -319,7 +318,7 @@ class AgentRegistryHandler:
                                 )
                             else:
                                 logger.critical(
-                                    "CRITICAL: Failed to save one or both boards after reclaiming tasks!"
+                                    "CRITICAL: Failed to save one or both boards after reclaiming tasks!"  # noqa: E501
                                 )
                                 # State might be inconsistent
         except LockAcquisitionError:

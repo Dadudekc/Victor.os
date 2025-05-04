@@ -1,12 +1,11 @@
 """Base test class for social media strategy tests."""
 
-import json
+import json  # noqa: I001
 import os
-from typing import Any, Dict, Optional, Type
-from unittest.mock import MagicMock, Mock, patch
+from typing import Any, Dict, Optional
+from unittest.mock import Mock
 
 import pytest
-
 from dreamos.exceptions.strategy_exceptions import StrategyError
 from dreamos.services.feedback_engine import FeedbackEngine
 

@@ -1,7 +1,6 @@
 """Defines standardized Pydantic models for AgentBus event payloads."""
 
 import uuid  # Added for alert_id default
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
@@ -15,7 +14,7 @@ from .message_patterns import (  # Assuming TaskStatus is defined here or import
 
 
 class ErrorEventPayload(BaseModel):
-    """Unified payload for system or agent-specific error events. Replaces SystemAgentErrorPayload and AgentErrorPayload."""
+    """Unified payload for system or agent-specific error events. Replaces SystemAgentErrorPayload and AgentErrorPayload."""  # noqa: E501
 
     error_message: str
     agent_id: Optional[str] = (
@@ -30,7 +29,7 @@ class ErrorEventPayload(BaseModel):
 
 
 class AgentStatusEventPayload(BaseModel):
-    """Unified payload for various agent status update events. Replaces AgentStatusChangePayload and AgentStatusPayload."""
+    """Unified payload for various agent status update events. Replaces AgentStatusChangePayload and AgentStatusPayload."""  # noqa: E501
 
     agent_id: str
     status: AgentStatus
@@ -223,7 +222,7 @@ class SupervisorAlertPayload(BaseModel):
     blocking_task_id: Optional[str] = (
         None  # ID of the specific task blocked, if applicable
     )
-    blocker_summary: str  # Max ~100 chars recommended. E.g., "Missing core file: X", "Tool Y failed: Z"
+    blocker_summary: str  # Max ~100 chars recommended. E.g., "Missing core file: X", "Tool Y failed: Z"  # noqa: E501
     details_reference: Optional[str] = (
         None  # Relative path to detailed log/message file, if available
     )

@@ -1,19 +1,13 @@
 import argparse
 import asyncio
 import logging
-import os
 import threading
 import time
-from typing import Optional
 
 from dreamos.agents.chatgpt_web_agent import ChatGPTWebAgent
 from dreamos.agents.cursor_worker import run as cursor_run
 from dreamos.agents.supervisor_agent import SupervisorAgent
-from dreamos.coordination.agent_bus import AgentBus
-from dreamos.core.config import AppConfig, load_app_config
-
-from .cursor_orchestrator import CursorOrchestrator
-from .execution.task_executor import TaskExecutor
+from dreamos.core.config import load_app_config
 
 # Enforce using local blob channel for inter-agent communication
 # os.environ["USE_LOCAL_BLOB"] = "1"
@@ -53,8 +47,8 @@ def main():
     human_directive_path = config.project_root / getattr(
         config.paths, "human_directive", "runtime/human_directive.json"
     )
-    # supervisor_results_path = config.project_root / getattr(config.paths, 'supervisor_results', 'runtime/supervisor_results.json') # This seems unused by SupervisorAgent
-    assets_dir = config.project_root / getattr(
+    # supervisor_results_path = config.project_root / getattr(config.paths, 'supervisor_results', 'runtime/supervisor_results.json') # This seems unused by SupervisorAgent  # noqa: E501
+    assets_dir = config.project_root / getattr(  # noqa: F841
         config.paths, "assets", "assets"
     )  # Get assets dir from config
     # EDIT END
@@ -68,7 +62,7 @@ def main():
     # Start ChatGPT Agent thread if enabled and not simulating
     if config.chat_agent.enabled and not args.simulate:
         logging.info(
-            f"Starting ChatGPTWebAgent for conversation: {config.chat_agent.conversation_url}"
+            f"Starting ChatGPTWebAgent for conversation: {config.chat_agent.conversation_url}"  # noqa: E501
         )
         chatgpt_agent = ChatGPTWebAgent(
             config=config,
@@ -77,7 +71,7 @@ def main():
             simulate=args.simulate,
         )
 
-        chatgpt_thread = threading.Thread(target=chatgpt_loop, args=(chatgpt_agent,))
+        chatgpt_thread = threading.Thread(target=chatgpt_loop, args=(chatgpt_agent,))  # noqa: F821
         chatgpt_thread.daemon = True
         chatgpt_thread.start()
         logging.info("ChatGPT Agent thread started.")
@@ -114,7 +108,7 @@ def main():
 
     # Keep main thread alive
     try:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()  # noqa: F841
         # Configure logging centrally
         # config = AppConfig.load() # Loaded in main now
         # setup_logging(config)

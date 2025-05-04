@@ -7,10 +7,10 @@ for a given agent, marking them as IN_PROGRESS.
 
 MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
 """
+
 import argparse
 import json
 import logging
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -85,7 +85,7 @@ def auto_claim_tasks(tasks_dir: Path, agent_id: str):
                 logging.error(f"Failed to write updates to {file_path.name}: {e}")
 
     logging.info(
-        f"Auto-claiming finished for agent '{agent_id}'. Claimed {claimed_count} tasks across {files_updated} files."
+        f"Auto-claiming finished for agent '{agent_id}'. Claimed {claimed_count} tasks across {files_updated} files."  # noqa: E501
     )
 
 

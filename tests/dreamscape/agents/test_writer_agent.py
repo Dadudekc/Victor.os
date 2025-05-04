@@ -1,9 +1,7 @@
 # tests/dreamscape/agents/test_writer_agent.py
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch  # noqa: I001
 
 import pytest
-
 from dreamos.coordination.agent_bus import AgentBus
 from dreamos.core.config import AppConfig
 from dreamos.core.coordination.base_agent import TaskMessage, TaskPriority, TaskStatus
@@ -11,10 +9,8 @@ from dreamos.core.coordination.base_agent import TaskMessage, TaskPriority, Task
 # Import the agent class and dependent models
 from src.dreamscape.agents.writer_agent import (
     ContentWriterAgent,
-    GenerateOutlineTask,
-    WriteContentTask,
 )
-from src.dreamscape.core.content_models import ContentDraft, ContentPlan
+from src.dreamscape.core.content_models import ContentPlan
 
 # --- Fixtures ---
 

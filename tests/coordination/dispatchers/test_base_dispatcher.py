@@ -1,12 +1,8 @@
 """Tests for the base dispatcher functionality."""
 
-import time
-from queue import PriorityQueue
-from typing import Any, Dict
+from typing import Any, Dict  # noqa: I001
 
 import pytest
-from pytest_mock import MockerFixture
-
 from dreamos.coordination.dispatchers.dispatchers.base_dispatcher import BaseDispatcher
 
 

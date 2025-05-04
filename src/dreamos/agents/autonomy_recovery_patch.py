@@ -1,9 +1,10 @@
 import json
-import os
 import logging
+import os
+import uuid
+
 # import time # F401 Unused import
 from datetime import datetime, timedelta, timezone
-import uuid
 
 # Configuration
 AGENT_STATUS_DIR = "runtime/agent_comms/agent_status"
@@ -12,9 +13,7 @@ LAST_ACTION_FILE = "last_action.json"
 STALE_THRESHOLD_SECONDS = 300  # 5 minutes
 MAX_STEPS_WITHOUT_COMMIT = 10  # Example threshold
 CAPTAIN_MAILBOX_ID = "Captain-Agent-5"  # Needs confirmation or dynamic lookup
-CAPTAIN_MAILBOX_PATH = (
-    f"runtime/agent_comms/agent_mailboxes/{CAPTAIN_MAILBOX_ID}/inbox"
-)
+CAPTAIN_MAILBOX_PATH = f"runtime/agent_comms/agent_mailboxes/{CAPTAIN_MAILBOX_ID}/inbox"
 
 
 class AgentStateError(Exception):
@@ -51,9 +50,7 @@ def _write_json_file(file_path: str, data: dict):
     except IOError as e:
         # Consider logging this error
         print(f"Error writing to {file_path}: {e}")
-        raise AgentStateError(
-            f"Failed to write agent state to {file_path}"
-        ) from e
+        raise AgentStateError(f"Failed to write agent state to {file_path}") from e
 
 
 def get_active_task(agent_id: str) -> dict | None:
@@ -109,7 +106,7 @@ def update_last_action(
 
 def _send_halt_report_to_captain(agent_id: str, reason: str):
     """Sends an urgent HALT report to the Captain's inbox."""
-    message_id = f"halt_report_{agent_id}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+    message_id = f"halt_report_{agent_id}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"  # noqa: E501
     message = {
         "message_id": message_id,
         "sender_agent_id": agent_id,
@@ -119,7 +116,7 @@ def _send_halt_report_to_captain(agent_id: str, reason: str):
         "type": "AGENT_HALT_REPORT",
         "body": {
             "reason": reason,
-            "details": f"Agent {agent_id} failed staleness check and requires intervention.",
+            "details": f"Agent {agent_id} failed staleness check and requires intervention.",  # noqa: E501
             "last_action_data": _read_json_file(
                 os.path.join(_get_agent_status_path(agent_id), LAST_ACTION_FILE)
             ),
@@ -133,7 +130,7 @@ def _send_halt_report_to_captain(agent_id: str, reason: str):
         print(f"Agent {agent_id} sent HALT report to Captain: {reason}")
     except Exception as e:
         print(
-            f"CRITICAL ERROR: Agent {agent_id} failed to send HALT report to Captain! Reason: {e}"
+            f"CRITICAL ERROR: Agent {agent_id} failed to send HALT report to Captain! Reason: {e}"  # noqa: E501
         )
 
 
@@ -190,7 +187,7 @@ def maintain_loop_integrity(agent_id: str, current_task_id: str | None) -> str |
         AgentStateError: If a HALT condition occurs.
     """
     if check_agent_staleness(agent_id):
-        reason = f"Stale state detected (timeout or excessive steps). Last action data: {_read_json_file(os.path.join(_get_agent_status_path(agent_id), LAST_ACTION_FILE))}"
+        reason = f"Stale state detected (timeout or excessive steps). Last action data: {_read_json_file(os.path.join(_get_agent_status_path(agent_id), LAST_ACTION_FILE))}"  # noqa: E501
         print(f"HALTING Agent {agent_id}: {reason}")
         _send_halt_report_to_captain(agent_id, reason)
         # Depending on desired behavior, agent might enter a safe halt state here
@@ -204,13 +201,13 @@ def maintain_loop_integrity(agent_id: str, current_task_id: str | None) -> str |
     if not current_task_id and persistent_task_data:
         persistent_task_id = persistent_task_data.get("task_id")
         print(
-            f"Agent {agent_id} has no current task from loop, resuming persistent task: {persistent_task_id}"
+            f"Agent {agent_id} has no current task from loop, resuming persistent task: {persistent_task_id}"  # noqa: E501
         )
         task_to_focus_on = persistent_task_id
 
     # Update last action tracking - increment step count if agent is working
-    # Reset step count logic needs to be called externally (e.g., after a commit/task completion) via update_last_action(agent_id, reset_steps=True)
-    # For this generic check, we just update the timestamp unless a new task focus was just determined
+    # Reset step count logic needs to be called externally (e.g., after a commit/task completion) via update_last_action(agent_id, reset_steps=True)  # noqa: E501
+    # For this generic check, we just update the timestamp unless a new task focus was just determined  # noqa: E501
 
     update_last_action(agent_id, increment_step=(task_to_focus_on is not None))
 
@@ -265,9 +262,7 @@ def _check_core_systems(self):
         # logging.info("PBM connection successful.")
         pass
     except Exception as e:
-        logging.warning(
-            f"Core system check failed (PBM example): {e}", exc_info=True
-        )
+        logging.warning(f"Core system check failed (PBM example): {e}", exc_info=True)
         return False
     return True
 
@@ -277,7 +272,7 @@ def _verify_agent_loop_integrity(self):
     logging.info(f"Agent {self.agent_id}: Verifying agent loop integrity.")
     # TODO: Implement checks (e.g., can agent read its own state? Is loop runnable?)
     # Example placeholder:
-    if not hasattr(self, 'run') or not callable(self.run):
+    if not hasattr(self, "run") or not callable(self.run):
         logging.error("Agent loop method 'run' is missing or not callable.")
         return False
     return True
@@ -330,9 +325,7 @@ def _evaluate_recovery_options(self):
 
 def _execute_recovery_strategy(self, strategy: str):
     """Perform actions based on the chosen recovery strategy."""
-    logging.info(
-        f"Agent {self.agent_id}: Executing recovery strategy '{strategy}'..."
-    )
+    logging.info(f"Agent {self.agent_id}: Executing recovery strategy '{strategy}'...")
 
     if strategy == "FULL_RESTART":
         logging.info("Initiating full agent loop restart.")
@@ -351,9 +344,7 @@ def _execute_recovery_strategy(self, strategy: str):
         pass
 
     elif strategy == "MINIMAL_RECOVERY":
-        logging.warning(
-            "Entering minimal recovery mode. Only distress signals active."
-        )
+        logging.warning("Entering minimal recovery mode. Only distress signals active.")
         # Loop trying to send distress signals?
         # while not self.shutdown_requested:
         #     self._send_distress_signal("Agent in minimal recovery mode.")
@@ -361,9 +352,7 @@ def _execute_recovery_strategy(self, strategy: str):
         pass
 
     elif strategy == "AWAIT_INTERVENTION":
-        logging.error(
-            "Entering safe halt mode. Awaiting external intervention."
-        )
+        logging.error("Entering safe halt mode. Awaiting external intervention.")
         # Stop all active processes, maybe send a final distress signal
         self._send_distress_signal(
             "Agent halting. Requires external intervention.", final=True
@@ -398,7 +387,6 @@ def _send_distress_signal(self, message: str, final: bool = False):
         pass
     except Exception as e:
         logging.error(
-            f"Failed to send distress signal via primary mechanism: {e}",
-            exc_info=True
+            f"Failed to send distress signal via primary mechanism: {e}", exc_info=True
         )
         # Fallback? Direct log write? stderr?

@@ -2,7 +2,6 @@
 import json
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 # Type checking imports to avoid circular dependencies
@@ -12,13 +11,12 @@ if TYPE_CHECKING:
     from ..coordination.project_board_manager import ProjectBoardManager
 
 # Moved error import to top
-from ..errors import DreamOSError
 
 logger = logging.getLogger("AutonomyGovernor")
 
 # REMOVED Global Paths - Use injected config
-# WORKING_TASKS_PATH = PROJECT_ROOT / "runtime/agent_comms/project_boards/working_tasks.json"
-# FUTURE_TASKS_PATH = PROJECT_ROOT / "runtime/agent_comms/project_boards/future_tasks.json"
+# WORKING_TASKS_PATH = PROJECT_ROOT / "runtime/agent_comms/project_boards/working_tasks.json"  # noqa: E501
+# FUTURE_TASKS_PATH = PROJECT_ROOT / "runtime/agent_comms/project_boards/future_tasks.json"  # noqa: E501
 # MAILBOX_BASE_DIR = PROJECT_ROOT / "runtime/agent_comms/agent_mailboxes"
 
 # REMOVED Simplified Helper Functions - Use injected clients
@@ -29,7 +27,7 @@ logger = logging.getLogger("AutonomyGovernor")
 
 
 class AgentAutonomyGovernor:
-    """Provides checks and guidance based on AUTONOMOUS_LOOP principles (v2.1 Inbox-Centric)."""
+    """Provides checks and guidance based on AUTONOMOUS_LOOP principles (v2.1 Inbox-Centric)."""  # noqa: E501
 
     # Dependency Injection
     def __init__(
@@ -61,7 +59,7 @@ class AgentAutonomyGovernor:
                 - IDLE_CAN_CLAIM (No central/inbox task, but claimable tasks exist)
                 - IDLE_TRUE_IDLE (No messages, no assigned/inbox/claimable tasks)
                 - ERROR_CHECKING_STATUS
-        """
+        """  # noqa: E501
         logger.debug(f"Governor checking status for Agent {agent_id}")
 
         try:
@@ -87,12 +85,12 @@ class AgentAutonomyGovernor:
             if assigned_task_id:
                 if is_blocked:
                     logger.info(
-                        f"Agent {agent_id} status: IDLE_BLOCKED on central task {assigned_task_id}"
+                        f"Agent {agent_id} status: IDLE_BLOCKED on central task {assigned_task_id}"  # noqa: E501
                     )
                     return "IDLE_BLOCKED", assigned_task_id
                 else:
                     logger.info(
-                        f"Agent {agent_id} status: WORKING on central task {assigned_task_id}"
+                        f"Agent {agent_id} status: WORKING on central task {assigned_task_id}"  # noqa: E501
                     )
                     return "WORKING", assigned_task_id
 
@@ -102,9 +100,7 @@ class AgentAutonomyGovernor:
                 agent_id
             )  # Needs implementation
             pending_inbox_task_id = None
-            for (
-                task
-            ) in (
+            for task in (
                 inbox_tasks
             ):  # Assuming list_tasks returns list of dicts/objects with task_id/status
                 if task.get("status", "").upper() == "PENDING":
@@ -114,7 +110,7 @@ class AgentAutonomyGovernor:
 
             if pending_inbox_task_id:
                 logger.info(
-                    f"Agent {agent_id} status: IDLE_HAS_INBOX_TASK ({pending_inbox_task_id})"
+                    f"Agent {agent_id} status: IDLE_HAS_INBOX_TASK ({pending_inbox_task_id})"  # noqa: E501
                 )
                 return "IDLE_HAS_INBOX_TASK", pending_inbox_task_id
 
@@ -129,7 +125,7 @@ class AgentAutonomyGovernor:
 
             if has_claimable:
                 logger.info(
-                    f"Agent {agent_id} status: IDLE_CAN_CLAIM (claimable central tasks exist)"
+                    f"Agent {agent_id} status: IDLE_CAN_CLAIM (claimable central tasks exist)"  # noqa: E501
                 )
                 return "IDLE_CAN_CLAIM", None
             else:
@@ -163,7 +159,7 @@ class AgentAutonomyGovernor:
         elif status == "IDLE_CAN_CLAIM":
             return "Claim a task from the central ready queue board."
         elif status == "IDLE_TRUE_IDLE":
-            return "Enter IDLE_MODE protocol: Contribute to Masterpiece (cleanup), assist others, or propose new tasks."
+            return "Enter IDLE_MODE protocol: Contribute to Masterpiece (cleanup), assist others, or propose new tasks."  # noqa: E501
         elif status == "ERROR_CHECKING_STATUS":
             return "Status check failed. Investigate board/mailbox access."
         else:
@@ -198,7 +194,7 @@ class AgentAutonomyGovernor:
                     )
                     if result.returncode != 0:
                         logger.warning(
-                            f"Flake8 validation failed for task {task_id}. Return code: {result.returncode}"
+                            f"Flake8 validation failed for task {task_id}. Return code: {result.returncode}"  # noqa: E501
                         )
                         logger.warning(f"Flake8 stdout:\n{result.stdout}")
                         logger.warning(f"Flake8 stderr:\n{result.stderr}")
@@ -234,10 +230,10 @@ class AgentAutonomyGovernor:
     ):
         """Logs key autonomy loop events for compliance/monitoring."""
         try:
-            log_entry = {
+            log_entry = {  # noqa: F841
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "agent_id": agent_id,
-                "event_type": event_type,  # e.g., TASK_COMPLETED_VALIDATED, IDLE_MODE_SCAN, BLOCKER_ESCALATED
+                "event_type": event_type,  # e.g., TASK_COMPLETED_VALIDATED, IDLE_MODE_SCAN, BLOCKER_ESCALATED  # noqa: E501
                 "details": details,
             }
             # Log clearly, avoid complex objects if just logging info

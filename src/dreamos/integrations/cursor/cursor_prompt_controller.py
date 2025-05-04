@@ -31,7 +31,7 @@ if not logger.hasHandlers():
 # --- Constants (Potentially move to config) ---
 # These might need adjustment based on screen resolution, OS, and Cursor layout
 CURSOR_WINDOW_TITLE = "Cursor"  # Default title, might need adjustment
-# Coordinates are highly unreliable - use image recognition or activation sequences instead
+# Coordinates are highly unreliable - use image recognition or activation sequences instead  # noqa: E501
 # INPUT_FIELD_COORDS = (500, 950) # Example - VERY UNRELIABLE
 
 # Time delays for UI actions (seconds)
@@ -51,12 +51,13 @@ class CursorPromptController:
              timing issues, or focus stealing. It should only be used as a last resort
              if the AgentBus event mechanism is unavailable.
     """
+
     # EDIT END
 
     def __init__(self):
         # EDIT START: Add init level deprecation warning
         warnings.warn(
-            "CursorPromptController is deprecated. Prefer integrations.cursor.utils.publish_cursor_inject_event.",
+            "CursorPromptController is deprecated. Prefer integrations.cursor.utils.publish_cursor_inject_event.",  # noqa: E501
             DeprecationWarning,
             stacklevel=2,
         )
@@ -72,7 +73,7 @@ class CursorPromptController:
         # EDIT END
 
     def _focus_chat_input(self):
-        """Attempts to focus the chat input field. Highly dependent on layout/hotkeys."""
+        """Attempts to focus the chat input field. Highly dependent on layout/hotkeys."""  # noqa: E501
         logger.info("Attempting to focus Cursor chat input...")
         # EDIT START: Use OrchestratorBot for hotkey
         try:
@@ -89,7 +90,7 @@ class CursorPromptController:
         # EDIT END
 
     def send_prompt_to_chat(self, prompt: str) -> bool:
-        """DEPRECATED: Activates Cursor, focuses chat (best effort), pastes, and submits prompt."""
+        """DEPRECATED: Activates Cursor, focuses chat (best effort), pastes, and submits prompt."""  # noqa: E501
         warnings.warn(
             "send_prompt_to_chat is deprecated. Prefer "
             "integrations.cursor.utils.publish_cursor_inject_event.",
@@ -159,10 +160,10 @@ if __name__ == "__main__":
 
     test_prompt = (
         "Hello Cursor! This is an automated test prompt from "
-        "CursorPromptController. Please write a short python function to add two numbers."
+        "CursorPromptController. Please write a short python function to add two numbers."  # noqa: E501
     )
 
-    print(f"Will attempt to send the following prompt in 5 seconds:")
+    print("Will attempt to send the following prompt in 5 seconds:")
     print(f"---\n{test_prompt}\n---")
     print("SWITCH TO CURSOR NOW if needed. Press Ctrl+C to abort.")
 
@@ -177,8 +178,8 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("\nOperation aborted by user.")
-    except Exception as e:
-        print(f"\nAn unexpected error occurred: {{e}}")
+    except Exception:
+        print("\nAn unexpected error occurred: {e}")
         logger.error("Error in example usage block", exc_info=True)
 
     print("CursorPromptController example finished.")

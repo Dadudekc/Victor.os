@@ -70,7 +70,7 @@ def safe_name(chat_id: str, ext: str) -> Path:
     return SAVE_DIR / f"episode_{ts}_{safe_chat_id[:8]}{ext}"
 
 
-async def run_episode(scraper: ChatGPTScraper, convo: Dict, prev_state: str | None):
+async def run_episode(scraper: ChatGPTScraper, convo: Dict, prev_state: str | None):  # noqa: F821
     # Assume convo is a dict with at least 'id' and potentially 'title'
     cid = convo.get("id")
     if not cid:
@@ -140,12 +140,12 @@ async def run_episode(scraper: ChatGPTScraper, convo: Dict, prev_state: str | No
                         parsed_successfully = True
                     else:
                         logger.error(
-                            f"  Summary for {cid} became empty after cleaning markdown fences."
+                            f"  Summary for {cid} became empty after cleaning markdown fences."  # noqa: E501
                         )
 
                 except json.JSONDecodeError as json_err:
                     logger.error(
-                        f"  Failed to parse JSON summary for {cid} even after cleaning: {json_err}"
+                        f"  Failed to parse JSON summary for {cid} even after cleaning: {json_err}"  # noqa: E501
                     )
                     logger.debug(f"  Raw summary received for {cid}:\n{raw_summary}")
                 except Exception as parse_err:  # Catch other potential errors
@@ -169,7 +169,7 @@ async def run_episode(scraper: ChatGPTScraper, convo: Dict, prev_state: str | No
                 raw_summary or "[ERROR: Empty summary received]", encoding="utf-8"
             )
             logger.error(
-                f"  • Failed to parse JSON summary; saved raw response to {summary_path.name}"
+                f"  • Failed to parse JSON summary; saved raw response to {summary_path.name}"  # noqa: E501
             )
             # Don't pass invalid state forward
             return prev_state
@@ -178,7 +178,7 @@ async def run_episode(scraper: ChatGPTScraper, convo: Dict, prev_state: str | No
         logger.error(
             f"❌ Unexpected error processing conversation {cid}: {e}", exc_info=True
         )
-        # Return previous state so subsequent conversations don't fail due to missing primer
+        # Return previous state so subsequent conversations don't fail due to missing primer  # noqa: E501
         return prev_state
 
 
@@ -191,7 +191,7 @@ async def main():
     scraper_cfg = cfg.chatgpt_scraper
     if not (scraper_cfg.email and scraper_cfg.password):
         logger.error(
-            "Missing environment variables: Set DREAMOS_CHATGPT_SCRAPER__EMAIL and DREAMOS_CHATGPT_SCRAPER__PASSWORD"
+            "Missing environment variables: Set DREAMOS_CHATGPT_SCRAPER__EMAIL and DREAMOS_CHATGPT_SCRAPER__PASSWORD"  # noqa: E501
         )
         return  # Exit if creds missing
 

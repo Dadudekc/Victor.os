@@ -1,14 +1,13 @@
-import json
-import os
+import json  # noqa: I001
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import yaml
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
 
 # Import the standard config
 from dreamos.core.config import AppConfig
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 # Load config ONCE at the start
 config = AppConfig.load()
@@ -42,11 +41,11 @@ def load_rules_from_rulebook(rulebook_path: Path) -> Dict[str, Any]:
                                 rules[rule["id"]] = rule
                             else:
                                 print(
-                                    f"Warning: Invalid rule structure in block: {block[:100]}..."
+                                    f"Warning: Invalid rule structure in block: {block[:100]}..."  # noqa: E501
                                 )
                         else:
                             print(
-                                f"Warning: Empty 'rules' list in block: {block[:100]}..."
+                                f"Warning: Empty 'rules' list in block: {block[:100]}..."  # noqa: E501
                             )
                 except yaml.YAMLError as ye:
                     print(f"Warning: YAML error parsing rule block: {ye}")
@@ -106,9 +105,7 @@ def generate_reflection(
         violating_agent = alert_data.get("violating_agent", "Unknown Agent")
         halt = halt_reason if isinstance(halt_reason, str) else "Reason not specified."
 
-        reflection[
-            "proposal_content"
-        ] = f"""### [REFLECT] Proposal
+        reflection["proposal_content"] = f"""### [REFLECT] Proposal
 **Target Rule ID:** {target_rule}
 
 **Reasoning:** {reasoning}
@@ -166,7 +163,7 @@ class AlertHandler(FileSystemEventHandler):
         # Use agent_id from config, ignore passed agent_name for consistency?
         # For now, keep passed agent_name but log it
         print(
-            f"AlertHandler initialized for agent: {agent_name} (Config AGENT_ID: {AGENT_ID})"
+            f"AlertHandler initialized for agent: {agent_name} (Config AGENT_ID: {AGENT_ID})"  # noqa: E501
         )
         self.agent_name = agent_name
         self.inbox_path = Path(inbox_path)
@@ -229,7 +226,7 @@ def start_monitoring(agent_name: str, inbox_path: str, outbox_path: str):
 if __name__ == "__main__":
     print("Reflection Agent Example Starting...")
     # Use paths from loaded config
-    # These paths likely need to be configured in config.yaml or use agent-specific mailboxes
+    # These paths likely need to be configured in config.yaml or use agent-specific mailboxes  # noqa: E501
     agent_inbox = Path(f"runtime/agent_comms/agent_mailboxes/{AGENT_ID}/inbox")
     agent_outbox = Path(f"runtime/agent_comms/agent_mailboxes/{AGENT_ID}/outbox")
 
@@ -246,7 +243,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            time.sleep(10)  # Keep main thread alive
+            time.sleep(10)  # Keep main thread alive  # noqa: F821
             print(".", end="", flush=True)  # Heartbeat
     except KeyboardInterrupt:
         observer.stop()

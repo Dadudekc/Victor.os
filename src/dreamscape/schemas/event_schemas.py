@@ -1,6 +1,6 @@
 """Pydantic models for Dreamscape inter-agent communication event payloads."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,7 +18,7 @@ class BaseEventPayload(BaseModel):
         default=None,
         description="Optional ID to track a request across multiple events/agents.",
     )
-    # timestamp_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # timestamp_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # noqa: E501
 
 
 # Specific Event Payloads
@@ -33,7 +33,7 @@ class PlanRequestedPayload(BaseEventPayload):
     )
     constraints: Optional[Dict[str, Any]] = Field(
         default=None,
-        description="Optional dictionary for additional planning constraints (e.g., desired length, style).",
+        description="Optional dictionary for additional planning constraints (e.g., desired length, style).",  # noqa: E501
     )
 
 
@@ -74,11 +74,11 @@ class PublishRequestedPayload(BaseEventPayload):
     )
     target_channel: str = Field(
         ...,
-        description="The intended channel for publication (e.g., 'devblog', 'twitter').",
+        description="The intended channel for publication (e.g., 'devblog', 'twitter').",  # noqa: E501
     )
     channel_options: Optional[Dict[str, Any]] = Field(
         default=None,
-        description="Dictionary for channel-specific options (e.g., tags, publish time).",
+        description="Dictionary for channel-specific options (e.g., tags, publish time).",  # noqa: E501
     )
 
 

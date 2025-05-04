@@ -1,7 +1,6 @@
 """Controller for managing multiple Cursor window instances."""
 
 import logging
-import os
 import platform
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -72,7 +71,7 @@ class CursorWindowController:
                 self._root = self._display.screen().root
             except Xlib.error.DisplayNameError as e:
                 logger.error(
-                    f"Failed to connect to X display: {e}. Linux window detection/control disabled."
+                    f"Failed to connect to X display: {e}. Linux window detection/control disabled."  # noqa: E501
                 )
                 self._display = None
             except Exception as e:
@@ -161,8 +160,8 @@ class CursorWindowController:
                     pid_prop = window.get_property(pid_atom, Xlib.Xatom.CARDINAL, 0, 1)
                     pid = pid_prop.value[0] if pid_prop and pid_prop.value else None
                     return name, pid, geometry
-                except (XError, BadWindow) as e:
-                    # logger.debug(f"XError getting info for window {window.id}: {e}") # Too noisy
+                except (XError, BadWindow):
+                    # logger.debug(f"XError getting info for window {window.id}: {e}") # Too noisy  # noqa: E501
                     return None, None, None
                 except Exception as e:
                     logger.warning(
@@ -212,7 +211,7 @@ class CursorWindowController:
                     app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
                 else:
                     logger.warning(
-                        f"Could not find running application for PID {window.pid} on Darwin."
+                        f"Could not find running application for PID {window.pid} on Darwin."  # noqa: E501
                     )
                     return False  # Indicate failure if app not found
             else:  # Linux
@@ -233,7 +232,7 @@ class CursorWindowController:
                 )
                 # Raise the window above others
                 window_obj.configure(stack_mode=Xlib.X.Above)
-                self._display.flush()  # Use flush instead of sync for potentially better responsiveness
+                self._display.flush()  # Use flush instead of sync for potentially better responsiveness  # noqa: E501
 
             logger.info(f"Activated window {window.id}")
             return True

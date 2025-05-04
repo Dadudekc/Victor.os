@@ -6,10 +6,9 @@ import hashlib
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 # import os # Unused import
-import filelock  # Use the library directly
 
 # Attempt to import PyYAML
 try:
@@ -19,7 +18,7 @@ try:
 except ImportError:
     YAML_AVAILABLE = False
     logging.warning(
-        "PyYAML library not found. Protocol compliance check requires it. Run: pip install PyYAML"
+        "PyYAML library not found. Protocol compliance check requires it. Run: pip install PyYAML"  # noqa: E501
     )
 
 # --- Determine Project Root (copied & adapted from standardize_task_list.py) ---
@@ -39,7 +38,7 @@ if (
 if not project_root_found:
     logging.basicConfig(level=logging.ERROR)
     logging.error(
-        "Could not determine project root containing 'src' and 'runtime'. Cannot proceed."
+        "Could not determine project root containing 'src' and 'runtime'. Cannot proceed."  # noqa: E501
     )
     sys.exit(1)
 # --- End Project Root Determination ---
@@ -75,17 +74,17 @@ class AgentBusAstVisitor(ast.NodeVisitor):
         for base in node.bases:
             if isinstance(base, ast.Name) and base.id == "BaseAgent":
                 self.inherits_base_agent = True
-                self.details.append(f"Class inherits from BaseAgent.")
+                self.details.append("Class inherits from BaseAgent.")
                 break
             elif (
                 isinstance(base, ast.Attribute) and base.attr == "BaseAgent"
             ):  # Handle module.BaseAgent
                 self.inherits_base_agent = True
-                self.details.append(f"Class inherits from BaseAgent (qualified name).")
+                self.details.append("Class inherits from BaseAgent (qualified name).")
                 break
         if not self.inherits_base_agent:
             self.details.append(
-                f"WARNING: Class does not appear to inherit from BaseAgent."
+                "WARNING: Class does not appear to inherit from BaseAgent."
             )
         self.generic_visit(node)
 
@@ -99,13 +98,13 @@ class AgentBusAstVisitor(ast.NodeVisitor):
                     and node.func.value.attr == "agent_bus"
                 ):
                     self.subscribes = True
-                    self.details.append(f"Found call to self.agent_bus.subscribe(...)")
+                    self.details.append("Found call to self.agent_bus.subscribe(...)")
                 elif (
                     isinstance(node.func.value, ast.Name)
                     and node.func.value.id == "agent_bus"
                 ):  # Direct var
                     self.subscribes = True
-                    self.details.append(f"Found call to agent_bus.subscribe(...)")
+                    self.details.append("Found call to agent_bus.subscribe(...)")
 
             # Check for publish calls (BaseAgent helper or direct)
             if node.func.attr == "_publish_event":
@@ -114,7 +113,7 @@ class AgentBusAstVisitor(ast.NodeVisitor):
                     and node.func.value.id == "self"
                 ):
                     self.publishes_event = True
-                    self.details.append(f"Found call to self._publish_event(...)")
+                    self.details.append("Found call to self._publish_event(...)")
             elif node.func.attr.startswith("publish_") and node.func.attr.endswith(
                 "_event"
             ):
@@ -129,7 +128,7 @@ class AgentBusAstVisitor(ast.NodeVisitor):
                 and node.func.value.attr == "agent_bus"
             ):
                 self.publishes_event = True
-                self.details.append(f"Found direct call to self.agent_bus.publish(...)")
+                self.details.append("Found direct call to self.agent_bus.publish(...)")
 
             # Check for EventType usage in args/keywords
             for arg in node.args:
@@ -155,7 +154,7 @@ class AgentBusAstVisitor(ast.NodeVisitor):
     def report(self) -> Tuple[bool, List[str]]:
         if not self.uses_event_type_enum and self.publishes_event:
             self.details.append(
-                "WARNING: Event publishing detected, but usage of EventType enum could not be confirmed."
+                "WARNING: Event publishing detected, but usage of EventType enum could not be confirmed."  # noqa: E501
             )
         is_compliant = (
             self.inherits_base_agent
@@ -205,15 +204,15 @@ class TaskStatusAstVisitor(ast.NodeVisitor):
                     if status_value not in VALID_TASK_STATUSES:
                         self.uses_valid_status = False
                         self.details.append(
-                            f"Found direct status assignment with potentially invalid status '{node.value.value}' at line {node.lineno}."
+                            f"Found direct status assignment with potentially invalid status '{node.value.value}' at line {node.lineno}."  # noqa: E501
                         )
                     else:
                         self.details.append(
-                            f"Found direct status assignment with valid status '{node.value.value}' at line {node.lineno}."
+                            f"Found direct status assignment with valid status '{node.value.value}' at line {node.lineno}."  # noqa: E501
                         )
                 else:
                     self.details.append(
-                        f"WARNING: Found non-constant status assignment task['status'] = ... at line {node.lineno}. Cannot verify value."
+                        f"WARNING: Found non-constant status assignment task['status'] = ... at line {node.lineno}. Cannot verify value."  # noqa: E501
                     )
 
         self.generic_visit(node)
@@ -239,7 +238,7 @@ class TaskStatusAstVisitor(ast.NodeVisitor):
                         True  # Found potential status update via CLI
                     )
                     self.details.append(
-                        f"Found potential status update via PBM CLI call at line {node.lineno}."
+                        f"Found potential status update via PBM CLI call at line {node.lineno}."  # noqa: E501
                     )
                     # Cannot easily verify status value from CLI string here
 
@@ -261,7 +260,7 @@ class TaskStatusAstVisitor(ast.NodeVisitor):
                         if status_value not in VALID_TASK_STATUSES:
                             self.uses_valid_status = False
                             self.details.append(
-                                f" -> Call uses potentially invalid status '{kw.value.value}'."
+                                f" -> Call uses potentially invalid status '{kw.value.value}'."  # noqa: E501
                             )
                         else:
                             self.details.append(
@@ -274,7 +273,7 @@ class TaskStatusAstVisitor(ast.NodeVisitor):
     def report(self) -> Tuple[bool, List[str]]:
         if not self.found_status_assignment:
             self.details.append(
-                "WARNING: No direct status assignments or PBM CLI calls detected. Manual verification needed."
+                "WARNING: No direct status assignments or PBM CLI calls detected. Manual verification needed."  # noqa: E501
             )
             # Assume compliant if no assignments found? Or fail?
             # Let's assume compliant for now, but flag the warning.
@@ -338,7 +337,7 @@ def load_yaml_registry(file_path: Path) -> Dict | None:
 
 
 def check_mailbox_structure(agent_id: str) -> Tuple[bool, str]:
-    """Checks if the standard mailbox inbox and outbox directories exist for an agent."""
+    """Checks if the standard mailbox inbox and outbox directories exist for an agent."""  # noqa: E501
     agent_mailbox_path = AGENT_MAILBOX_ROOT / agent_id
     expected_inbox = agent_mailbox_path / "inbox"
     expected_outbox = agent_mailbox_path / "outbox"
@@ -405,7 +404,7 @@ def _find_agent_source_file(agent_id: str) -> Path | None:
         return potential_path
     else:
         logger.warning(
-            f"Could not find source file for {agent_id} using convention: {potential_path}"
+            f"Could not find source file for {agent_id} using convention: {potential_path}"  # noqa: E501
         )
         # Try checking common subdirs like 'agents'
         potential_path_subdir = (
@@ -418,7 +417,7 @@ def _find_agent_source_file(agent_id: str) -> Path | None:
         )
         if potential_path_subdir.exists():
             logger.debug(
-                f"Found potential source file for {agent_id} in subdir: {potential_path_subdir}"
+                f"Found potential source file for {agent_id} in subdir: {potential_path_subdir}"  # noqa: E501
             )
             return potential_path_subdir
         logger.error(f"Agent source file location for '{agent_id}' unknown.")
@@ -478,7 +477,7 @@ def check_task_status_reporting(agent_id: str) -> Tuple[bool, str]:
         )
         return (
             False,
-            f"Task Status Usage Check ({agent_id}): FAIL - Error during AST analysis: {e}",
+            f"Task Status Usage Check ({agent_id}): FAIL - Error during AST analysis: {e}",  # noqa: E501
         )
     # EDIT END
 
@@ -496,7 +495,7 @@ def check_compliance() -> Tuple[Dict[str, Dict[str, Any]], str | None]:
             "task_status_compliant": bool,
             "details": List[str]
         }
-    """
+    """  # noqa: E501
     logger.info("Starting protocol compliance check...")
     compliance_results: Dict[str, Dict[str, Any]] = {}
     expected_hash = calculate_file_sha256(PROTOCOL_FILE_PATH)
@@ -534,7 +533,7 @@ def check_compliance() -> Tuple[Dict[str, Dict[str, Any]], str | None]:
                         )
                     else:
                         agent_compliance["details"].append(
-                            f"Hash mismatch (Expected: {expected_hash[:8]}..., Found: {recorded_hash[:8]}...)"
+                            f"Hash mismatch (Expected: {expected_hash[:8]}..., Found: {recorded_hash[:8]}...)"  # noqa: E501
                         )
                 else:
                     agent_compliance["details"].append(
@@ -578,7 +577,7 @@ def check_compliance() -> Tuple[Dict[str, Dict[str, Any]], str | None]:
         and data["task_status_compliant"]
     )
     logger.info(
-        f"Compliance Check Summary: Total Agents={total_agents}, Fully Compliant={fully_compliant_count}"
+        f"Compliance Check Summary: Total Agents={total_agents}, Fully Compliant={fully_compliant_count}"  # noqa: E501
     )
 
     return compliance_results, expected_hash
@@ -607,7 +606,7 @@ if __name__ == "__main__":
         print(f"  - Mailbox Exists:      {mailbox_status}")
         print(f"  - Bus Usage Check:     {bus_status}")
         print(f"  - Task Status Check:   {task_status_check}")
-        print(f"  Details:")
+        print("  Details:")
         for detail in data["details"]:
             print(f"    - {detail}")
     print("\n---------------------------------")

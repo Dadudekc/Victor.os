@@ -1,9 +1,7 @@
 """Agent9: Response Injector Agent for ChatGPT Scraped Events."""
 
 import asyncio
-import json
 import logging
-import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,7 +13,7 @@ from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.tasks.models import TaskMessage, TaskPriority, TaskStatus
 
-# from dreamos.core.coordination.message_patterns import create_task_message # Removed unused import
+# from dreamos.core.coordination.message_patterns import create_task_message # Removed unused import  # noqa: E501
 # Assuming time_utils exists and provides this
 # from dreamos.core.utils.time_utils import utc_now_iso
 
@@ -31,7 +29,7 @@ CURSOR_INJECTION_AGENT_ID = "Agent2"
 
 
 class Agent9ResponseInjector(BaseAgent):
-    """Listens for CHATGPT_RESPONSE_SCRAPED events and triggers Cursor injection tasks."""
+    """Listens for CHATGPT_RESPONSE_SCRAPED events and triggers Cursor injection tasks."""  # noqa: E501
 
     # Align __init__ with BaseAgent
     def __init__(
@@ -45,7 +43,7 @@ class Agent9ResponseInjector(BaseAgent):
             # In a real scenario, AgentBus would likely be injected by the framework
             # This is a fallback for potential standalone use/testing, but not ideal
             logger.warning(
-                "AgentBus not provided to Agent9ResponseInjector, attempting to create one (may not be shared!)"
+                "AgentBus not provided to Agent9ResponseInjector, attempting to create one (may not be shared!)"  # noqa: E501
             )
             # This part needs careful handling based on how AgentBus is managed globally
             # Update import path here
@@ -71,7 +69,7 @@ class Agent9ResponseInjector(BaseAgent):
                 )
             else:
                 self.logger.error(
-                    f"EventType.CHATGPT_RESPONSE_SCRAPED not found! Cannot subscribe."
+                    "EventType.CHATGPT_RESPONSE_SCRAPED not found! Cannot subscribe."
                 )
                 # Potentially stop the agent or enter an error state
                 await self.publish_agent_error(
@@ -94,11 +92,11 @@ class Agent9ResponseInjector(BaseAgent):
                     EventType.CHATGPT_RESPONSE_SCRAPED, self._handle_scraped_response
                 )
                 self.logger.info(
-                    f"Unsubscribed from {EventType.CHATGPT_RESPONSE_SCRAPED.name} events."
+                    f"Unsubscribed from {EventType.CHATGPT_RESPONSE_SCRAPED.name} events."  # noqa: E501
                 )
             else:
                 self.logger.warning(
-                    f"EventType.CHATGPT_RESPONSE_SCRAPED not found! Cannot unsubscribe."
+                    "EventType.CHATGPT_RESPONSE_SCRAPED not found! Cannot unsubscribe."
                 )
         except Exception as e:
             self.logger.error(f"Error during unsubscription: {e}", exc_info=True)
@@ -112,21 +110,21 @@ class Agent9ResponseInjector(BaseAgent):
             # Validate payload structure (basic check)
             if not isinstance(event.data, dict):
                 self.logger.warning(
-                    f"Received {event.event_type.name} event with invalid data type: {type(event.data)}. Ignoring."
+                    f"Received {event.event_type.name} event with invalid data type: {type(event.data)}. Ignoring."  # noqa: E501
                 )
                 return
 
             payload = event.data
             source_event_id = event.event_id
             self.logger.info(
-                f"Handling {event.event_type.name} event (ID: {source_event_id}). Author: {payload.get('author')}, Source: {payload.get('source')}"
+                f"Handling {event.event_type.name} event (ID: {source_event_id}). Author: {payload.get('author')}, Source: {payload.get('source')}"  # noqa: E501
             )
             self.logger.debug(f"Payload: {payload}")
 
             content_to_inject = payload.get("content")
             if not content_to_inject:
                 self.logger.warning(
-                    f"Scraped event (ID: {source_event_id}) missing 'content'. Ignoring."
+                    f"Scraped event (ID: {source_event_id}) missing 'content'. Ignoring."  # noqa: E501
                 )
                 return
 
@@ -152,7 +150,7 @@ class Agent9ResponseInjector(BaseAgent):
             )
 
             # Publish a standard TASK_COMMAND event
-            # The routing/dispatching mechanism should handle getting this to the right agent.
+            # The routing/dispatching mechanism should handle getting this to the right agent.  # noqa: E501
             command_event = BaseEvent(
                 event_type=EventType.TASK_COMMAND,
                 source_id=self.agent_id,
@@ -161,11 +159,11 @@ class Agent9ResponseInjector(BaseAgent):
             )
             await self.agent_bus.dispatch_event(command_event)
             self.logger.info(
-                f"Published event {EventType.TASK_COMMAND.name} for task '{injection_task_msg.task_type}' ({new_task_id}) (CorrID: {correlation_id})"
+                f"Published event {EventType.TASK_COMMAND.name} for task '{injection_task_msg.task_type}' ({new_task_id}) (CorrID: {correlation_id})"  # noqa: E501
             )
 
-            # Optionally publish an event confirming the task request was sent (REDUNDANT now?)
-            # await self._publish_event(EventType.TASK_REQUEST_SENT, injection_task_msg.to_dict(), correlation_id)
+            # Optionally publish an event confirming the task request was sent (REDUNDANT now?)  # noqa: E501
+            # await self._publish_event(EventType.TASK_REQUEST_SENT, injection_task_msg.to_dict(), correlation_id)  # noqa: E501
 
         except Exception as e:
             error_details = {

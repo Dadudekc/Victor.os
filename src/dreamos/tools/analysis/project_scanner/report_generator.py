@@ -43,7 +43,7 @@ class ReportGenerator:
                     return json.loads(content)
             except json.JSONDecodeError as e:
                 logger.error(
-                    f"Error decoding JSON from existing report {report_path}: {e}. Starting fresh."
+                    f"Error decoding JSON from existing report {report_path}: {e}. Starting fresh."  # noqa: E501
                 )
             except Exception as e:
                 logger.error(f"Error loading existing report {report_path}: {e}")
@@ -53,7 +53,7 @@ class ReportGenerator:
         """
         Merge new analysis results into old project_analysis.json in the reports directory,
         then write it out.
-        """
+        """  # noqa: E501
         # Use the reports_dir_abs for the path
         report_path = self.reports_dir_abs / "project_analysis.json"
         logger.info(f"Saving project analysis report to: {report_path}")
@@ -79,7 +79,7 @@ class ReportGenerator:
             )
         except Exception as e:
             logger.error(
-                f"Unexpected error saving project analysis report to {report_path}: {e}",
+                f"Unexpected error saving project analysis report to {report_path}: {e}",  # noqa: E501
                 exc_info=True,
             )
 
@@ -130,7 +130,7 @@ class ReportGenerator:
                     return json.loads(content)
             except json.JSONDecodeError as e:
                 logger.error(
-                    f"Error decoding JSON from existing context {context_path}: {e}. Starting fresh."
+                    f"Error decoding JSON from existing context {context_path}: {e}. Starting fresh."  # noqa: E501
                 )
             except Exception as e:
                 logger.error(
@@ -146,7 +146,7 @@ class ReportGenerator:
         """
         Merges current analysis details into the chatgpt context file within the reports directory.
         If no template, write JSON. Else use Jinja to render a custom format.
-        """
+        """  # noqa: E501
         # Use the reports_dir_abs for the path
         context_path = self.reports_dir_abs / output_filename
         logger.info(f"💾 Writing ChatGPT context to: {context_path}")
@@ -182,7 +182,7 @@ class ReportGenerator:
 
         if not Template:
             logger.error(
-                "⚠️ Jinja2 not installed, but a template path was provided. Cannot render template. Run `pip install jinja2`."
+                "⚠️ Jinja2 not installed, but a template path was provided. Cannot render template. Run `pip install jinja2`."  # noqa: E501
             )
             return
 
@@ -213,7 +213,7 @@ class ReportGenerator:
 
         Adds an 'agent_category' key to the analysis details for each file.
         Categories: 'Agent', 'Core', 'Service', 'Tool', 'Util', 'Config', 'Test', 'Other'
-        """
+        """  # noqa: E501
         logger.info("Categorizing analyzed files...")
         if not self.analysis:
             logger.warning("Analysis data is empty, cannot categorize agents.")
@@ -260,7 +260,7 @@ class ReportGenerator:
                 categorized_count += 1
 
         logger.info(
-            f"Categorization complete. Assigned categories to {categorized_count} files."
+            f"Categorization complete. Assigned categories to {categorized_count} files."  # noqa: E501
         )
 
     def _maturity_level(self, class_name: str, class_data: Dict[str, Any]) -> str:

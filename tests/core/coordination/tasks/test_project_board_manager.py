@@ -1,4 +1,3 @@
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -30,7 +29,6 @@ def mock_pbm():
             "dreamos.core.coordination.project_board_manager.FileLock"
         ) as mock_filelock_class,
     ):
-
         # Mock file lock context manager
         mock_lock_instance = mock_filelock_class.return_value
         mock_lock_instance.__enter__.return_value = mock_lock_instance
@@ -47,7 +45,6 @@ def mock_pbm():
 
 
 class TestProjectBoardManager:
-
     def test_initialization(self, mock_pbm):
         """Test that the ProjectBoardManager initializes correctly,
         loading an empty task list when the board file is mocked.

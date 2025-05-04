@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 import time
-from pathlib import Path
 from typing import Dict, Literal, Optional, Tuple, Type
 
 # Attempt PyAutoGUI/Pyperclip imports
@@ -15,11 +14,11 @@ try:
     UI_AUTOMATION_AVAILABLE = True
 except ImportError as e:
     logging.error(
-        f"CursorOrchestrator requires pyautogui and pyperclip. Install them first. Error: {e}"
+        f"CursorOrchestrator requires pyautogui and pyperclip. Install them first. Error: {e}"  # noqa: E501
     )
     pyautogui = None
     pyperclip = None
-    # Define FailSafeException and PyperclipException as generic Exception if modules not found
+    # Define FailSafeException and PyperclipException as generic Exception if modules not found  # noqa: E501
     # to avoid NameErrors later, though functionality will be broken.
     if "pyautogui" not in str(e):
         FailSafeException = Exception  # Fallback
@@ -35,7 +34,6 @@ import tenacity  # Assuming tenacity was added by Agent 4
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.coordination.event_payloads import (
     AgentStatusChangePayload,
-    CursorEventPayload,
     CursorResultEvent,
     CursorResultPayload,
 )
@@ -53,7 +51,6 @@ from dreamos.utils.gui_utils import wait_for_element
 # )
 # from selenium.webdriver.support import expected_conditions as EC
 # EDIT END
-
 
 
 # EDIT START: Remove import of find_project_root - use AppConfig
@@ -228,7 +225,7 @@ class CursorOrchestrator:
                 base_event_data = event_data or {}
                 correlation_id = base_event_data.get("correlation_id")
 
-                # Assuming status changes are system events, use AgentStatusChangePayload
+                # Assuming status changes are system events, use AgentStatusChangePayload  # noqa: E501
                 payload = AgentStatusChangePayload(
                     agent_id=agent_id,
                     status=status,
@@ -236,7 +233,7 @@ class CursorOrchestrator:
                         "task_id"
                     ),  # Get optional fields from input
                     error_message=base_event_data.get("error"),
-                    # Add other fields from AgentStatusChangePayload if present in event_data
+                    # Add other fields from AgentStatusChangePayload if present in event_data  # noqa: E501
                 )
 
                 event = BaseEvent(
@@ -251,7 +248,7 @@ class CursorOrchestrator:
                     logger.debug(f"Dispatched event {event_type.value} for {agent_id}")
                 except Exception as e:
                     logger.error(
-                        f"Failed to dispatch status event {event_type} for {agent_id}: {e}"
+                        f"Failed to dispatch status event {event_type} for {agent_id}: {e}"  # noqa: E501
                     )
 
     async def get_agent_status(self, agent_id: str) -> AgentStatus:
@@ -320,7 +317,7 @@ class CursorOrchestrator:
         current_status = await self.get_agent_status(agent_id)
         if current_status not in ["IDLE", "ERROR", "UNRESPONSIVE", "UNKNOWN"]:
             logger.warning(
-                f"inject_prompt: Agent {agent_id} is not IDLE/ERROR/UNKNOWN (status: {current_status}). Aborting injection."
+                f"inject_prompt: Agent {agent_id} is not IDLE/ERROR/UNKNOWN (status: {current_status}). Aborting injection."  # noqa: E501
             )
             return False
 
@@ -362,7 +359,7 @@ class CursorOrchestrator:
             )
             logger.info(f"Injection sequence seemingly completed for {agent_id}.")
 
-            # If sequence completed without raising retryable error, assume success for now
+            # If sequence completed without raising retryable error, assume success for now  # noqa: E501
             await self._set_agent_status(agent_id, "AWAITING_RESPONSE")
             # Publish success event
             success_payload = CursorResultPayload(
@@ -405,7 +402,7 @@ class CursorOrchestrator:
         finally:
             if not success:
                 logger.warning(
-                    f"Finalizing inject_prompt for {agent_id} with status ERROR due to: {error_reason}"
+                    f"Finalizing inject_prompt for {agent_id} with status ERROR due to: {error_reason}"  # noqa: E501
                 )
                 # Publish failure event
                 failure_payload = CursorResultPayload(
@@ -423,7 +420,7 @@ class CursorOrchestrator:
                     asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
                 except Exception as e:
                     logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"
+                        f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"  # noqa: E501
                     )
                 # Set final status to ERROR
                 await self._set_agent_status(agent_id, "ERROR")
@@ -437,7 +434,7 @@ class CursorOrchestrator:
         """Checks if the target window is active, attempts recovery if not."""
         if not PYGETWINDOW_AVAILABLE or pygetwindow is None:
             logger.warning(
-                f"[{agent_id_for_log}] Cannot check window focus: pygetwindow not available."
+                f"[{agent_id_for_log}] Cannot check window focus: pygetwindow not available."  # noqa: E501
             )
             return True  # Assume focus is okay if we cannot check
 
@@ -445,13 +442,13 @@ class CursorOrchestrator:
             active_window = pygetwindow.getActiveWindow()
             if active_window and target_title.lower() in active_window.title.lower():
                 logger.debug(
-                    f"[{agent_id_for_log}] Window focus confirmed: {active_window.title}"
+                    f"[{agent_id_for_log}] Window focus confirmed: {active_window.title}"  # noqa: E501
                 )
                 return True  # Focus is correct
             else:
                 active_title = active_window.title if active_window else "None"
                 logger.warning(
-                    f"[{agent_id_for_log}] Target window '{target_title}' not active. Current: '{active_title}'. Attempting recovery (ESC)..."
+                    f"[{agent_id_for_log}] Target window '{target_title}' not active. Current: '{active_title}'. Attempting recovery (ESC)..."  # noqa: E501
                 )
                 # Attempt recovery (simple ESC press)
                 if pyautogui:
@@ -464,18 +461,18 @@ class CursorOrchestrator:
                         and target_title.lower() in active_window.title.lower()
                     ):
                         logger.info(
-                            f"[{agent_id_for_log}] Recovery successful. Target window now active."
+                            f"[{agent_id_for_log}] Recovery successful. Target window now active."  # noqa: E501
                         )
                         return True
                     else:
                         active_title = active_window.title if active_window else "None"
                         logger.error(
-                            f"[{agent_id_for_log}] Recovery failed. Active window still '{active_title}'."
+                            f"[{agent_id_for_log}] Recovery failed. Active window still '{active_title}'."  # noqa: E501
                         )
                         return False
                 else:
                     logger.error(
-                        f"[{agent_id_for_log}] Cannot attempt recovery: pyautogui not available."
+                        f"[{agent_id_for_log}] Cannot attempt recovery: pyautogui not available."  # noqa: E501
                     )
                     return False  # Recovery impossible
         except Exception as e:
@@ -511,7 +508,7 @@ class CursorOrchestrator:
             window = target_windows[0]  # Assume first match is the correct one
             if not window.isActive:
                 logger.warning(
-                    f"Target window '{target_window_title}' found but not active. Attempting to activate."
+                    f"Target window '{target_window_title}' found but not active. Attempting to activate."  # noqa: E501
                 )
                 try:
                     window.activate()
@@ -522,7 +519,7 @@ class CursorOrchestrator:
                         )
                 except Exception as act_err:
                     raise CursorOrchestratorError(
-                        f"Error activating target window '{target_window_title}': {act_err}"
+                        f"Error activating target window '{target_window_title}': {act_err}"  # noqa: E501
                     )
             logger.debug(f"Target window '{target_window_title}' is active.")
         except Exception as win_err:
@@ -566,7 +563,7 @@ class CursorOrchestrator:
             # EDIT START: Check focus before pressing Enter
             if not self._check_and_recover_focus(target_window_title, agent_id_for_log):
                 raise CursorOrchestratorError(
-                    f"Window focus lost or recovery failed before sending Enter."
+                    "Window focus lost or recovery failed before sending Enter."
                 )
             # EDIT END
 
@@ -603,12 +600,12 @@ class CursorOrchestrator:
                     )
                 else:
                     logger.warning(
-                        f"[{agent_id_for_log}] Timeout waiting for response readiness indicator. Proceeding cautiously."
+                        f"[{agent_id_for_log}] Timeout waiting for response readiness indicator. Proceeding cautiously."  # noqa: E501
                     )
-                    # Consider raising an error or different handling if indicator is critical
+                    # Consider raising an error or different handling if indicator is critical  # noqa: E501
             else:
                 logger.warning(
-                    f"[{agent_id_for_log}] Readiness indicator image not found ({readiness_image.name}). Falling back to short fixed delay."
+                    f"[{agent_id_for_log}] Readiness indicator image not found ({readiness_image.name}). Falling back to short fixed delay."  # noqa: E501
                 )
                 time.sleep(
                     1.0
@@ -655,7 +652,7 @@ class CursorOrchestrator:
             - Requires agent status to be "AWAITING_RESPONSE".
             - Sets agent status to "COPYING", then "IDLE" on success or "ERROR" on failure.
             - Emits AgentBus events (CURSOR_RETRIEVE_SUCCESS/FAILURE).
-        """
+        """  # noqa: E501
         if agent_id not in self.copy_coordinates:
             logger.error(f"retrieve_response: No copy coordinates for {agent_id}")
             failure_payload = CursorResultPayload(
@@ -681,7 +678,7 @@ class CursorOrchestrator:
         current_status = await self.get_agent_status(agent_id)
         if current_status != "AWAITING_RESPONSE":
             logger.warning(
-                f"retrieve_response: Agent {agent_id} is not AWAITING_RESPONSE (status: {current_status}). Aborting retrieval."
+                f"retrieve_response: Agent {agent_id} is not AWAITING_RESPONSE (status: {current_status}). Aborting retrieval."  # noqa: E501
             )
             return None
 
@@ -706,7 +703,7 @@ class CursorOrchestrator:
 
             if retrieved_text is not None:
                 logger.info(
-                    f"retrieve_response: Successfully retrieved response for {agent_id}."
+                    f"retrieve_response: Successfully retrieved response for {agent_id}."  # noqa: E501
                 )
                 await self._set_agent_status(agent_id, "IDLE")
                 success_payload = CursorResultPayload(
@@ -724,11 +721,11 @@ class CursorOrchestrator:
                     asyncio.create_task(self.agent_bus.dispatch_event(success_event))
                 except Exception as e:
                     logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_SUCCESS}: {e}"
+                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_SUCCESS}: {e}"  # noqa: E501
                     )
                 success = True
             else:
-                # This case might indicate _perform_copy_sequence handled an error internally
+                # This case might indicate _perform_copy_sequence handled an error internally  # noqa: E501
                 # but didn't raise a retryable exception, or returned None.
                 error_reason = (
                     "Retrieval sequence returned None (check logs for specific error)"
@@ -742,7 +739,7 @@ class CursorOrchestrator:
                 f"Failed after {self.config.retry_attempts} retries: {final_error}"
             )
             logger.error(
-                f"retrieve_response failed for {agent_id} after retries: {error_reason}",
+                f"retrieve_response failed for {agent_id} after retries: {error_reason}",  # noqa: E501
                 exc_info=final_error,
             )
             # Don't set status here, let finally block handle it
@@ -758,7 +755,7 @@ class CursorOrchestrator:
         finally:
             if not success:
                 logger.warning(
-                    f"Finalizing retrieve_response for {agent_id} with status ERROR due to: {error_reason}"
+                    f"Finalizing retrieve_response for {agent_id} with status ERROR due to: {error_reason}"  # noqa: E501
                 )
                 # Publish failure event
                 failure_payload = CursorResultPayload(
@@ -776,7 +773,7 @@ class CursorOrchestrator:
                     asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
                 except Exception as e:
                     logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_FAILURE}: {e}"
+                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_FAILURE}: {e}"  # noqa: E501
                     )
                 await self._set_agent_status(agent_id, "ERROR")
 
@@ -787,7 +784,7 @@ class CursorOrchestrator:
     ) -> Optional[str]:
         """Executes the PyAutoGUI sequence for copying text, including validation and retries.
         Handles potential UI automation exceptions.
-        """
+        """  # noqa: E501
         if not pyautogui or not pyperclip:
             raise CursorOrchestratorError("PyAutoGUI or Pyperclip is not available")
 
@@ -810,18 +807,18 @@ class CursorOrchestrator:
 
             for attempt in range(max_copy_attempts):  # EDIT: Use variable
                 logger.info(
-                    f"[{agent_id_for_log}] Copy attempt {attempt + 1}/{max_copy_attempts}..."
+                    f"[{agent_id_for_log}] Copy attempt {attempt + 1}/{max_copy_attempts}..."  # noqa: E501
                 )
                 clipboard_content = None  # Reset for this attempt
 
                 # EDIT START: Check focus before clicking Copy
-                # Assume self.config.gui_automation.target_window_title holds the expected title
+                # Assume self.config.gui_automation.target_window_title holds the expected title  # noqa: E501
                 target_window_title = self.config.target_window_title
                 if not self._check_and_recover_focus(
                     target_window_title, agent_id_for_log
                 ):
                     logger.warning(
-                        f"[{agent_id_for_log}] Window focus lost or recovery failed before Copy click (attempt {attempt+1}). Skipping click."
+                        f"[{agent_id_for_log}] Window focus lost or recovery failed before Copy click (attempt {attempt+1}). Skipping click."  # noqa: E501
                     )
                     # Don't click if focus is wrong, let retry loop handle it
                     if attempt < max_copy_attempts - 1:  # EDIT: Use variable
@@ -837,17 +834,17 @@ class CursorOrchestrator:
                     time.sleep(0.05)  # Ensure clipboard system processes clear
                     if pyperclip.paste() != clipboard_placeholder:
                         logger.warning(
-                            f"[{agent_id_for_log}] Clipboard clear verification failed (attempt {attempt+1})."
+                            f"[{agent_id_for_log}] Clipboard clear verification failed (attempt {attempt+1})."  # noqa: E501
                         )
                 except PyperclipException as clear_err:
                     logger.error(
-                        f"[{agent_id_for_log}] Failed to clear clipboard (attempt {attempt+1}): {clear_err}"
+                        f"[{agent_id_for_log}] Failed to clear clipboard (attempt {attempt+1}): {clear_err}"  # noqa: E501
                     )
                     break  # Exit retry loop
 
                 # -- Click Copy --
                 logger.debug(
-                    f"[{agent_id_for_log}] Clicking Copy button (attempt {attempt+1})..."
+                    f"[{agent_id_for_log}] Clicking Copy button (attempt {attempt+1})..."  # noqa: E501
                 )
                 pyautogui.click()  # Click at current location (already moved)
 
@@ -862,19 +859,19 @@ class CursorOrchestrator:
                         if current_clipboard != clipboard_placeholder:
                             polled_content = current_clipboard
                             logger.debug(
-                                f"[{agent_id_for_log}] Clipboard content changed after {(time.time() - wait_start_time):.2f}s (attempt {attempt+1})."
+                                f"[{agent_id_for_log}] Clipboard content changed after {(time.time() - wait_start_time):.2f}s (attempt {attempt+1})."  # noqa: E501
                             )
                             break  # Content acquired for validation
                     except PyperclipException as clip_err:
                         logger.warning(
-                            f"[{agent_id_for_log}] Error reading clipboard while polling (attempt {attempt+1}): {clip_err}"
+                            f"[{agent_id_for_log}] Error reading clipboard while polling (attempt {attempt+1}): {clip_err}"  # noqa: E501
                         )
                         break  # Exit polling loop on error
                     time.sleep(poll_interval)
 
                 if polled_content is None:
                     logger.warning(
-                        f"[{agent_id_for_log}] Clipboard content did not change from placeholder within {clipboard_timeout}s (attempt {attempt+1})."
+                        f"[{agent_id_for_log}] Clipboard content did not change from placeholder within {clipboard_timeout}s (attempt {attempt+1})."  # noqa: E501
                     )
                     # Continue to next retry attempt if any remain
                     if attempt < max_copy_attempts - 1:  # EDIT: Use variable
@@ -886,21 +883,21 @@ class CursorOrchestrator:
                 if (
                     polled_content and polled_content.strip()
                 ):  # Check not None and not just whitespace
-                    # Optional: Add more specific checks like startswith('```') if needed
+                    # Optional: Add more specific checks like startswith('```') if needed  # noqa: E501
                     # if polled_content.strip().startswith("```"):
                     logger.info(
-                        f"[{agent_id_for_log}] Clipboard content validated (non-empty) (attempt {attempt+1})."
+                        f"[{agent_id_for_log}] Clipboard content validated (non-empty) (attempt {attempt+1})."  # noqa: E501
                     )
                     clipboard_content = polled_content  # Assign valid content
                     break  # Exit retry loop, content is valid
                     # else:
-                    #    logger.warning(f"[{agent_id_for_log}] Clipboard content validation failed: Did not start with expected pattern (attempt {attempt+1}).")
+                    #    logger.warning(f"[{agent_id_for_log}] Clipboard content validation failed: Did not start with expected pattern (attempt {attempt+1}).")  # noqa: E501
                 else:
                     logger.warning(
-                        f"[{agent_id_for_log}] Clipboard content validation failed: Content is None or empty/whitespace (attempt {attempt+1})."
+                        f"[{agent_id_for_log}] Clipboard content validation failed: Content is None or empty/whitespace (attempt {attempt+1})."  # noqa: E501
                     )
 
-                # If validation failed, pause and continue to next retry attempt if any remain
+                # If validation failed, pause and continue to next retry attempt if any remain  # noqa: E501
                 if attempt < max_copy_attempts - 1:  # EDIT: Use variable
                     logger.info(f"[{agent_id_for_log}] Retrying copy operation...")
                     time.sleep(0.5)  # Pause before retry
@@ -910,14 +907,14 @@ class CursorOrchestrator:
 
             if clipboard_content:
                 logger.info(
-                    f"[{agent_id_for_log}] Successfully retrieved and validated clipboard content (length: {len(clipboard_content)})."
+                    f"[{agent_id_for_log}] Successfully retrieved and validated clipboard content (length: {len(clipboard_content)})."  # noqa: E501
                 )
                 # Restore mouse position before returning success
                 pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
                 return clipboard_content
             else:
                 logger.error(
-                    f"[{agent_id_for_log}] Failed to retrieve valid content from clipboard after {max_copy_attempts} attempts."
+                    f"[{agent_id_for_log}] Failed to retrieve valid content from clipboard after {max_copy_attempts} attempts."  # noqa: E501
                 )
                 # Restore mouse position before returning failure
                 pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
@@ -938,7 +935,7 @@ class CursorOrchestrator:
             pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
             raise CursorOrchestratorError(f"Unexpected copy error: {e}")
 
-    @retry_on_exception(max_attempts=2, exceptions=(FailSafeException,), delay=0.5)
+    @retry_on_exception(max_attempts=2, exceptions=(FailSafeException,), delay=0.5)  # noqa: F821
     def _perform_health_check_click(self, x: int, y: int, agent_id_for_log: str):
         """Performs the click action for health check with basic retry."""
         logger.debug(
@@ -959,7 +956,7 @@ class CursorOrchestrator:
         Notes:
             - Sets agent status to "UNRESPONSIVE" if the check fails.
             - Emits CURSOR_WINDOW_UNRESPONSIVE event on failure.
-        """
+        """  # noqa: E501
         if agent_id not in self.input_coordinates:
             logger.error(f"check_window_health: No input coordinates for {agent_id}")
             # Cannot check health without coords, assume unresponsive?
@@ -1006,7 +1003,7 @@ class CursorOrchestrator:
                 asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
             except Exception as pub_e:
                 logger.error(
-                    f"Failed to dispatch event {EventType.CURSOR_WINDOW_UNRESPONSIVE}: {pub_e}"
+                    f"Failed to dispatch event {EventType.CURSOR_WINDOW_UNRESPONSIVE}: {pub_e}"  # noqa: E501
                 )
 
         return is_healthy
@@ -1022,9 +1019,7 @@ class CursorOrchestrator:
         # if self._listener_task and not self._listener_task.done():
         #     logger.warning(\"Listener task already running.\")
         #     return
-        self._subscribed_handlers = (
-            []
-        )  # Initialize list to store (topic, handler) tuples
+        self._subscribed_handlers = []  # Initialize list to store (topic, handler) tuples  # noqa: E501
         # EDIT END
 
         try:
@@ -1050,7 +1045,7 @@ class CursorOrchestrator:
             #     asyncio.current_task()
             # )  # Or None if subscribe doesn't need a task
 
-        except BusError as e:  # Catch specific bus errors if defined
+        except BusError as e:  # Catch specific bus errors if defined  # noqa: F821
             logger.exception(f"AgentBus error during subscription: {e}")
         except Exception as e:
             logger.exception(f"Failed to subscribe to cursor events: {e}")
@@ -1058,13 +1053,13 @@ class CursorOrchestrator:
     async def _handle_cursor_action_event(self, event: BaseEvent):
         """Handles incoming cursor action requests from the AgentBus."""
         logger.debug(
-            f"Received cursor action event: Type={event.event_type.value}, Source={event.source_id}, Data={event.data}"
+            f"Received cursor action event: Type={event.event_type.value}, Source={event.source_id}, Data={event.data}"  # noqa: E501
         )
 
         target_agent_id = event.data.get("target_agent_id")
         if not target_agent_id:
             logger.error(
-                f"Received {event.event_type.value} event with missing 'target_agent_id'. Ignoring."
+                f"Received {event.event_type.value} event with missing 'target_agent_id'. Ignoring."  # noqa: E501
             )
             return
 
@@ -1072,7 +1067,7 @@ class CursorOrchestrator:
             prompt_text = event.data.get("prompt_text")
             if prompt_text is None:  # Allow empty string prompts
                 logger.error(
-                    f"Received CURSOR_INJECT_REQUEST for {target_agent_id} with missing 'prompt_text'. Ignoring."
+                    f"Received CURSOR_INJECT_REQUEST for {target_agent_id} with missing 'prompt_text'. Ignoring."  # noqa: E501
                 )
                 return
             # Don't await here - let it run in the background
@@ -1080,11 +1075,11 @@ class CursorOrchestrator:
 
         elif event.event_type == EventType.CURSOR_RETRIEVE_REQUEST:
             # Don't await here - let it run in the background
-            # The requesting agent will need to listen for the corresponding SUCCESS/FAILURE event
+            # The requesting agent will need to listen for the corresponding SUCCESS/FAILURE event  # noqa: E501
             asyncio.create_task(self.retrieve_response(target_agent_id))
         else:
             logger.warning(
-                f"Received unexpected event type in cursor handler: {event.event_type.value}"
+                f"Received unexpected event type in cursor handler: {event.event_type.value}"  # noqa: E501
             )
 
     async def initialize(self):
@@ -1110,7 +1105,7 @@ class CursorOrchestrator:
                     unsubscribe_tasks.append(self.agent_bus.unsubscribe(topic, handler))
                 except AttributeError:
                     logger.error(
-                        "AgentBus does not support 'unsubscribe'. Cannot clean up handlers."
+                        "AgentBus does not support 'unsubscribe'. Cannot clean up handlers."  # noqa: E501
                     )
                     break  # Stop trying if method is missing
                 except Exception as e:
@@ -1149,7 +1144,7 @@ class CursorOrchestrator:
         wait_time = getattr(retry_state.next_action, "sleep", 0)
         error = retry_state.outcome.exception() if retry_state.outcome else None
         self.logger.warning(
-            f"Retrying UI operation (Attempt {attempt_num}/{self.config.retry_attempts}) after error: {error}. "
+            f"Retrying UI operation (Attempt {attempt_num}/{self.config.retry_attempts}) after error: {error}. "  # noqa: E501
             f"Waiting {wait_time:.2f}s before next attempt."
         )
 

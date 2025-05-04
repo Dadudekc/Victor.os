@@ -7,11 +7,10 @@ Primarily intended for cleaning up task lists.
 
 MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
 """
+
 import argparse
-import glob
 import json
 import logging
-import os
 from pathlib import Path
 
 logging.basicConfig(
@@ -80,8 +79,8 @@ def deduplicate_tasks(tasks: list) -> list:
         # Define the key for uniqueness check (adjust fields as needed)
         # Using description and potentially phase/id if available and reliable
         description = task.get("description", "").strip().lower()
-        task_id = task.get("id")  # Might not be unique across files initially
-        phase = task.get("phase")
+        task_id = task.get("id")  # noqa: F841
+        phase = task.get("phase")  # noqa: F841
         # Simple key based on description for now
         key = description
 
@@ -141,7 +140,7 @@ if __name__ == "__main__":
         "--output-file",
         default=None,
         type=Path,
-        help=f"Output file for deduplicated tasks (defaults to [task-dir]/{DEFAULT_OUTPUT_FILENAME})",
+        help=f"Output file for deduplicated tasks (defaults to [task-dir]/{DEFAULT_OUTPUT_FILENAME})",  # noqa: E501
     )
     args = parser.parse_args()
 

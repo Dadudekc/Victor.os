@@ -10,7 +10,6 @@ Main loop for launching the full automation stack:
 These agents together form a complete closed-loop workflow.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -21,12 +20,16 @@ PARENT_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(PARENT_DIR))
 # ---
 
-import logging
-import threading
-import time
+import logging  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
 
 # --- Agent Imports ---
-from agents import chatgpt_web_agent, cursor_dispatcher, task_feedback_router
+from agents import (  # noqa: E402
+    chatgpt_web_agent,
+    cursor_dispatcher,
+    task_feedback_router,
+)
 
 # --- Logging Setup ---
 logging.basicConfig(

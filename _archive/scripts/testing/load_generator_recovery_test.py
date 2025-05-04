@@ -6,7 +6,7 @@ Dream.OS Load Generator: RecoveryCoordinatorAgent Stress Test
 Injects a wave of intentionally fail-prone tasks to trigger RecoveryCoordinatorAgent's retry and escalation logic.
 
 MOVED FROM: src/dreamos/tools/scripts/ by Agent 5 (2025-04-28)
-"""
+"""  # noqa: E501
 
 import asyncio
 import json
@@ -21,7 +21,7 @@ TARGET_AGENT_ID = "agent_02"  # Target worker agent expected to fail tasks
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parents[1]  # Assumes script is in root/scripts/testing
 BUS_FILE_TEMPLATE = PROJECT_ROOT / "runtime" / "bus" / "agent.{agent_id}.command.json"
-# BUS_FILE = Path("runtime/bus/agent.{agent_id}.command.json").resolve() # Original less robust path
+# BUS_FILE = Path("runtime/bus/agent.{agent_id}.command.json").resolve() # Original less robust path  # noqa: E501
 NUM_TASKS = 10  # Number of tasks to inject
 INJECTION_INTERVAL_SECONDS = 1.0  # Delay between task injections
 
@@ -68,7 +68,7 @@ async def inject_task(task: dict):
     )
 
     print(
-        f"[*] Attempting to inject task {task['task_id']} to bus file: {target_bus_path.resolve()}"
+        f"[*] Attempting to inject task {task['task_id']} to bus file: {target_bus_path.resolve()}"  # noqa: E501
     )
 
     try:
@@ -78,11 +78,9 @@ async def inject_task(task: dict):
         with open(target_bus_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
         print(
-            f"[+] Injected task {task['task_id']} -> {TARGET_AGENT_ID} (File: {target_bus_path.name})"
+            f"[+] Injected task {task['task_id']} -> {TARGET_AGENT_ID} (File: {target_bus_path.name})"  # noqa: E501
         )
     except Exception as e:
-        import traceback
-
         print(f"[!] Failed to inject task {task['task_id']} to {target_bus_path}")
         print("    Error:", e)
         # print("    Traceback:", traceback.format_exc()) # Reduce verbosity

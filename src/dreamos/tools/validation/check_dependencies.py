@@ -52,7 +52,7 @@ def check_cli_dependencies(
         logger.info("All checked dependencies were found.")
     else:
         logger.warning(
-            "Some dependencies were not found. Please ensure they are installed and in the system PATH."
+            "Some dependencies were not found. Please ensure they are installed and in the system PATH."  # noqa: E501
         )
 
     return results

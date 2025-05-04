@@ -180,7 +180,7 @@ def generate_console_report(metrics: Dict[str, Any]):
             print(f"    Success Rate:       {data.get('success_rate', 0):.2f}%")
             print(f"    Avg Retries:        {data.get('avg_retries', 0):.2f}")
             print(
-                f"    Avg Score (Scored): {data.get('avg_score', 0):.2f} (from {data.get('scored_task_count', 0)} tasks)"
+                f"    Avg Score (Scored): {data.get('avg_score', 0):.2f} (from {data.get('scored_task_count', 0)} tasks)"  # noqa: E501
             )
             print(f"    Failures (Perm):    {data.get('permanently_failed', 0)}")
 

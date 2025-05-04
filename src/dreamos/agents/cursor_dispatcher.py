@@ -28,7 +28,7 @@ try:
     prompt_renderer = PromptRenderer(TEMPLATE_DIR)
 except FileNotFoundError:
     logger.error(
-        f"Template directory not found at {TEMPLATE_DIR}. Cannot initialize PromptRenderer."
+        f"Template directory not found at {TEMPLATE_DIR}. Cannot initialize PromptRenderer."  # noqa: E501
     )
     prompt_renderer = None
 
@@ -45,7 +45,7 @@ def render_task_prompt(task: dict) -> str | None:
     rendered = prompt_renderer.render("chatgpt_task_prompt.j2", {"task": task})
     if rendered is None:
         logger.error(
-            f"Failed to render template 'chatgpt_task_prompt.j2' for task {task.get('task_id')}"
+            f"Failed to render template 'chatgpt_task_prompt.j2' for task {task.get('task_id')}"  # noqa: E501
         )
     return rendered
 

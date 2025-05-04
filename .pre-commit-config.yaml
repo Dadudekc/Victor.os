@@ -10,24 +10,13 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 
-# {{ EDIT START: Move Black and isort before Flake8 }}
--   repo: https://github.com/psf/black
-    rev: 24.4.2 # Use a specific tag
+# Ruff configuration (replaces black, isort, flake8)
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version. Must be kept in sync with pyproject.toml
+    rev: v0.4.4
     hooks:
-    -   id: black
-
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2 # Use a specific tag
-    hooks:
-    -   id: isort
-        name: isort (python)
-        args: ["--profile", "black"]
-# {{ EDIT END }}
-
-# Flake8 hook
--   repo: https://github.com/PyCQA/flake8
-    rev: '6.1.0' # Use a specific tag for flake8
-    hooks:
-    -   id: flake8
-        # args: [--config=setup.cfg] # Uncomment and point to config if one exists
-        additional_dependencies: [flake8-bugbear] # Example: add common plugins if needed
+      # Run the linter.
+      - id: ruff
+        args: [--fix, --exit-zero] # Enable auto-fix, soften hook
+      # Run the formatter.
+      - id: ruff-format

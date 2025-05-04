@@ -4,9 +4,8 @@ import json
 import logging
 import os
 import tempfile  # Need tempfile import
-import time
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 # Placeholder for filelock if the real library isn't in Agent 1's context
 # A robust implementation would try to import the actual library first
@@ -110,7 +109,7 @@ def _read_board_local(board_path: Path) -> List[Dict[str, Any]]:
                 return data
             else:
                 logger.error(
-                    f"Invalid format in {board_path}: Expected a list, got {type(data)}."
+                    f"Invalid format in {board_path}: Expected a list, got {type(data)}."  # noqa: E501
                 )
                 return []  # Or raise error? Return empty for now.
     except json.JSONDecodeError:
@@ -196,7 +195,7 @@ def update_global_task_local(
         True if the update was successful, False otherwise.
     """
     logger.info(
-        f"Attempting local update for task '{task_id}'. Status={status}, Notes={'Provided' if notes else 'None'}, Summary={'Provided' if result_summary else 'None'}"
+        f"Attempting local update for task '{task_id}'. Status={status}, Notes={'Provided' if notes else 'None'}, Summary={'Provided' if result_summary else 'None'}"  # noqa: E501
     )
     lock_file_path = str(WORKING_TASKS_PATH) + ".lock"
     lock = _acquire_lock_local(lock_file_path)
@@ -217,7 +216,7 @@ def update_global_task_local(
         tasks = _read_board_local(WORKING_TASKS_PATH)
         if not tasks:
             logger.error(
-                f"Working tasks board is empty or could not be read. Cannot update task {task_id}."
+                f"Working tasks board is empty or could not be read. Cannot update task {task_id}."  # noqa: E501
             )
             # Release lock before returning
             if lock.is_locked:
@@ -268,7 +267,7 @@ def update_global_task_local(
             updated = True
         else:
             logger.error(
-                f"Failed to write updates for task {task_id} back to {WORKING_TASKS_PATH}."
+                f"Failed to write updates for task {task_id} back to {WORKING_TASKS_PATH}."  # noqa: E501
             )
             updated = False  # Write failed
 

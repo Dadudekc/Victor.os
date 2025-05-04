@@ -61,12 +61,12 @@ def update_contract_yaml(agent_id, protocol_hash, timestamp):
                         data = loaded_data
             except yaml.YAMLError as e:
                 print(
-                    f"Warning: Could not parse existing YAML file at {CONTRACT_YAML_PATH}. It might be corrupted. Starting fresh. Error: {e}",
+                    f"Warning: Could not parse existing YAML file at {CONTRACT_YAML_PATH}. It might be corrupted. Starting fresh. Error: {e}",  # noqa: E501
                     file=sys.stderr,
                 )
             except Exception as e:
                 print(
-                    f"Warning: Could not read existing YAML file at {CONTRACT_YAML_PATH}. Error: {e}",
+                    f"Warning: Could not read existing YAML file at {CONTRACT_YAML_PATH}. Error: {e}",  # noqa: E501
                     file=sys.stderr,
                 )
 

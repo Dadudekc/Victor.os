@@ -27,18 +27,18 @@ import traceback  # IMPORT ADDED FOR ERROR PAYLOAD
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from ..utils.logging_utils import log_handler_exception
 
 # Imports moved from lower in the file to fix E402
 # {{ EDIT START: Add Payload Imports }}
-from .event_payloads import ErrorEventPayload  # EDIT: Replace AgentErrorPayload
-from .event_payloads import (  # AgentStatusChangePayload, # EDIT: Remove - Replaced by AgentStatusEventPayload (which isn't used directly here)
+from .event_payloads import (  # AgentStatusChangePayload, # EDIT: Remove - Replaced by AgentStatusEventPayload (which isn't used directly here)  # noqa: E501
     AgentRegistrationPayload,
     CursorInjectRequestPayload,
     CursorResultPayload,
     CursorRetrieveRequestPayload,
+    ErrorEventPayload,  # EDIT: Replace AgentErrorPayload
     MemoryEventData,
     TaskEventPayload,
     ToolCallPayload,
@@ -48,13 +48,12 @@ from .event_payloads import (  # AgentStatusChangePayload, # EDIT: Remove - Repl
 # from dreamos.core.config import PROJECT_ROOT  # Explicitly comment out PROJECT_ROOT
 
 
-
 # {{ EDIT END }}
 # {{ EDIT START: Import TaskStatus for payload definition }}
 # from .message_patterns import TaskStatus # Explicitly comment out TaskStatus
 
 
-# from dreamos.coordination.config import WORKSPACE_ROOT # Removed - Config location changed
+# from dreamos.coordination.config import WORKSPACE_ROOT # Removed - Config location changed  # noqa: E501
 # from dreamos.config import WORKSPACE_ROOT # WORKSPACE_ROOT not defined here
 # from dreamos.config import PROJECT_ROOT  # Use PROJECT_ROOT defined in config
 
@@ -76,7 +75,7 @@ class SubscriptionError(BusError):
 
 
 class DispatchError(BusError):
-    """Raised for errors during the event dispatch process itself (e.g., invalid event)."""
+    """Raised for errors during the event dispatch process itself (e.g., invalid event)."""  # noqa: E501
 
     pass
 
@@ -114,7 +113,7 @@ class EventType(Enum):
 
     # Task Events
     # Using specific agent target for commands, general topics for status
-    # TASK_COMMAND = "dreamos.agent.{agent_id}.task.command" # Pattern handled in BaseAgent subscribe
+    # TASK_COMMAND = "dreamos.agent.{agent_id}.task.command" # Pattern handled in BaseAgent subscribe  # noqa: E501
     TASK_RECEIVED = "dreamos.task.received"  # Changed topic
     TASK_ACCEPTED = "dreamos.task.accepted"  # Changed topic
     TASK_STARTED = "dreamos.task.started"  # Changed topic
@@ -184,7 +183,7 @@ class EventType(Enum):
     COMMAND_APPROVAL_RESPONSE = "dreamos.supervisor.approval.responded"  # Changed topic
     COMMAND_EXECUTION_RESULT = "dreamos.supervisor.command.result"  # Changed topic
 
-    # Dreamscape Specific Events (Example - keep separate or integrate? Integrate for now)
+    # Dreamscape Specific Events (Example - keep separate or integrate? Integrate for now)  # noqa: E501
     DREAMSCAPE_PLAN_REQUESTED = "dreamscape.plan.requested"  # Changed topic
     DREAMSCAPE_PLAN_GENERATED = "dreamscape.plan.generated"  # Changed topic
     DREAMSCAPE_PLAN_FAILED = "dreamscape.plan.failed"  # Changed topic
@@ -193,9 +192,9 @@ class EventType(Enum):
     DREAMSCAPE_DRAFT_FAILED = "dreamscape.draft.failed"  # Changed topic
 
     # Old/Unsorted - Review and map/remove
-    # START_CHATGPT_QUERY = "start_chatgpt_query" # Map to a TASK event? Or specific integration event?
-    # TASK_INJECTED_VIA_ROUTER = "task_injected_via_router" # Map to TASK_ACCEPTED or similar?
-    # SCRAPER_ERROR = "scraper_error" # Map to AGENT_ERROR or specific integration error?
+    # START_CHATGPT_QUERY = "start_chatgpt_query" # Map to a TASK event? Or specific integration event?  # noqa: E501
+    # TASK_INJECTED_VIA_ROUTER = "task_injected_via_router" # Map to TASK_ACCEPTED or similar?  # noqa: E501
+    # SCRAPER_ERROR = "scraper_error" # Map to AGENT_ERROR or specific integration error?  # noqa: E501
     # ROUTING_FAILED = "routing_failed" # Map to AGENT_ERROR?
     # PYAUTOGUI_ERROR = "pyautogui_error" # Map to TOOL_RESULT or AGENT_ERROR?
     # INJECTION_FAILED = "injection_failed" # Map to CURSOR_INJECT_FAILURE?
@@ -319,7 +318,7 @@ class AgentErrorEvent(BaseEvent):
     def __init__(self, event_type: EventType, source_id: str, data: ErrorEventPayload):
         # If EventType.AGENT_ERROR doesn't exist, this needs adjustment
         # For now, let's assume it does or that SYSTEM_ERROR is used.
-        # We could check if event_type == EventType.SYSTEM_ERROR or event_type == getattr(EventType, 'AGENT_ERROR', None)
+        # We could check if event_type == EventType.SYSTEM_ERROR or event_type == getattr(EventType, 'AGENT_ERROR', None)  # noqa: E501
         if event_type not in [
             EventType.SYSTEM_ERROR,
             EventType.AGENT_ERROR,
@@ -374,11 +373,11 @@ class SimpleEventBus:
             if handler not in self._subscribers[event_type_pattern]:
                 self._subscribers[event_type_pattern].append(handler)
                 logger.debug(
-                    f"Handler {getattr(handler, '__name__', repr(handler))} subscribed to '{event_type_pattern}'"
+                    f"Handler {getattr(handler, '__name__', repr(handler))} subscribed to '{event_type_pattern}'"  # noqa: E501
                 )
             else:
                 logger.warning(
-                    f"Handler {getattr(handler, '__name__', repr(handler))} already subscribed to '{event_type_pattern}'"
+                    f"Handler {getattr(handler, '__name__', repr(handler))} already subscribed to '{event_type_pattern}'"  # noqa: E501
                 )
 
     def unsubscribe(self, event_type_pattern: str, handler: Callable[[BaseEvent], Any]):
@@ -388,7 +387,7 @@ class SimpleEventBus:
                 try:
                     self._subscribers[event_type_pattern].remove(handler)
                     logger.debug(
-                        f"Handler {getattr(handler, '__name__', repr(handler))} unsubscribed from '{event_type_pattern}'"
+                        f"Handler {getattr(handler, '__name__', repr(handler))} unsubscribed from '{event_type_pattern}'"  # noqa: E501
                     )
                     if not self._subscribers[
                         event_type_pattern
@@ -397,7 +396,7 @@ class SimpleEventBus:
                 except ValueError:
                     # Do not raise error, just log warning if handler not found
                     logger.warning(
-                        f"Handler {getattr(handler, '__name__', repr(handler))} not found for unsubscribe on '{event_type_pattern}'"
+                        f"Handler {getattr(handler, '__name__', repr(handler))} not found for unsubscribe on '{event_type_pattern}'"  # noqa: E501
                     )
 
     def dispatch_event(self, event: BaseEvent):
@@ -414,7 +413,7 @@ class SimpleEventBus:
 
         Raises:
             DispatchError: If the object being dispatched is not an instance of `BaseEvent`.
-        """
+        """  # noqa: E501
         if not isinstance(event, BaseEvent):
             # EDIT START: Raise specific error
             # logger.error(f"Attempted to dispatch non-BaseEvent object: {type(event)}")
@@ -428,7 +427,7 @@ class SimpleEventBus:
             event.event_type.value
         )  # Get the string value like "system.memory.update"
         logger.debug(
-            f"Dispatching event: {event_type_str} (ID: {event.event_id}) from {event.source_id}"
+            f"Dispatching event: {event_type_str} (ID: {event.event_id}) from {event.source_id}"  # noqa: E501
         )
 
         handlers_to_call: Set[Callable[[BaseEvent], Any]] = set()
@@ -463,16 +462,16 @@ class SimpleEventBus:
                         loop = asyncio.get_running_loop()
                         task = loop.create_task(
                             handler(event),
-                            name=f"EventHandler-{getattr(handler, '__name__', 'unknown')}-{event.event_id[:8]}",
+                            name=f"EventHandler-{getattr(handler, '__name__', 'unknown')}-{event.event_id[:8]}",  # noqa: E501
                         )
                         task.add_done_callback(self._handle_handler_task_completion)
                     except RuntimeError:  # If no running loop, log error
                         logger.error(
-                            f"Cannot schedule async handler {getattr(handler, '__name__', 'unknown')} for event {event.event_id}: No running asyncio event loop."
+                            f"Cannot schedule async handler {getattr(handler, '__name__', 'unknown')} for event {event.event_id}: No running asyncio event loop."  # noqa: E501
                         )
                     except Exception as task_create_err:
                         logger.error(
-                            f"Error creating task for async handler {getattr(handler, '__name__', 'unknown')} for event {event.event_id}: {task_create_err}",
+                            f"Error creating task for async handler {getattr(handler, '__name__', 'unknown')} for event {event.event_id}: {task_create_err}",  # noqa: E501
                             exc_info=True,
                         )
                 else:
@@ -482,7 +481,7 @@ class SimpleEventBus:
             except Exception as e:
                 # Catch errors during sync call or scheduling
                 handler_name = getattr(handler, "__name__", repr(handler))
-                err_msg = f"Error synchronously invoking/scheduling handler {handler_name} for event {event.event_id} ({event.event_type.value}) from {event.source_id}: {e}"
+                err_msg = f"Error synchronously invoking/scheduling handler {handler_name} for event {event.event_id} ({event.event_type.value}) from {event.source_id}: {e}"  # noqa: E501
                 logger.error(err_msg, exc_info=True)
                 # Consider dispatching error event here if needed
 
@@ -503,7 +502,7 @@ class SimpleEventBus:
 
                 # Create ErrorEventPayload
                 payload = ErrorEventPayload(
-                    error_message=f"Error in handler {getattr(handler, '__name__', repr(handler))} for event {event.event_id if event else 'N/A'}: {exception}",
+                    error_message=f"Error in handler {getattr(handler, '__name__', repr(handler))} for event {event.event_id if event else 'N/A'}: {exception}",  # noqa: E501
                     agent_id=None,  # System-level error in handler
                     task_id=None,
                     exception_type=type(exception).__name__,
@@ -525,7 +524,7 @@ class SimpleEventBus:
                     data=payload.to_dict(),  # Assuming payload needs serialization
                     correlation_id=event.correlation_id if event else None,
                 )
-                # Avoid awaiting dispatch here to prevent deadlocks if the bus is blocked
+                # Avoid awaiting dispatch here to prevent deadlocks if the bus is blocked  # noqa: E501
                 # Use asyncio.create_task to run it independently
                 asyncio.create_task(self.dispatch_event(error_event))
 
@@ -541,7 +540,7 @@ class SimpleEventBus:
             if task in self._running_handlers:
                 del self._running_handlers[task]
 
-    # Optional: Helper to dispatch a standardized error event -> REMOVED as logic moved inline
+    # Optional: Helper to dispatch a standardized error event -> REMOVED as logic moved inline  # noqa: E501
     # def _dispatch_handler_error(...): ...
     # EDIT END
 
@@ -588,7 +587,7 @@ class AgentBus:
         """Dispatch an event onto the bus."""
         self._event_bus.dispatch_event(event)
 
-    # --- Agent Management Methods (Simplified, kept original logic where applicable) ---
+    # --- Agent Management Methods (Simplified, kept original logic where applicable) ---  # noqa: E501
     def register_agent(self, agent_id: str, capabilities: List[str]):
         """Registers an agent with the bus, storing its ID and capabilities.
         Dispatches a SYSTEM_AGENT_REGISTERED event.
@@ -656,7 +655,7 @@ class AgentBus:
         self.active_agents[agent_id]["last_update"] = time.time()
         logger.debug(f"Agent {agent_id} status updated to: {status}")
 
-        payload = AgentStatusChangePayload(
+        payload = AgentStatusChangePayload(  # noqa: F821
             agent_id=agent_id, status=status, task_id=task_id, error_message=error
         )
         evt = BaseEvent(

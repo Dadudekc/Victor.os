@@ -23,7 +23,7 @@ class CursorShadowController:
             self.prompt_dir.mkdir(parents=True, exist_ok=True)
             self.output_dir.mkdir(parents=True, exist_ok=True)
             logger.info(
-                f"CursorShadowController initialized. Inbox: {self.prompt_dir.resolve()}, Outbox: {self.output_dir.resolve()}"
+                f"CursorShadowController initialized. Inbox: {self.prompt_dir.resolve()}, Outbox: {self.output_dir.resolve()}"  # noqa: E501
             )
         except Exception as e:
             logger.error(f"Failed to create controller directories: {e}", exc_info=True)
@@ -50,7 +50,7 @@ class CursorShadowController:
                 logger.warning(
                     f"Could not serialize context for prompt {prompt_id}: {e}"
                 )
-                payload += f"# Context: [Serialization Error]\n\n"
+                payload += "# Context: [Serialization Error]\n\n"
 
         payload += prompt
 
@@ -103,13 +103,13 @@ class CursorShadowController:
                     # Ensure result has a 'success' key for consistency downstream
                     if "success" not in result:
                         logger.warning(
-                            f"Result for {prompt_id} missing 'success' key. Assuming success based on presence of file."
+                            f"Result for {prompt_id} missing 'success' key. Assuming success based on presence of file."  # noqa: E501
                         )
                         result["success"] = True  # Or infer based on other keys?
-                    return result  # Expected format: {"success": bool, "response": str|None, "error": str|None}
+                    return result  # Expected format: {"success": bool, "response": str|None, "error": str|None}  # noqa: E501
                 except json.JSONDecodeError as e:
                     logger.error(
-                        f"Failed to parse JSON result file {result_file}: {e}. Content: '{content[:100]}...'"
+                        f"Failed to parse JSON result file {result_file}: {e}. Content: '{content[:100]}...'"  # noqa: E501
                     )
                     return {
                         "success": False,
@@ -145,7 +145,7 @@ class CursorShadowController:
         except Exception as e:
             # Catch errors during sending itself
             logger.error(
-                f"Error during prompt cycle (sending phase) for prompt ID '{prompt_id}': {e}",
+                f"Error during prompt cycle (sending phase) for prompt ID '{prompt_id}': {e}",  # noqa: E501
                 exc_info=True,
             )
             result = {"success": False, "error": f"Failed during prompt sending: {e}"}
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     test_inbox = Path("temp_cursor_inbox")
     test_outbox = Path("temp_cursor_outbox")
     print(
-        f"Using temporary directories: Inbox='{test_inbox.resolve()}', Outbox='{test_outbox.resolve()}'"
+        f"Using temporary directories: Inbox='{test_inbox.resolve()}', Outbox='{test_outbox.resolve()}'"  # noqa: E501
     )
 
     controller = CursorShadowController(
@@ -204,7 +204,7 @@ if __name__ == "__main__":
         print("\n>>> Simulating Cursor processing... (Will write result file shortly)")
 
         async def simulate_cursor_response(p_id, out_dir):
-            await asyncio.sleep(3)
+            await asyncio.sleep(3)  # noqa: F821
             result_data = {
                 "success": True,
                 "response": "Positive sentiment detected.",
@@ -221,8 +221,8 @@ if __name__ == "__main__":
 
         # Run simulation concurrently with monitoring (for demo purposes)
         async def monitor_and_simulate():
-            await asyncio.gather(
-                asyncio.to_thread(
+            await asyncio.gather(  # noqa: F821
+                asyncio.to_thread(  # noqa: F821
                     controller.monitor_output, prompt_id_sent, timeout=10
                 ),
                 simulate_cursor_response(prompt_id_sent, test_outbox),
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         print(f"\n>>> Monitoring for result (ID: {prompt_id_sent})...")
         final_result = controller.monitor_output(prompt_id_sent, timeout=10)
 
-        print(f"\n>>> Final Result Received:")
+        print("\n>>> Final Result Received:")
         print(json.dumps(final_result, indent=2))
 
         assert final_result.get("success") is True, "Test failed: Success not True."

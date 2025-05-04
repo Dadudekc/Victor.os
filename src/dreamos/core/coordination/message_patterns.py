@@ -1,6 +1,5 @@
 """Standardized message patterns for agent coordination."""
 
-from dataclasses import dataclass, field
 from datetime import datetime, timezone  # Ensure timezone awareness
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -8,8 +7,6 @@ from typing import Any, Dict, List, Optional
 from pydantic import (  # Import necessary Pydantic components
     BaseModel,
     Field,
-    field_validator,
-    model_validator,
 )
 
 # REMOVED addressed TODO

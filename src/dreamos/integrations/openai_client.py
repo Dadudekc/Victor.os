@@ -1,11 +1,10 @@
 """Client for interacting with OpenAI APIs."""
 
-import asyncio
+import asyncio  # noqa: I001
 import logging
 
 import openai
 import tenacity
-
 from dreamos.utils.config_utils import get_config  # Assuming this util exists
 
 from . import APIError, IntegrationError
@@ -21,7 +20,7 @@ class OpenAIClient:
 
         if not self.api_key:
             logger.warning(
-                "OpenAI API key not found in configuration (integrations.openai.api_key). Client will be non-functional."
+                "OpenAI API key not found in configuration (integrations.openai.api_key). Client will be non-functional."  # noqa: E501
             )
             self._client = None
             self._functional = False
@@ -35,7 +34,7 @@ class OpenAIClient:
                 self._client = openai  # Reference the module for calls
                 self._functional = True
                 logger.info(
-                    f"OpenAIClient initialized (API Base: {self.api_base or 'Default'})."
+                    f"OpenAIClient initialized (API Base: {self.api_base or 'Default'})."  # noqa: E501
                 )
             except Exception as e:
                 logger.error(f"Failed to initialize OpenAI client: {e}", exc_info=True)
@@ -45,7 +44,7 @@ class OpenAIClient:
                 # raise IntegrationError(f"Failed to initialize OpenAI client: {e}")
 
     def is_functional(self) -> bool:
-        """Returns True if the client was initialized successfully and has an API key."""
+        """Returns True if the client was initialized successfully and has an API key."""  # noqa: E501
         return self._functional
 
     @tenacity.retry(
@@ -86,7 +85,7 @@ class OpenAIClient:
             completion = response.choices[0].message["content"].strip()
             end_time = asyncio.get_event_loop().time()
             logger.info(
-                f"Received OpenAI completion ({end_time - start_time:.2f}s). Length: {len(completion)}"
+                f"Received OpenAI completion ({end_time - start_time:.2f}s). Length: {len(completion)}"  # noqa: E501
             )
             logger.debug(f"Completion (first 100 chars): {completion[:100]}")
             return completion

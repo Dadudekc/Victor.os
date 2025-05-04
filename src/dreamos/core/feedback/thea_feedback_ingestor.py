@@ -2,12 +2,8 @@ import glob
 import json
 import logging
 import os
-from datetime import datetime, timezone
-from pathlib import Path
 
 from agents.core.thea_auto_planner import TheaAutoPlanner
-
-from dreamos.core.tasks.nexus.task_nexus import TaskNexus
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

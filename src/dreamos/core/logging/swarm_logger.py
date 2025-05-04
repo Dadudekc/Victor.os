@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -49,7 +48,7 @@ def log_agent_event(
     log_path = _get_log_path()
     if not log_path:
         logger.error(
-            "[SwarmLogger] Cannot log event, log path not configured or failed to initialize."
+            "[SwarmLogger] Cannot log event, log path not configured or failed to initialize."  # noqa: E501
         )
         return
 
@@ -83,10 +82,10 @@ def log_agent_event(
         logger.error(f"[SwarmLogger] Failed to acquire lock for {log_path}: {e}")
     except (IOError, OSError, json.JSONDecodeError) as e:
         logger.error(
-            f"[SwarmLogger] Failed to write log event to {log_path} for agent {agent_id} (lock held: {lock_acquired}): {e}"
+            f"[SwarmLogger] Failed to write log event to {log_path} for agent {agent_id} (lock held: {lock_acquired}): {e}"  # noqa: E501
         )
     except Exception as e:
         logger.error(
-            f"[SwarmLogger] Unexpected error writing log event (lock held: {lock_acquired}): {e}",
+            f"[SwarmLogger] Unexpected error writing log event (lock held: {lock_acquired}): {e}",  # noqa: E501
             exc_info=True,
         )

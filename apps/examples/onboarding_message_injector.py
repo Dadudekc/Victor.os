@@ -7,7 +7,7 @@ import os
 logger = logging.getLogger(__name__)
 
 # Define the standard empty/initial mailbox structure
-DEFAULT_MAILBOX_STRUCTURE = lambda agent_id: {
+DEFAULT_MAILBOX_STRUCTURE = lambda agent_id: {  # noqa: E731
     "status": "online",  # Assume claimed if injecting
     "assigned_agent_id": agent_id,
     "last_seen_utc": datetime.datetime.utcnow().isoformat(),
@@ -32,9 +32,9 @@ def inject_initial_onboarding_message(
 
     Returns:
         True if injection was successful, False otherwise.
-    """
+    """  # noqa: E501
     onboarding_msg = {
-        "message_id": f"onboarding_{agent_id}_{int(datetime.datetime.utcnow().timestamp())}",  # Add unique ID
+        "message_id": f"onboarding_{agent_id}_{int(datetime.datetime.utcnow().timestamp())}",  # Add unique ID  # noqa: E501
         "sender": "AgentBootstrap",
         "timestamp_utc": datetime.datetime.utcnow().isoformat(),
         "command": "initial_onboarding",
@@ -58,32 +58,32 @@ def inject_initial_onboarding_message(
                         if isinstance(loaded_data, dict):
                             mailbox_data = loaded_data
                             logger.debug(
-                                f"[{agent_id}] Loaded existing mailbox object from {mailbox_path}"
+                                f"[{agent_id}] Loaded existing mailbox object from {mailbox_path}"  # noqa: E501
                             )
                         else:
                             logger.warning(
-                                f"[{agent_id}] Mailbox {mailbox_path} contained non-object data ({type(loaded_data).__name__}). Re-initializing structure."
+                                f"[{agent_id}] Mailbox {mailbox_path} contained non-object data ({type(loaded_data).__name__}). Re-initializing structure."  # noqa: E501
                             )
                             needs_initialization = True
                     except json.JSONDecodeError:
                         logger.warning(
-                            f"[{agent_id}] Mailbox {mailbox_path} contained invalid JSON. Re-initializing structure."
+                            f"[{agent_id}] Mailbox {mailbox_path} contained invalid JSON. Re-initializing structure."  # noqa: E501
                         )
                         needs_initialization = True
                 else:
                     logger.info(
-                        f"[{agent_id}] Mailbox {mailbox_path} was empty. Initializing structure."
+                        f"[{agent_id}] Mailbox {mailbox_path} was empty. Initializing structure."  # noqa: E501
                     )
                     needs_initialization = True
         else:
             logger.info(
-                f"[{agent_id}] Mailbox file {mailbox_path} not found. Initializing structure."
+                f"[{agent_id}] Mailbox file {mailbox_path} not found. Initializing structure."  # noqa: E501
             )
             needs_initialization = True
 
         if needs_initialization:
             mailbox_data = DEFAULT_MAILBOX_STRUCTURE(agent_id)
-            # Ensure basic fields are present if we loaded partial data before deciding to re-init
+            # Ensure basic fields are present if we loaded partial data before deciding to re-init  # noqa: E501
             mailbox_data.setdefault("status", "online")
             mailbox_data.setdefault("assigned_agent_id", agent_id)
             mailbox_data.setdefault(
@@ -95,18 +95,18 @@ def inject_initial_onboarding_message(
             # Ensure essential lists exist if loaded object was missing them
             if not isinstance(mailbox_data.get("messages"), list):
                 logger.warning(
-                    f"[{agent_id}] Existing mailbox object missing/invalid 'messages' list. Resetting."
+                    f"[{agent_id}] Existing mailbox object missing/invalid 'messages' list. Resetting."  # noqa: E501
                 )
                 mailbox_data["messages"] = []
             if not isinstance(mailbox_data.get("processed_message_ids"), list):
                 logger.warning(
-                    f"[{agent_id}] Existing mailbox object missing/invalid 'processed_message_ids' list. Resetting."
+                    f"[{agent_id}] Existing mailbox object missing/invalid 'processed_message_ids' list. Resetting."  # noqa: E501
                 )
                 mailbox_data["processed_message_ids"] = []
 
     except Exception as e:
         logger.error(
-            f"[{agent_id}] Error reading/preparing mailbox {mailbox_path} before injection: {e}",
+            f"[{agent_id}] Error reading/preparing mailbox {mailbox_path} before injection: {e}",  # noqa: E501
             exc_info=True,
         )
         return False  # Indicate failure
@@ -117,7 +117,7 @@ def inject_initial_onboarding_message(
         # Ensure messages is actually a list before appending
         if not isinstance(mailbox_data.get("messages"), list):
             logger.error(
-                f"[{agent_id}] Internal error: mailbox_data['messages'] is not a list before append. Aborting injection."
+                f"[{agent_id}] Internal error: mailbox_data['messages'] is not a list before append. Aborting injection."  # noqa: E501
             )
             return False
 
@@ -147,11 +147,11 @@ def inject_initial_onboarding_message(
         # --- Debug Log: Check structure before writing ---
         if isinstance(mailbox_data, dict):
             logger.debug(
-                f"[{agent_id}] DEBUG_INJECT: Writing OBJECT to {temp_mailbox_path}. Keys: {list(mailbox_data.keys())}"
+                f"[{agent_id}] DEBUG_INJECT: Writing OBJECT to {temp_mailbox_path}. Keys: {list(mailbox_data.keys())}"  # noqa: E501
             )
         else:
             logger.debug(
-                f"[{agent_id}] DEBUG_INJECT: Writing NON-OBJECT ({type(mailbox_data).__name__}) to {temp_mailbox_path}"
+                f"[{agent_id}] DEBUG_INJECT: Writing NON-OBJECT ({type(mailbox_data).__name__}) to {temp_mailbox_path}"  # noqa: E501
             )
         # --- End Debug Log ---
 
@@ -159,12 +159,12 @@ def inject_initial_onboarding_message(
             json.dump(mailbox_data, f, indent=2)
         os.replace(temp_mailbox_path, mailbox_path)
         logger.info(
-            f"[{agent_id}] Successfully injected onboarding message into {mailbox_path} (object structure maintained)."
+            f"[{agent_id}] Successfully injected onboarding message into {mailbox_path} (object structure maintained)."  # noqa: E501
         )
         return True
     except Exception as e:
         logger.error(
-            f"[{agent_id}] Failed to write updated mailbox object to {mailbox_path}: {e}",
+            f"[{agent_id}] Failed to write updated mailbox object to {mailbox_path}: {e}",  # noqa: E501
             exc_info=True,
         )
         if os.path.exists(temp_mailbox_path):
@@ -172,7 +172,7 @@ def inject_initial_onboarding_message(
                 os.remove(temp_mailbox_path)
             except Exception as cleanup_err:
                 logger.error(
-                    f"[{agent_id}] Failed to remove temp file {temp_mailbox_path}: {cleanup_err}"
+                    f"[{agent_id}] Failed to remove temp file {temp_mailbox_path}: {cleanup_err}"  # noqa: E501
                 )
         return False
 

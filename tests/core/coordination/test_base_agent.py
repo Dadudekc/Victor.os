@@ -1,31 +1,21 @@
-import asyncio
+import asyncio  # noqa: I001
 import logging
 import sys  # For publish_agent_error test
 import traceback  # For publish_agent_error test
-from datetime import datetime, timezone
 from pathlib import Path
-from queue import Empty, Queue
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
-
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.coordination.agent_bus import BaseEvent, EventType
 from dreamos.core.coordination.base_agent import (
     BaseAgent,
-    MessageHandlingError,
     TaskMessage,
     TaskPriority,
-    TaskProcessingError,
     TaskStatus,
 )
 from dreamos.core.coordination.event_payloads import (
     ErrorEventPayload,
-    TaskCompletionPayload,
-    TaskEventPayload,
-    TaskFailurePayload,
-    TaskProgressPayload,
 )
-from dreamos.core.coordination.message_patterns import TaskUpdate  # Import TaskUpdate
 
 
 # --- Concrete Subclass for Testing ---
@@ -103,7 +93,6 @@ async def test_base_agent_start(test_agent: ConcreteAgent, mock_agent_bus: Magic
         patch.object(test_agent, "_on_start", new_callable=AsyncMock) as mock_on_start,
         patch("asyncio.create_task", side_effect=capture_task) as mock_create_task,
     ):
-
         await test_agent.start()
 
         assert test_agent._running is True
@@ -118,7 +107,7 @@ async def test_base_agent_start(test_agent: ConcreteAgent, mock_agent_bus: Magic
 
         mock_create_task.assert_called_once()  # Task processor started
         assert created_task is not None  # Ensure task was captured
-        # Optional: Add cleanup for the captured task if it doesn't get cancelled in stop
+        # Optional: Add cleanup for the captured task if it doesn't get cancelled in stop  # noqa: E501
         # if not created_task.done(): created_task.cancel()
 
         mock_on_start.assert_awaited_once()  # Agent-specific start called
@@ -166,7 +155,7 @@ async def test_base_agent_publish_event_helpers(
     test_agent: ConcreteAgent, mock_agent_bus: MagicMock
 ):
     """Test the various publish_task_* helper methods."""
-    mock_task_dict = {"task_id": "t-pub", "task_type": "TEST", "params": {}}
+    mock_task_dict = {"task_id": "t-pub", "task_type": "TEST", "params": {}}  # noqa: F841
     # Use TaskMessage's validation/defaults
     mock_task = TaskMessage(
         task_id="t-pub",
@@ -465,7 +454,7 @@ async def test_publish_agent_error(test_agent, mock_agent_bus):
         BaseEvent(
             event_type=EventType.AGENT_ERROR,
             source_id=test_agent.agent_id,
-            data=expected_payload.to_dict(),  # Assuming ErrorEventPayload needs to_dict()
+            data=expected_payload.to_dict(),  # Assuming ErrorEventPayload needs to_dict()  # noqa: E501
             correlation_id=correlation_id,
         )
     )
@@ -592,12 +581,12 @@ async def test_validate_task_completion_fail_none_result(mock_agent):
     assert "Handler result dictionary is missing, None, or empty" in call_args[1]
 
 
-# --- Existing tests for _process_single_task (might need adjustment if mocks change) ---
+# --- Existing tests for _process_single_task (might need adjustment if mocks change) ---  # noqa: E501
 
 
 @pytest.mark.asyncio
 async def test_process_single_task_success_with_validation_pass(mock_agent):
-    """Verify task processing completes and persists COMPLETED status when validation passes."""
+    """Verify task processing completes and persists COMPLETED status when validation passes."""  # noqa: E501
     task = create_sample_task(command_type="test_command")
     handler_result = {"output": "success", "summary": "Handler success summary"}
     mock_handler = AsyncMock(return_value=handler_result)
@@ -634,12 +623,12 @@ async def test_process_single_task_success_with_validation_pass(mock_agent):
     )  # Ensure order
 
     # Ensure validation failure paths weren't called
-    mock_agent.publish_validation_failed.assert_not_called()  # Assuming this helper exists and is called by _validate... or base agent
+    mock_agent.publish_validation_failed.assert_not_called()  # Assuming this helper exists and is called by _validate... or base agent  # noqa: E501
 
 
 @pytest.mark.asyncio
 async def test_process_single_task_success_with_validation_fail(mock_agent):
-    """Verify task processing persists VALIDATION_FAILED status when validation fails."""
+    """Verify task processing persists VALIDATION_FAILED status when validation fails."""  # noqa: E501
     task = create_sample_task(command_type="test_command")
     handler_result = {
         "output": "some data",
@@ -674,5 +663,5 @@ async def test_process_single_task_success_with_validation_fail(mock_agent):
 
     # Ensure completion path wasn't called
     mock_agent.publish_task_completed.assert_not_called()
-    # Optionally check if a specific validation failure event was published if applicable
-    # mock_agent.publish_validation_failed.assert_awaited_once_with(task, validation_details) # If called directly by _process_single_task
+    # Optionally check if a specific validation failure event was published if applicable  # noqa: E501
+    # mock_agent.publish_validation_failed.assert_awaited_once_with(task, validation_details) # If called directly by _process_single_task  # noqa: E501

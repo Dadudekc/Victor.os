@@ -4,13 +4,10 @@ import hashlib
 import json
 import logging
 import os
-import queue
 import sys
 import threading
-import time
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 # Ensure the 'src' directory is in the Python path when run from root
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -24,16 +21,14 @@ if str(SRC_DIR) not in sys.path:
 # Local imports - use relative imports based on actual file structure
 # Remove the unused import causing the ModuleNotFoundError
 # from dreamos.utils.file_utils import safe_read_file, find_project_root
-from .analyzer import LanguageAnalyzer
+from .analyzer import LanguageAnalyzer  # noqa: E402
 
 # Need concurrency import?
-from .concurrency import MultibotManager  # Added based on file list
+from .concurrency import MultibotManager  # Added based on file list  # noqa: E402
 
-# Assuming ProjectCache is also in file_processor or defined elsewhere? Let's try file_processor
-from .file_processor import (  # Removed ProjectCache for now, needs confirmation
-    FileProcessor,
-)
-from .report_generator import ReportGenerator
+# Assuming ProjectCache is also in file_processor or defined elsewhere? Let's try file_processor  # noqa: E501
+from .file_processor import FileProcessor  # noqa: E402
+from .report_generator import ReportGenerator  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +38,7 @@ try:
 except ImportError:
     Language, Parser = None, None  # Indicate tree-sitter is unavailable
     logger.warning(
-        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."
+        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
     )
 
 # ---------------------------------
@@ -54,7 +49,7 @@ CACHE_FILE = "dependency_cache.json"  # Original cache name
 CACHE_PATH = PROJECT_ROOT / ".dreamos_cache" / CACHE_FILE
 
 
-# --- ProjectCache Class --- (Assuming ProjectCache was in utils.py, defining it here temporarily)
+# --- ProjectCache Class --- (Assuming ProjectCache was in utils.py, defining it here temporarily)  # noqa: E501
 class ProjectCache:
     def __init__(self, cache_path: Path):
         self.cache_path = cache_path
@@ -69,7 +64,7 @@ class ProjectCache:
                         return json.load(f)
                 except (json.JSONDecodeError, IOError) as e:
                     logger.warning(
-                        f"Failed to load cache file {self.cache_path}: {e}. Starting fresh."
+                        f"Failed to load cache file {self.cache_path}: {e}. Starting fresh."  # noqa: E501
                     )
                     return {}
             return {}
@@ -125,7 +120,7 @@ class ProjectCache:
 # ---------------------------------
 # Language Analyzer
 # ---------------------------------
-class LanguageAnalyzer:
+class LanguageAnalyzer:  # noqa: F811
     """Handles language-specific code analysis for different programming languages."""
 
     def __init__(self):
@@ -140,7 +135,7 @@ class LanguageAnalyzer:
         """
         if not Language or not Parser:
             logger.warning(
-                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."
+                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
             )
             return None
 
@@ -420,7 +415,7 @@ class LanguageAnalyzer:
 # ---------------------------------
 # FileProcessor
 # ---------------------------------
-class FileProcessor:
+class FileProcessor:  # noqa: F811
     """Handles file hashing, ignoring, caching checks, etc."""
 
     def __init__(
@@ -555,8 +550,8 @@ class FileProcessor:
 # ---------------------------------
 # ReportGenerator (Merges Old + New)
 # ---------------------------------
-class ReportGenerator:
-    """Handles merging new analysis into existing project_analysis.json and chatgpt context."""
+class ReportGenerator:  # noqa: F811
+    """Handles merging new analysis into existing project_analysis.json and chatgpt context."""  # noqa: E501
 
     def __init__(
         self,
@@ -686,7 +681,7 @@ class ReportGenerator:
                 logger.error(f"❌ Error writing ChatGPT context: {e}")
             return
 
-        # If we do have a template, we can still load old data, but we'll not attempt JSON merging.
+        # If we do have a template, we can still load old data, but we'll not attempt JSON merging.  # noqa: E501
         # We'll just produce a final rendered template containing the new analysis.
         try:
             from jinja2 import Template
@@ -695,7 +690,7 @@ class ReportGenerator:
                 template_content = tf.read()
             t = Template(template_content)
 
-            # Could load existing context if you want. We'll skip that for Jinja scenario.
+            # Could load existing context if you want. We'll skip that for Jinja scenario.  # noqa: E501
             context_dict = {
                 "project_root": str(self.project_root),
                 "analysis": self.analysis,
@@ -718,7 +713,7 @@ class ReportGenerator:
               Update self.analysis with categorization results if desired.
         """
         logger.warning(
-            "Agent categorization logic is not yet implemented in ReportGenerator.categorize_agents."
+            "Agent categorization logic is not yet implemented in ReportGenerator.categorize_agents."  # noqa: E501
         )
         # Example placeholder logic (does nothing useful yet):
         agent_count = 0
@@ -726,7 +721,7 @@ class ReportGenerator:
             if "agent" in file_path.lower():  # Very naive check
                 agent_count += 1
         logger.info(
-            f"Placeholder categorization: Found {agent_count} potential agent files (naive check)."
+            f"Placeholder categorization: Found {agent_count} potential agent files (naive check)."  # noqa: E501
         )
         # Ensure report is saved even if categorization does nothing yet
         self.save_report()
@@ -746,16 +741,16 @@ class ProjectScanner:
       - Manages asynchronous file processing via MultibotManager.
       - Gathers results and passes them to the ReportGenerator.
       - Provides methods to trigger optional steps like __init__ generation or context export.
-    """
+    """  # noqa: E501
 
     def __init__(
         self, project_root: Path | str = ".", additional_ignore_dirs: set | None = None
     ):
         # Ensure project_root is Path object
         self.project_root = Path(project_root).resolve()
-        self.analysis: Dict[str, Dict] = (
-            {}
-        )  # Stores results {relative_path: analysis_dict}
+        self.analysis: Dict[
+            str, Dict
+        ] = {}  # Stores results {relative_path: analysis_dict}
 
         # Set DEFAULT paths initially - these might be updated in main()
         self.cache_path: Path = (
@@ -796,7 +791,7 @@ class ProjectScanner:
                         return loaded_cache
                     else:
                         logger.warning(
-                            f"Cache file {cache_path} is not a valid dictionary. Starting fresh."
+                            f"Cache file {cache_path} is not a valid dictionary. Starting fresh."  # noqa: E501
                         )
                         return {}
             except json.JSONDecodeError as e:
@@ -846,7 +841,7 @@ class ProjectScanner:
                     # If it's a directory (and not excluded), walk it
                     self._walk_directory(entry_path, file_extensions, valid_files)
                 elif entry.is_file():
-                    # If it's a file (and not excluded), check extension and add if valid
+                    # If it's a file (and not excluded), check extension and add if valid  # noqa: E501
                     if entry_path.suffix.lower() in file_extensions:
                         valid_files.append(entry_path)
         except PermissionError:
@@ -994,7 +989,7 @@ class ProjectScanner:
 
         # EDIT: Add logging before start_workers call
         logger.info(
-            f"Attempting to start workers. Manager type: {type(manager)}, Methods: {dir(manager)}"
+            f"Attempting to start workers. Manager type: {type(manager)}, Methods: {dir(manager)}"  # noqa: E501
         )
         manager.start_workers()
 
@@ -1078,7 +1073,7 @@ class ProjectScanner:
             f"✅ Scan complete. Results merged into {self.report_generator.report_path}"
         )
 
-        # Categorize agents using the scanner's method (which delegates to ReportGenerator)
+        # Categorize agents using the scanner's method (which delegates to ReportGenerator)  # noqa: E501
         # This updates the analysis_results dictionary in place.
         logger.info("Running agent categorization...")
         self.categorize_agents()
@@ -1130,7 +1125,7 @@ class ProjectScanner:
 
         # No need to init reporter
         logger.warning(
-            "Agent categorization logic is not yet fully implemented in ProjectScanner.categorize_agents."
+            "Agent categorization logic is not yet fully implemented in ProjectScanner.categorize_agents."  # noqa: E501
         )
 
         # Save the potentially updated analysis data
@@ -1138,7 +1133,7 @@ class ProjectScanner:
         self.report_generator.save_report()  # Use the reporter's save method
         # Use the correct path for logging
         logger.info(
-            f"✅ Agent categorization placeholder executed. Updated project analysis saved to {self.report_generator.report_path}"
+            f"✅ Agent categorization placeholder executed. Updated project analysis saved to {self.report_generator.report_path}"  # noqa: E501
         )
 
     def clear_cache(self):
@@ -1161,7 +1156,7 @@ def main():
         "--target",
         type=str,
         default=".",  # Default to current directory
-        help="Target directory or file to analyze (relative to project root). Defaults to the project root.",
+        help="Target directory or file to analyze (relative to project root). Defaults to the project root.",  # noqa: E501
     )
     parser.add_argument(
         "--ignore",
@@ -1172,7 +1167,7 @@ def main():
     parser.add_argument(
         "--categorize-agents",
         action="store_true",
-        help="Attempt to categorize identified Python files as agents based on heuristics.",
+        help="Attempt to categorize identified Python files as agents based on heuristics.",  # noqa: E501
     )
     parser.add_argument(
         "--no-chatgpt-context",
@@ -1194,7 +1189,7 @@ def main():
         "--force-rescan",
         nargs="*",
         default=None,
-        help="List of glob patterns for files/directories to force re-scanning, ignoring cache.",
+        help="List of glob patterns for files/directories to force re-scanning, ignoring cache.",  # noqa: E501
     )
     parser.add_argument(
         "--clear-cache",
@@ -1212,7 +1207,7 @@ def main():
         "--output-context-file",
         type=str,
         default="chatgpt_project_context.json",
-        help="Path (relative to project root) to save the exported ChatGPT context JSON file.",
+        help="Path (relative to project root) to save the exported ChatGPT context JSON file.",  # noqa: E501
     )
     parser.add_argument(
         "--output-cache-file",

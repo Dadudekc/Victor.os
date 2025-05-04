@@ -36,7 +36,7 @@ try:
         tasks = json.load(f)
 except json.JSONDecodeError as e:
     print(
-        f"ERROR: future_tasks.json contains invalid JSON: {e}. Migration cannot proceed."
+        f"ERROR: future_tasks.json contains invalid JSON: {e}. Migration cannot proceed."  # noqa: E501
     )
     exit(1)
 except Exception as e:
@@ -45,7 +45,7 @@ except Exception as e:
 
 if not isinstance(tasks, list):
     print(
-        "ERROR: future_tasks.json does not contain a valid JSON list. Migration cannot proceed."
+        "ERROR: future_tasks.json does not contain a valid JSON list. Migration cannot proceed."  # noqa: E501
     )
     exit(1)
 
@@ -77,7 +77,7 @@ for task in tasks:
         print(f"  -> Moving {task_id} to Ready Queue")
         ready.append(task)
     else:
-        # All others go to backlog (CLAIMED, WORKING, BLOCKED, COMPLETED*, non-PENDING, assigned PENDING, etc.)
+        # All others go to backlog (CLAIMED, WORKING, BLOCKED, COMPLETED*, non-PENDING, assigned PENDING, etc.)  # noqa: E501
         print(
             f"  -> Moving {task_id} to Backlog (Status: {status}, Assigned: {assigned})"
         )
@@ -103,9 +103,9 @@ except Exception as e:
 try:
     print(f"Archiving original {FUTURE_TASKS} to {ARCHIVE}")
     FUTURE_TASKS.rename(ARCHIVE)
-    print(f"Migration successful. Original archived.")
+    print("Migration successful. Original archived.")
 except Exception as e:
     print(
-        f"ERROR: Failed to archive original file {FUTURE_TASKS}: {e}. Manual cleanup needed."
+        f"ERROR: Failed to archive original file {FUTURE_TASKS}: {e}. Manual cleanup needed."  # noqa: E501
     )
     exit(1)

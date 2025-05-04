@@ -5,8 +5,6 @@
 import argparse
 import json
 import logging
-import os
-import shutil
 from pathlib import Path
 
 # EDIT START: Import ArchivingError
@@ -60,7 +58,7 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
                     relative_test_path_str = data.get("defunct_test_file")
                     if not relative_test_path_str:
                         logger.warning(
-                            f"Skipping line without 'defunct_test_file' key: {line.strip()}"
+                            f"Skipping line without 'defunct_test_file' key: {line.strip()}"  # noqa: E501
                         )
                         continue
 
@@ -72,7 +70,7 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
 
                     if not original_test_path.is_file():
                         logger.warning(
-                            f"Original test file not found, skipping: {original_test_path}"
+                            f"Original test file not found, skipping: {original_test_path}"  # noqa: E501
                         )
                         continue
 
@@ -122,10 +120,10 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
                     errors_encountered.append(err_msg)
                     error_count += 1
 
-        logger.info(f"Archiving process complete.")
+        logger.info("Archiving process complete.")
         logger.info(f"Successfully archived {archived_count} files.")
         if error_count > 0:
-            summary_err_msg = f"Encountered {error_count} errors during archiving. First error: {errors_encountered[0] if errors_encountered else 'N/A'}"
+            summary_err_msg = f"Encountered {error_count} errors during archiving. First error: {errors_encountered[0] if errors_encountered else 'N/A'}"  # noqa: E501
             logger.error(summary_err_msg)
             # EDIT START: Raise summary error
             raise ArchivingError(summary_err_msg)
@@ -148,17 +146,17 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Archive potentially defunct test files identified by the discovery script."
+        description="Archive potentially defunct test files identified by the discovery script."  # noqa: E501
     )
     parser.add_argument(
         "--input-file",
         default=DEFAULT_INPUT_FILE,
-        help=f"Path to the JSONL file containing defunct test paths (default: {DEFAULT_INPUT_FILE})",
+        help=f"Path to the JSONL file containing defunct test paths (default: {DEFAULT_INPUT_FILE})",  # noqa: E501
     )
     parser.add_argument(
         "--archive-dir",
         default=DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ,
-        help=f"Relative path from project root to the directory for archived tests (default: {DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ})",
+        help=f"Relative path from project root to the directory for archived tests (default: {DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ})",  # noqa: E501
     )
 
     args = parser.parse_args()

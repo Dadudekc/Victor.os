@@ -1,8 +1,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from dreamos.channels.azure_blob_channel import AzureBlobChannel
 
 
@@ -19,7 +17,7 @@ def test_push_and_pull_task(mock_bsc):
     # Test push_task uploads correct JSON
     channel.push_task({"action": "test"})
     # upload_blob is called on the container client directly
-    # get_container_client returns mock_container, so upload_blob is called via mock_container.upload_blob
+    # get_container_client returns mock_container, so upload_blob is called via mock_container.upload_blob  # noqa: E501
     _, kwargs = mock_container.upload_blob.call_args
     uploaded_json = kwargs.get("data")
     assert json.loads(uploaded_json)["action"] == "test"

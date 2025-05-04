@@ -1,15 +1,13 @@
-import asyncio
+import asyncio  # noqa: I001
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
 from dreamos.core.agent_bus import AgentBus
 from dreamos.core.bus_utils import EventType
 from dreamos.supervisor_tools.command_supervisor import (
     ApprovalStatus,
     CommandSupervisor,
     SupervisorEvent,
-    request_command_execution,
 )
 
 
@@ -167,7 +165,7 @@ async def test_handle_approval_response_rejected(command_supervisor, mock_agent_
 
     # Verify state updated
     assert command_id not in command_supervisor.pending_approvals
-    # assert command_supervisor.approval_status[command_id] == ApprovalStatus.REJECTED # Status is deleted upon rejection handling in the code
+    # assert command_supervisor.approval_status[command_id] == ApprovalStatus.REJECTED # Status is deleted upon rejection handling in the code  # noqa: E501
     assert command_id not in command_supervisor.approval_status
 
     # Verify execute_command was NOT called
@@ -207,7 +205,7 @@ async def test_handle_approval_response_rejected(command_supervisor, mock_agent_
 #
 #         assert published_event.event_type == EventType.COMMAND_EXECUTION_REQUEST
 #         assert published_event.sender_id == agent_id
-#         assert published_event.correlation_id == correlation_id # Ensure returned ID matches event
+#         assert published_event.correlation_id == correlation_id # Ensure returned ID matches event  # noqa: E501
 #         assert published_event.payload["command"] == command
 #         assert published_event.payload["details"] == details
 #     finally:
@@ -417,7 +415,7 @@ async def test_execute_command_real_failure_exit_code(
 ):
     """Test execution of a real command failing with a non-zero exit code."""
     command_id = "cmd_real_fail_exit"
-    # Use a command guaranteed to fail and produce stderr (adjust for cross-platform if needed)
+    # Use a command guaranteed to fail and produce stderr (adjust for cross-platform if needed)  # noqa: E501
     # 'exit 1' might not produce stderr, let's use ls on a non-existent file
     test_command = "ls /nonexistent_path_aksjdhflaksjdhf"
     requester_id = "agent_real_fail"
@@ -456,7 +454,7 @@ async def test_execute_command_real_stderr_only(command_supervisor, mock_agent_b
     """Test execution of a real command writing only to stderr."""
     command_id = "cmd_real_stderr"
     # Python command to write to stderr
-    test_command = "python -c \"import sys; sys.stderr.write('this is stderr output'); sys.exit(0')\""  # Note nested quotes
+    test_command = "python -c \"import sys; sys.stderr.write('this is stderr output'); sys.exit(0')\""  # Note nested quotes  # noqa: E501
     requester_id = "agent_real_stderr"
     correlation_id = "corr_real_stderr"
 
@@ -483,15 +481,15 @@ async def test_execute_command_real_stderr_only(command_supervisor, mock_agent_b
     # Command exits 0, so status is success despite stderr
     assert published_event.payload["status"] == "success"
     assert published_event.payload["output"] == ""
-    # NOTE: Current implementation includes stderr in the 'error' field ONLY on non-zero exit.
-    # This test verifies stderr isn't *lost*, but it doesn't appear in the success payload.
-    # Depending on desired behavior, this might indicate a needed change in command_supervisor.
+    # NOTE: Current implementation includes stderr in the 'error' field ONLY on non-zero exit.  # noqa: E501
+    # This test verifies stderr isn't *lost*, but it doesn't appear in the success payload.  # noqa: E501
+    # Depending on desired behavior, this might indicate a needed change in command_supervisor.  # noqa: E501
     assert published_event.payload["error"] is None
 
 
 @pytest.mark.asyncio
 async def test_execute_command_real_no_timeout(command_supervisor, mock_agent_bus):
-    """Test that a slightly longer (but reasonable) command completes without timeout."""
+    """Test that a slightly longer (but reasonable) command completes without timeout."""  # noqa: E501
     # NOTE: This test confirms completion, but doesn't test actual timeout handling,
     # as the current implementation lacks an explicit timeout on communicate().
     command_id = "cmd_real_sleep"
@@ -560,4 +558,4 @@ async def test_execute_command_real_complex_args(command_supervisor, mock_agent_
 
 # TODO: Add test for large output if necessary (might be slow/resource intensive)
 # TODO: Add test for potential hangs if process writes excessively to stdout/stderr
-#       without being read (communicate() should handle this, but good to verify under stress).
+#       without being read (communicate() should handle this, but good to verify under stress).  # noqa: E501

@@ -1,17 +1,16 @@
 import json
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QMainWindow  # Using QMainWindow for status bar
 from PyQt5.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QMainWindow,  # Using QMainWindow for status bar
     QPushButton,
     QStatusBar,
     QTableWidget,
@@ -80,7 +79,7 @@ class AlertViewerWindow(QMainWindow):
         self.table.setColumnWidth(5, 150)
         self.table.setColumnWidth(6, 180)
         header.setStyleSheet(
-            "QHeaderView::section { background-color: lightgray; padding: 4px; border: 1px solid gray; font-weight: bold; }"
+            "QHeaderView::section { background-color: lightgray; padding: 4px; border: 1px solid gray; font-weight: bold; }"  # noqa: E501
         )
 
         main_layout.addWidget(self.table)
@@ -112,7 +111,7 @@ class AlertViewerWindow(QMainWindow):
                                 f"Warning: Skipping invalid JSON line: {line.strip()}"
                             )
                 self.statusBar.showMessage(
-                    f"Loaded {len(alerts)} alerts. Last refresh: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                    f"Loaded {len(alerts)} alerts. Last refresh: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",  # noqa: E501
                     5000,
                 )  # Show for 5 secs
             except Exception as e:
@@ -152,7 +151,7 @@ class AlertViewerWindow(QMainWindow):
             for col, item in enumerate(items):
                 self.table.setItem(row, col, item)
 
-        # Optionally resize rows to content if needed, though fixed height is often better
+        # Optionally resize rows to content if needed, though fixed height is often better  # noqa: E501
         # self.table.resizeRowsToContents()
 
 

@@ -65,7 +65,7 @@ class FailedPromptArchiveService:
             "prompt": prompt_data,
         }
         logger.warning(
-            f"📦 Archiving failed prompt: {prompt_id} | reason: {reason} | retry_count: {retry_count}"
+            f"📦 Archiving failed prompt: {prompt_id} | reason: {reason} | retry_count: {retry_count}"  # noqa: E501
         )
         self.archive.append(entry)
         write_json_safe(self.archive_path, self.archive)

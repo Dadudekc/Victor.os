@@ -14,7 +14,7 @@ Usage:
     # Now vdc.inject_keystrokes(...) will go to the invisible desktop
     vdc.inject_keystrokes("Hello from the background!")
     vdc.teardown()
-"""
+"""  # noqa: E501
 
 import os  # Added os import
 import platform
@@ -54,14 +54,14 @@ class VirtualDesktopController:
         Launch Cursor on a new hidden desktop/display.
         - Windows: creates a new Virtual Desktop (assumed #2), switches to it, then launches Cursor.
         - Linux: starts an Xvfb display and runs Cursor under that DISPLAY.
-        """
+        """  # noqa: E501
         if self.os == "Linux":
             self._display = Display(visible=0, size=(1920, 1080))
             self._display.start()
             env = dict(**os.environ, DISPLAY=self._display.display)
             self._process = subprocess.Popen([cursor_exe_path] + (args or []), env=env)
             print(
-                f"Launched Cursor headless on Linux (PID: {self._process.pid}) under DISPLAY {self._display.display}"
+                f"Launched Cursor headless on Linux (PID: {self._process.pid}) under DISPLAY {self._display.display}"  # noqa: E501
             )
             time.sleep(5)
 
@@ -73,7 +73,7 @@ class VirtualDesktopController:
                 print(f"Original desktop: {self._orig_desktop}")
             except Exception as e:
                 print(
-                    f"Warning: Could not get current desktop number via VirtualDesktop.current(): {e}. Assuming 1."
+                    f"Warning: Could not get current desktop number via VirtualDesktop.current(): {e}. Assuming 1."  # noqa: E501
                 )
                 self._orig_desktop = 1
 
@@ -86,10 +86,10 @@ class VirtualDesktopController:
                 # Attempt Class-based API for desktop count
                 desktop_count = pyvda.VirtualDesktop.count()
                 print(f"System has {desktop_count} desktops.")
-                desktop_count_verified = True  # Mark as verified
+                desktop_count_verified = True  # Mark as verified  # noqa: F841
                 if self._new_desktop > desktop_count:
                     print(
-                        f"Target desktop {self._new_desktop} does not exist. Attempting creation..."
+                        f"Target desktop {self._new_desktop} does not exist. Attempting creation..."  # noqa: E501
                     )
                     try:
                         # Attempt to create the desktop
@@ -97,23 +97,23 @@ class VirtualDesktopController:
                         print(
                             f"Attempted to create virtual desktop {self._new_desktop}."
                         )
-                        desktop_created = True
+                        desktop_created = True  # noqa: F841
                         time.sleep(1)  # Pause briefly after creation attempt
                     except AttributeError:
                         print(
-                            f"Warning: pyvda module has no attribute 'create_virtual_desktop'. Cannot create."
+                            "Warning: pyvda module has no attribute 'create_virtual_desktop'. Cannot create."  # noqa: E501
                         )
                         raise RuntimeError(
-                            f"Target virtual desktop {self._new_desktop} does not exist and cannot be created."
+                            f"Target virtual desktop {self._new_desktop} does not exist and cannot be created."  # noqa: E501
                         )
                     except Exception as create_err:
                         print(
-                            f"Warning: Error calling create_virtual_desktop(): {create_err}. Cannot guarantee creation."
+                            f"Warning: Error calling create_virtual_desktop(): {create_err}. Cannot guarantee creation."  # noqa: E501
                         )
             except AttributeError:
                 # Specifically handle the case where .count() doesn't exist
                 print(
-                    f"Warning: Could not verify desktop count via VirtualDesktop.count() (AttributeError). Assuming target {self._new_desktop} exists."
+                    f"Warning: Could not verify desktop count via VirtualDesktop.count() (AttributeError). Assuming target {self._new_desktop} exists."  # noqa: E501
                 )
             except RuntimeError as e:
                 print(f"Runtime Error: {e}")
@@ -121,7 +121,7 @@ class VirtualDesktopController:
             except Exception as e_count:  # Catch other errors during count
                 # Now 'e_count' is defined in this scope
                 print(
-                    f"Warning: Could not verify desktop count: {e_count}. Assuming target {self._new_desktop} exists."
+                    f"Warning: Could not verify desktop count: {e_count}. Assuming target {self._new_desktop} exists."  # noqa: E501
                 )
 
             try:
@@ -129,10 +129,10 @@ class VirtualDesktopController:
                 pyvda.VirtualDesktop(self._new_desktop).go()
             except Exception as e:
                 print(
-                    f"ERROR switching to desktop {self._new_desktop} via VirtualDesktop(n).go(): {e}"
+                    f"ERROR switching to desktop {self._new_desktop} via VirtualDesktop(n).go(): {e}"  # noqa: E501
                 )
                 print(
-                    f"Launching on original desktop {self._orig_desktop} due to switch failure."
+                    f"Launching on original desktop {self._orig_desktop} due to switch failure."  # noqa: E501
                 )
                 self._new_desktop = (
                     self._orig_desktop
@@ -142,7 +142,7 @@ class VirtualDesktopController:
             try:
                 self._process = subprocess.Popen([cursor_exe_path] + (args or []))
                 print(
-                    f"Launched Cursor (PID: {self._process.pid}) on virtual desktop {self._new_desktop}"
+                    f"Launched Cursor (PID: {self._process.pid}) on virtual desktop {self._new_desktop}"  # noqa: E501
                 )
                 time.sleep(5)
             except Exception as e:
@@ -153,7 +153,7 @@ class VirtualDesktopController:
                         pyvda.VirtualDesktop(self._orig_desktop).go()
                     except Exception as switch_err:
                         print(
-                            f"Could not switch back to original desktop {self._orig_desktop} after launch failure: {switch_err}"
+                            f"Could not switch back to original desktop {self._orig_desktop} after launch failure: {switch_err}"  # noqa: E501
                         )
                 raise
 
@@ -172,23 +172,23 @@ class VirtualDesktopController:
             raise RuntimeError("Call launch_cursor_headless() first")
 
         print(
-            f"Injecting text to virtual desktop {self._new_desktop if self.os == 'Windows' else 'Xvfb'}: '{text[:50]}...'"
+            f"Injecting text to virtual desktop {self._new_desktop if self.os == 'Windows' else 'Xvfb'}: '{text[:50]}...'"  # noqa: E501
         )  # Adjusted log
-        # Ensure we are on the correct desktop before injecting (Windows specific precaution)
+        # Ensure we are on the correct desktop before injecting (Windows specific precaution)  # noqa: E501
         if self.os == "Windows":
             try:
                 # Attempt Class-based API for current desktop
                 current_desk = pyvda.VirtualDesktop.current().number
                 if current_desk != self._new_desktop:
                     print(
-                        f"Warning: Current desktop ({current_desk}) is not the target ({self._new_desktop}). Switching back..."
+                        f"Warning: Current desktop ({current_desk}) is not the target ({self._new_desktop}). Switching back..."  # noqa: E501
                     )
                     # Attempt Class-based API for switching
                     pyvda.VirtualDesktop(self._new_desktop).go()
                     time.sleep(0.5)
             except Exception as e:
                 print(
-                    f"Warning: Could not verify/switch current desktop before injection: {e}. Proceeding anyway."
+                    f"Warning: Could not verify/switch current desktop before injection: {e}. Proceeding anyway."  # noqa: E501
                 )
         # Send the keystrokes—these go to the active desktop/display
         try:
@@ -204,9 +204,9 @@ class VirtualDesktopController:
                     pyvda.VirtualDesktop(self._orig_desktop).go()
                 except Exception as switch_err:
                     print(
-                        f"Could not switch back to original desktop {self._orig_desktop}: {switch_err}"
+                        f"Could not switch back to original desktop {self._orig_desktop}: {switch_err}"  # noqa: E501
                     )
-            raise  # Re-raise the exception - Ensure this is aligned with the outer try/except
+            raise  # Re-raise the exception - Ensure this is aligned with the outer try/except  # noqa: E501
 
     def teardown(self):
         """
@@ -235,7 +235,7 @@ class VirtualDesktopController:
             # Terminate process first (might be on the target desktop)
             if self._process:
                 print(
-                    f"Terminating Cursor process (PID: {self._process.pid}) (likely on virtual desktop {self._new_desktop})"
+                    f"Terminating Cursor process (PID: {self._process.pid}) (likely on virtual desktop {self._new_desktop})"  # noqa: E501
                 )
                 self._process.terminate()
                 try:
@@ -258,14 +258,14 @@ class VirtualDesktopController:
                     pyvda.VirtualDesktop(self._orig_desktop).go()
                 except Exception as e:
                     print(
-                        f"ERROR switching back to original desktop {self._orig_desktop}: {e}"
+                        f"ERROR switching back to original desktop {self._orig_desktop}: {e}"  # noqa: E501
                     )
             elif self._new_desktop == self._orig_desktop:
                 print("Was already on original desktop, no switch needed.")
             else:
                 print("Original desktop number not recorded, cannot switch back.")
 
-            # Attempt removal ONLY if we ended up on the new desktop AND creation might have occurred
+            # Attempt removal ONLY if we ended up on the new desktop AND creation might have occurred  # noqa: E501
             # This is heuristic - might need refinement
             if (
                 self._new_desktop is not None
@@ -277,18 +277,18 @@ class VirtualDesktopController:
                     # desktop_to_remove = pyvda.VirtualDesktop(self._new_desktop)
                     # desktop_to_remove.remove() # Hypothetical API
                     # OR maybe pyvda.remove_virtual_desktop(number=self._new_desktop)?
-                    # Since the API is unclear and removal can fail if it's the last desktop,
+                    # Since the API is unclear and removal can fail if it's the last desktop,  # noqa: E501
                     # we will skip actual removal for now to avoid errors.
                     print(
-                        f"INFO: Automatic removal of desktop {self._new_desktop} skipped (API unclear/potential issues)."
+                        f"INFO: Automatic removal of desktop {self._new_desktop} skipped (API unclear/potential issues)."  # noqa: E501
                     )
                 except Exception as remove_err:
                     print(
-                        f"Error attempting removal of desktop {self._new_desktop}: {remove_err}"
+                        f"Error attempting removal of desktop {self._new_desktop}: {remove_err}"  # noqa: E501
                     )
             else:
                 print(
-                    f"Skipping removal of virtual desktop {self._new_desktop} (was original or not targeted)."
+                    f"Skipping removal of virtual desktop {self._new_desktop} (was original or not targeted)."  # noqa: E501
                 )
 
         self._setup_done = False
@@ -310,7 +310,7 @@ if __name__ == "__main__":
         )
         if not CURSOR_PATH:
             raise FileNotFoundError(
-                "Could not automatically find Cursor.exe. Please set CURSOR_PATH manually."
+                "Could not automatically find Cursor.exe. Please set CURSOR_PATH manually."  # noqa: E501
             )
     elif platform.system() == "Linux":
         # Common locations for Cursor on Linux
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         )
         if not CURSOR_PATH:
             raise FileNotFoundError(
-                "Could not automatically find cursor executable. Please set CURSOR_PATH manually."
+                "Could not automatically find cursor executable. Please set CURSOR_PATH manually."  # noqa: E501
             )
     else:
         raise RuntimeError("Unsupported OS for example usage.")
@@ -338,7 +338,7 @@ if __name__ == "__main__":
             from pyvirtualdisplay import Display
         except ImportError:
             print(
-                "Error: pyvirtualdisplay is required on Linux. pip install pyvirtualdisplay"
+                "Error: pyvirtualdisplay is required on Linux. pip install pyvirtualdisplay"  # noqa: E501
             )
             sys.exit(1)
         if not any(
@@ -346,7 +346,7 @@ if __name__ == "__main__":
             for path in os.environ["PATH"].split(os.pathsep)
         ):
             print(
-                "Error: Xvfb is required on Linux but not found in PATH. Please install it (e.g., sudo apt-get install xvfb)."
+                "Error: Xvfb is required on Linux but not found in PATH. Please install it (e.g., sudo apt-get install xvfb)."  # noqa: E501
             )
             sys.exit(1)
 

@@ -46,13 +46,13 @@ def run_script(
     Raises:
         FileNotFoundError: If the script_path does not exist.
         ScriptExecutionError: If execution fails.
-    """
+    """  # noqa: E501
     args = args or []
     try:
         project_root = PROJECT_ROOT
     except FileNotFoundError:
         logger.error(
-            "Could not find project root. Cannot ensure correct script execution environment."
+            "Could not find project root. Cannot ensure correct script execution environment."  # noqa: E501
         )
         raise ScriptExecutionError("Project root not found")
 
@@ -118,7 +118,7 @@ def run_script(
             )
         else:
             logger.info(
-                f"Script {script_path_str} executed successfully (Code: {process.returncode})."
+                f"Script {script_path_str} executed successfully (Code: {process.returncode})."  # noqa: E501
             )
 
         return process.returncode, stdout, stderr
@@ -192,7 +192,7 @@ class ScriptRunner:
             # Attempt to find it more dynamically if initial guesses fail?
             # This part might need refinement based on actual script locations.
             logger.warning(
-                f"Script '{script_name}' not found at standard locations: {PROJECT_ROOT / 'scripts'} or {PROJECT_ROOT / 'scripts/utils'}. Attempting search."
+                f"Script '{script_name}' not found at standard locations: {PROJECT_ROOT / 'scripts'} or {PROJECT_ROOT / 'scripts/utils'}. Attempting search."  # noqa: E501
             )
             # Simple search in common script dirs:
             common_script_dirs = ["scripts", "scripts/utils", "tools"]
@@ -232,7 +232,7 @@ class ScriptRunner:
         Raises:
             FileNotFoundError: If the script_path does not exist.
             ScriptExecutionError: If execution fails.
-        """
+        """  # noqa: E501
         script_path = self._resolve_script_path(script_name)
         return run_script(
             script_path, args=args, cwd=cwd, capture_output=capture_output

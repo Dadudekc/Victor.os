@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-import hashlib  # Needed for mocking sha256
 import os
 
 # Adjust the path to import the function from the correct location
 # This might need tweaking based on how tests are run (e.g., from project root)
 import sys
 import unittest
-from datetime import datetime, timezone
 from pathlib import Path  # Use Path object
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -17,7 +15,6 @@ sys.path.insert(
 )
 
 from dreamos.agents.utils.onboarding_utils import (
-    calculate_file_sha256,
     update_onboarding_contract,
 )
 
@@ -28,7 +25,6 @@ MOCK_PROJECT_ROOT = "."
 
 
 class TestUpdateOnboardingContract(unittest.TestCase):
-
     # Remove setUp/tearDown related to old lock file logic
     # def setUp(self):
     #     ...
@@ -52,15 +48,13 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         mock_open_file,
         mock_calculate_hash,
     ):
-        """Test affirming a contract for a new agent when the contract file doesn't exist."""
+        """Test affirming a contract for a new agent when the contract file doesn't exist."""  # noqa: E501
         # Arrange
         agent_id = "AgentNew001"
         mock_hash = "FAKEHASH123ABC"
         mock_calculate_hash.return_value = mock_hash
         mock_exists.return_value = False  # Simulate contract file does not exist
-        mock_yaml_load.return_value = (
-            {}
-        )  # safe_load returns {} if file is empty or created
+        mock_yaml_load.return_value = {}  # safe_load returns {} if file is empty or created  # noqa: E501
 
         # Act
         result = update_onboarding_contract(
@@ -211,7 +205,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         # Act
         result = update_onboarding_contract(
             agent_id=agent_id,
-            protocol_file_path=MOCK_PROTOCOL_FILE,  # Path doesn't matter as calculate is mocked
+            protocol_file_path=MOCK_PROTOCOL_FILE,  # Path doesn't matter as calculate is mocked  # noqa: E501
             contract_file_path=MOCK_CONTRACT_FILE,
             project_root=MOCK_PROJECT_ROOT,
         )
@@ -221,7 +215,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         mock_calculate_hash.assert_called_once()
         mock_log_error.assert_called_once()  # Check error was logged
         mock_exists.assert_not_called()  # Should fail before checking contract file
-        mock_open_file.assert_not_called()  # Should not attempt to open/write contract file
+        mock_open_file.assert_not_called()  # Should not attempt to open/write contract file  # noqa: E501
         mock_yaml_dump.assert_not_called()
 
     @patch(
@@ -312,7 +306,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
                 if mode == "r":
                     return mock_read_handle
                 elif mode == "w":
-                    # Simulate failure during write by having dump raise or by raising here
+                    # Simulate failure during write by having dump raise or by raising here  # noqa: E501
                     # Here we mock dump raising the error directly via side_effect patch
                     return (
                         mock_write_handle  # Return handle, dump mock will raise error
@@ -343,7 +337,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         )
         mock_yaml_load.assert_called_once()
         mock_yaml_dump.assert_called_once()  # Dump is called, but it raises the error
-        mock_log_error.assert_called()  # Check error was logged (could be multiple logs)
+        mock_log_error.assert_called()  # Check error was logged (could be multiple logs)  # noqa: E501
 
     @patch(
         "dreamos.agents.utils.onboarding_utils.calculate_file_sha256",
@@ -457,7 +451,8 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         self.assertTrue(result)
         mock_calculate_hash.assert_called_once()
         mock_filelock_class.assert_called_once_with(
-            Path(lock_path), timeout=LOCK_TIMEOUT_SECONDS
+            Path(lock_path),
+            timeout=LOCK_TIMEOUT_SECONDS,  # noqa: F821
         )
         mock_lock_instance.acquire.assert_called_once()
         mock_exists.assert_called()  # Should check if contract file exists
@@ -500,7 +495,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
         mock_yaml_load,
         mock_calculate_hash,
     ):
-        """Test update_onboarding_contract proceeds without locking if filelock is unavailable."""
+        """Test update_onboarding_contract proceeds without locking if filelock is unavailable."""  # noqa: E501
         # Arrange
         agent_id = "AgentLock003"
         protocol_path = "docs/swarm/onboarding_protocols.md"
@@ -508,9 +503,7 @@ class TestUpdateOnboardingContract(unittest.TestCase):
 
         mock_calculate_hash.return_value = "mockhash789"
         mock_exists.return_value = False  # Simulate contract file needs creation
-        mock_yaml_load.return_value = (
-            {}
-        )  # Not strictly needed if exists is False, but safe
+        mock_yaml_load.return_value = {}  # Not strictly needed if exists is False, but safe  # noqa: E501
 
         # Act
         result = update_onboarding_contract(agent_id, protocol_path, contract_path)

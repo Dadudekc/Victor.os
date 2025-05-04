@@ -11,7 +11,7 @@ class DreamOSError(Exception):
 
     def __str__(self):
         if self.original_exception:
-            return f"{self.message}: {type(self.original_exception).__name__}: {self.original_exception}"
+            return f"{self.message}: {type(self.original_exception).__name__}: {self.original_exception}"  # noqa: E501
         return self.message
 
 

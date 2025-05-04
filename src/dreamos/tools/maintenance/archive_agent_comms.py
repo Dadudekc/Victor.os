@@ -10,7 +10,6 @@ MOVED FROM: src/dreamos/tools/dreamos_utils/ by Agent 5 (2025-04-28)
 """
 
 import logging
-import os
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -85,7 +84,7 @@ def main():
                         archived_count += 1
                     except OSError as e:
                         logger.error(
-                            f"Failed to create/move file to archive directory {target_archive_dir}: {e}"
+                            f"Failed to create/move file to archive directory {target_archive_dir}: {e}"  # noqa: E501
                         )
                         error_count += 1
                     except Exception as e:
@@ -115,7 +114,7 @@ def main():
             logger.debug(f"Skipping non-.msg file: {item.name}")
 
     logger.info(
-        f"Agent comms archival finished. Total Archived: {archived_count} file(s). Errors: {error_count}."
+        f"Agent comms archival finished. Total Archived: {archived_count} file(s). Errors: {error_count}."  # noqa: E501
     )
 
 

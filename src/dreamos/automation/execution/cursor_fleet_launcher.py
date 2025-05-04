@@ -11,7 +11,7 @@ from screeninfo import get_monitors
 
 CURSOR_PATHS = [
     os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),
-    r"C:\Program Files\Cursor\Cursor.exe",  # Note: Escaped backslashes for Python string
+    r"C:\Program Files\Cursor\Cursor.exe",  # Note: Escaped backslashes for Python string  # noqa: E501
 ]
 CURSOR_PATH = next((p for p in CURSOR_PATHS if os.path.exists(p)), None)
 
@@ -33,7 +33,7 @@ def move_window(hwnd, x, y, width, height):
 
 def get_cursor_windows(target_count=8, timeout=30):
     print(
-        f"🔍 Waiting for {target_count} Cursor windows to appear (timeout: {timeout}s)..."
+        f"🔍 Waiting for {target_count} Cursor windows to appear (timeout: {timeout}s)..."  # noqa: E501
     )
     start_time = time.time()
     found_windows = {}
@@ -51,7 +51,7 @@ def get_cursor_windows(target_count=8, timeout=30):
             if hwnd not in found_windows:
                 found_windows[hwnd] = window
                 print(
-                    f"  [*] Found window: {window.title} (HWND: {hwnd}) - Total: {len(found_windows)}"
+                    f"  [*] Found window: {window.title} (HWND: {hwnd}) - Total: {len(found_windows)}"  # noqa: E501
                 )
 
         if len(found_windows) >= target_count:
@@ -64,12 +64,12 @@ def get_cursor_windows(target_count=8, timeout=30):
     # Timeout handling
     if len(found_windows) > 0:
         print(
-            f"⚠️ Timed out, but found {len(found_windows)} windows. Proceeding with available ones."
+            f"⚠️ Timed out, but found {len(found_windows)} windows. Proceeding with available ones."  # noqa: E501
         )
         return list(found_windows.values())
     else:
         raise TimeoutError(
-            f"⌛ Timed out waiting for at least one Cursor window after {timeout} seconds."
+            f"⌛ Timed out waiting for at least one Cursor window after {timeout} seconds."  # noqa: E501
         )
 
 
@@ -77,7 +77,7 @@ def assign_windows_to_monitors(cursor_windows):
     monitors = get_monitors()
     if len(monitors) < 2:
         print(
-            f"⚠️ Warning: Found {len(monitors)} monitor(s). At least 2 are recommended for the intended layout."
+            f"⚠️ Warning: Found {len(monitors)} monitor(s). At least 2 are recommended for the intended layout."  # noqa: E501
         )
         if not monitors:
             raise RuntimeError("❌ No monitors detected. Cannot position windows.")
@@ -85,7 +85,7 @@ def assign_windows_to_monitors(cursor_windows):
         monitors = monitors * 2  # Duplicate monitor info to fill positions
 
     print(
-        f"📺 Detected monitors: {[f'Monitor {i+1}: {m.width}x{m.height} @ ({m.x},{m.y})' for i, m in enumerate(monitors)]}"
+        f"📺 Detected monitors: {[f'Monitor {i+1}: {m.width}x{m.height} @ ({m.x},{m.y})' for i, m in enumerate(monitors)]}"  # noqa: E501
     )
 
     positions = []
@@ -111,7 +111,7 @@ def assign_windows_to_monitors(cursor_windows):
         )
 
     print(
-        f"🪟 Assigning {len(cursor_windows)} windows to {len(positions)} calculated positions..."
+        f"🪟 Assigning {len(cursor_windows)} windows to {len(positions)} calculated positions..."  # noqa: E501
     )
 
     assigned_count = 0
@@ -126,16 +126,16 @@ def assign_windows_to_monitors(cursor_windows):
             if win32gui.IsWindow(win._hWnd):
                 move_window(win._hWnd, x, y, w, h)
                 print(
-                    f"  [->] Moved: '{win.title}' (HWND: {win._hWnd}) -> Monitor { (i // 4) + 1 } Quadrant { (i % 4) + 1} @ ({x},{y}) {w}x{h}"
+                    f"  [->] Moved: '{win.title}' (HWND: {win._hWnd}) -> Monitor { (i // 4) + 1 } Quadrant { (i % 4) + 1} @ ({x},{y}) {w}x{h}"  # noqa: E501
                 )
                 assigned_count += 1
             else:
                 print(
-                    f"  [!] Window {i+1} (HWND: {win._hWnd}, Title: '{win.title}') is no longer valid. Skipping."
+                    f"  [!] Window {i+1} (HWND: {win._hWnd}, Title: '{win.title}') is no longer valid. Skipping."  # noqa: E501
                 )
         except Exception as e:
             print(
-                f"  [!] Error moving window {i+1} (HWND: {win._hWnd}, Title: '{win.title}'): {e}"
+                f"  [!] Error moving window {i+1} (HWND: {win._hWnd}, Title: '{win.title}'): {e}"  # noqa: E501
             )
 
     print(f"✅ Finished assigning positions to {assigned_count} windows.")
@@ -144,7 +144,7 @@ def assign_windows_to_monitors(cursor_windows):
 def main():
     num_instances = 8  # Target number of instances
     processes = []
-    print(f"--- Cursor Fleet Launcher ---")
+    print("--- Cursor Fleet Launcher ---")
     print(f"Attempting to launch {num_instances} Cursor instances...")
 
     for i in range(num_instances):
@@ -186,8 +186,8 @@ def main():
 if __name__ == "__main__":
     # Check for dependencies
     try:
-        import pygetwindow
-        import screeninfo
+        import pygetwindow  # noqa: F401
+        import screeninfo  # noqa: F401
         import win32con
         import win32gui
     except ImportError as e:

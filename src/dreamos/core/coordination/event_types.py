@@ -17,7 +17,7 @@ class EventType(Enum):
     """
 
     # === System Events ===
-    # Docstring: Events related to the overall DreamOS system state and agent lifecycle management.
+    # Docstring: Events related to the overall DreamOS system state and agent lifecycle management.  # noqa: E501
     SYSTEM_ERROR = "dreamos.system.error"
     SYSTEM_AGENT_REGISTERED = "dreamos.system.agent.registered"
     SYSTEM_AGENT_UNREGISTERED = "dreamos.system.agent.unregistered"
@@ -27,7 +27,7 @@ class EventType(Enum):
     SYSTEM_SHUTDOWN_COMPLETE = "dreamos.system.shutdown.complete"  # Bus signals done
 
     # === Agent Status Events (Published by Agents) ===
-    # Docstring: Events broadcast by individual agents about their internal state or lifecycle.
+    # Docstring: Events broadcast by individual agents about their internal state or lifecycle.  # noqa: E501
     AGENT_STARTED = "dreamos.agent.lifecycle.started"
     AGENT_STOPPED = "dreamos.agent.lifecycle.stopped"
     AGENT_STATUS_UPDATE = (
@@ -47,7 +47,7 @@ class EventType(Enum):
     # === Task Lifecycle Events ===
     # Docstring: Events tracking the progression of tasks through the system.
     TASK_RECEIVED = "dreamos.task.lifecycle.received"  # Received by agent/system
-    TASK_COMMAND = "dreamos.task.command"  # Specific command/task for an agent (often agent-specific topic)
+    TASK_COMMAND = "dreamos.task.command"  # Specific command/task for an agent (often agent-specific topic)  # noqa: E501
     TASK_ASSIGNED = "dreamos.task.lifecycle.assigned"
     TASK_ACCEPTED = "dreamos.task.lifecycle.accepted"
     TASK_REJECTED = "dreamos.task.lifecycle.rejected"
@@ -71,7 +71,7 @@ class EventType(Enum):
     MEMORY_QUERY = "dreamos.memory.operation.query"
 
     # === Coordination & Governance Events ===
-    # Docstring: Events facilitating multi-agent coordination, supervision, and decision-making.
+    # Docstring: Events facilitating multi-agent coordination, supervision, and decision-making.  # noqa: E501
     COORDINATION_DIRECTIVE = "dreamos.coordination.directive"
     COORDINATION_PROPOSAL = "dreamos.coordination.proposal"
     SUPERVISOR_ALERT = "dreamos.coordination.supervisor.alert"
@@ -82,7 +82,7 @@ class EventType(Enum):
     VOTE_RESULT = "dreamos.coordination.vote.result"
 
     # === Integration Specific Events ===
-    # Docstring: Events related to interactions with external systems or specific integrations.
+    # Docstring: Events related to interactions with external systems or specific integrations.  # noqa: E501
     # Cursor
     CURSOR_INJECT_REQUEST = "dreamos.integration.cursor.inject.request"
     CURSOR_RETRIEVE_REQUEST = "dreamos.integration.cursor.retrieve.request"

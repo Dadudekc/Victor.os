@@ -15,6 +15,7 @@
 - **-3**: Fail a task or cause a regression
 - **-2**: Remain idle or halt unexpectedly (per cycle)
 - **-2**: Violate protocol (bypass validation, unsafe edits, etc.)
+- **Cycle Reset**: Require human input/escalation before completing a task cycle (resets cycle count for uptime points).
 
 ## 4. Captaincy Handover
 - The agent with the highest points is Captain.

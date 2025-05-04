@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
 # EDIT START: Import DreamOSError
-from dreamos.core.errors import DreamOSError, ToolError
+from dreamos.core.errors import ToolError
 
 # EDIT END
 
@@ -65,7 +65,7 @@ class BaseAdapter(ABC):
 
         Raises:
             AdapterError: If communication with the service fails.
-        """
+        """  # noqa: E501
         pass
 
     @abstractmethod

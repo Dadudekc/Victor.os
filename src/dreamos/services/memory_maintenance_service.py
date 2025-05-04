@@ -15,7 +15,7 @@ from typing import (  # Assuming Union is needed for BasePolicyConfig resolution
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # Assuming config types are needed
-from dreamos.core.config import (  # Placeholder for BasePolicyConfig if it exists in config, otherwise remove/replace; BasePolicyConfig
+from dreamos.core.config import (  # Placeholder for BasePolicyConfig if it exists in config, otherwise remove/replace; BasePolicyConfig  # noqa: E501
     AppConfig,
     CompactionPolicyConfig,
     MemoryMaintenanceConfig,
@@ -29,7 +29,7 @@ from dreamos.memory.summarization_utils import (
     summarize_segment_file,
 )
 
-# Define BasePolicyConfig if not imported - Use Union as placeholder based on flake8 fix attempt
+# Define BasePolicyConfig if not imported - Use Union as placeholder based on flake8 fix attempt  # noqa: E501
 BasePolicyConfig = Union[CompactionPolicyConfig, SummarizationPolicyConfig]
 
 
@@ -202,7 +202,7 @@ class MemoryMaintenanceService:
                             else "unknown"
                         )
                         logger.error(
-                            f"Error processing memory for agent '{agent_id_failed}': {result}",
+                            f"Error processing memory for agent '{agent_id_failed}': {result}",  # noqa: E501
                             exc_info=result,
                         )
                 logger.info("Finished processing agent memory directories this cycle.")
@@ -272,7 +272,7 @@ class MemoryMaintenanceService:
         return best_match
 
     async def _process_agent_memory(self, agent_memory_path: Path):
-        """Processes a single agent's memory directory (snapshot, compaction, summarization)."""
+        """Processes a single agent's memory directory (snapshot, compaction, summarization)."""  # noqa: E501
         agent_id = agent_memory_path.name
         snapshot_dir = self.snapshot_base_path / agent_id
         agent_lock_file = agent_memory_path.with_suffix(".lock")
@@ -318,7 +318,7 @@ class MemoryMaintenanceService:
                     )
             return
 
-        # --- Processing / Replacement / Cleanup (User's manually corrected structure) ---
+        # --- Processing / Replacement / Cleanup (User's manually corrected structure) ---  # noqa: E501
         logger.info(f"Processing snapshot for agent {agent_id} at {snapshot_dir}")
         processed_count = skipped_count = error_count = 0
 
@@ -345,7 +345,7 @@ class MemoryMaintenanceService:
                     )
 
                     if not compaction_policy and not summarization_policy:
-                        # logger.debug(f"Skipping file {segment_file.name}: No matching policies found.") # Too noisy
+                        # logger.debug(f"Skipping file {segment_file.name}: No matching policies found.") # Too noisy  # noqa: E501
                         skipped_count += 1
                         continue  # Skip file if no applicable policy found
 
@@ -361,15 +361,14 @@ class MemoryMaintenanceService:
                         else None
                     )
 
-                    # Only proceed if at least one applicable policy exists and is enabled
+                    # Only proceed if at least one applicable policy exists and is enabled  # noqa: E501
                     if (comp_conf and comp_conf.enabled) or (
                         summ_conf and summ_conf.enabled and self.summarizer
                     ):  # Also check if summarizer exists
-
                         logger.debug(
-                            f"Processing segment: {segment_file.relative_to(snapshot_dir)}"
+                            f"Processing segment: {segment_file.relative_to(snapshot_dir)}"  # noqa: E501
                         )
-                        # Pass potentially None policies; _process_segment_file handles None
+                        # Pass potentially None policies; _process_segment_file handles None  # noqa: E501
                         success = await self._process_segment_file(
                             segment_file,
                             compaction_policy=comp_conf,
@@ -378,7 +377,7 @@ class MemoryMaintenanceService:
                         # Use augmented assignment directly
                         (processed_count if success else error_count).__iadd__(1)
                     else:
-                        # logger.debug(f"Skipping file {segment_file.name}: Applicable policies are disabled or summarizer missing.") # Too noisy
+                        # logger.debug(f"Skipping file {segment_file.name}: Applicable policies are disabled or summarizer missing.") # Too noisy  # noqa: E501
                         skipped_count += 1
             except Exception as e:
                 logger.exception(
@@ -387,7 +386,7 @@ class MemoryMaintenanceService:
                 error_count += 1  # Count this as an error
 
             logger.info(
-                f"Agent {agent_id}: Processed={processed_count}, Skipped={skipped_count}, Errors={error_count}"
+                f"Agent {agent_id}: Processed={processed_count}, Skipped={skipped_count}, Errors={error_count}"  # noqa: E501
             )
 
             # ---------- 4. ATOMIC REPLACEMENT ----------
@@ -401,7 +400,7 @@ class MemoryMaintenanceService:
                 try:
                     with agent_lock:
                         logger.info(
-                            f"Agent lock acquired for {agent_id}. Performing replacement."
+                            f"Agent lock acquired for {agent_id}. Performing replacement."  # noqa: E501
                         )
 
                         # 1. Backup Original Directory (rename)
@@ -413,9 +412,9 @@ class MemoryMaintenanceService:
                             os.replace(agent_memory_path, backup_dir)
                         else:
                             logger.warning(
-                                f"Original agent memory path {agent_memory_path} not found during replacement. Proceeding with snapshot rename."
+                                f"Original agent memory path {agent_memory_path} not found during replacement. Proceeding with snapshot rename."  # noqa: E501
                             )
-                            backup_dir = None  # Indicate no backup exists / nothing to roll back to
+                            backup_dir = None  # Indicate no backup exists / nothing to roll back to  # noqa: E501
 
                         # 2. Rename Snapshot to Original
                         logger.debug(
@@ -435,14 +434,14 @@ class MemoryMaintenanceService:
                     Exception,
                 ) as e:  # Catch relevant errors
                     logger.exception(f"Atomic replacement failed for {agent_id}: {e}")
-                    # Attempt rollback if backup exists and original doesn't (or failed replace didn't create it)
+                    # Attempt rollback if backup exists and original doesn't (or failed replace didn't create it)  # noqa: E501
                     if (
                         backup_dir
                         and backup_dir.exists()
                         and not agent_memory_path.exists()
                     ):
                         logger.warning(
-                            f"Attempting rollback: renaming {backup_dir} back to {agent_memory_path}"
+                            f"Attempting rollback: renaming {backup_dir} back to {agent_memory_path}"  # noqa: E501
                         )
                         try:
                             os.replace(backup_dir, agent_memory_path)
@@ -452,23 +451,23 @@ class MemoryMaintenanceService:
                             )
                         except OSError as rbe:
                             logger.critical(
-                                f"CRITICAL: Rollback FAILED for {agent_id}! Manual intervention needed. Backup at {backup_dir}. Error: {rbe}"
+                                f"CRITICAL: Rollback FAILED for {agent_id}! Manual intervention needed. Backup at {backup_dir}. Error: {rbe}"  # noqa: E501
                             )
                     # else: logger error handled by exception log above
 
             elif error_count > 0:
                 logger.warning(
-                    f"Skipping replacement for agent {agent_id} due to {error_count} processing errors."
+                    f"Skipping replacement for agent {agent_id} due to {error_count} processing errors."  # noqa: E501
                 )
             else:  # processed_count == 0
                 logger.info(
-                    f"Skipping replacement for agent {agent_id} as no files were processed or needed processing."
+                    f"Skipping replacement for agent {agent_id} as no files were processed or needed processing."  # noqa: E501
                 )
-                # replacement_successful remains False (or True if we consider no-op a success? Let's say False)
+                # replacement_successful remains False (or True if we consider no-op a success? Let's say False)  # noqa: E501
 
         finally:
             # ---------- 5. UNIFIED CLEAN-UP ----------
-            # Always clean up snapshot if it exists (it shouldn't if os.replace succeeded)
+            # Always clean up snapshot if it exists (it shouldn't if os.replace succeeded)  # noqa: E501
             if snapshot_dir.exists():
                 logger.info(f"Cleaning up snapshot directory: {snapshot_dir}")
                 shutil.rmtree(
@@ -482,7 +481,7 @@ class MemoryMaintenanceService:
             # Log if backup is retained due to failure
             elif not replacement_successful and backup_dir and backup_dir.exists():
                 logger.warning(
-                    f"Replacement failed or was skipped. Backup directory retained: {backup_dir}"
+                    f"Replacement failed or was skipped. Backup directory retained: {backup_dir}"  # noqa: E501
                 )
 
     async def _process_segment_file(
@@ -508,7 +507,7 @@ class MemoryMaintenanceService:
                 )
                 if not compact_result:
                     logger.warning(
-                        f"Compaction failed for {segment_file_path.name} (returned False)"
+                        f"Compaction failed for {segment_file_path.name} (returned False)"  # noqa: E501
                     )
                     success = False
             except CompactionError as ce:
@@ -538,7 +537,7 @@ class MemoryMaintenanceService:
                 )
                 if not summarize_result:
                     logger.warning(
-                        f"Summarization failed for {segment_file_path.name} (returned False)"
+                        f"Summarization failed for {segment_file_path.name} (returned False)"  # noqa: E501
                     )
                     success = False
             except SummarizationError as se:
@@ -559,7 +558,7 @@ class MemoryMaintenanceService:
             and not self.summarizer
         ):
             logger.warning(
-                f"Summarization policy enabled for {segment_file_path.name}, but no summarizer provided."
+                f"Summarization policy enabled for {segment_file_path.name}, but no summarizer provided."  # noqa: E501
             )
         # ... (rest of summarization logic)
 
@@ -576,7 +575,7 @@ async def main():
     )
     logger.info("Starting Memory Maintenance Service Test...")
 
-    # Simplified setup - Requires manual creation of ./temp_memory_test/agent_XYZ/memory/file.json
+    # Simplified setup - Requires manual creation of ./temp_memory_test/agent_XYZ/memory/file.json  # noqa: E501
     test_config_path = Path("config/settings.dev.yaml")  # Or appropriate config
     if not test_config_path.exists():
         logger.error(f"Test config not found at {test_config_path}. Cannot run test.")

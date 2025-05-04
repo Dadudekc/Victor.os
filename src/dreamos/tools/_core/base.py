@@ -16,7 +16,7 @@ class ToolParameter:
         self.required = required
 
     def __repr__(self):
-        return f"ToolParameter(name={self.name}, type={self.type}, required={self.required})"
+        return f"ToolParameter(name={self.name}, type={self.type}, required={self.required})"  # noqa: E501
 
 
 # Minimal Placeholder for ToolContext

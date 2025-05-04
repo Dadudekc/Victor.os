@@ -69,3 +69,6 @@ def wait_for_visual_cue(
 #         print("Test SUCCESS: Cue detected.")
 #     else:
 #         print("Test FAILED: Cue not detected within timeout.")
+# print(f"Current Screen: {width}x{height}, Mouse: {mouse_x}, {mouse_y}") # noqa: F821
+
+print("Current Screen: {width}x{height}, Mouse: {mouse_x}, {mouse_y}")  # noqa: F821

@@ -1,18 +1,17 @@
 """Client abstracting browser automation (e.g., Playwright)."""
 
-import asyncio
+import asyncio  # noqa: I001
 import logging
 from typing import Optional
 
-from playwright.async_api import Browser, Page, Playwright, async_playwright
-
 from dreamos.utils.config_utils import get_config
+from playwright.async_api import Browser, Page, Playwright, async_playwright
 
 from . import APIError, IntegrationError
 
 logger = logging.getLogger(__name__)
 
-# TODO: Add 'playwright' to project dependencies (e.g., requirements.txt or pyproject.toml)
+# TODO: Add 'playwright' to project dependencies (e.g., requirements.txt or pyproject.toml)  # noqa: E501
 # TODO: Run 'playwright install' in the terminal to install browser binaries
 
 
@@ -29,7 +28,7 @@ class BrowserClient:
         self._browser: Optional[Browser] = None
         self._functional = False
         logger.info(
-            f"BrowserClient configured for {self.browser_type} (headless={self.headless}). Call connect() to initialize."
+            f"BrowserClient configured for {self.browser_type} (headless={self.headless}). Call connect() to initialize."  # noqa: E501
         )
 
     async def connect(self):
@@ -121,7 +120,7 @@ class BrowserClient:
                 f"Successfully retrieved DOM for {url} (length: {len(content)} chars)"
             )
             return content
-        except playwright.async_api.Error as pe:
+        except playwright.async_api.Error as pe:  # noqa: F821
             logger.error(f"Playwright error getting DOM for {url}: {pe}", exc_info=True)
             raise APIError(f"Playwright error getting DOM for {url}: {pe}") from pe
         except asyncio.TimeoutError as te:
@@ -146,9 +145,9 @@ class BrowserClient:
                                      {'action': 'get_text', 'selector': '.content'}
         Returns:
             Any result from the action (e.g., text content for 'get_text'), or None.
-        """
+        """  # noqa: E501
         logger.info(
-            f"Performing action {action_details.get('action')} on {url} with selector {action_details.get('selector')}"
+            f"Performing action {action_details.get('action')} on {url} with selector {action_details.get('selector')}"  # noqa: E501
         )
         page = await self._get_new_page()
         try:
@@ -157,7 +156,7 @@ class BrowserClient:
             )
             if response is None or not response.ok:
                 status = response.status if response else "N/A"
-                error_msg = f"Failed to load page {url} before action. Server responded with status: {status}"
+                error_msg = f"Failed to load page {url} before action. Server responded with status: {status}"  # noqa: E501
                 logger.error(error_msg)
                 raise APIError(error_msg)
 
@@ -210,7 +209,7 @@ class BrowserClient:
                     )
                 result = await locator.get_attribute(attribute_name, timeout=timeout_ms)
                 logger.info(
-                    f"Retrieved attribute '{attribute_name}' from element {selector}: '{result}'"
+                    f"Retrieved attribute '{attribute_name}' from element {selector}: '{result}'"  # noqa: E501
                 )
             elif action == "wait_for_selector":
                 if not selector:
@@ -241,17 +240,17 @@ class BrowserClient:
 
             return result
 
-        except playwright.async_api.Error as pe:
+        except playwright.async_api.Error as pe:  # noqa: F821
             logger.error(
-                f"Playwright error performing action {action_details.get('action')} on {url}: {pe}",
+                f"Playwright error performing action {action_details.get('action')} on {url}: {pe}",  # noqa: E501
                 exc_info=True,
             )
             raise APIError(
-                f"Playwright error performing action '{action_details.get('action')}': {pe}"
+                f"Playwright error performing action '{action_details.get('action')}': {pe}"  # noqa: E501
             ) from pe
         except asyncio.TimeoutError as te:
             logger.error(
-                f"Timeout error performing action {action_details.get('action')} on {url}: {te}",
+                f"Timeout error performing action {action_details.get('action')} on {url}: {te}",  # noqa: E501
                 exc_info=True,
             )
             raise APIError(

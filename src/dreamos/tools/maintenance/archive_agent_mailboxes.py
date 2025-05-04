@@ -12,7 +12,6 @@ MOVED FROM: src/dreamos/tools/dreamos_utils/ by Agent 5 (2025-04-28)
 """
 
 import logging
-import os
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -49,7 +48,7 @@ def archive_mailbox(agent_mailbox_dir: Path):
         return 0, 1  # Return 0 archived, 1 error for this mailbox
 
     # Iterate directly within the agent's mailbox dir (e.g., Agent5/)
-    # Do not iterate recursively into 'inbox' etc. by default, assume messages are flat for now
+    # Do not iterate recursively into 'inbox' etc. by default, assume messages are flat for now  # noqa: E501
     # or adjust logic if messages are deeper (e.g., Agent5/inbox/*.msg)
     for item in agent_mailbox_dir.iterdir():
         # Process only .msg files directly in the agent mailbox dir
@@ -111,7 +110,7 @@ def archive_mailbox(agent_mailbox_dir: Path):
                 error_count += 1
 
     logger.info(
-        f"Finished processing mailbox {agent_mailbox_dir.name}. Archived: {archived_count}, Errors: {error_count}."
+        f"Finished processing mailbox {agent_mailbox_dir.name}. Archived: {archived_count}, Errors: {error_count}."  # noqa: E501
     )
     return archived_count, error_count
 
@@ -138,7 +137,7 @@ def main():
             total_errors += errors
 
     logger.info(
-        f"Agent mailbox archival finished. Total Archived: {total_archived} file(s). Total Errors: {total_errors}."
+        f"Agent mailbox archival finished. Total Archived: {total_archived} file(s). Total Errors: {total_errors}."  # noqa: E501
     )
 
 

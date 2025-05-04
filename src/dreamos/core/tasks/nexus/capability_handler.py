@@ -14,7 +14,7 @@ class CapabilityHandler:
     def __init__(self, capability_registry: Optional[CapabilityRegistry]):
         if capability_registry is None:
             logger.warning(
-                "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."
+                "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."  # noqa: E501
             )
         self.registry = capability_registry
 
@@ -104,7 +104,7 @@ class CapabilityHandler:
     async def find_agents_for_capability(
         self, capability_id: str, require_active: bool = True
     ) -> List[str]:
-        """Finds agent IDs that offer a specific capability via the CapabilityRegistry."""
+        """Finds agent IDs that offer a specific capability via the CapabilityRegistry."""  # noqa: E501
         if not self.registry:
             logger.error(
                 "CapabilityRegistry not available. Cannot find agents for capability."

@@ -4,8 +4,6 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 from pydantic import BaseModel, Field
 
-from ..event_types import EventType
-
 # --- Message Schemas (Using Pydantic) ---
 
 

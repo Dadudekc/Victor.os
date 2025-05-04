@@ -1,8 +1,7 @@
 import json
 import os
-import time
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -57,12 +56,12 @@ def test_compaction_triggered_by_size(memory_manager, create_segment_file):
         {"id": i, "timestamp": SAMPLE_TIMESTAMP_RECENT, "padding": "x" * 50}
         for i in range(3)
     ]
-    segment_path = create_segment_file(segment_id, large_data)
+    segment_path = create_segment_file(segment_id, large_data)  # noqa: F841
 
     with patch.object(memory_manager, "_compact_segment") as mock_compact:
         memory_manager._check_and_compact(segment_id)
         mock_compact.assert_called_once()
-        logger_output = (
+        logger_output = (  # noqa: F841
             memory_manager.logger.info.call_args_list
         )  # Check logs if logger mocked
         # assert any("triggered by size" in str(call) for call in logger_output)
@@ -75,7 +74,7 @@ def test_compaction_triggered_by_entries(memory_manager, create_segment_file):
     many_entries_data = [
         {"id": i, "timestamp": SAMPLE_TIMESTAMP_RECENT} for i in range(6)
     ]
-    segment_path = create_segment_file(segment_id, many_entries_data)
+    segment_path = create_segment_file(segment_id, many_entries_data)  # noqa: F841
 
     with patch.object(memory_manager, "_compact_segment") as mock_compact:
         memory_manager._check_and_compact(segment_id)
@@ -87,7 +86,7 @@ def test_compaction_not_triggered_below_thresholds(memory_manager, create_segmen
     """Test compaction is NOT triggered when below thresholds."""
     segment_id = "below_threshold"
     small_data = [{"id": 1, "timestamp": SAMPLE_TIMESTAMP_RECENT}]
-    segment_path = create_segment_file(segment_id, small_data)
+    segment_path = create_segment_file(segment_id, small_data)  # noqa: F841
 
     with patch.object(memory_manager, "_compact_segment") as mock_compact:
         memory_manager._check_and_compact(segment_id)
@@ -174,7 +173,7 @@ def test_safe_rewrite(mock_replace, memory_manager, create_segment_file):
     segment_id = "safe_rewrite_test"
     # Use data that will definitely trigger compaction (e.g., time-based)
     data = [{"id": 1, "timestamp": SAMPLE_TIMESTAMP_OLD}]
-    segment_path = create_segment_file(segment_id, data)
+    segment_path = create_segment_file(segment_id, data)  # noqa: F841
     memory_manager._check_and_compact(segment_id)
     mock_replace.assert_called_once()
     # Check that original file exists until replace is called (harder to test precisely)

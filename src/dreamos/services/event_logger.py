@@ -3,7 +3,7 @@
 event_logger.py
 
 Structured event logger service: appends typed events to a JSONL file in runtime/structured_events.jsonl.
-"""
+"""  # noqa: E501
 
 import json
 import os

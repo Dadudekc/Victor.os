@@ -25,7 +25,7 @@ def _extract_json_block(text: str) -> dict | None:
             return data
         else:
             logger.warning(
-                f"⚠️ Found JSON block, but missing required keys: {REQUIRED_JSON_KEYS - set(data.keys())}"
+                f"⚠️ Found JSON block, but missing required keys: {REQUIRED_JSON_KEYS - set(data.keys())}"  # noqa: E501
             )
             return None
     except json.JSONDecodeError as e:

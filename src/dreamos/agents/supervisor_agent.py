@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import time
@@ -40,15 +39,15 @@ class SupervisorAgent:
 
         except AttributeError as e:
             logger.error(
-                f"SupervisorAgent configuration error: Missing required path in AppConfig.paths: {e}. Supervisor may not function correctly."
+                f"SupervisorAgent configuration error: Missing required path in AppConfig.paths: {e}. Supervisor may not function correctly."  # noqa: E501
             )
-            # Decide on fallback behavior: raise error? Use hardcoded defaults? Set paths to None?
+            # Decide on fallback behavior: raise error? Use hardcoded defaults? Set paths to None?  # noqa: E501
             # For now, let's set paths to None to prevent operations on invalid paths.
             self.directive_path = None
             self.results_output_path = None
             local_blob_path = None  # Affects channel init
             # Consider raising the error or returning status if init fails critically
-            # raise ConfigurationError(f"SupervisorAgent missing config path: {e}") from e
+            # raise ConfigurationError(f"SupervisorAgent missing config path: {e}") from e  # noqa: E501
         except Exception as e:
             logger.error(
                 f"Unexpected error initializing SupervisorAgent paths: {e}",
@@ -63,7 +62,7 @@ class SupervisorAgent:
             self.channel = LocalBlobChannel(base_dir=local_blob_path)
         else:
             logger.error(
-                "SupervisorAgent cannot initialize LocalBlobChannel: Blob storage path not configured."
+                "SupervisorAgent cannot initialize LocalBlobChannel: Blob storage path not configured."  # noqa: E501
             )
             self.channel = None  # Ensure channel is None if path fails
 

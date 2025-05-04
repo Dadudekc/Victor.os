@@ -2,10 +2,9 @@
 Consolidated Selenium utilities for browser automation.
 """
 
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait

@@ -2,7 +2,6 @@
 # Placeholder for retry logic
 
 import logging
-import time
 from functools import wraps
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ def retry_selenium_action(
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # logger.debug(f"Placeholder retry decorator called for {func.__name__}. No retry logic active.")
+            # logger.debug(f"Placeholder retry decorator called for {func.__name__}. No retry logic active.")  # noqa: E501
             return func(*args, **kwargs)  # Execute the original function once
 
         return wrapper

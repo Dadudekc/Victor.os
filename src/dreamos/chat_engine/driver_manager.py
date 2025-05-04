@@ -32,7 +32,7 @@ except ImportError:
 def setup_logger(
     name="DriverManager", log_dir=os.path.join(os.getcwd(), "logs", "core")
 ):
-    # Assuming log directory structure - adjust if needed relative to this file's location
+    # Assuming log directory structure - adjust if needed relative to this file's location  # noqa: E501
     # Maybe use Path(__file__).parent.parent.parent / "logs" / "core" ?
     log_dir = os.path.abspath(log_dir)
     os.makedirs(log_dir, exist_ok=True)
@@ -75,7 +75,7 @@ class DriverManager:
       - Auto-downloading and caching of the ChromeDriver executable
       - Robust retry mechanisms for resilient browser operations
       - Utilities for waiting, scrolling, and option updates
-    """
+    """  # noqa: E501
 
     # Changed to manage multiple instances based on config hash for flexibility
     _instances: Dict[int, "DriverManager"] = {}
@@ -105,20 +105,20 @@ class DriverManager:
 
         Returns:
             DriverManager: The singleton instance for the given configuration.
-        """
+        """  # noqa: E501
         config_hash = hash(frozenset(kwargs.items())) if kwargs else hash(config_key)
 
         with cls._lock:
             if config_hash not in cls._instances:
                 logger.info(
-                    f"Creating new DriverManager instance for config hash {config_hash} (key: {config_key}, kwargs: {kwargs})"
+                    f"Creating new DriverManager instance for config hash {config_hash} (key: {config_key}, kwargs: {kwargs})"  # noqa: E501
                 )
                 # Pass kwargs directly to init
                 instance = cls(**kwargs)
                 cls._instances[config_hash] = instance
             else:
                 logger.debug(
-                    f"Returning existing DriverManager instance for config hash {config_hash}"
+                    f"Returning existing DriverManager instance for config hash {config_hash}"  # noqa: E501
                 )
             return cls._instances[config_hash]
 
@@ -144,8 +144,8 @@ class DriverManager:
         Initialize DriverManager instance. Should only be called via get_instance.
         """
         # Prevent direct re-initialization if called incorrectly
-        # Note: This basic check assumes direct calls won't happen after get_instance logic.
-        # A more robust check might involve a private class variable set by get_instance.
+        # Note: This basic check assumes direct calls won't happen after get_instance logic.  # noqa: E501
+        # A more robust check might involve a private class variable set by get_instance.  # noqa: E501
         if hasattr(self, "_initialized") and self._initialized:
             logger.warning(
                 "DriverManager already initialized. Ignoring subsequent __init__ call."
@@ -194,7 +194,7 @@ class DriverManager:
             os.makedirs(self.profile_dir, exist_ok=True)
 
         logger.info(
-            f"DriverManager initialized: Profile='{self.profile_dir}', Headless={self.headless}, Undetected={self.undetected_mode}"
+            f"DriverManager initialized: Profile='{self.profile_dir}', Headless={self.headless}, Undetected={self.undetected_mode}"  # noqa: E501
         )
         self._initialized = True
 
@@ -219,13 +219,13 @@ class DriverManager:
         # Basic check if driver exists and is executable
         if not os.path.exists(cached_driver) or not os.access(cached_driver, os.X_OK):
             logger.warning(
-                "Cached ChromeDriver not found or not executable. Downloading/installing..."
+                "Cached ChromeDriver not found or not executable. Downloading/installing..."  # noqa: E501
             )
             try:
                 # Use webdriver-manager to handle download and installation
                 driver_path = ChromeDriverManager(path=self.driver_cache_dir).install()
                 # If install just returns the path, ensure it's copied/moved if needed
-                # For simplicity, assume install places it correctly or returns the final path.
+                # For simplicity, assume install places it correctly or returns the final path.  # noqa: E501
                 cached_driver = (
                     driver_path  # Assume install gives the final usable path
                 )
@@ -311,10 +311,10 @@ class DriverManager:
                     "mobileEmulation", mobile_emulation_settings
                 )
             else:  # UC Options might handle it differently or need direct argument
-                # UC might not directly support mobileEmulation via options object easily.
+                # UC might not directly support mobileEmulation via options object easily.  # noqa: E501
                 # May need workarounds or specific arguments.
                 logger.warning(
-                    "Mobile emulation with undetected_chromedriver might require manual argument setup."
+                    "Mobile emulation with undetected_chromedriver might require manual argument setup."  # noqa: E501
                 )
                 # Example (might not work): options.add_argument('--user-agent=...')
             logger.info("Mobile emulation requested.")
@@ -396,7 +396,7 @@ class DriverManager:
                         )
                         # Pass version_main if needed by UC for specific Chrome versions
                         # version = self._get_chrome_version() # Helper needed
-                        # new_driver = uc.Chrome(service=service, options=options, version_main=version)
+                        # new_driver = uc.Chrome(service=service, options=options, version_main=version)  # noqa: E501
                         new_driver = uc.Chrome(service=service, options=options)
                     else:
                         logger.info(
@@ -415,7 +415,7 @@ class DriverManager:
                     if "new_driver" in locals() and new_driver:
                         try:
                             new_driver.quit()
-                        except:
+                        except:  # noqa: E722
                             pass
                     self.driver = None  # Ensure state is clean
                     if attempt < self.retry_attempts:
@@ -453,12 +453,12 @@ class DriverManager:
                     "Initial driver.quit() failed or was skipped. Making final attempt."
                 )
                 try:
-                    # This might be redundant if the first quit worked but threw an error after closing
+                    # This might be redundant if the first quit worked but threw an error after closing  # noqa: E501
                     # Still, worth a try to ensure closure.
                     self.driver.quit()
                     logger.info("Final driver.quit() attempt completed.")
                 except Exception as final_quit_error:
-                    # Log error on final attempt but don't prevent clearing the reference
+                    # Log error on final attempt but don't prevent clearing the reference  # noqa: E501
                     logger.error(
                         f"Error during final driver.quit() attempt: {final_quit_error}"
                     )
@@ -466,11 +466,11 @@ class DriverManager:
             driver_ref_before_clear = self.driver
             self.driver = None
 
-            # Check if reference was cleared and log warning if not (though assignment should guarantee it)
-            # This check is mostly theoretical; if self.driver is not None here, it's a deeper Python issue.
+            # Check if reference was cleared and log warning if not (though assignment should guarantee it)  # noqa: E501
+            # This check is mostly theoretical; if self.driver is not None here, it's a deeper Python issue.  # noqa: E501
             if self.driver is not None:
                 logger.critical(
-                    "CRITICAL: self.driver reference is NOT None after assignment! Potential runtime issue."
+                    "CRITICAL: self.driver reference is NOT None after assignment! Potential runtime issue."  # noqa: E501
                 )
             elif driver_ref_before_clear is not None:
                 logger.info("Successfully cleared internal driver reference.")
@@ -482,20 +482,20 @@ class DriverManager:
                 temp_profile_path_to_remove
             ):
                 logger.info(
-                    f"Attempting to remove temporary profile directory: {temp_profile_path_to_remove}"
+                    f"Attempting to remove temporary profile directory: {temp_profile_path_to_remove}"  # noqa: E501
                 )
                 try:
                     shutil.rmtree(temp_profile_path_to_remove, ignore_errors=True)
                     logger.info(
-                        f"Temporary profile directory removed: {temp_profile_path_to_remove}"
+                        f"Temporary profile directory removed: {temp_profile_path_to_remove}"  # noqa: E501
                     )
                 except Exception as e:
                     logger.warning(
-                        f"Failed to remove temporary profile directory '{temp_profile_path_to_remove}': {e}"
+                        f"Failed to remove temporary profile directory '{temp_profile_path_to_remove}': {e}"  # noqa: E501
                     )
             elif temp_profile_path_to_remove:
                 logger.debug(
-                    f"Temporary profile directory path set ('{temp_profile_path_to_remove}') but directory does not exist."
+                    f"Temporary profile directory path set ('{temp_profile_path_to_remove}') but directory does not exist."  # noqa: E501
                 )
             else:
                 logger.debug("No temporary profile directory was used or tracked.")
@@ -570,7 +570,7 @@ class DriverManager:
                     "None",
                 ]:
                     logger.warning(
-                        f"Removing invalid sameSite value '{cookie['sameSite']}' from cookie '{cookie.get('name','N/A')}'"
+                        f"Removing invalid sameSite value '{cookie['sameSite']}' from cookie '{cookie.get('name','N/A')}'"  # noqa: E501
                     )
                     del cookie["sameSite"]
                 # Domain might need adjustment based on target_url vs cookie domain,
@@ -583,11 +583,11 @@ class DriverManager:
                 except Exception as cookie_ex:
                     # Log specific cookie errors but continue trying others
                     logger.warning(
-                        f"Could not add cookie '{cookie.get('name','N/A')}': {cookie_ex}"
+                        f"Could not add cookie '{cookie.get('name','N/A')}': {cookie_ex}"  # noqa: E501
                     )
 
             logger.info(
-                f"Attempted to load {len(cookies)} cookies, successfully added {added_count}. Refreshing page."
+                f"Attempted to load {len(cookies)} cookies, successfully added {added_count}. Refreshing page."  # noqa: E501
             )
             self.driver.refresh()  # Refresh page to apply loaded cookies
             time.sleep(2)  # Allow refresh to complete
@@ -680,7 +680,7 @@ class DriverManager:
             try:
                 if not self.driver or self._is_session_expired():
                     logger.info(
-                        "Driver missing or session expired before action. Getting/Renewing..."
+                        "Driver missing or session expired before action. Getting/Renewing..."  # noqa: E501
                     )
                     if not self.get_driver(force_new=self._is_session_expired()):
                         raise RuntimeError(
@@ -760,7 +760,7 @@ class DriverManager:
             self.driver.execute_script(scroll_command)
             time.sleep(pause_time)
             logger.debug(
-                f"Scrolled page {direction} {'by ' + str(pixels) + 'px' if pixels else ''}."
+                f"Scrolled page {direction} {'by ' + str(pixels) + 'px' if pixels else ''}."  # noqa: E501
             )
         except Exception as e:
             logger.exception(f"Failed to scroll page: {e}")
@@ -768,7 +768,7 @@ class DriverManager:
     def scroll_to_bottom_smoothly(
         self, scroll_pause_time: float = 1.0, max_scrolls: int = 20
     ) -> None:
-        """Scrolls down the page gradually until the bottom is reached or max_scrolls is hit."""
+        """Scrolls down the page gradually until the bottom is reached or max_scrolls is hit."""  # noqa: E501
         if not self.driver:
             logger.warning("Driver not initialized.")
             return
@@ -787,7 +787,7 @@ class DriverManager:
             )
 
             logger.debug(
-                f"Scroll {scroll_count+1}: Height={new_height}, ScrolledTo={current_scroll}"
+                f"Scroll {scroll_count+1}: Height={new_height}, ScrolledTo={current_scroll}"  # noqa: E501
             )
 
             # Check if height stopped changing or if we reached the bottom
@@ -832,13 +832,13 @@ class DriverManager:
                     current_value = getattr(self, option)
                     if option in restart_options and current_value != value:
                         logger.info(
-                            f"Change detected in restart-required option '{option}': '{current_value}' -> '{value}'"
+                            f"Change detected in restart-required option '{option}': '{current_value}' -> '{value}'"  # noqa: E501
                         )
                         restart_needed = True
                     setattr(self, option, value)
                     logger.debug(f"Updated option '{option}' to '{value}'")
                 else:
-                    # Store unknown options in additional_options for potential future use
+                    # Store unknown options in additional_options for potential future use  # noqa: E501
                     self.additional_options[option] = value
                     logger.warning(
                         f"Unknown option '{option}' stored in additional_options."
@@ -861,13 +861,13 @@ class DriverManager:
         """
         logger.info("Shutting down DriverManager instance...")
         with self._lock:
-            self._quit_driver_instance()  # Ensure driver is quit and temp profile removed
+            self._quit_driver_instance()  # Ensure driver is quit and temp profile removed  # noqa: E501
 
             # Remove this specific instance from the class-level dictionary
-            # Find the hash corresponding to this instance's config (may need refinement)
+            # Find the hash corresponding to this instance's config (may need refinement)  # noqa: E501
             # This part is complex if config can change post-init via update_options
-            # For simplicity, we might just clear the entire dictionary on global shutdown
-            # Or require users to manage instances explicitly if they use multiple configs.
+            # For simplicity, we might just clear the entire dictionary on global shutdown  # noqa: E501
+            # Or require users to manage instances explicitly if they use multiple configs.  # noqa: E501
 
             # Simple approach: Find hash based on current config (might not be perfect)
             current_config = {
@@ -940,7 +940,7 @@ class DriverManager:
                         )
                     except Exception as kill_err:
                         logger.error(
-                            f"Error running kill command {' '.join(cmd_parts)}: {kill_err}"
+                            f"Error running kill command {' '.join(cmd_parts)}: {kill_err}"  # noqa: E501
                         )
             else:
                 logger.warning(
@@ -961,7 +961,7 @@ class DriverManager:
             if hasattr(self, "driver") and self.driver:
                 self._quit_driver_instance()
             # Attempt to clean lingering processes if possible
-            # self._force_kill_browsers() # Generally avoid heavy ops like this in __del__
+            # self._force_kill_browsers() # Generally avoid heavy ops like this in __del__  # noqa: E501
         except Exception:
             # Suppress exceptions during garbage collection
             pass

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -59,7 +59,7 @@ def test_initiate_vote(coordinator, mock_agent_bus):
     coordinator.initiate_vote(topic, options, duration)
 
     # Assert that an event was published to start the vote (adjust event name/payload)
-    # mock_agent_bus.publish_event.assert_called_with('VOTE_STARTED', {'topic': topic, ...})
+    # mock_agent_bus.publish_event.assert_called_with('VOTE_STARTED', {'topic': topic, ...})  # noqa: E501
     # Assert internal state tracking the vote
     # assert topic in coordinator.active_votes
     assert True  # Placeholder
@@ -83,10 +83,10 @@ def test_cast_vote_valid(coordinator):
 
 def test_cast_vote_invalid_topic(coordinator):
     """Test casting a vote on an inactive/invalid topic."""
-    # Assert that casting a vote on a non-existent topic raises an error or logs a warning
+    # Assert that casting a vote on a non-existent topic raises an error or logs a warning  # noqa: E501
     # with pytest.raises(KeyError): # Or appropriate exception
     #      coordinator.cast_vote("agent_002", "invalid_topic", "A")
-    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented
+    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented  # noqa: E501
     assert True  # Placeholder - Actual test needs coordinator logic
 
 
@@ -94,13 +94,13 @@ def test_cast_vote_invalid_choice(coordinator):
     """Test casting an invalid choice for an active topic."""
     # Setup: Assume vote active with options ["A", "B"]
     # Assert that casting choice "C" raises an error or is ignored
-    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented
+    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented  # noqa: E501
     assert True  # Placeholder
 
 
 def test_tally_vote_simple_majority(coordinator):
     """Test tallying votes with a clear majority winner."""
-    topic = "test_topic_tally"
+    topic = "test_topic_tally"  # noqa: F841
     # Setup: Mock internal state with votes agent1:A, agent2:A, agent3:B
 
     # result = coordinator.tally_vote(topic) # Call needs implementation
@@ -109,7 +109,7 @@ def test_tally_vote_simple_majority(coordinator):
     # assert result == "A"
     # Assert the vote topic is removed from active votes
     # assert topic not in coordinator.active_votes
-    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented
+    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented  # noqa: E501
     assert True  # Placeholder
 
 
@@ -118,7 +118,7 @@ def test_tally_vote_tie(coordinator):
     # Setup: Mock internal state with votes agent1:A, agent2:B
     # result = coordinator.tally_vote("tie_topic") # Call needs implementation
     # Assert the result indicates a tie or follows tie-breaking logic
-    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented
+    # pytest.skip("Implementation pending: Assertions needed") # Remove skip once implemented  # noqa: E501
     assert True  # Placeholder
 
 

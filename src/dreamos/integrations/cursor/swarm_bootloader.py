@@ -4,7 +4,6 @@ import logging
 import platform
 import shutil
 import subprocess
-import sys
 import time
 from pathlib import Path
 from typing import List, Optional
@@ -28,10 +27,10 @@ try:
 except ImportError as e:
     # Add fallback or raise critical error if controller is essential
     logging.critical(
-        f"Failed to import CursorWindowController: {e}. SwarmBootloader cannot function."
+        f"Failed to import CursorWindowController: {e}. SwarmBootloader cannot function."  # noqa: E501
     )
 
-    # Define dummy classes if needed for type hinting downstream, though raising is better
+    # Define dummy classes if needed for type hinting downstream, though raising is better  # noqa: E501
     class WindowWrapper:
         pass
 
@@ -70,7 +69,7 @@ class TheaSwarmBootloader:
                                                      If None, attempts OS-specific defaults.
             window_controller (Optional[CursorWindowController]): An instance to use for detection.
                                                                    If None, creates a new one.
-        """
+        """  # noqa: E501
         self.cursor_path = self._resolve_cursor_path(cursor_executable_path)
         self.controller = window_controller or CursorWindowController()
         logger.info(f"TheaSwarmBootloader initialized. Cursor path: {self.cursor_path}")
@@ -78,13 +77,13 @@ class TheaSwarmBootloader:
     def _resolve_cursor_path(self, provided_path: Optional[str]) -> str:
         """Determines the path/command for the Cursor executable."""
         if provided_path:
-            # Check if the provided path is an existing file/directory OR a command found in PATH
+            # Check if the provided path is an existing file/directory OR a command found in PATH  # noqa: E501
             if Path(provided_path).exists() or shutil.which(provided_path):
                 logger.debug(f"Using provided Cursor path/command: {provided_path}")
                 return provided_path
             else:
                 logger.warning(
-                    f"Provided Cursor path '{provided_path}' not found or not executable. Falling back to defaults."
+                    f"Provided Cursor path '{provided_path}' not found or not executable. Falling back to defaults."  # noqa: E501
                 )
 
         # If no valid path provided, try defaults and PATH lookups
@@ -96,7 +95,7 @@ class TheaSwarmBootloader:
                 return default_path
             else:
                 logger.debug(
-                    f"Default Windows Cursor path not found: {default_path}. Checking PATH for 'cursor'."
+                    f"Default Windows Cursor path not found: {default_path}. Checking PATH for 'cursor'."  # noqa: E501
                 )
                 cursor_cmd = shutil.which("cursor")
                 if cursor_cmd:
@@ -104,7 +103,7 @@ class TheaSwarmBootloader:
                     return cursor_cmd
                 else:
                     raise FileNotFoundError(
-                        "Cannot find Cursor executable. Please provide a valid path or ensure the default exists or 'cursor' is in PATH."
+                        "Cannot find Cursor executable. Please provide a valid path or ensure the default exists or 'cursor' is in PATH."  # noqa: E501
                     )
         elif os_type == "Darwin":
             # On macOS, we typically launch via 'open -a', so check the .app path
@@ -122,13 +121,13 @@ class TheaSwarmBootloader:
                     return cursor_cmd
                 else:
                     raise FileNotFoundError(
-                        "Cannot find Cursor.app at default location or 'cursor' command in PATH. Please provide path."
+                        "Cannot find Cursor.app at default location or 'cursor' command in PATH. Please provide path."  # noqa: E501
                     )
         else:  # Linux
             cursor_cmd = shutil.which(self.DEFAULT_CURSOR_CMD_LINUX)
             if cursor_cmd:
                 logger.debug(
-                    f"Using default Linux command '{self.DEFAULT_CURSOR_CMD_LINUX}' found in PATH."
+                    f"Using default Linux command '{self.DEFAULT_CURSOR_CMD_LINUX}' found in PATH."  # noqa: E501
                 )
                 return cursor_cmd
             else:
@@ -137,7 +136,7 @@ class TheaSwarmBootloader:
                     logger.debug(f"Using provided path on Linux: {provided_path}")
                     return provided_path
                 raise FileNotFoundError(
-                    f"Cannot find '{self.DEFAULT_CURSOR_CMD_LINUX}' command in PATH. Please provide a path or ensure it's in PATH."
+                    f"Cannot find '{self.DEFAULT_CURSOR_CMD_LINUX}' command in PATH. Please provide a path or ensure it's in PATH."  # noqa: E501
                 )
 
     def launch_instances(self, count: int = 1) -> List[subprocess.Popen]:
@@ -171,7 +170,7 @@ class TheaSwarmBootloader:
                 time.sleep(0.5)
             except FileNotFoundError:
                 logger.error(
-                    f"Failed to launch instance {i+1}: Executable not found at {self.cursor_path}"
+                    f"Failed to launch instance {i+1}: Executable not found at {self.cursor_path}"  # noqa: E501
                 )
                 # Optionally stop launching more
                 break
@@ -189,7 +188,7 @@ class TheaSwarmBootloader:
     ) -> bool:
         """Waits until the specified number of Cursor windows are detected."""
         logger.info(
-            f"Waiting up to {timeout}s for {expected_count} Cursor window(s) to be detected..."
+            f"Waiting up to {timeout}s for {expected_count} Cursor window(s) to be detected..."  # noqa: E501
         )
         start_time = time.time()
         while time.time() - start_time < timeout:
@@ -207,7 +206,7 @@ class TheaSwarmBootloader:
             time.sleep(poll_interval)
 
         logger.warning(
-            f"Timeout: Only detected {len(self.controller.windows)}/{expected_count} Cursor window(s) after {timeout}s."
+            f"Timeout: Only detected {len(self.controller.windows)}/{expected_count} Cursor window(s) after {timeout}s."  # noqa: E501
         )
         return False
 
@@ -221,7 +220,7 @@ class TheaSwarmBootloader:
 
         Returns:
             int: The number of windows successfully moved.
-        """
+        """  # noqa: E501
         if platform.system() != "Windows":
             logger.warning(
                 "Virtual desktop management via pyvda is only supported on Windows."
@@ -241,7 +240,7 @@ class TheaSwarmBootloader:
         moved_count = 0
         target_desktop_num = desktop_index  # pyvda seems to use 1-based for target
         logger.info(
-            f"Attempting to move {len(self.controller.windows)} windows to Virtual Desktop {target_desktop_num}..."
+            f"Attempting to move {len(self.controller.windows)} windows to Virtual Desktop {target_desktop_num}..."  # noqa: E501
         )
 
         # Ensure target desktop exists (pyvda provides GetDesktopCount)
@@ -249,12 +248,12 @@ class TheaSwarmBootloader:
             desktop_count = pyvda.GetDesktopCount()
             if target_desktop_num > desktop_count:
                 logger.warning(
-                    f"Target desktop {target_desktop_num} does not exist (only {desktop_count} desktops found). Moving to last desktop."
+                    f"Target desktop {target_desktop_num} does not exist (only {desktop_count} desktops found). Moving to last desktop."  # noqa: E501
                 )
                 target_desktop_num = desktop_count  # Adjust to last valid desktop
         except Exception as e:
             logger.error(
-                f"Failed to get desktop count via pyvda: {e}. Cannot verify target desktop."
+                f"Failed to get desktop count via pyvda: {e}. Cannot verify target desktop."  # noqa: E501
             )
             # Proceed with caution or return error?
             # return 0
@@ -264,17 +263,17 @@ class TheaSwarmBootloader:
                 hwnd = window.handle
                 pyvda.MoveWindowToDesktopNumber(hwnd, target_desktop_num)
                 logger.debug(
-                    f"Moved window {window.id} (HWND: {hwnd}) to Desktop {target_desktop_num}."
+                    f"Moved window {window.id} (HWND: {hwnd}) to Desktop {target_desktop_num}."  # noqa: E501
                 )
                 moved_count += 1
             except Exception as e:
                 logger.error(
-                    f"Failed to move window {window.id} (HWND: {window.handle}) to Desktop {target_desktop_num}: {e}",
+                    f"Failed to move window {window.id} (HWND: {window.handle}) to Desktop {target_desktop_num}: {e}",  # noqa: E501
                     exc_info=False,
                 )  # Keep log cleaner
 
         logger.info(
-            f"Successfully moved {moved_count}/{len(self.controller.windows)} windows to Virtual Desktop {target_desktop_num}."
+            f"Successfully moved {moved_count}/{len(self.controller.windows)} windows to Virtual Desktop {target_desktop_num}."  # noqa: E501
         )
         return moved_count
 
@@ -357,16 +356,16 @@ if __name__ == "__main__":
                 logger.info(f"Activation successful: {success}")
         else:
             logger.warning(
-                "Bootloader finished, but no Cursor instances were successfully detected."
+                "Bootloader finished, but no Cursor instances were successfully detected."  # noqa: E501
             )
 
     except FileNotFoundError as e:
         logger.critical(
-            f"CRITICAL ERROR: {e}. Could not find Cursor. Please check path configuration."
+            f"CRITICAL ERROR: {e}. Could not find Cursor. Please check path configuration."  # noqa: E501
         )
     except ImportError as e:
         logger.critical(
-            f"CRITICAL ERROR: {e}. Missing required dependency (e.g., pywin32, pyobjc-framework-Cocoa, python-xlib, pyvda)?"
+            f"CRITICAL ERROR: {e}. Missing required dependency (e.g., pywin32, pyobjc-framework-Cocoa, python-xlib, pyvda)?"  # noqa: E501
         )
     except Exception as e:
         logger.critical(

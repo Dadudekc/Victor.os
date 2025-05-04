@@ -84,7 +84,7 @@ def find_and_activate_cursor_window(
             else:
                 logger.warning(
                     f"Attempt {attempt + 1}/{retries}: Failed to activate window "
-                    f"'{cursor_window.title}'. Window might be obscured or unresponsive."
+                    f"'{cursor_window.title}'. Window might be obscured or unresponsive."  # noqa: E501
                 )
                 time.sleep(delay)
 

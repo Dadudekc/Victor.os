@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, Coroutine, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from dreamos.core.coordination.event_types import EventType
 from dreamos.core.coordination.schemas.voting_patterns import (
@@ -19,13 +19,13 @@ class AgentVoterMixin:
     Agents using this mixin should have `agent_id`, `agent_bus` attributes.
     Subscribes to VOTE_INITIATED_TOPIC and publishes votes to VOTE_CAST_TOPIC.
     Provides a default handler to cast a simple vote.
-    """
+    """  # noqa: E501
 
     def __init__(self, *args, **kwargs):
         # Ensure agent_id and agent_bus are available
         if not hasattr(self, "agent_id") or not hasattr(self, "agent_bus"):
             raise AttributeError(
-                "AgentVoterMixin requires the agent to have 'agent_id' and 'agent_bus' attributes."
+                "AgentVoterMixin requires the agent to have 'agent_id' and 'agent_bus' attributes."  # noqa: E501
             )
 
         self._voting_subscription = None  # Store subscription ID
@@ -34,8 +34,8 @@ class AgentVoterMixin:
         super().__init__(*args, **kwargs)
 
         # Register the vote handler - Handled by agent's start method now
-        # REMOVED: self.agent_bus.register_handler(EventType.COORDINATION, self.handle_vote_initiation)
-        # logger.info(f"Agent '{self.agent_id}' enabled voting participation via AgentVoterMixin.")
+        # REMOVED: self.agent_bus.register_handler(EventType.COORDINATION, self.handle_vote_initiation)  # noqa: E501
+        # logger.info(f"Agent '{self.agent_id}' enabled voting participation via AgentVoterMixin.")  # noqa: E501
 
     async def start_voting_listener(self):
         """Subscribe to the vote initiation topic. Call this in agent's start()."""
@@ -44,7 +44,7 @@ class AgentVoterMixin:
                 EventType.VOTE_INITIATED.value, self._handle_vote_initiation
             )
             logger.info(
-                f"Agent '{self.agent_id}' subscribed to voting topic: {EventType.VOTE_INITIATED.value}"
+                f"Agent '{self.agent_id}' subscribed to voting topic: {EventType.VOTE_INITIATED.value}"  # noqa: E501
             )
         except Exception as e:
             logger.error(
@@ -57,7 +57,7 @@ class AgentVoterMixin:
     async def _handle_vote_initiation(self, topic: str, message: Dict[str, Any]):
         """Handles VOTE_INITIATED events by casting a vote."""
         logger.debug(
-            f"Agent '{self.agent_id}' received vote initiation message on topic '{topic}'"
+            f"Agent '{self.agent_id}' received vote initiation message on topic '{topic}'"  # noqa: E501
         )
         try:
             # EDIT START: Validate and parse using Pydantic model
@@ -69,7 +69,7 @@ class AgentVoterMixin:
                 Exception
             ) as validation_error:  # Catch Pydantic's ValidationError and others
                 logger.warning(
-                    f"Agent '{self.agent_id}' received invalid VoteInitiated data: {validation_error}"
+                    f"Agent '{self.agent_id}' received invalid VoteInitiated data: {validation_error}"  # noqa: E501
                 )
                 return
             # EDIT END
@@ -90,7 +90,7 @@ class AgentVoterMixin:
                 await self.cast_vote(vote_id, choices, correlation_id)
             else:
                 logger.info(
-                    f"Agent '{self.agent_id}' abstained or did not decide on vote '{vote_id}'."
+                    f"Agent '{self.agent_id}' abstained or did not decide on vote '{vote_id}'."  # noqa: E501
                 )
 
         except Exception as e:
@@ -101,7 +101,7 @@ class AgentVoterMixin:
                 else "unknown"
             )
             logger.error(
-                f"Agent '{self.agent_id}' error handling vote initiation '{current_vote_id}': {e}",
+                f"Agent '{self.agent_id}' error handling vote initiation '{current_vote_id}': {e}",  # noqa: E501
                 exc_info=True,
             )
 
@@ -139,11 +139,11 @@ class AgentVoterMixin:
                 choices=choices,
                 # Add confidence/rationale if implemented
                 confidence=0.9,  # Example
-                rationale=f"Default mixin vote: {choices[0] if choices else 'N/A'}",  # Example
+                rationale=f"Default mixin vote: {choices[0] if choices else 'N/A'}",  # Example  # noqa: E501
             )
         except Exception as validation_error:  # Catch Pydantic validation errors
             logger.error(
-                f"Agent '{self.agent_id}' failed to create AgentVote model for '{vote_id}': {validation_error}"
+                f"Agent '{self.agent_id}' failed to create AgentVote model for '{vote_id}': {validation_error}"  # noqa: E501
             )
             return  # Cannot cast vote if model creation fails
         # EDIT END
@@ -161,7 +161,7 @@ class AgentVoterMixin:
             vote_topic = EventType.VOTE_CAST.value
             await self.agent_bus.publish(vote_topic, vote_payload)
             logger.info(
-                f"Agent '{self.agent_id}' cast vote for '{vote_id}' to {vote_topic}. Choices: {choices}"
+                f"Agent '{self.agent_id}' cast vote for '{vote_id}' to {vote_topic}. Choices: {choices}"  # noqa: E501
             )
         except Exception as e:
             logger.error(

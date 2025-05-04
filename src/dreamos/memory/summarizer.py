@@ -68,7 +68,7 @@ def summarize_memory_file(
         True if summarization was performed and file rewritten, False otherwise.
 
     Uses atomic write (write to temp file, then os.replace) for safety.
-    """
+    """  # noqa: E501
     if not os.path.exists(file_path):
         logger.error(f"Memory file not found: {file_path}")
         return False
@@ -91,7 +91,7 @@ def summarize_memory_file(
 
     if len(memory_entries) <= keep_recent_n:
         logger.info(
-            f"Memory file {file_path} has {len(memory_entries)} entries, less than or equal to keep_recent_n ({keep_recent_n}). No summarization needed."
+            f"Memory file {file_path} has {len(memory_entries)} entries, less than or equal to keep_recent_n ({keep_recent_n}). No summarization needed."  # noqa: E501
         )
         return False
 
@@ -115,7 +115,7 @@ def summarize_memory_file(
                     parsed_entries.append((dt, entry))
                 except ValueError:
                     logger.warning(
-                        f"Could not parse timestamp in entry {i} of {file_path}: {ts_str}"
+                        f"Could not parse timestamp in entry {i} of {file_path}: {ts_str}"  # noqa: E501
                     )
                     parsed_entries.append(
                         (datetime.max.replace(tzinfo=timezone.utc), entry)
@@ -131,7 +131,7 @@ def summarize_memory_file(
 
     except Exception as e:
         logger.error(
-            f"Error processing or sorting entries by timestamp in {file_path}: {e}. Aborting summarization."
+            f"Error processing or sorting entries by timestamp in {file_path}: {e}. Aborting summarization."  # noqa: E501
         )
         return False
 
@@ -160,12 +160,12 @@ def summarize_memory_file(
 
     if not summarizable_entries:
         logger.info(
-            f"No entries older than {max_age_days} days found for summarization in {file_path}."
+            f"No entries older than {max_age_days} days found for summarization in {file_path}."  # noqa: E501
         )
         return False
 
     logger.info(
-        f"Found {len(summarizable_entries)} entries eligible for summarization in {file_path}."
+        f"Found {len(summarizable_entries)} entries eligible for summarization in {file_path}."  # noqa: E501
     )
 
     # --- Create summary entry ---
@@ -199,7 +199,7 @@ def summarize_memory_file(
         temp_file = None
 
         logger.info(
-            f"Successfully summarized and safely rewrote memory file: {file_path}. New entry count: {len(new_memory_entries)}."
+            f"Successfully summarized and safely rewrote memory file: {file_path}. New entry count: {len(new_memory_entries)}."  # noqa: E501
         )
         return True
 

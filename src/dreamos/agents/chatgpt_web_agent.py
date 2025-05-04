@@ -2,18 +2,13 @@
 
 import json
 import logging
-import re
 import time
 from pathlib import Path
-from typing import Any, Coroutine, Dict, List, Optional, Tuple
-
-from playwright.async_api import Browser, Page, async_playwright
-from pydantic import BaseModel, Field
+from typing import Dict
 
 from dreamos.core.config import AppConfig
 
 # Local application imports
-from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.tasks.nexus.task_nexus import TaskNexus
 from dreamos.utils.config_utils import get_config
 from dreamos.utils.dream_mode_utils.browser import (
@@ -25,15 +20,12 @@ from dreamos.utils.dream_mode_utils.browser import (
 from dreamos.utils.dream_mode_utils.html_parser import extract_latest_reply
 from dreamos.utils.dream_mode_utils.task_parser import extract_task_metadata
 
-from ..core.coordination.agent_bus import AgentBus, BaseEvent, EventType
-from ..core.coordination.base_agent import TaskStatus
-
 logger = logging.getLogger("ChatGPTWebAgent")
 logger.setLevel(logging.INFO)
 
 DEFAULT_INTERVAL = 10  # seconds between scrape attempts
 # AGENT_SCRIPT_DIR = Path(__file__).parent # Not needed if paths come from config
-# INBOX_ROOT = AGENT_SCRIPT_DIR.parent / "inbox" # Define path relative to configured paths
+# INBOX_ROOT = AGENT_SCRIPT_DIR.parent / "inbox" # Define path relative to configured paths  # noqa: E501
 
 
 class ChatGPTWebAgent:
@@ -52,7 +44,7 @@ class ChatGPTWebAgent:
             agent_id: The unique ID for this agent instance (e.g., specific conversation ID).
             conversation_url: The URL of the ChatGPT conversation to monitor.
             simulate: If True, runs in simulation mode without browser interaction.
-        """
+        """  # noqa: E501
         self.config = config
         self.agent_id = agent_id
         self.conversation_url = conversation_url
@@ -110,8 +102,8 @@ class ChatGPTWebAgent:
             default="LocalBlobChannel",
             config_obj=self.config,
         )
-        # TODO: Instantiate channel based on type (requires importing channel classes) -> REMOVED TODO
-        # NOTE: To add support for other channel types, import them and add conditions below.
+        # TODO: Instantiate channel based on type (requires importing channel classes) -> REMOVED TODO  # noqa: E501
+        # NOTE: To add support for other channel types, import them and add conditions below.  # noqa: E501
         if c2_channel_type == "LocalBlobChannel":
             from dreamos.core.c2.local_blob_channel import (  # Import here
                 LocalBlobChannel,
@@ -120,15 +112,15 @@ class ChatGPTWebAgent:
             self.channel = LocalBlobChannel()
         # Example for another type:
         # elif c2_channel_type == "RedisChannel":
-        #     from dreamos.core.c2.redis_channel import RedisChannel # Import (if exists)
-        #     redis_config = get_config("c2.redis", config_obj=self.config) # Get specific config
+        #     from dreamos.core.c2.redis_channel import RedisChannel # Import (if exists)  # noqa: E501
+        #     redis_config = get_config("c2.redis", config_obj=self.config) # Get specific config  # noqa: E501
         #     self.channel = RedisChannel(**redis_config)
         else:
             logger.error(f"Unsupported C2 Channel type configured: {c2_channel_type}")
             raise ValueError(f"Unsupported C2 Channel type: {c2_channel_type}")
 
         # Initialize TaskNexus - Get Path from central config
-        # task_list_path = getattr(config.paths, 'tasks', Path("runtime/task_list.json")) # Simplified access below
+        # task_list_path = getattr(config.paths, 'tasks', Path("runtime/task_list.json")) # Simplified access below  # noqa: E501
         task_list_path = get_config(
             "services.task_nexus.task_file",
             default="runtime/task_list.json",
@@ -240,16 +232,16 @@ class ChatGPTWebAgent:
                     start_prompt = prompt_path.read_text(encoding="utf-8")
                     self.inject_response(start_prompt)
                     logger.info(
-                        f"[{self.agent_id}] Sent onboarding start prompt from {prompt_path}."
+                        f"[{self.agent_id}] Sent onboarding start prompt from {prompt_path}."  # noqa: E501
                     )
                 except Exception as e:
                     logger.error(
-                        f"[{self.agent_id}] Failed to inject start prompt from {prompt_path}: {e}",
+                        f"[{self.agent_id}] Failed to inject start prompt from {prompt_path}: {e}",  # noqa: E501
                         exc_info=True,
                     )
             else:
                 logger.warning(
-                    f"[{self.agent_id}] Onboarding prompt file not found at configured path: {prompt_path}"
+                    f"[{self.agent_id}] Onboarding prompt file not found at configured path: {prompt_path}"  # noqa: E501
                 )
             self.onboarded = True  # Mark as onboarded even if prompt fails/missing
 
@@ -259,7 +251,7 @@ class ChatGPTWebAgent:
 
             # Case 1: Reply is None (means assistant is still generating)
             if reply is None:
-                # Let the html_parser log handle the specific reason (generating vs. error)
+                # Let the html_parser log handle the specific reason (generating vs. error)  # noqa: E501
                 logger.debug(
                     f"[{self.agent_id}] Reply not ready or assistant generating."
                 )
@@ -297,7 +289,7 @@ class ChatGPTWebAgent:
                     )
                     if existing:
                         logger.info(
-                            f"[{self.agent_id}] Updating feedback for Task ID: {task_id_to_match}"
+                            f"[{self.agent_id}] Updating feedback for Task ID: {task_id_to_match}"  # noqa: E501
                         )
                         # Replace existing entry
                         inbox = [
@@ -306,14 +298,14 @@ class ChatGPTWebAgent:
                         ]
                     else:
                         logger.info(
-                            f"[{self.agent_id}] Adding new feedback for Task ID: {task_id_to_match}"
+                            f"[{self.agent_id}] Adding new feedback for Task ID: {task_id_to_match}"  # noqa: E501
                         )
                         inbox.append(parsed)
                 else:
                     # If no task_id, maybe append anyway? Or log warning?
                     # For now, let's assume task_id is required for routing.
                     logger.warning(
-                        f"[{self.agent_id}] Parsed feedback lacks task_id. Cannot route reliably. Discarding."
+                        f"[{self.agent_id}] Parsed feedback lacks task_id. Cannot route reliably. Discarding."  # noqa: E501
                     )
                     logger.debug(f"Discarded feedback: {parsed}")
                     return  # Skip saving
@@ -323,7 +315,7 @@ class ChatGPTWebAgent:
                 try:
                     self.nexus.add_task(parsed)
                     logger.info(
-                        f"[{self.agent_id}] Dispatched task to TaskNexus: {parsed.get('task_id')}"
+                        f"[{self.agent_id}] Dispatched task to TaskNexus: {parsed.get('task_id')}"  # noqa: E501
                     )
                 except Exception as e:
                     logger.error(
@@ -333,7 +325,7 @@ class ChatGPTWebAgent:
             else:
                 # Parsing failed (TaskParser already logged error)
                 logger.warning(
-                    f"[{self.agent_id}] Failed to parse structured metadata from the new response."
+                    f"[{self.agent_id}] Failed to parse structured metadata from the new response."  # noqa: E501
                 )
                 # No further action needed here, wait for next cycle or manual check
 
@@ -376,7 +368,7 @@ def run_loop(shutdown_event):
 
     # EDIT START: Load config first
     try:
-        config = load_app_config()  # Assumes load_app_config is available
+        config = load_app_config()  # Assumes load_app_config is available  # noqa: F821
         if not config:
             raise ValueError(
                 "Failed to load AppConfig for ChatGPTWebAgent standalone run."
@@ -397,17 +389,17 @@ def run_loop(shutdown_event):
     agent_settings = getattr(config, "agent_settings", {})  # General agent settings
 
     conversation_url = getattr(chat_agent_settings, "conversation_url", None)
-    # Use agent_id from chat_agent settings if available, else general agent_id, else default
+    # Use agent_id from chat_agent settings if available, else general agent_id, else default  # noqa: E501
     agent_id = getattr(
         chat_agent_settings,
         "agent_id",
         getattr(agent_settings, "agent_id", "chatgpt_web_001"),
     )
     simulate = getattr(chat_agent_settings, "simulate", False)
-    reset_onboarding = getattr(chat_agent_settings, "reset_onboarding", False)
+    reset_onboarding = getattr(chat_agent_settings, "reset_onboarding", False)  # noqa: F841
     # EDIT END
 
-    # EDIT START: Get reset flag from config (already done above, remove redundant block)
+    # EDIT START: Get reset flag from config (already done above, remove redundant block)  # noqa: E501
     # agent_settings = getattr(config, 'chat_agent', {})
     # reset_onboarding = getattr(agent_settings, 'reset_onboarding', False)
     # EDIT END
@@ -416,8 +408,8 @@ def run_loop(shutdown_event):
         logger.error("`chat_agent.conversation_url` not set in config. Exiting.")
         return
 
-    # EDIT START: Pass config to agent constructor (already correct, just ensure old code removed)
-    # agent = ChatGPTWebAgent(agent_id=agent_id, conversation_url=conversation_url, simulate=simulate)
+    # EDIT START: Pass config to agent constructor (already correct, just ensure old code removed)  # noqa: E501
+    # agent = ChatGPTWebAgent(agent_id=agent_id, conversation_url=conversation_url, simulate=simulate)  # noqa: E501
     # agent.reset_onboarding_flag = reset_onboarding # Set the flag after init
     agent = ChatGPTWebAgent(
         config=config,

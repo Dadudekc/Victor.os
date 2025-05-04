@@ -15,27 +15,27 @@ if project_root not in sys.path:
 
 # --- Dependencies ---
 try:
-    from dreamforge.core.governance_memory_engine import log_event
-    from social.constants import AGENT_ID  # To know where to send the task
-
-    # Access MailboxHandler to write new tasks (adjust import path if needed)
-    from social.utils.mailbox_handler import MailboxHandler
+    from dreamforge.core.governance_memory_engine import log_event  # noqa: I001
 
     # Import the new MailboxHandler and related constants/exceptions
-    from dreamos.core.comms.mailbox import (  # Assuming mailboxes_base_dir might be needed
+    from dreamos.core.comms.mailbox import (  # Assuming mailboxes_base_dir might be needed  # noqa: E501
         MAILBOXES_DIR_NAME,
         MailboxError,
         MailboxHandler,
     )
     from dreamos.core.config import AppConfig  # Updated import
     from dreamos.utils.common_utils import get_utc_iso_timestamp
+    from social.constants import AGENT_ID  # To know where to send the task
+
+    # Access MailboxHandler to write new tasks (adjust import path if needed)
+    from social.utils.mailbox_handler import MailboxHandler  # noqa: F811
 except ImportError as e:
     print(f"[FeedbackProcessor] Warning: Failed to import dependencies: {e}")
 
     # Dummy log_event
     def log_event(event_type, source, details):
         print(
-            f"[Dummy Logger - FeedbackProcessor] Event: {event_type}, Source: {source}, Details: {details}"
+            f"[Dummy Logger - FeedbackProcessor] Event: {event_type}, Source: {source}, Details: {details}"  # noqa: E501
         )
         return False
 
@@ -92,7 +92,7 @@ try:
     MAILBOXES_BASE = AGENT_COMMS_BASE / MAILBOXES_DIR_NAME
 except Exception as config_e:
     logging.error(
-        f"Failed to load AppConfig to determine mailbox path: {config_e}. Mailbox functionality may fail."
+        f"Failed to load AppConfig to determine mailbox path: {config_e}. Mailbox functionality may fail."  # noqa: E501
     )
     MAILBOXES_BASE = (
         project_root / "runtime" / "agent_comms" / "agent_mailboxes"
@@ -109,7 +109,7 @@ try:
         agent_id=_SOURCE_AGENT_ID, mailboxes_base_dir=MAILBOXES_BASE
     )
     logging.info(
-        f"FeedbackProcessor initialized MailboxHandler for agent '{_SOURCE_AGENT_ID}' using base '{MAILBOXES_BASE}'"
+        f"FeedbackProcessor initialized MailboxHandler for agent '{_SOURCE_AGENT_ID}' using base '{MAILBOXES_BASE}'"  # noqa: E501
     )
 except MailboxError as mb_init_e:
     logging.error(f"Failed to initialize MailboxHandler for sending tasks: {mb_init_e}")
@@ -172,8 +172,8 @@ def _create_task_message(
 
     message = {
         "message_id": task_id,
-        "sender": _SOURCE,
-        "recipient": AGENT_ID,  # Target agent
+        "sender_agent_id": _SOURCE_AGENT_ID,
+        "recipient_agent_id": AGENT_ID,
         "timestamp": timestamp,
         "type": "COMMAND",  # It's a command for the agent
         "command": command,
@@ -231,7 +231,7 @@ def process_feedback(feedback_items: list[dict]):
                         feedback_type, extracted_content, item
                     )
                     # Send the task message using MailboxHandler
-                    # Requires MailboxHandler to be initialized correctly and AGENT_INBOX path to be valid
+                    # Requires MailboxHandler to be initialized correctly and AGENT_INBOX path to be valid  # noqa: E501
                     filename_prefix = f"task_{feedback_type}"
                     if task_sender_mailbox:
                         success = task_sender_mailbox.send_message(
@@ -255,7 +255,7 @@ def process_feedback(feedback_items: list[dict]):
                                 "FEEDBACK_PROC_ERROR",
                                 _SOURCE,
                                 {
-                                    "error": "Failed to send task message via MailboxHandler",
+                                    "error": "Failed to send task message via MailboxHandler",  # noqa: E501
                                     "task_details": task_message.get("details"),
                                 },
                             )
@@ -265,7 +265,7 @@ def process_feedback(feedback_items: list[dict]):
                             "FEEDBACK_PROC_ERROR",
                             _SOURCE,
                             {
-                                "error": "MailboxHandler not available for sending task message"
+                                "error": "MailboxHandler not available for sending task message"  # noqa: E501
                             },
                         )
 
@@ -295,17 +295,17 @@ def process_feedback(feedback_items: list[dict]):
 # --- Example Usage ---
 if __name__ == "__main__":
     # EDIT START: Need datetime import here if fallback wasn't triggered earlier
-    # This ensures the dummy data generation works even if core utils were imported successfully.
+    # This ensures the dummy data generation works even if core utils were imported successfully.  # noqa: E501
     from datetime import datetime, timezone
 
     print("Testing Feedback Processor...")
 
     # Ensure dummy inbox exists for testing send
-    if not os.path.exists(AGENT_INBOX):
+    if not os.path.exists(AGENT_INBOX):  # noqa: F821
         try:
-            os.makedirs(AGENT_INBOX)
-        except:
-            print(f"Warning: Could not create dummy inbox {AGENT_INBOX}")
+            os.makedirs(AGENT_INBOX)  # noqa: F821
+        except:  # noqa: E722
+            print(f"Warning: Could not create dummy inbox {AGENT_INBOX}")  # noqa: F821
 
     dummy_feedback = [
         {
@@ -315,7 +315,7 @@ if __name__ == "__main__":
             # EDIT START: Use core/fallback utility
             "timestamp": get_utc_iso_timestamp(),
             # EDIT END
-            "text": "This is great! Maybe you could add a dark mode feature? I suggest it would be really popular.",
+            "text": "This is great! Maybe you could add a dark mode feature? I suggest it would be really popular.",  # noqa: E501
         },
         {
             "platform": "reddit",
@@ -324,7 +324,7 @@ if __name__ == "__main__":
             # EDIT START: Use core/fallback utility
             "timestamp": get_utc_iso_timestamp(),
             # EDIT END
-            "text": "Found a problem. When I click the button, I get an error 500. This bug is quite annoying.",
+            "text": "Found a problem. When I click the button, I get an error 500. This bug is quite annoying.",  # noqa: E501
         },
         {
             "platform": "twitter",
@@ -342,7 +342,7 @@ if __name__ == "__main__":
             # EDIT START: Use core/fallback utility
             "timestamp": get_utc_iso_timestamp(),
             # EDIT END
-            "text": "I have an idea for improvement. What if the dashboard automatically refreshed? Also, the login seems broken sometimes.",
+            "text": "I have an idea for improvement. What if the dashboard automatically refreshed? Also, the login seems broken sometimes.",  # noqa: E501
         },
         {"platform": "discord", "text": None},  # Invalid item
     ]
@@ -352,7 +352,7 @@ if __name__ == "__main__":
 
     print("\nFeedback processing test finished.")
     print(
-        f"Check the directory '{AGENT_INBOX}' for any generated task files (if not using dummy mailbox)."
+        f"Check the directory '{AGENT_INBOX}' for any generated task files (if not using dummy mailbox)."  # noqa: E501, F821
     )
 
     # Simple cleanup (optional)

@@ -29,7 +29,7 @@ class Agent1Stub:
         task_id = event.data.get("task_id") or event.data.get("correlation_id")
         if not task_id:
             logger.error(
-                f"Received GENERATE_TASK_SEQUENCE event without task_id/correlation_id: {event.data}"
+                f"Received GENERATE_TASK_SEQUENCE event without task_id/correlation_id: {event.data}"  # noqa: E501
             )
             # Cannot dispatch failure without task_id
             return
@@ -48,7 +48,7 @@ class Agent1Stub:
             data={
                 "correlation_id": task_id,
                 "task_id": task_id,
-                "results": f"Planning simulation complete for '{goal}' at {datetime.utcnow().isoformat()}",
+                "results": f"Planning simulation complete for '{goal}' at {datetime.utcnow().isoformat()}",  # noqa: E501
                 # In a real planner, this might contain the generated task list
             },
         )

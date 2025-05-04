@@ -1,7 +1,4 @@
 import json
-import os
-import shutil
-import tempfile
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
@@ -47,7 +44,7 @@ def test_generate_summary_basic():
     assert summary["entry_count"] == 2
     assert summary["start_time"] == chunk[0]["timestamp"]
     assert summary["end_time"] == chunk[-1]["timestamp"]
-    assert f"Summary of 2 entries" in summary["content"]
+    assert "Summary of 2 entries" in summary["content"]
     assert "summarized_at" in summary
 
 
@@ -237,7 +234,7 @@ def test_summarize_safe_write_and_backup(
 def test_summarize_file_not_found(tmp_path):
     """Test handling when the memory file does not exist."""
     non_existent_path = str(tmp_path / "memory_tests" / "non_existent.json")
-    # Should log a warning and return False (or raise specific exception if designed that way)
+    # Should log a warning and return False (or raise specific exception if designed that way)  # noqa: E501
     # For now, assume it returns False indicating no summarization needed/possible
     assert not summarize_memory_file(non_existent_path, keep_recent_n=5, max_age_days=7)
 
@@ -245,7 +242,7 @@ def test_summarize_file_not_found(tmp_path):
 def test_summarize_file_invalid_json(sample_memory_file):
     """Test handling when the memory file contains invalid JSON."""
     file_path = sample_memory_file("not valid json")  # Write invalid content
-    # Expecting a JSONDecodeError or similar wrapped in a custom exception, or returning False
+    # Expecting a JSONDecodeError or similar wrapped in a custom exception, or returning False  # noqa: E501
     # Assuming it returns False after logging an error
     assert not summarize_memory_file(file_path, keep_recent_n=5, max_age_days=7)
     # Could also check for logged error messages if logger is mocked

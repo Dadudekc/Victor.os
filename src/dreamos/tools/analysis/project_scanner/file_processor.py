@@ -2,7 +2,6 @@
 
 import hashlib
 import logging
-import os
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional, Set
@@ -105,7 +104,7 @@ class FileProcessor:
         try:
             # Get the absolute path of the currently executing script file
             current_script_path = Path(__file__).resolve()
-            # Check if the file path matches the script path or is within the script's directory
+            # Check if the file path matches the script path or is within the script's directory  # noqa: E501
             if (
                 file_abs == current_script_path
                 or current_script_path in file_abs.parents
@@ -127,7 +126,7 @@ class FileProcessor:
                     ignore_path = (self.project_root / ignore_path).resolve()
                 # Check if the file is within the ignored directory
                 if ignore_path in file_abs.parents or file_abs == ignore_path:
-                    # logger.debug(f"Excluding {file_path} due to ignore rule: {ignore_str}")
+                    # logger.debug(f"Excluding {file_path} due to ignore rule: {ignore_str}")  # noqa: E501
                     return True
             except (OSError, ValueError) as e:
                 logger.warning(
@@ -151,16 +150,16 @@ class FileProcessor:
                     parent.name.lower() in venv_patterns
                     or parent_parts_lower.intersection(venv_patterns)
                 ):
-                    # logger.debug(f"Excluding {file_path} due to venv pattern in parent: {parent.name}")
+                    # logger.debug(f"Excluding {file_path} due to venv pattern in parent: {parent.name}")  # noqa: E501
                     return True
                 # Check for indicator files
                 if (parent / "pyvenv.cfg").exists():
-                    # logger.debug(f"Excluding {file_path} due to pyvenv.cfg in {parent}")
+                    # logger.debug(f"Excluding {file_path} due to pyvenv.cfg in {parent}")  # noqa: E501
                     return True
                 if (parent / "bin" / "activate").exists() or (
                     parent / "Scripts" / "activate.bat"
                 ).exists():
-                    # logger.debug(f"Excluding {file_path} due to activate script in {parent}")
+                    # logger.debug(f"Excluding {file_path} due to activate script in {parent}")  # noqa: E501
                     return True
                 # Stop early if we reach project root or system root
                 if parent == self.project_root or parent == parent.parent:
@@ -178,14 +177,14 @@ class FileProcessor:
     def process_file(
         self, file_path: Path, language_analyzer: "LanguageAnalyzer"
     ) -> Optional[tuple]:
-        """Analyzes a file if not in cache or changed, else returns cached data if valid, or None if excluded/error."""
+        """Analyzes a file if not in cache or changed, else returns cached data if valid, or None if excluded/error."""  # noqa: E501
         try:
             relative_path = str(file_path.relative_to(self.project_root)).replace(
                 "\\", "/"
             )  # Normalize slashes
         except ValueError:
             logger.warning(
-                f"File {file_path} is not relative to project root {self.project_root}. Skipping."
+                f"File {file_path} is not relative to project root {self.project_root}. Skipping."  # noqa: E501
             )
             return None
 
@@ -194,7 +193,7 @@ class FileProcessor:
             # Ensure excluded files are removed from cache if they exist there
             with self.cache_lock:
                 if relative_path in self.cache:
-                    # logger.debug(f"Removing excluded file {relative_path} from cache.")
+                    # logger.debug(f"Removing excluded file {relative_path} from cache.")  # noqa: E501
                     del self.cache[relative_path]
             return None
 
@@ -221,7 +220,7 @@ class FileProcessor:
             # Cache miss or hash mismatch
             update_cache_needed = True
 
-        # If we need to analyze (cache miss, hash mismatch, or missing analysis in cache)
+        # If we need to analyze (cache miss, hash mismatch, or missing analysis in cache)  # noqa: E501
         if update_cache_needed:
             # logger.debug(f"Analyzing file: {relative_path}")
             try:

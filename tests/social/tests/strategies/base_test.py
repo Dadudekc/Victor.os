@@ -4,17 +4,14 @@ Base test classes and utilities for social media strategy testing.
 
 import unittest
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Optional
 from unittest.mock import Mock, patch
-
-from strategies.base_strategy import BaseStrategy
-from utils.logging_utils import log_event
 
 # Import test utilities if needed
 from tests.utils.test_utils import MockElement, MockWebDriver
 
 
-class MockWebDriver:
+class MockWebDriver:  # noqa: F811
     """Mock Selenium WebDriver for testing."""
 
     def __init__(self):
@@ -34,7 +31,7 @@ class MockWebDriver:
         pass
 
 
-class MockElement:
+class MockElement:  # noqa: F811
     """Mock Selenium WebElement for testing."""
 
     def __init__(self, text: str = "", is_displayed: bool = True):
@@ -104,7 +101,7 @@ class BaseStrategyTest(unittest.TestCase):
         log_event_mock = self.mocks[-1]  # Last mock is log_event
         log_event_mock.assert_called()
         if message:
-            log_event_mock.assert_any_call(event_type, message, ANY)
+            log_event_mock.assert_any_call(event_type, message, ANY)  # noqa: F821
         else:
             any_matching_call = any(
                 call[0][0] == event_type for call in log_event_mock.call_args_list
@@ -118,7 +115,7 @@ class BaseStrategyTest(unittest.TestCase):
 
     def simulate_element_not_found(self, locator: tuple) -> None:
         """Simulate an element not being found on the page."""
-        self.mocks[1].return_value.until.side_effect = TimeoutException()
+        self.mocks[1].return_value.until.side_effect = TimeoutException()  # noqa: F821
 
     def simulate_login_success(self) -> None:
         """Simulate successful login flow."""

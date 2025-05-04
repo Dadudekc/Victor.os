@@ -43,7 +43,7 @@ class ChatGPTResponder:
                 raise RuntimeError("OpenAIAdapter not available in prod mode")
 
     def respond_to_mailbox(self, mailbox_data: dict) -> dict:
-        """Processes last user message and appends the GPT reply to messages if responder is available."""
+        """Processes last user message and appends the GPT reply to messages if responder is available."""  # noqa: E501
         # No-op if no valid responder
         if self.dev_mode and not self.scraper:
             return mailbox_data

@@ -2,7 +2,6 @@ import json
 import sqlite3
 import threading
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 
@@ -28,7 +27,7 @@ def db_manager(temp_db_file):
 
 
 def test_db_manager_initialization_creates_db_and_tables(temp_db_file):
-    """Test that initializing DatabaseManager creates the DB file and expected tables."""
+    """Test that initializing DatabaseManager creates the DB file and expected tables."""  # noqa: E501
     assert not temp_db_file.exists()
     manager = DatabaseManager(db_path=temp_db_file)
     assert temp_db_file.exists()
@@ -41,7 +40,7 @@ def test_db_manager_initialization_creates_db_and_tables(temp_db_file):
     )
     assert cursor.fetchone() is not None, "'interactions' table not created."
     cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='conversations_metadata';"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='conversations_metadata';"  # noqa: E501
     )
     assert cursor.fetchone() is not None, "'conversations_metadata' table not created."
     conn.close()
@@ -99,7 +98,7 @@ def test_initialize_conversation_inserts_metadata(db_manager, temp_db_file):
 
 
 def test_initialize_conversation_ignores_duplicate(db_manager, temp_db_file):
-    """Test that initializing the same conversation twice doesn't error and keeps the first."""
+    """Test that initializing the same conversation twice doesn't error and keeps the first."""  # noqa: E501
     interaction_id = "conv_xyz"
     metadata1 = {"version": 1}
     metadata2 = {"version": 2}
@@ -115,7 +114,7 @@ def test_initialize_conversation_ignores_duplicate(db_manager, temp_db_file):
     conn = sqlite3.connect(temp_db_file)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT metadata, initialized_at FROM conversations_metadata WHERE interaction_id = ?",
+        "SELECT metadata, initialized_at FROM conversations_metadata WHERE interaction_id = ?",  # noqa: E501
         (interaction_id,),
     )
     row = cursor.fetchone()

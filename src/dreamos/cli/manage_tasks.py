@@ -8,13 +8,9 @@ Provides commands to view, claim, update, and add tasks using the
 ProjectBoardManager abstraction layer for safe concurrent access.
 """
 
-import datetime
 import json
-import logging
-import os
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import click
 
@@ -50,9 +46,9 @@ try:
 
 except ImportError as e:
     # Provide a more informative error if core components are missing
-    sys.stderr.write(f"\nError: Failed to import core 'dreamos' components. \n")
+    sys.stderr.write("\nError: Failed to import core 'dreamos' components. \n")
     sys.stderr.write(
-        f"Ensure the script is run from the project root or '{PROJECT_ROOT}' is structured correctly.\n"
+        f"Ensure the script is run from the project root or '{PROJECT_ROOT}' is structured correctly.\n"  # noqa: E501
     )
     sys.stderr.write(f"Import Error: {e}\n")
     sys.exit(1)
@@ -71,7 +67,7 @@ TASK_READY_QUEUE_FILENAME = "task_ready_queue.json"
 # def _now() -> str:
 #     """Returns the current UTC time as an ISO 8601 string."""
 #     # return get_utc_iso_timestamp()
-#     return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds') + "Z"
+#     return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds') + "Z"  # noqa: E501
 
 
 # --- CLI Definition ---
@@ -90,7 +86,7 @@ def cli(ctx, config_path):
         app_config = AppConfig.load(config_file=config_path)
         ctx.obj = ProjectBoardManager(config=app_config)
         click.echo(
-            f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",
+            f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",  # noqa: E501
             err=True,
         )
         config_display_path = getattr(app_config, "config_file_path", None)
@@ -122,7 +118,7 @@ def claim(board_manager: ProjectBoardManager, task_id: str, agent_id: str):
         # Assumes PBM has claim_ready_task method after REFACTOR-PBM-DUAL-QUEUE-001
         if board_manager.claim_ready_task(task_id, agent_id):
             click.echo(
-                f"Task '{task_id}' claimed by '{agent_id}' from Ready Queue. Moved to working tasks."
+                f"Task '{task_id}' claimed by '{agent_id}' from Ready Queue. Moved to working tasks."  # noqa: E501
             )
         else:
             # Error message handled within claim_ready_task, just echo generic failure
@@ -184,7 +180,7 @@ def update(
 
     if not needs_update:
         click.echo(
-            "No update parameters provided (status, note, completion-summary, add-output)."
+            "No update parameters provided (status, note, completion-summary, add-output)."  # noqa: E501
         )
         return
 
@@ -193,7 +189,7 @@ def update(
             click.echo(f"Task '{task_id}' updated successfully by '{agent_id}'.")
         else:
             click.echo(
-                f"Failed to update task '{task_id}'. Task may not exist in working board.",
+                f"Failed to update task '{task_id}'. Task may not exist in working board.",  # noqa: E501
                 err=True,
             )
             sys.exit(1)
@@ -254,7 +250,7 @@ def complete(
             )
         else:
             click.echo(
-                f"Failed to move task '{task_id}' to completed. Task may not exist in working board.",
+                f"Failed to move task '{task_id}' to completed. Task may not exist in working board.",  # noqa: E501
                 err=True,
             )
             sys.exit(1)
@@ -276,7 +272,7 @@ def complete(
 #     if tasks:
 #         click.echo(json.dumps(tasks, indent=2))
 #     else:
-#         click.echo(f"No future tasks found{f' with status {status}' if status else ''}.")
+#         click.echo(f"No future tasks found{f' with status {status}' if status else ''}.")  # noqa: E501
 
 
 @cli.command("list-backlog")
@@ -340,7 +336,7 @@ def list_completed(board_manager: ProjectBoardManager, limit: int):
         if tasks:
             click.echo(json.dumps(tasks, indent=2))
         else:
-            click.echo(f"No completed tasks found.")
+            click.echo("No completed tasks found.")
     except ProjectBoardError as e:
         click.echo(f"Error listing completed tasks: {e}", err=True)
         sys.exit(1)
@@ -367,7 +363,7 @@ def get(board_manager: ProjectBoardManager, task_id: str):
 @cli.command()
 @click.argument("task_definition", type=click.File("r"))
 @click.argument("agent_id")  # Agent responsible for adding
-# @click.option('--board', default='future', type=click.Choice(['future', 'working']), help='Target board.', show_default=True) # Removed - always add to backlog
+# @click.option('--board', default='future', type=click.Choice(['future', 'working']), help='Target board.', show_default=True) # Removed - always add to backlog  # noqa: E501
 @click.pass_obj
 def add(board_manager: ProjectBoardManager, task_definition, agent_id: str):
     """Add a new task from a JSON definition file to the Task Backlog."""
@@ -396,10 +392,10 @@ def add(board_manager: ProjectBoardManager, task_definition, agent_id: str):
     )  # Default to PENDING for backlog
     # Remove logic for adding directly to working
     # if board == 'future':
-    #      new_task_data['status'] = new_task_data.get('status', TaskStatus.PENDING.value) # Default to PENDING
+    #      new_task_data['status'] = new_task_data.get('status', TaskStatus.PENDING.value) # Default to PENDING  # noqa: E501
     # else: # working board
-    #      new_task_data['status'] = TaskStatus.ASSIGNED.value # Assume assigned if added directly to working
-    #      new_task_data['assigned_agent_id'] = new_task_data.get('assigned_agent_id', 'UNKNOWN') # Assignee needed for working board
+    #      new_task_data['status'] = TaskStatus.ASSIGNED.value # Assume assigned if added directly to working  # noqa: E501
+    #      new_task_data['assigned_agent_id'] = new_task_data.get('assigned_agent_id', 'UNKNOWN') # Assignee needed for working board  # noqa: E501
 
     try:
         # Assumes PBM has add_task_to_backlog method after REFACTOR-PBM-DUAL-QUEUE-001
@@ -421,7 +417,7 @@ def add(board_manager: ProjectBoardManager, task_definition, agent_id: str):
 # --- Promote Command ---
 @cli.command()
 @click.argument("task_id")
-# @click.option('--captain-id', required=True, help='ID of the Captain authorizing promotion.') # Add authorization later if needed
+# @click.option('--captain-id', required=True, help='ID of the Captain authorizing promotion.') # Add authorization later if needed  # noqa: E501
 @click.pass_obj
 def promote(board_manager: ProjectBoardManager, task_id: str):
     """Promote a task from the Task Backlog to the Task Ready Queue."""
@@ -431,17 +427,17 @@ def promote(board_manager: ProjectBoardManager, task_id: str):
     try:
         # Assumes PBM has promote_task_to_ready method after REFACTOR-PBM-DUAL-QUEUE-001
         click.echo(
-            f"[DEBUG] Calling board_manager.promote_task_to_ready...", err=True
+            "[DEBUG] Calling board_manager.promote_task_to_ready...", err=True
         )  # DEBUG PRINT
         if board_manager.promote_task_to_ready(task_id):
             click.echo(f"Task '{task_id}' promoted from Backlog to Ready Queue.")
         else:
             # This block should theoretically not be reached if PBM raises exceptions
             click.echo(
-                f"[DEBUG] PBM returned False (unexpected).", err=True
+                "[DEBUG] PBM returned False (unexpected).", err=True
             )  # DEBUG PRINT
             click.echo(
-                f"Failed to promote task '{task_id}'. Task may not exist in backlog or promotion failed.",
+                f"Failed to promote task '{task_id}'. Task may not exist in backlog or promotion failed.",  # noqa: E501
                 err=True,
             )
             sys.exit(1)

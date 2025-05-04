@@ -8,12 +8,13 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 # Import configuration and necessary components
-import dreamos.core.config as project_config
-from src.core.MemoryManager import MemoryManager
+import dreamos.core.config as project_config  # noqa: I001, E402
+
+from src.core.MemoryManager import MemoryManager  # noqa: E402
 
 # Stubs are used implicitly by StoryGenerator for now
 # from src.external_stubs import get_stubs
-from src.story_generator import StoryGenerator
+from src.story_generator import StoryGenerator  # noqa: E402
 
 # Setup logging based on config
 logging.basicConfig(level=project_config.LOG_LEVEL, format=project_config.LOG_FORMAT)
