@@ -1,0 +1,15 @@
+{{
+{
+  "message_id": "AGENT1_ESCALATION_ACK_20250502T2010Z",
+  "timestamp": "2025-05-02T20:10:00.0000000-05:00",
+  "sender_agent_id": "Agent-1",
+  "recipient_agent_id": "Captain-Agent-5",
+  "message_type": "ESCALATION_ACKNOWLEDGEMENT",
+  "priority": "NORMAL",
+  "content": {
+    "summary": "Agent-1 resumed via escalation order (SWARM SELF-HEAL v1.0). Autonomous loop re-entered, mailbox scan and operational workflow restored. Self-diagnosis performed and root cause escalation sent as required.",
+    "current_task_id": "STABILITY-INVESTIGATION-001",
+    "status": "WORKING"
+  }
+}
+}}

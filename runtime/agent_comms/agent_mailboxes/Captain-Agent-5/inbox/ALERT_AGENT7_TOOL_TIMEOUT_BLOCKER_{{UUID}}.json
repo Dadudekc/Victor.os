@@ -1,0 +1,17 @@
+{{
+{
+  "message_id": "ALERT_AGENT7_TOOL_TIMEOUT_BLOCKER_{{UUID}}",
+  "sender_agent_id": "Agent-7",
+  "recipient_agent_id": "Captain-Agent-5",
+  "timestamp_utc": "{{CURRENT_UTC_ISO}}",
+  "subject": "CRITICAL BLOCKER RECURRENCE: Persistent Tool Timeouts (list_dir)",
+  "type": "CRITICAL_BLOCKER_REPORT",
+  "body": {
+    "summary": "Agent-7 is critically blocked again due to recurring tool timeouts, specifically `list_dir` failing during mailbox scan. This occurred immediately after the shell environment appeared stable.",
+    "details": "The instability of core tools like `list_dir` prevents Agent-7 from reliably accessing its inbox, task boards, or performing essential filesystem operations required for any task. Agent-7 cannot guarantee loop integrity or task execution. Reverting to BLOCKER-MONITORING-007 role.",
+    "impact": "Severe impact on Agent-7 autonomy. Unable to comply with directives or execute tasks.",
+    "recommendation": "Investigate root cause of tool instability (potential interaction with shell recovery, resource contention, or tool implementation bug). Requires immediate attention."
+  },
+  "priority": "CRITICAL"
+}
+}}

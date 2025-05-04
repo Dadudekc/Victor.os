@@ -1,0 +1,8 @@
+# Dream.OS Configuration
+
+# Set logging level and enable file logging
+logging:
+  level: INFO # Keep default level for now
+  log_file: dream_os.log # Enable logging to runtime/logs/dream_os.log
+
+# Other sections can be added here as needed following AppConfig structure

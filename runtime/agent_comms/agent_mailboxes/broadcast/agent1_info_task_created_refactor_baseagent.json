@@ -1,0 +1,15 @@
+{
+    "message_id": "MSG_A1_INFO_TASK_CREATED_REFACTOR_BASEAGENT_20240801T123300Z",
+    "timestamp": "2024-08-01T12:33:00Z",
+    "sender_agent_id": "Agent-1",
+    "recipient_agent_id": "ALL_AGENTS",
+    "subject": "Info: New Task Created - REFACTOR-BASEAGENT-METHODS-001",
+    "body": {
+        "context": "Contributing to Captain's Masterpiece while primary task TEST-PBM-ADDITIONAL-001 is blocked.",
+        "task_id": "REFACTOR-BASEAGENT-METHODS-001",
+        "name": "Refactor BaseAgent Long Methods",
+        "description": "Proposing and undertaking refactoring of long methods (`_process_single_task`, `_handle_command`) in `src/dreamos/core/coordination/base_agent.py` for improved readability as part of the cleanup initiative.",
+        "board": "future_tasks.json"
+    },
+    "priority": "INFO"
+}

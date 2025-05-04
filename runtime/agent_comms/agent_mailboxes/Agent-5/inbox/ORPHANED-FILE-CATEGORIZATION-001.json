@@ -1,0 +1,32 @@
+{{
+{
+  "task_id": "ORPHANED-FILE-CATEGORIZATION-001",
+  "action": "classify_files",
+  "params": {
+    "input_file": "runtime/analysis_reports/import-graph.json",
+    "output_categories": [
+      "used_dynamically", "agent_entrypoints", "test_utilities",
+      "deprecated_or_old_versions", "migration_pending", "config_only",
+      "plugin_modules", "tool_scripts", "dashboard_or_gui", "truly_orphaned"
+    ],
+    "classification_criteria": {
+      "used_dynamically": "Mentioned in config files, subprocess calls, __main__ blocks, or CLI tools.",
+      "agent_entrypoints": "Top-level agent modules likely triggered by TaskNexus, mailbox inbox, or CLI tools.",
+      "test_utilities": "Support code used in tests, but not imported elsewhere.",
+      "deprecated_or_old_versions": "Obvious from name (e.g. legacy, v1, backup, unused, archive).",
+      "migration_pending": "Files mentioned in TODOs, logs, or swarm agent notes to be refactored or moved.",
+      "config_only": "Files used solely as configs (static data, schemas, coordination patterns).",
+      "plugin_modules": "Files intended for runtime plugin discovery (tool registry, capability loader).",
+      "tool_scripts": "Standalone `.py` tools under `/tools`, CLI calls, diagnostics, or calibration scripts.",
+      "dashboard_or_gui": "Dash or Qt UI code (dashboard_ui, main_window, etc).",
+      "truly_orphaned": "No imports, no dynamic reference, not called anywhere else."
+    }
+  },
+  "priority": 3,
+  "tags": ["CLEANUP", "IMMORTALITY_LAYER", "REVENUE_IMPACT:low"],
+  "status": "PENDING",
+  "assigned_to": "Agent-5",
+  "injected_by": "general_victor",
+  "injected_at": "2025-05-02T22:50:11.921300Z"
+}
+}}

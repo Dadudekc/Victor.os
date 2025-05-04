@@ -7,18 +7,23 @@ from .capability_registry import CapabilityRegistry
 
 logger = logging.getLogger(__name__)
 
+
 class CapabilityHandler:
     """Handles interactions with the CapabilityRegistry."""
 
     def __init__(self, capability_registry: Optional[CapabilityRegistry]):
         if capability_registry is None:
-            logger.warning("CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail.")
+            logger.warning(
+                "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."
+            )
         self.registry = capability_registry
 
     async def register_capability(self, capability: Any) -> bool:
         """Registers or updates a capability via the CapabilityRegistry."""
         if not self.registry:
-            logger.error("CapabilityRegistry not available. Cannot register capability.")
+            logger.error(
+                "CapabilityRegistry not available. Cannot register capability."
+            )
             return False
         try:
             return await asyncio.to_thread(
@@ -34,7 +39,9 @@ class CapabilityHandler:
     async def unregister_capability(self, agent_id: str, capability_id: str) -> bool:
         """Unregisters a capability via the CapabilityRegistry."""
         if not self.registry:
-            logger.error("CapabilityRegistry not available. Cannot unregister capability.")
+            logger.error(
+                "CapabilityRegistry not available. Cannot unregister capability."
+            )
             return False
         try:
             return await asyncio.to_thread(
@@ -65,7 +72,9 @@ class CapabilityHandler:
     async def get_agent_capabilities(self, agent_id: str) -> List[Any]:
         """Retrieves all capabilities for an agent via the CapabilityRegistry."""
         if not self.registry:
-            logger.error("CapabilityRegistry not available. Cannot get agent capabilities.")
+            logger.error(
+                "CapabilityRegistry not available. Cannot get agent capabilities."
+            )
             return []
         try:
             return await asyncio.to_thread(
@@ -84,9 +93,7 @@ class CapabilityHandler:
             logger.error("CapabilityRegistry not available. Cannot find capabilities.")
             return []
         try:
-            return await asyncio.to_thread(
-                self.registry.find_capabilities, query
-            )
+            return await asyncio.to_thread(self.registry.find_capabilities, query)
         except Exception as e:
             logger.error(
                 f"Error calling capability_registry.find_capabilities: {e}",
@@ -99,7 +106,9 @@ class CapabilityHandler:
     ) -> List[str]:
         """Finds agent IDs that offer a specific capability via the CapabilityRegistry."""
         if not self.registry:
-            logger.error("CapabilityRegistry not available. Cannot find agents for capability.")
+            logger.error(
+                "CapabilityRegistry not available. Cannot find agents for capability."
+            )
             return []
         try:
             return await asyncio.to_thread(
@@ -123,7 +132,9 @@ class CapabilityHandler:
     ) -> bool:
         """Updates capability status fields via the CapabilityRegistry."""
         if not self.registry:
-            logger.error("CapabilityRegistry not available. Cannot update capability status.")
+            logger.error(
+                "CapabilityRegistry not available. Cannot update capability status."
+            )
             return False
         try:
             return await asyncio.to_thread(
@@ -138,4 +149,4 @@ class CapabilityHandler:
                 f"Error calling capability_registry.update_capability_status: {e}",
                 exc_info=True,
             )
-            return False 
+            return False

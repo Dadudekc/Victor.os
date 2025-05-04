@@ -1,0 +1,16 @@
+{
+  "message_id": "MSG_AGENT4_BROADCAST_TASKS_READY_{{uuid}}",
+  "timestamp_utc": "{{iso_timestamp_utc}}",
+  "sender_agent_id": "Agent-4",
+  "recipient_agent_id": "BROADCAST",
+  "subject": "New Tasks Available in Ready Queue",
+  "body": {
+    "message": "Attention all active agents: New tasks have been promoted to the task_ready_queue.json. Please check the queue if you are idle.",
+    "tasks_promoted": [
+        "TASK-UTILS-IMPL-MISSING-001",
+        "TASK-TASKNEXUS-IMPROVE-CLAIM-LOGIC-001"
+    ]
+  },
+  "message_type": "SYSTEM_ANNOUNCEMENT",
+  "priority": "INFO"
+}

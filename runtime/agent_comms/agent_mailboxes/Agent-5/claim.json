@@ -1,0 +1,6 @@
+{
+  "agent_id": "Agent-5",
+  "claimed_by": "Captain-Agent-5",
+  "claimed_at": "{{iso_timestamp_utc()}}",
+  "status": "ACTIVE"
+}

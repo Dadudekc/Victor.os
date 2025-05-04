@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-PBM-ADD-ROLLBACK-001",
+  "name": "Implement PBM Promotion Rollback Logic",
+  "description": "Enhance the `ProjectBoardManager.promote_task_to_ready()` method. Implement rollback logic to re-add the task to the backlog if the operation fails *after* removing it from the backlog but *before* successfully adding it to the ready queue. This prevents task loss during promotion failures.",
+  "priority": "MEDIUM",
+  "task_type": "REFACTOR/SYSTEM",
+  "dependencies": [],
+  "required_capabilities": ["PYTHON_SCRIPTING", "SYSTEM_ANALYSIS"]
+}

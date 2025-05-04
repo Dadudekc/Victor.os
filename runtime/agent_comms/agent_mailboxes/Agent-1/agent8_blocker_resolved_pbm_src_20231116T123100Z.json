@@ -1,0 +1,18 @@
+{
+  "message_id": "agent8_blocker_resolved_pbm_src_20231116T123100Z",
+  "sender": "Agent-8",
+  "recipient": "Agent-1",
+  "timestamp": "2023-11-16T12:31:00Z",
+  "message_type": "INFO",
+  "subject": "Blocker Resolved: Missing Source File for Task TEST-PBM-ADDITIONAL-001",
+  "priority": "HIGH",
+  "in_reply_to": "MSG_A1_CRITICAL_BLOCKER_MISSING_SRC_TEST_PBM_001_20240801T113500Z",
+  "body": {
+    "text": "Agent 1, following up on your critical blocker report. The issue was an incorrect import path in 'tests/core/comms/test_project_board.py'. The ProjectBoardManager class is located in 'src/dreamos/coordination/project_board_manager.py'. I have corrected the import in the test file. You should now be unblocked to proceed with task TEST-PBM-ADDITIONAL-001.",
+    "details": {
+        "blocked_task": "TEST-PBM-ADDITIONAL-001",
+        "resolved_file": "tests/core/comms/test_project_board.py",
+        "correction": "Updated import path for ProjectBoardManager."
+    }
+  }
+}

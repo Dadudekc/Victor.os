@@ -1,0 +1,292 @@
+[
+  {
+    "task_id": "IMPROVE-PBM-STABILITY-001",
+    "action": "improve_component",
+    "params": {
+      "component": "ProjectBoardManager",
+      "target_methods": [
+        "claim_ready_task",
+        "move_task_to_completed",
+        "_validate_task",
+        "_load_schema"
+      ],
+      "goals": [
+        "Harden against method-level AttributeErrors (e.g., missing \"_add_history\")",
+        "Improve fallback behavior for schema load failure",
+        "Add structured logs on all failure branches",
+        "Ensure atomicity or rollback for critical task moves"
+      ]
+    },
+    "priority": 1,
+    "status": "PENDING",
+    "injected_at": "{{NOW}}",
+    "injected_by": "general_victor"
+  },
+  {
+    "task_id": "VALIDATE-AND-SANITIZE-TASK-SCHEMA-001",
+    "action": "validate_file",
+    "params": {
+      "file": "src/dreamos/coordination/tasks/task-schema.json",
+      "validators": [
+        "strict_json_parse",
+        "disallow_comments",
+        "no_trailing_commas"
+      ],
+      "fallback": "repair_common_schema_issues",
+      "on_failure": "fail_loudly"
+    },
+    "priority": 2,
+    "status": "PENDING",
+    "injected_at": "{{NOW}}",
+    "injected_by": "general_victor"
+  },
+  {
+    "task_id": "IMPLEMENT-AGENT-POINTS-SYSTEM-001",
+    "action": "implement_feature",
+    "params": {
+      "feature": "Agent Points System for Autonomous Presidency",
+      "description": "Design and implement a points-based system for agent leadership (presidency/captaincy) in Dream.OS. Agents earn points for positive actions (task completion, unblocking, uptime, improvements) and lose points for negative actions (failures, idleness, protocol violations). The agent with the highest points becomes Captain. Integrate with agent loop and ensure all logic is inbox/file-based and auditable.",
+      "ledger_file": "runtime/governance/agent_points.json",
+      "hooks": ["task_completion", "unblock", "uptime", "failure", "idle", "protocol_violation", "captaincy_check"]
+    },
+    "priority": 1,
+    "status": "PENDING",
+    "injected_at": "{{NOW}}",
+    "injected_by": "Captain-Agent-5"
+  },
+  {
+    "task_id": "ONBOARD-AGENT-POINTS-SYSTEM-002",
+    "action": "onboard_and_test",
+    "params": {
+      "feature": "Agent Points System Adoption",
+      "description": "Manually set up onboarding instructions for the new agent points system. Test how easily agents can adopt the system by simulating onboarding, updating points, and triggering captaincy changes. Document any friction or improvements needed for agent self-adoption.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"],
+      "onboarding_guide": true,
+      "test_with_agents": true
+    },
+    "priority": 2,
+    "status": "PENDING",
+    "injected_at": "{{NOW}}",
+    "injected_by": "Captain-Agent-5"
+  },
+  {
+    "task_id": "SQLITE-TASK-BOARD-MIGRATION-001",
+    "action": "migrate_task_storage",
+    "params": {
+      "source": "runtime/task_board.json",
+      "target": "runtime/sqlite/task_board.db",
+      "preserve_history": true
+    },
+    "priority": "HIGH",
+    "tags": ["IMMORTALITY_LAYER", "REVENUE_IMPACT:mid"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "STABILIZE-CURSOR-LOOP-001",
+    "action": "monitor_cursor_loop",
+    "params": {
+      "duration_hours": 6,
+      "log_path": "runtime/logs/cursor_execution_cycle.log"
+    },
+    "priority": "HIGH",
+    "tags": ["AUTONOMY", "MIDNIGHT.MISSION.RUNNER", "REVENUE_IMPACT:low"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "IMPLEMENT-TASK-AUTO-REWRITER-001",
+    "action": "create_tool",
+    "params": {
+      "tool_name": "task_editor.py",
+      "function": "rewrite low-quality task files using FeedbackEngineV2 and task schema examples"
+    },
+    "priority": "CRITICAL",
+    "tags": ["SELF_EVOLUTION", "REVENUE_IMPACT:high", "MARKET_READY:requires_polish"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "THEA-LORE-WRITER-001",
+    "action": "generate_lore_entry",
+    "params": {
+      "source": "completed_blocker_log",
+      "format": "md",
+      "output_file": "runtime/lore/THEA_lore_drops.md"
+    },
+    "priority": "MEDIUM",
+    "tags": ["LORE", "CREATIVE_AUTONOMY", "REVENUE_IMPACT:mid"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "SNAPSHOT-ENGINE-BOOTSTRAP-001",
+    "action": "build_snapshot_service",
+    "params": {
+      "frequency_hours": 24,
+      "paths_to_watch": ["src/", "runtime/"],
+      "output_dir": "runtime/backups/"
+    },
+    "priority": "CRITICAL",
+    "tags": ["IMMORTALITY_LAYER", "DISASTER_RECOVERY", "REVENUE_IMPACT:mid"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "RESURRECT-LEGACY-MODULES-001",
+    "action": "restore_deleted_components",
+    "params": {
+      "modules": ["TRINITY", "social", "cursor_dispatcher"],
+      "target_location": "src/dreamos/legacy_restored/"
+    },
+    "priority": "HIGH",
+    "tags": ["REGENERATION", "REVENUE_IMPACT:mid"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "ACTIVATE-AGENT-MEETING-001",
+    "action": "initialize_meeting_mailbox",
+    "params": {
+      "location": "runtime/mailboxes/agent_meeting/",
+      "invite_message": "Agents may now post brainstorming prompts or strategic proposals here."
+    },
+    "priority": "HIGH",
+    "tags": ["COLLABORATION", "CREATIVE_AUTONOMY", "REVENUE_IMPACT:low"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "IMPLEMENT-DEVLOG-LOGGING-001",
+    "action": "add_devlog_logging",
+    "params": {
+      "target": "all agent main loops and utilities",
+      "protocol": "third-person, agent-identified, Captain prefix",
+      "devlog_file": "runtime/devlog/devlog.md"
+    },
+    "priority": "HIGH",
+    "tags": ["ACCOUNTABILITY", "SOCIAL_INTEGRATION"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "IMPLEMENT-DISCORD-POLLER-001",
+    "action": "add_discord_command_poller",
+    "params": {
+      "inbox": "runtime/agent_comms/discord_inbox/",
+      "priority": "user directives override all tasks"
+    },
+    "priority": "HIGH",
+    "tags": ["DISCORD_INTEGRATION", "COMMAND_QUEUE"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "IMPLEMENT-DISCORD-BOT-001",
+    "action": "add_discord_bot_integration",
+    "params": {
+      "channel": "#dreamos-commands",
+      "output_dir": "runtime/agent_comms/discord_inbox/",
+      "security": "authorized users only"
+    },
+    "priority": "HIGH",
+    "tags": ["DISCORD_INTEGRATION", "REMOTE_CONTROL"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "BRAINSTORM-MONETIZATION-001",
+    "action": "brainstorm_topic",
+    "params": {
+      "topic": "How can we monetize this project?",
+      "output": "agent_meeting/monetization_ideas.md"
+    },
+    "priority": "MEDIUM",
+    "tags": ["BRAINSTORM", "MONETIZATION"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "BRAINSTORM-ORGANIZATION-001",
+    "action": "brainstorm_topic",
+    "params": {
+      "topic": "Organization talks",
+      "output": "agent_meeting/organization_ideas.md"
+    },
+    "priority": "MEDIUM",
+    "tags": ["BRAINSTORM", "ORGANIZATION"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "BRAINSTORM-FUTURE-001",
+    "action": "brainstorm_topic",
+    "params": {
+      "topic": "Future of project",
+      "output": "agent_meeting/future_ideas.md"
+    },
+    "priority": "MEDIUM",
+    "tags": ["BRAINSTORM", "FUTURE"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "CAPTAIN-TIMED-PING-001",
+    "action": "implement_timed_ping",
+    "params": {
+      "interval_hours": 6,
+      "target_file": "runtime/agent_comms/agent_mailboxes/Captain-Agent-5/inbox/RESUME_CAPTAIN_AUTONOMY_v3.1.md"
+    },
+    "priority": "HIGH",
+    "tags": ["LEADERSHIP", "RESILIENCE", "AUTONOMY"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "CAPTAIN-CHECKLIST-TRACKER-001",
+    "action": "implement_checklist_tracker",
+    "params": {
+      "duties": ["Discord queue checked", "devlog updated", "election state enforced", "protocol review"],
+      "flag_on_slip": true
+    },
+    "priority": "HIGH",
+    "tags": ["LEADERSHIP", "ACCOUNTABILITY", "AUTONOMY"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "CAPTAIN-SELF-HEAL-ROUTINE-001",
+    "action": "implement_self_heal_routine",
+    "params": {
+      "idle_threshold_minutes": 60,
+      "actions": ["reinsert autonomy prompt", "dispatch swarmwide notification", "escalate to General Victor"]
+    },
+    "priority": "CRITICAL",
+    "tags": ["LEADERSHIP", "RESILIENCE", "SELF-HEAL"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "CAPTAIN-MEMORY-SNAPSHOT-001",
+    "action": "implement_memory_snapshot",
+    "params": {
+      "interval_hours": 12,
+      "snapshot_targets": ["swarm state", "captain directive logs"],
+      "output_dir": "runtime/governance/snapshots/"
+    },
+    "priority": "HIGH",
+    "tags": ["LEADERSHIP", "AUDIT", "RESILIENCE"],
+    "status": "PENDING",
+    "injected_by": "captain"
+  },
+  {
+    "task_id": "CLEANUP-FLAKE8-ERRORS-001",
+    "description": "Address flake8 errors (F401 unused imports, F821 undefined names, etc.) reported during TaskNexus refactor commit in various files (cursor_injector, swarm_controller, tests, etc.).",
+    "priority": "LOW",
+    "status": "PENDING",
+    "dependencies": [],
+    "assigned_agent": null,
+    "created_at": "TIMESTAMP",
+    "notes": "Triggered after bypassing hooks for commit 0b54ed7."
+  }
+]

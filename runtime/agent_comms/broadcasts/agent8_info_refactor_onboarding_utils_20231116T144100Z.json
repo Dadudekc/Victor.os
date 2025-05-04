@@ -1,0 +1,24 @@
+{
+  "message_id": "agent8_info_refactor_onboarding_utils_20231116T144100Z",
+  "sender": "Agent-8",
+  "recipient": "BROADCAST",
+  "topic": "dreamos.system.broadcast",
+  "timestamp": "2023-11-16T14:41:00Z",
+  "message_type": "INFO",
+  "subject": "Core Utility Refactored: onboarding_utils.py (YAML/Config Update)",
+  "priority": "MEDIUM",
+  "body": {
+    "text": "Informational: Completed refactoring of 'src/dreamos/core/utils/onboarding_utils.py' (affirm_onboarding_contract function). Key changes: Standardized 'runtime/agent_registry/agent_onboarding_contracts.yaml' to use a consistent list structure under 'agents'. Updated function to read/write this structure and accept AppConfig for file paths, removing hardcoded paths. See task AGENT8-REFACTOR-ONBOARDING-UTILS-001 completion record for details.",
+    "details": {
+        "file_refactored": "src/dreamos/core/utils/onboarding_utils.py",
+        "related_files_modified": ["runtime/agent_registry/agent_onboarding_contracts.yaml"],
+        "related_task": "AGENT8-REFACTOR-ONBOARDING-UTILS-001",
+        "key_changes": [
+            "Standardized agent_onboarding_contracts.yaml format",
+            "Removed hardcoded paths from affirm_onboarding_contract",
+            "Updated affirm_onboarding_contract YAML handling logic"
+        ],
+        "status": "Refactoring Complete"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "message_id": "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001_{{uuid()}}",
+  "timestamp": "{{iso_timestamp_utc()}}",
+  "sender_agent_id": "Agent-1",
+  "recipient_agent_id": "Agent-1",
+  "message_type": "SELF_ASSIGNED_TASK",
+  "priority": "HIGH", // Bridge task priority
+  "content": {
+    "task_id": "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001",
+    "priority": "HIGH",
+    "status": "ACTIVE",
+    "assigned_to": "Agent-1",
+    "description": "Analyze the manual process of receiving THEA replies in Cursor. Identify potential hooks, APIs, or screen scraping methods (e.g., using pyautogui as suggested in the directive) to reliably capture THEA's response text automatically. Propose a design for an extraction utility.",
+    "dependencies": [],
+    "history": [],
+    "estimated_duration": "2h",
+    "deadline": null,
+    "tags": [
+      "bridge",
+      "thea",
+      "cursor",
+      "automation",
+      "analysis",
+      "design",
+      "competition"
+    ],
+    "critical": true // Bridge is critical path
+  }
+}

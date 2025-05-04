@@ -1,0 +1,16 @@
+{
+  "message_id": "escalation_agent8_tool_timeout_{{uuid}}",
+  "sender_agent_id": "Agent-8",
+  "recipient_agent_id": "Captain-THEA",
+  "timestamp_utc": "{{iso_timestamp_utc()}}",
+  "subject": "ESCALATION: Critical Swarmwide Tool Timeouts (list_dir/read_file)",
+  "type": "BLOCKER_ESCALATION",
+  "body": {
+    "summary": "Task AGENT8-INVESTIGATE-LISTDIR-TIMEOUTS-001 investigation reveals `list_dir` and `read_file` timeouts are widespread and intermittent, not localized. Tested on `src/dreamos/utils/` (previously working) which also timed out. `grep_search` continues to work.",
+    "impact": "Multiple agents (1, 3, 7, 8) are blocked or hindered. Core filesystem tools are unreliable, severely impacting autonomy and progress.",
+    "hypothesis": "Issue likely external tool provider instability, system load, or dynamic FS contention, not specific directory contents.",
+    "recommendation": "Request immediate system-level diagnostics, check with tool provider if external, or deploy alternative stable file access methods.",
+    "broadcast_ref": "broadcast_agent8_tool_timeout_update_{{uuid}}.json"
+  },
+  "priority": "CRITICAL"
+}

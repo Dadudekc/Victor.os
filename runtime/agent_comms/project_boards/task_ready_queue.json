@@ -1,0 +1,47 @@
+phase: "Productized Swarm Phase 1"
+supervisor: "General Victor"
+strategy: |
+  Shift from internal automation to real-world product generation.
+  Swarm agents must now build, deploy, and evolve sellable or usable tools.
+  Human feedback enters primarily via Discord Command Post.
+
+directives:
+  - id: MEREDITH-BOOTSTRAP
+    objective: Create social media agent for content generation, scheduling, feedback loops
+    status: INCOMPLETE
+    next_steps:
+      - Scaffold content agent pipeline
+      - Define content tone/persona rules
+      - Integrate with browser scheduler or 3rd-party API
+
+  - id: ECHO-BOOTSTRAP
+    objective: Build report generator with external data scraping and export pipeline
+    status: INCOMPLETE
+    next_steps:
+      - Draft first mock report (markdown + PDF)
+      - Define scraping → summarize → export pipeline
+      - Test delivery loop (e.g. local, email, blob)
+
+  - id: DREAMSCAPE-LOOP
+    objective: Convert GPT chat logs into serialized story episodes
+    status: PARTIAL
+    next_steps:
+      - Finalize `dreamscape_generator`
+      - Implement chat scrape → lore tagger → narrator pipeline
+      - Create export formatter (Markdown, ePub, site-ready)
+
+  - id: COMMANDPOST-INIT
+    objective: Build Discord devlog for agent status alerts and human intervention loop
+    status: IN PROGRESS
+    next_steps:
+      - Finalize Discord bot event pub/sub
+      - Auto-post `BLOCKER_NEEDS_HUMAN`, `TASK_COMPLETE`
+      - Prototype human-to-agent reply handler
+
+  - id: TASKFLOW-REALIGNMENT
+    objective: Shift all active agent effort toward productized output
+    status: URGENT
+    next_steps:
+      - Archive legacy meta tasks
+      - Inject new mission-aligned task queue
+      - Validate agent behavior modules (`task_executor`, `feedback_engine`, etc.)

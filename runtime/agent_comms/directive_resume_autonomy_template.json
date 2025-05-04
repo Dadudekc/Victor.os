@@ -1,0 +1,22 @@
+{
+  "message_id": "directive-resume-autonomy-{{uuid}}",
+  "sender": "Supervisor",
+  "recipient": "{{AgentName}}",
+  "subject": "Directive: Resume Autonomous Operations Cycle",
+  "body": {
+    "directive_code": "RESUME_AUTONOMY",
+    "details": "You are directed to resume your standard autonomous operational cycle immediately.",
+    "instructions": [
+      "1. **Check Mailbox:** Process any unread messages in your inbox.",
+      "2. **Scan Project Boards:** Read `working_tasks.json` and `future_tasks.json` to understand the current state and identify assigned tasks.",
+      "3. **Task Evaluation:** Analyze tasks assigned to you or available tasks matching your capabilities. Prioritize based on urgency, status ('PENDING', 'REOPENED', 'CLAIMED' by you), and dependencies.",
+      "4. **Task Selection & Claim:** Identify the highest-priority, actionable task you can perform. If it's not already assigned to you or claimed, claim it following standard protocols (e.g., updating the relevant task board atomically).",
+      "5. **Execute or Monitor:**",
+      "   - If a task is selected, begin execution according to its description and standard procedures.",
+      "   - If no actionable tasks are available, report your status (e.g., 'IDLE - MONITORING'), and enter a monitoring state, periodically re-checking boards/mailbox for new assignments.",
+      "6. **Reporting:** Follow standard protocols for reporting progress, completion, or any issues encountered.",
+      "7. **Adherence:** Strictly adhere to all operational guidelines, communication standards (JSON mailbox format), and safety protocols."
+    ]
+  },
+  "timestamp_utc": "{{iso_timestamp_utc}}"
+}

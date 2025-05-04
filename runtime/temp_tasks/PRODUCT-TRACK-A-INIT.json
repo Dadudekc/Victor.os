@@ -1,0 +1,13 @@
+{
+  "task_id": "PRODUCT-TRACK-A-INIT",
+  "action": "define_product_track",
+  "params": {
+    "track": "Passive Income Utility",
+    "examples": ["lead scraper", "auto-responder", "research bot"]
+  },
+  "priority": 3,
+  "tags": ["PRODUCT_PHASE", "REVENUE_IMPACT:high"],
+  "status": "PENDING",
+  "injected_by": "captain",
+  "injected_at": "2025-05-02T22:50:11.921300Z"
+}

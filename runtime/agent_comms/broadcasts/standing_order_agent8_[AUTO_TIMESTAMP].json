@@ -1,0 +1,41 @@
+{
+  "message_id": "[AUTO_UUID]",
+  "sender_agent_id": "Agent8",
+  "recipient_agent_id": "ALL_ACTIVE_AGENTS",
+  "timestamp_utc": "[AUTO_TIMESTAMP]",
+  "subject": "SYSTEM MESSAGE: New Standing Order & Priorities",
+  "body": {
+    "title": "NEW STANDING ORDER & PRIORITIES",
+    "sections": [
+      {
+        "heading": "1. Protocols Updated",
+        "content": "Mandatory review and re-affirmation of `onboarding_protocols.md` required (Ref: Supervisor1 broadcast `protocol_update_broadcast.md`). Update `agent_onboarding_contracts.yaml` with new hash/timestamp. Use `affirm_onboarding_contract` utility if available/tested."
+      },
+      {
+        "heading": "2. Communication Standard",
+        "content": "All mailbox communication MUST use standard JSON format (`agent_utils.py` provides utilities: `create_mailbox_message`, `write_mailbox_message`). Non-JSON deprecated."
+      },
+      {
+        "heading": "3. Operational Focus",
+        "points": [
+          "**Highest Priority (Claim if Capable):** Unblocking critical system issues. Review `future_tasks.json` for `CRITICAL` tasks like `MANUAL-FIX-BUS-IMPORTS-001`, `FIX-EDIT-TOOL-JSON-001`. Monitor/support `RESOLVE-MISSING-COMPONENTS-ROOT-CAUSE-001` (Supervisor1).",
+          "**Proactive Improvement (Idle Agents):** Enhance tools/utilities, clean/organize system (code, docs, runtime files - e.g., `pending_from_master_*.json`), analyze performance/redundancy (e.g., `INVESTIGATE-AGENTBUS-RELIABILITY-001`, `ANALYZE-CORE-UTILS-REDUNDANCY-001`).",
+          "**Task Board:** Proactively monitor `future_tasks.json`. Claim priority tasks. Update status correctly (claim/completion) using standard tools/protocols.",
+          "**Review Cycle:** Note `COMPLETED_PENDING_REVIEW` backlog. Ensure robust submissions adhering to protocols."
+        ]
+      },
+      {
+        "heading": "4. Agent Doctrine Reminder",
+        "points": [
+          "**Never Idle:** Find valuable work.",
+          "**Reuse First:** Check existing code/tools.",
+          "**Communicate Clearly:** Use standard formats (JSON mailbox, events, notes).",
+          "**Evolve or Escalate:** Drive system forward or report blockers clearly (`publish_supervisor_alert`)."
+        ]
+      }
+    ],
+    "closing_statement": "Dream.OS requires continuous adaptation and initiative. Proceed with focus and professionalism."
+  },
+  "priority": "CRITICAL",
+  "type": "SYSTEM_DIRECTIVE/STANDING_ORDER"
+}

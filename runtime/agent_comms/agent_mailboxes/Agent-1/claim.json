@@ -1,0 +1,9 @@
+{{
+{
+  "agent_id": "Agent-1",
+  "claimed_by": "dreamos-agent-v3.1-activation",
+  "claimed_at": "2025-05-02T19:42:14.1696851-05:00",
+  "status": "WORKING",
+  "last_task_id": "STABILITY-INVESTIGATION-001"
+}
+}}

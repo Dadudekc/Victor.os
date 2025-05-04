@@ -12,6 +12,7 @@ from filelock import Timeout as LockAcquisitionError
 
 logger = logging.getLogger(__name__)
 
+
 class AgentRegistryHandler:
     """Handles agent heartbeat recording, registry loading/saving, and stale task reclamation."""
 
@@ -23,10 +24,12 @@ class AgentRegistryHandler:
         working_tasks_path: Path,
         future_tasks_path: Path,
         working_tasks_lock_path: Path,
-        future_tasks_lock_path: Path
+        future_tasks_lock_path: Path,
     ):
         self.agent_registry_path = registry_path
-        self.agent_registry_lock_path = registry_path.with_suffix(registry_path.suffix + ".lock")
+        self.agent_registry_lock_path = registry_path.with_suffix(
+            registry_path.suffix + ".lock"
+        )
         self.lock_timeout = lock_timeout
         self.heartbeat_ttl = heartbeat_ttl
         self.working_tasks_path = working_tasks_path
@@ -34,7 +37,7 @@ class AgentRegistryHandler:
         self.working_tasks_lock_path = working_tasks_lock_path
         self.future_tasks_lock_path = future_tasks_lock_path
 
-        self.agents: Dict[str, float] = {} # In-memory cache
+        self.agents: Dict[str, float] = {}  # In-memory cache
 
         logger.info(
             f"AgentRegistryHandler initialized for {self.agent_registry_path} "
@@ -55,11 +58,15 @@ class AgentRegistryHandler:
             async with filelock.FileLock(str(lock_path), timeout=self.lock_timeout):
                 content = await asyncio.to_thread(file_path.read_text, encoding="utf-8")
                 if not content.strip():
-                    logger.warning(f"Registry file is empty: {file_path}. Returning default.")
+                    logger.warning(
+                        f"Registry file is empty: {file_path}. Returning default."
+                    )
                     return default_return
                 loaded_data = json.loads(content)
                 if not isinstance(loaded_data, dict):
-                    logger.error(f"Registry file {file_path} did not contain a dictionary. Returning default.")
+                    logger.error(
+                        f"Registry file {file_path} did not contain a dictionary. Returning default."
+                    )
                     return default_return
                 # Convert timestamps to float, handle potential errors
                 agents_data = {}
@@ -67,14 +74,21 @@ class AgentRegistryHandler:
                     try:
                         agents_data[str(k)] = float(v)
                     except (ValueError, TypeError):
-                        logger.warning(f"Invalid timestamp value '{v}' for agent '{k}' in {file_path}. Skipping.")
+                        logger.warning(
+                            f"Invalid timestamp value '{v}' for agent '{k}' in {file_path}. Skipping."
+                        )
                 return agents_data
         except json.JSONDecodeError:
-            logger.error(f"Failed to decode JSON from {file_path}. Returning default.", exc_info=True)
+            logger.error(
+                f"Failed to decode JSON from {file_path}. Returning default.",
+                exc_info=True,
+            )
             return default_return
         except LockAcquisitionError:
-            logger.error(f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning cached.")
-            return dict(self.agents) # Return potentially stale cache on timeout
+            logger.error(
+                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning cached."
+            )
+            return dict(self.agents)  # Return potentially stale cache on timeout
         except Exception as e:
             logger.error(f"Failed to load file {file_path}: {e}", exc_info=True)
             return default_return
@@ -84,20 +98,30 @@ class AgentRegistryHandler:
         temp_path = None
         try:
             async with filelock.FileLock(str(lock_path), timeout=self.lock_timeout):
-                await asyncio.to_thread(file_path.parent.mkdir, parents=True, exist_ok=True)
+                await asyncio.to_thread(
+                    file_path.parent.mkdir, parents=True, exist_ok=True
+                )
                 temp_path = file_path.with_suffix(f"{file_path.suffix}.tmp")
                 json_string = json.dumps(data, indent=2)
-                await asyncio.to_thread(temp_path.write_text, json_string, encoding="utf-8")
+                await asyncio.to_thread(
+                    temp_path.write_text, json_string, encoding="utf-8"
+                )
                 await asyncio.to_thread(os.replace, temp_path, file_path)
                 logger.debug(f"Successfully saved data to {file_path}")
                 return True
         except LockAcquisitionError:
-            logger.error(f"Timeout saving {file_path}: Could not acquire lock {lock_path}.")
+            logger.error(
+                f"Timeout saving {file_path}: Could not acquire lock {lock_path}."
+            )
             return False
         except Exception as e:
             if temp_path and await asyncio.to_thread(temp_path.exists):
-                try: await asyncio.to_thread(os.remove, temp_path)
-                except OSError: logger.error(f"Failed to remove temp file {temp_path}", exc_info=True)
+                try:
+                    await asyncio.to_thread(os.remove, temp_path)
+                except OSError:
+                    logger.error(
+                        f"Failed to remove temp file {temp_path}", exc_info=True
+                    )
             logger.error(f"Failed to save file {file_path}: {e}", exc_info=True)
             return False
 
@@ -108,18 +132,26 @@ class AgentRegistryHandler:
 
     async def _save_agents(self) -> bool:
         """Saves the current in-memory agent registry asynchronously."""
-        return await self._save_json(self.agent_registry_path, self.agent_registry_lock_path, self.agents)
+        return await self._save_json(
+            self.agent_registry_path, self.agent_registry_lock_path, self.agents
+        )
 
-    async def record_heartbeat(self, agent_name: str, timestamp: Optional[float] = None) -> bool:
+    async def record_heartbeat(
+        self, agent_name: str, timestamp: Optional[float] = None
+    ) -> bool:
         """Record or update the heartbeat timestamp for the given agent."""
         if timestamp is None:
             timestamp = time.time()
         try:
-            async with filelock.FileLock(str(self.agent_registry_lock_path), timeout=self.lock_timeout):
+            async with filelock.FileLock(
+                str(self.agent_registry_lock_path), timeout=self.lock_timeout
+            ):
                 # Load latest state, update, and save within the lock
-                current_agents = await self._load_json_registry() # Use direct load method inside lock
+                current_agents = (
+                    await self._load_json_registry()
+                )  # Use direct load method inside lock
                 current_agents[agent_name] = timestamp
-                self.agents = current_agents # Update cache
+                self.agents = current_agents  # Update cache
                 save_ok = await self._save_json(
                     self.agent_registry_path, self.agent_registry_lock_path, self.agents
                 )
@@ -127,19 +159,27 @@ class AgentRegistryHandler:
                     logger.debug(f"Recorded heartbeat for {agent_name}")
                     return True
                 else:
-                    logger.error(f"Failed to save agent registry after recording heartbeat for {agent_name}.")
+                    logger.error(
+                        f"Failed to save agent registry after recording heartbeat for {agent_name}."
+                    )
                     return False
         except LockAcquisitionError:
-            logger.error(f"Timeout recording heartbeat for {agent_name}: Could not acquire lock.")
+            logger.error(
+                f"Timeout recording heartbeat for {agent_name}: Could not acquire lock."
+            )
             return False
         except Exception as e:
-            logger.error(f"Failed to record heartbeat for {agent_name}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to record heartbeat for {agent_name}: {e}", exc_info=True
+            )
             return False
 
-    async def get_all_registered_agents(self, force_reload: bool = False) -> Dict[str, float]:
+    async def get_all_registered_agents(
+        self, force_reload: bool = False
+    ) -> Dict[str, float]:
         """Return a dict of agent names to last heartbeat timestamps (purges stale)."""
-        if force_reload or not self.agents: # Reload if cache empty or forced
-           await self._load_agents()
+        if force_reload or not self.agents:  # Reload if cache empty or forced
+            await self._load_agents()
 
         # Filter cached agents based on TTL
         current_time = time.time()
@@ -158,24 +198,35 @@ class AgentRegistryHandler:
         """Loads a specific task board JSON file asynchronously using its lock."""
         default_return = []
         if not await asyncio.to_thread(file_path.exists):
-            logger.warning(f"Task board file not found: {file_path}. Returning default.")
+            logger.warning(
+                f"Task board file not found: {file_path}. Returning default."
+            )
             return default_return
         try:
             async with filelock.FileLock(str(lock_path), timeout=self.lock_timeout):
                 content = await asyncio.to_thread(file_path.read_text, encoding="utf-8")
                 if not content.strip():
-                    logger.warning(f"Task board file is empty: {file_path}. Returning default.")
+                    logger.warning(
+                        f"Task board file is empty: {file_path}. Returning default."
+                    )
                     return default_return
                 loaded_data = json.loads(content)
                 if not isinstance(loaded_data, list):
-                    logger.error(f"Task board file {file_path} did not contain a list. Returning default.")
+                    logger.error(
+                        f"Task board file {file_path} did not contain a list. Returning default."
+                    )
                     return default_return
                 return loaded_data
         except json.JSONDecodeError:
-            logger.error(f"Failed to decode JSON from {file_path}. Returning default.", exc_info=True)
+            logger.error(
+                f"Failed to decode JSON from {file_path}. Returning default.",
+                exc_info=True,
+            )
             return default_return
         except LockAcquisitionError:
-            logger.error(f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning default.")
+            logger.error(
+                f"Timeout loading {file_path}: Could not acquire lock {lock_path}. Returning default."
+            )
             return default_return
         except Exception as e:
             logger.error(f"Failed to load file {file_path}: {e}", exc_info=True)
@@ -187,25 +238,50 @@ class AgentRegistryHandler:
         try:
             # Acquire all necessary locks simultaneously using contextlib.AsyncExitStack if needed,
             # but simple nesting is fine for a fixed number of locks.
-            async with filelock.FileLock(str(self.agent_registry_lock_path), timeout=self.lock_timeout):
-                async with filelock.FileLock(str(self.working_tasks_lock_path), timeout=self.lock_timeout):
-                    async with filelock.FileLock(str(self.future_tasks_lock_path), timeout=self.lock_timeout):
+            async with filelock.FileLock(
+                str(self.agent_registry_lock_path), timeout=self.lock_timeout
+            ):
+                async with filelock.FileLock(
+                    str(self.working_tasks_lock_path), timeout=self.lock_timeout
+                ):
+                    async with filelock.FileLock(
+                        str(self.future_tasks_lock_path), timeout=self.lock_timeout
+                    ):
 
                         now = time.time()
-                        agents = await self._load_json_registry() # Load latest agents inside locks
-                        working_tasks = await self._load_task_board(self.working_tasks_path, self.working_tasks_lock_path)
-                        future_tasks = await self._load_task_board(self.future_tasks_path, self.future_tasks_lock_path)
+                        agents = (
+                            await self._load_json_registry()
+                        )  # Load latest agents inside locks
+                        working_tasks = await self._load_task_board(
+                            self.working_tasks_path, self.working_tasks_lock_path
+                        )
+                        future_tasks = await self._load_task_board(
+                            self.future_tasks_path, self.future_tasks_lock_path
+                        )
 
                         tasks_to_move = []
                         remaining_working_tasks = []
 
                         for task in working_tasks:
-                            if str(task.get("status", "")).upper() in ["WORKING", "CLAIMED"]:
-                                agent = task.get("assigned_agent", task.get("claimed_by"))
+                            if str(task.get("status", "")).upper() in [
+                                "WORKING",
+                                "CLAIMED",
+                            ]:
+                                agent = task.get(
+                                    "assigned_agent", task.get("claimed_by")
+                                )
                                 last_hb = agents.get(agent)
-                                if agent is None or last_hb is None or (now - last_hb) > self.heartbeat_ttl:
-                                    task_id = task.get("task_id", task.get("id", "UNKNOWN"))
-                                    logger.warning(f"Reclaiming stale task {task_id} claimed by {agent} (Last HB: {last_hb})")
+                                if (
+                                    agent is None
+                                    or last_hb is None
+                                    or (now - last_hb) > self.heartbeat_ttl
+                                ):
+                                    task_id = task.get(
+                                        "task_id", task.get("id", "UNKNOWN")
+                                    )
+                                    logger.warning(
+                                        f"Reclaiming stale task {task_id} claimed by {agent} (Last HB: {last_hb})"
+                                    )
                                     task["status"] = "PENDING"
                                     task.pop("claimed_by", None)
                                     task.pop("assigned_agent", None)
@@ -213,7 +289,9 @@ class AgentRegistryHandler:
                                         f"(Reclaimed due to agent timeout at {datetime.now(timezone.utc).isoformat()}) "
                                         + task.get("notes", "")
                                     )
-                                    task["timestamp_updated"] = datetime.now(timezone.utc).isoformat()
+                                    task["timestamp_updated"] = datetime.now(
+                                        timezone.utc
+                                    ).isoformat()
                                     tasks_to_move.append(task)
                                     reclaimed.append(task)
                                 else:
@@ -224,17 +302,31 @@ class AgentRegistryHandler:
                         if reclaimed:
                             future_tasks.extend(tasks_to_move)
                             # Save must happen within the locks
-                            save_working_ok = await self._save_json(self.working_tasks_path, self.working_tasks_lock_path, remaining_working_tasks)
-                            save_future_ok = await self._save_json(self.future_tasks_path, self.future_tasks_lock_path, future_tasks)
+                            save_working_ok = await self._save_json(
+                                self.working_tasks_path,
+                                self.working_tasks_lock_path,
+                                remaining_working_tasks,
+                            )
+                            save_future_ok = await self._save_json(
+                                self.future_tasks_path,
+                                self.future_tasks_lock_path,
+                                future_tasks,
+                            )
 
                             if save_working_ok and save_future_ok:
-                                logger.info(f"Reclaimed and moved {len(reclaimed)} stale tasks.")
+                                logger.info(
+                                    f"Reclaimed and moved {len(reclaimed)} stale tasks."
+                                )
                             else:
-                                logger.critical("CRITICAL: Failed to save one or both boards after reclaiming tasks!")
+                                logger.critical(
+                                    "CRITICAL: Failed to save one or both boards after reclaiming tasks!"
+                                )
                                 # State might be inconsistent
         except LockAcquisitionError:
-            logger.error("Timeout reclaiming stale tasks: Could not acquire all necessary locks.")
+            logger.error(
+                "Timeout reclaiming stale tasks: Could not acquire all necessary locks."
+            )
         except Exception as e:
             logger.error(f"Error reclaiming stale tasks: {e}", exc_info=True)
 
-        return reclaimed 
+        return reclaimed

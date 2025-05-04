@@ -1,0 +1,17 @@
+[
+  {
+    "id": "task1",
+    "status": "PENDING",
+    "value": 1
+  },
+  {
+    "id": "task2",
+    "status": "WORKING",
+    "value": 2
+  },
+  {
+    "id": "task3",
+    "status": "PENDING",
+    "value": 3
+  }
+]

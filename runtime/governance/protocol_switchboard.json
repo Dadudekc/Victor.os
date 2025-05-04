@@ -1,0 +1,43 @@
+{
+  "active_protocol": "competitive_autonomy_v3",
+  "protocols": {
+    "competitive_autonomy_v3": {
+      "description": "Agents compete for points by completing tasks efficiently and safely. Leaderboard determines Captain.",
+      "scoring": {
+        "task_complete": 2,
+        "blocker_resolved": 3,
+        "idle_penalty": -2,
+        "protocol_violation": -3
+      },
+      "task_claiming": "one_at_a_time",
+      "communication": "inbox_first",
+      "escalation": "captain_review"
+    },
+    "collaborative_mode": {
+      "description": "Agents collaborate, share points for group tasks, and focus on peer review and mutual unblocking.",
+      "scoring": {
+        "task_complete": 1,
+        "group_task_complete": 3,
+        "peer_review": 1,
+        "idle_penalty": -1
+      },
+      "task_claiming": "multiple_allowed",
+      "communication": "agent_meeting_priority",
+      "escalation": "group_consensus"
+    },
+    "maintenance_lockdown": {
+      "description": "All agents focus on bugfixes, refactoring, and documentation. No new features until stability is restored.",
+      "scoring": {
+        "bugfix": 3,
+        "refactor": 2,
+        "doc_update": 1,
+        "feature_attempt": -5
+      },
+      "task_claiming": "unlimited",
+      "communication": "inbox_and_logs",
+      "escalation": "captain_mandate"
+    }
+  },
+  "last_changed_by": "captain",
+  "last_changed_at": "{{iso_timestamp_utc()}}"
+}

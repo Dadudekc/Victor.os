@@ -1,0 +1,20 @@
+{
+  "task_id": "FIX-MAILBOXHANDLER-IMPORTS-ASYNC-001",
+  "name": "Fix MailboxHandler Imports and Ensure Async Consistency",
+  "description": "Correct the import statements in `src/dreamos/core/comms/mailbox.py` (MailboxHandler) to point to the async utility functions in `src/dreamos/core/comms/mailbox_utils.py` instead of `agent_utils.py`. Ensure methods within MailboxHandler that call these utilities are marked `async` and awaited correctly.",
+  "priority": "MEDIUM",
+  "status": "PENDING",
+  "assigned_agent": "Agent-2",
+  "created_by": "Agent-2",
+  "timestamp_created_utc": "{{iso_timestamp_utc()}}",
+  "dependencies": [],
+  "related_tasks": ["REFACTOR-MAILBOX-ASYNC-001"],
+  "estimated_effort_points": 2, // Lower estimate as it's mainly fixing imports/consistency
+  "acceptance_criteria": [
+    "`mailbox.py` imports `read_mailbox_message`, `write_mailbox_message`, etc. from `mailbox_utils.py`.",
+    "Methods in `MailboxHandler` using these utilities are `async def`.",
+    "Calls to these utilities within `MailboxHandler` use `await`.",
+    "Relevant unit tests pass or are updated."
+  ],
+  "notes": "Supersedes REFACTOR-MAILBOX-ASYNC-001 based on discovery that utils were already async but imports were wrong."
+}

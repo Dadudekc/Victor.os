@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-UTILS-IMPL-MISSING-001",
+  "name": "Implement Missing Core Utility Modules",
+  "description": "Re-implement missing core utility modules (`coords.py`, `project_root.py`, `validation.py`) in `src/dreamos/utils/`. Base implementation on likely original purpose (coordinate loading, project root detection, general data validation) or current system needs. Restore the corresponding imports in `src/dreamos/utils/__init__.py` after implementation.",
+  "priority": "HIGH",
+  "task_type": "IMPLEMENTATION/REPAIR",
+  "dependencies": [],
+  "required_capabilities": ["PYTHON_SCRIPTING", "FILE_EDIT", "SYSTEM_ANALYSIS"]
+}

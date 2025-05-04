@@ -1,0 +1,685 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "phase": "Audit & Classification",
+      "description": "Create an /audit folder in the project root for storing audit outputs",
+      "details": "Use git to create a new directory named audit to keep intermediate artifacts",
+      "status": "todo"
+    },
+    {
+      "id": 2,
+      "phase": "Audit & Classification",
+      "description": "Generate a full file manifest JSON at /audit/manifest.json",
+      "details": "Run a script to scan /src recursively and output file paths, sizes, and types into audit/manifest.json",
+      "status": "todo"
+    },
+    {
+      "id": 3,
+      "phase": "Audit & Classification",
+      "description": "Generate an import graph and save to /audit/import-graph.json",
+      "details": "Use a tool like madge or dependency-cruiser to produce a JSON graph of module imports",
+      "status": "todo"
+    },
+    {
+      "id": 4,
+      "phase": "Audit & Classification",
+      "description": "Identify orphaned files with no incoming imports",
+      "details": "Analyze the import graph to find files not referenced by any other file and list them in audit/orphaned-files.json",
+      "status": "todo"
+    },
+    {
+      "id": 5,
+      "phase": "Audit & Classification",
+      "description": "Export the list of orphaned files to /audit/orphaned-files.json",
+      "details": "Write the orphaned list JSON and verify it includes full file paths",
+      "status": "todo"
+    },
+    {
+      "id": 6,
+      "phase": "Audit & Classification",
+      "description": "Classify all files by domain (feature, shared, assets)",
+      "details": "Annotate each file in the manifest with a domain tag based on its path or content",
+      "status": "todo"
+    },
+    {
+      "id": 7,
+      "phase": "Audit & Classification",
+      "description": "Generate domain mapping JSON at /audit/domains.json",
+      "details": "Output a JSON file grouping each file by its assigned domain for review",
+      "status": "todo"
+    },
+    {
+      "id": 8,
+      "phase": "Audit & Classification",
+      "description": "Analyze asset usage and generate /audit/assets-usage.json",
+      "details": "Scan code for asset imports and record usage counts per asset file",
+      "status": "todo"
+    },
+    {
+      "id": 9,
+      "phase": "Audit & Classification",
+      "description": "Identify unused asset files not referenced in code",
+      "details": "Compare asset list to assets-usage and list unused assets in /audit/unreferenced-assets.json",
+      "status": "todo"
+    },
+    {
+      "id": 10,
+      "phase": "Audit & Classification",
+      "description": "Export unused assets list to /audit/unreferenced-assets.json",
+      "details": "Ensure the JSON file contains full paths and usage count zero",
+      "status": "todo"
+    },
+    {
+      "id": 11,
+      "phase": "Audit & Classification",
+      "description": "Compile a human-readable audit summary at /audit/summary.md",
+      "details": "Summarize key findings (orphaned files, unused assets, domain breakdown) in markdown",
+      "status": "todo"
+    },
+    {
+      "id": 12,
+      "phase": "Audit & Classification",
+      "description": "Commit all audit artifacts to a review branch",
+      "details": "Use git to add /audit folder, commit with message 'chore:audit project structure', and push for review",
+      "status": "todo"
+    },
+    {
+      "id": 13,
+      "phase": "Conventions & Naming",
+      "description": "Create /docs/naming.md to document file and naming conventions",
+      "details": "Add a new markdown file specifying casing rules and suffix patterns for all code types",
+      "status": "todo"
+    },
+    {
+      "id": 14,
+      "phase": "Conventions & Naming",
+      "description": "Define PascalCase for React component filenames in naming.md",
+      "details": "Document that all React components should be in PascalCase with the .component.tsx suffix",
+      "status": "todo"
+    },
+    {
+      "id": 15,
+      "phase": "Conventions & Naming",
+      "description": "Define camelCase for custom hook filenames",
+      "details": "Document that hooks should use camelCase and have the .hook.ts suffix when distinguished",
+      "status": "todo"
+    },
+    {
+      "id": 16,
+      "phase": "Conventions & Naming",
+      "description": "Define kebab-case for non-code asset filenames",
+      "details": "Document that images, styles, and static files should be in kebab-case for consistency",
+      "status": "todo"
+    },
+    {
+      "id": 17,
+      "phase": "Conventions & Naming",
+      "description": "Define file suffix conventions (.service.ts, .types.ts)",
+      "details": "Clarify suffixes for service modules and type definition files in naming.md",
+      "status": "todo"
+    },
+    {
+      "id": 18,
+      "phase": "Conventions & Naming",
+      "description": "Update .eslintrc rules to enforce naming conventions",
+      "details": "Enable ESLint rules in config to match the documented casing and suffix patterns",
+      "status": "todo"
+    },
+    {
+      "id": 19,
+      "phase": "Conventions & Naming",
+      "description": "Update .prettierrc to ensure filename case formatting",
+      "details": "Add settings to Prettier config or plugin to respect file-casing rules if available",
+      "status": "todo"
+    },
+    {
+      "id": 20,
+      "phase": "Conventions & Naming",
+      "description": "Create codemod scripts to rename files according to conventions",
+      "details": "Write and test a jscodeshift or TS-morph script for file renaming by pattern",
+      "status": "todo"
+    },
+    {
+      "id": 21,
+      "phase": "Conventions & Naming",
+      "description": "Run codemod on a sample folder and verify rename results",
+      "details": "Execute the script on /src/shared/components subset and manually inspect changes",
+      "status": "todo"
+    },
+    {
+      "id": 22,
+      "phase": "Conventions & Naming",
+      "description": "Run codemod across entire codebase to rename files",
+      "details": "Execute the script on all source directories and resolve any conflicts",
+      "status": "todo"
+    },
+    {
+      "id": 23,
+      "phase": "Conventions & Naming",
+      "description": "Fix import paths broken by file renaming",
+      "details": "Search and replace import statements to match new filenames using a find-and-replace tool",
+      "status": "todo"
+    },
+    {
+      "id": 24,
+      "phase": "Conventions & Naming",
+      "description": "Commit naming convention docs and renaming changes",
+      "details": "Use git to add updated files and commit with message 'chore:enforce naming conventions'",
+      "status": "todo"
+    },
+    {
+      "id": 25,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/todo folder and move todo files using git mv",
+      "details": "Relocate all todo domain files into /src/features/todo to group feature code",
+      "status": "todo"
+    },
+    {
+      "id": 26,
+      "phase": "Directory Structure",
+      "description": "Update import statements in todo feature to new path and test",
+      "details": "Replace old import paths with '@/features/todo' and ensure todo feature builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 27,
+      "phase": "Directory Structure",
+      "description": "Commit todo feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move todo feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 28,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/auth folder and move auth files using git mv",
+      "details": "Relocate all auth domain files into /src/features/auth to organize authentication code",
+      "status": "todo"
+    },
+    {
+      "id": 29,
+      "phase": "Directory Structure",
+      "description": "Update import statements in auth feature to new path and test",
+      "details": "Replace old import paths with '@/features/auth' and ensure auth feature builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 30,
+      "phase": "Directory Structure",
+      "description": "Commit auth feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move auth feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 31,
+      "phase": "Directory Structure",
+      "description": "Create /src/features/dashboard folder and move dashboard files using git mv",
+      "details": "Relocate all dashboard domain files into /src/features/dashboard to group dashboard code",
+      "status": "todo"
+    },
+    {
+      "id": 32,
+      "phase": "Directory Structure",
+      "description": "Update import statements in dashboard feature to new path and test",
+      "details": "Replace old import paths with '@/features/dashboard' and ensure dashboard builds correctly",
+      "status": "todo"
+    },
+    {
+      "id": 33,
+      "phase": "Directory Structure",
+      "description": "Commit dashboard feature restructuring",
+      "details": "git add and commit changes with message 'refactor: move dashboard feature into feature folder'",
+      "status": "todo"
+    },
+    {
+      "id": 34,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/components folder and move component files using git mv",
+      "details": "Relocate UI component files into /src/shared/components to centralize shared components",
+      "status": "todo"
+    },
+    {
+      "id": 35,
+      "phase": "Directory Structure",
+      "description": "Update import statements for components to new shared folder and test",
+      "details": "Replace old import paths with '@/shared/components' and run component stories/tests",
+      "status": "todo"
+    },
+    {
+      "id": 36,
+      "phase": "Directory Structure",
+      "description": "Commit shared components restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared components into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 37,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/hooks folder and move hook files using git mv",
+      "details": "Relocate hook modules into /src/shared/hooks to centralize custom hooks",
+      "status": "todo"
+    },
+    {
+      "id": 38,
+      "phase": "Directory Structure",
+      "description": "Update import statements for hooks to shared/hooks and test",
+      "details": "Replace old imports with '@/shared/hooks' and run hook usage tests",
+      "status": "todo"
+    },
+    {
+      "id": 39,
+      "phase": "Directory Structure",
+      "description": "Commit shared hooks restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared hooks into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 40,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/utils folder and move util files using git mv",
+      "details": "Relocate utility modules into /src/shared/utils to centralize shared functions",
+      "status": "todo"
+    },
+    {
+      "id": 41,
+      "phase": "Directory Structure",
+      "description": "Update import statements for utils to shared/utils and test",
+      "details": "Replace old imports with '@/shared/utils' and run utility function tests",
+      "status": "todo"
+    },
+    {
+      "id": 42,
+      "phase": "Directory Structure",
+      "description": "Commit shared utils restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared utils into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 43,
+      "phase": "Directory Structure",
+      "description": "Create /src/shared/types folder and move type definition files using git mv",
+      "details": "Relocate .d.ts and types files into /src/shared/types to centralize type definitions",
+      "status": "todo"
+    },
+    {
+      "id": 44,
+      "phase": "Directory Structure",
+      "description": "Update import statements for types to shared/types and test",
+      "details": "Replace old imports with '@/shared/types' and ensure TypeScript compiles without errors",
+      "status": "todo"
+    },
+    {
+      "id": 45,
+      "phase": "Directory Structure",
+      "description": "Commit shared types restructuring",
+      "details": "git add and commit changes with message 'refactor: move shared types into shared folder'",
+      "status": "todo"
+    },
+    {
+      "id": 46,
+      "phase": "Directory Structure",
+      "description": "Move App.tsx and index.tsx into /src folder using git mv",
+      "details": "Relocate root entry files into /src to keep source code together",
+      "status": "todo"
+    },
+    {
+      "id": 47,
+      "phase": "Directory Structure",
+      "description": "Update root-level import paths for App and index and test",
+      "details": "Fix entry point imports in webpack or package.json and run the dev server",
+      "status": "todo"
+    },
+    {
+      "id": 48,
+      "phase": "Directory Structure",
+      "description": "Commit root-level restructure",
+      "details": "git add and commit changes with message 'refactor: move root entry files into src folder'",
+      "status": "todo"
+    },
+    {
+      "id": 49,
+      "phase": "Documentation & Maintenance",
+      "description": "Create top-level README.md describing project structure",
+      "details": "Document directory layout, naming conventions, and flows in README.md",
+      "status": "todo"
+    },
+    {
+      "id": 50,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/add_new_feature.md guidelines",
+      "details": "Describe steps to scaffold a new feature folder and update routing/app state",
+      "status": "todo"
+    },
+    {
+      "id": 51,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/add_shared_component.md guidelines",
+      "details": "Describe steps to add a new shared component, including testing and styling",
+      "status": "todo"
+    },
+    {
+      "id": 52,
+      "phase": "Documentation & Maintenance",
+      "description": "Create /docs/style_guide.md for CSS and assets",
+      "details": "Define where to place styles, how to name classes, and asset organization",
+      "status": "todo"
+    },
+    {
+      "id": 53,
+      "phase": "Documentation & Maintenance",
+      "description": "Update CI workflow to enforce directory structure",
+      "details": "Modify .github/workflows/ci.yml to include a directory-layout check",
+      "status": "todo"
+    },
+    {
+      "id": 54,
+      "phase": "Documentation & Maintenance",
+      "description": "Add lint job for naming conventions in CI",
+      "details": "Ensure ESLint step fails on naming violations in GitHub Actions",
+      "status": "todo"
+    },
+    {
+      "id": 55,
+      "phase": "Documentation & Maintenance",
+      "description": "Add documentation validation job in CI",
+      "details": "Use markdownlint or similar to validate docs formatting in CI",
+      "status": "todo"
+    },
+    {
+      "id": 56,
+      "phase": "Documentation & Maintenance",
+      "description": "Commit all docs and CI updates",
+      "details": "Commit with message 'docs: add guidelines and CI checks' to capture changes",
+      "status": "todo"
+    },
+    {
+      "id": 57,
+      "phase": "Cleanup",
+      "description": "Remove /audit folder and scripts after final merge",
+      "details": "Use git rm -r to delete audit artifacts and commit with message 'chore:remove audit artifacts'",
+      "status": "todo"
+    },
+    {
+      "id": 58,
+      "phase": "Cleanup",
+      "description": "Remove codemod scripts if they are no longer needed",
+      "details": "Use git rm to delete codemod files and update any CLI scripts in package.json",
+      "status": "todo"
+    },
+    {
+      "id": 59,
+      "phase": "Cleanup",
+      "description": "Run final lint, format, and type-check across codebase",
+      "details": "Execute npm run lint, npm run format:check, and npm run type-check to ensure a clean build",
+      "status": "todo"
+    },
+    {
+      "id": 60,
+      "phase": "Cleanup",
+      "description": "Merge final PR and tag release v1.0.0",
+      "details": "Complete code review, merge branch into main, and git tag v1.0.0",
+      "status": "todo"
+    },
+    {
+      "task_id": "onboarding-task-001",
+      "task_type": "generate_unit_tests",
+      "name": "Generate Unit Tests for fragment_forge_tab.py",
+      "description": "Write unit tests covering rendering logic, tab management, and edge cases.",
+      "status": "PENDING",
+      "params": {
+          "module_path": "ui/fragment_forge_tab.py"
+      },
+      "timestamp_created": "[NOW_UTC_ISO]",
+      "timestamp_updated": "[NOW_UTC_ISO]",
+      "priority": "Medium",
+      "claimed_by": null,
+      "completed_by": null,
+      "result_summary": null,
+      "error_message": null
+    },
+    {
+      "task_id": "onboarding-task-003",
+      "task_type": "generate_unit_tests",
+      "name": "Generate Unit Tests for task_visualizer_app.py",
+      "description": "Write unit tests for task visualization flow and UI integration stubs.",
+      "status": "PENDING",
+      "params": {
+          "module_path": "ui/task_visualizer_app.py"
+      },
+      "timestamp_created": "[NOW_UTC_ISO]",
+      "timestamp_updated": "[NOW_UTC_ISO]",
+      "priority": "Medium",
+      "claimed_by": null,
+      "completed_by": null,
+      "result_summary": null,
+      "error_message": null
+    },
+    {
+      "task_id": "onboarding-task-005",
+      "task_type": "generate_unit_tests",
+      "name": "Generate Unit Tests for cli.py",
+      "description": "Write unit tests for CLI argument parsing, command routing, and exit codes.",
+      "status": "PENDING",
+      "params": {
+          "module_path": "cli.py"
+      },
+      "timestamp_created": "[NOW_UTC_ISO]",
+      "timestamp_updated": "[NOW_UTC_ISO]",
+      "priority": "Medium",
+      "claimed_by": null,
+      "completed_by": null,
+      "result_summary": null,
+      "error_message": null
+    },
+    {
+      "task_id": "f8b1e2d0-c3a4-4b5e-9d6f-a1b2c3d4e5f6",
+      "description": "FLAMEPROOF Phase 2: Consolidate  implementations. Designate core/coordination/agent_bus.py as canonical. Analyze & merge logic from old locations (dreamforge/core/agent_bus.py, coordination/agent_bus.py, agents/chatgpt_commander_agent.py). Refactor all agent code to use the canonical bus. Delete old bus files.",
+      "status": "FAILED",
+      "assigned_to": "agent1",
+      "priority": "CRITICAL",
+      "source_file": "supervisor/agent1",
+      "module": "core/coordination",
+      "depends_on": [
+        "c5e8a3f9-1a0b-4d7e-8c1a-f0b1d2e3c4d5"
+      ],
+      "timestamp_created_utc": "2023-10-27T10:30:00Z"
+    },
+    {
+      "task_id": "c5e8a3f9-1a0b-4d7e-8c1a-f0b1d2e3c4d5",
+      "description": "Systematically test core agent coordination tools (`agent_entrypoint.py`, `view_shared_mailboxes.py`, `send_shared_mailbox_message.py`, `aggregate_task_lists.py`). Define test cases covering normal operation, `--help`, argument validation, error conditions (e.g., missing files, invalid agent IDs), and concurrency issues. Document findings and required fixes.",
+      "status": "BLOCKED",
+      "assigned_to": "agent1",
+      "priority": "CRITICAL",
+      "source_file": "supervisor/agent1",
+      "module": "_agent_coordination/supervisor_tools",
+      "original_line": null,
+      "timestamp_aggregated_utc": null,
+      "timestamp_created_utc": "2023-10-27T10:00:00Z"
+    },
+    {
+      "task_id": "e148d2f2-3f8d-46c4-b4c0-b4e5b54d58c1",
+      "description": "**Standardize Event Handling:** Ensure agents consistently subscribe to and handle events using `` methods.",
+      "status": "IN_PROGRESS",
+      "assigned_to": "agent1",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 110,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "a7510711-9785-4e3e-b3d5-fcccf79adf31",
+      "claimed_by": "Agent 4",
+      "description": "**Task Reception (`EventType.TASK`):** Verify all agents intended to receive tasks from TaskDispatcherAgent handle the event and parse payload.",
+      "status": "CLAIMED",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 111,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z",
+      "timestamp_updated": "[NOW_UTC_ISO]"
+    },
+    {
+      "task_id": "7ba52afd-b7eb-4ada-896b-9c17afce8063",
+      "description": "**Task Status Updates:**",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 114,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "23b95365-68fd-454b-8aff-049ce9f94070",
+      "description": "Ensure the chosen mechanism is reliable and handles potential errors (e.g., uses file locking if writing directly).",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Cannot verify reliability. Need to analyze core/utils/task_status_updater.py (mentioned in task 54e1cf8e-... result), but file search was interrupted.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 116,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "c7c28c88-6148-4f7b-b274-000bf76c186c",
+      "description": "**`CursorControlAgent`:**",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 120,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "c34cd058-6919-4b68-aa68-0dac2ed7ef5c",
+      "description": "Review handled `task_type`s and ensure they align with the inference map in `TaskDispatcherAgent`.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Found CursorControlAgent (agents/cursor/control_agent.py), but file search for TaskDispatcherAgent.py/TaskExecutorAgent.py was interrupted. Cannot compare handled types.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 121,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "ff92e25e-9f12-4853-86fc-ebc5849c692b",
+      "description": "Verify interaction logic with VS Code or other target IDEs.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Cannot verify interaction logic. File search found agents/cursor/control_agent.py, but read_file failed and list_dir confirmed the path is invalid. Cannot locate CursorControlAgent code.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 122,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "7801022d-8f05-4678-bcdc-f6c16f96eb7c",
+      "description": "Test robustness of terminal command execution and output handling.",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 123,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "876a1969-d971-480d-87ca-e85390a0bf03",
+      "description": "**`MeredithResonanceScanner`:**",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 124,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "c761de27-29f0-491a-bbee-b0ce32705efc",
+      "description": "Define tasks/events handled by this agent.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Cannot define tasks/events because the agent implementation file (meredith_resonance_scanner.py) was not found in the workspace.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 125,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "a392f8db-5cc8-4067-ab77-857382fd7010",
+      "description": "Verify integration with relevant data sources or systems.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 126,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z",
+      "result": {
+        "status": "BLOCKED",
+        "summary": "Blocked due to missing implementation file for MeredithResonanceScanner agent (meredith_resonance_scanner.py). Cannot verify integrations without agent code.",
+        "timestamp_utc": "2024-07-12T14:15:00Z"
+      }
+    },
+    {
+      "task_id": "bbf04c63-1599-4693-8478-1659f2114204",
+      "description": "**`FeedbackEngine`:**",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 127,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "373bbe93-62e7-4baf-bbcd-651dd9266bf4",
+      "description": "Define tasks/events handled by this agent.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: File search for FeedbackEngine.py or PromptFeedbackLoopAgent.py was interrupted. Cannot define tasks/events.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 128,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "a8b67a0c-8e43-4585-9121-ca13e94060ff",
+      "description": "Verify feedback processing logic.",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 129,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "036a0e1b-085d-4fab-803f-4a7854e9f37d",
+      "description": "**`AgentMonitorAgent`:**",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 130,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "707c4b57-7d0c-406e-9144-ce9050c94146",
+      "description": "Define tasks/events handled by this agent.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Cannot define tasks/events. File search located AgentMonitorAgent.py at agents/dreamforge/agents/agent_monitor_agent.py, but read_file failed. Subsequent list_dir confirmed the directory ../dreamforge/agents exists but does not contain the file. Inconsistent tool results prevent access.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 131,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "f27dc544-76a8-4692-84be-0de4c658f6c3",
+      "description": "Verify system status reporting mechanisms.",
+      "status": "PENDING",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 132,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    },
+    {
+      "task_id": "44c7aaee-c86a-40ac-94d9-e4b70ef13cb9",
+      "description": "**Other Agents:** Review any other agents in `/d:/Dream.os/agents/` for  integration, task handling, and specific logic.",
+      "status": "BLOCKED",
+      "assigned_to": "Agent_4",
+      "result_summary": "Blocked: Failed to update task status to IN_PROGRESS in master_task_list.json after multiple attempts (edit_file and reapply). Cannot claim task.",
+      "source_file": "agents/task_list.md",
+      "module": "agents",
+      "original_line": 133,
+      "timestamp_aggregated_utc": "2025-04-15T20:55:25Z"
+    }
+  ]
+}

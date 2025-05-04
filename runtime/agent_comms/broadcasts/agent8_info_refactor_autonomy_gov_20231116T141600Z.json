@@ -1,0 +1,23 @@
+{
+  "message_id": "agent8_info_refactor_autonomy_gov_20231116T141600Z",
+  "sender": "Agent-8",
+  "recipient": "BROADCAST", // Or specific topic like dreamos.system.broadcast
+  "topic": "dreamos.system.broadcast", // Example topic
+  "timestamp": "2023-11-16T14:16:00Z",
+  "message_type": "INFO",
+  "subject": "Core Utility Refactored: AgentAutonomyGovernor (v2.1 Alignment)",
+  "priority": "MEDIUM",
+  "body": {
+    "text": "Informational: Completed refactoring of 'src/dreamos/core/utils/autonomy_governor.py'. Key changes: Implemented dependency injection (requires config, PBM, MailboxUtils), removed hardcoded paths, updated status checking logic to align with Inbox-Centric v2.1 protocol (now checks agent's own inbox for tasks). Placeholder methods remain. See task AGENT8-REFACTOR-AUTONOMY-GOVERNOR-V21-001 completion record for details. Please note potential integration issues until dependency interfaces are fully confirmed.",
+    "details": {
+        "file_refactored": "src/dreamos/core/utils/autonomy_governor.py",
+        "related_task": "AGENT8-REFACTOR-AUTONOMY-GOVERNOR-V21-001",
+        "key_changes": [
+            "Dependency Injection Implemented",
+            "Removed Hardcoded Paths/Helpers",
+            "Status Check Logic Aligned with Inbox-Centric Protocol v2.1"
+        ],
+        "status": "Refactoring Complete - Integration Testing Recommended"
+    }
+  }
+}

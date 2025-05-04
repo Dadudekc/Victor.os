@@ -1,0 +1,45 @@
+[
+  {
+    "task_id": "VALIDATE-AND-SANITIZE-TASK-SCHEMA-001",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 2,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "\n[PROMOTED_TO_READY@2025-05-02T00:42:29.730248+00:00]",
+    "created_by": "Agent-5",
+    "created_at": "2025-05-01T23:24:42.693940+00:00",
+    "timestamp_updated": "2025-05-02T00:42:29.730248+00:00",
+    "action": "validate_file",
+    "params": {
+      "file": "src/dreamos/coordination/tasks/task-schema.json",
+      "validators": [
+        "strict_json_parse",
+        "disallow_comments",
+        "no_trailing_commas"
+      ],
+      "fallback": "repair_common_schema_issues",
+      "on_failure": "fail_loudly"
+    },
+    "injected_at": "{{NOW}}",
+    "injected_by": "general_victor",
+    "timestamp_created": "2025-05-01T23:24:42.689+00:00Z"
+  },
+  {
+    "task_id": "REFACTOR-PBM-TEST-FIXTURES-001",
+    "name": "Refactor ProjectBoardManager Test Fixtures",
+    "description": "Update all test fixtures in tests/coordination/test_project_board_manager.py to use the new AppConfig-based constructor for ProjectBoardManager. This resolves TypeErrors currently blocking the test suite.",
+    "priority": "HIGH",
+    "status": "PENDING",
+    "assigned_agent": "Agent-2",
+    "task_type": "REFACTOR/TESTING",
+    "dependencies": [],
+    "notes": "Created by Agent-2 following ESCALATED_RESUME_AUTONOMY_V5.0. Blocker identified after resolving initial environment issue.",
+    "created_by": "Agent-2",
+    "created_at": "{{NOW_UTC_ISO}}",
+    "timestamp_updated": "{{NOW_UTC_ISO}}",
+    "required_capabilities": ["PYTHON_SCRIPTING", "PYTEST", "REFACTORING"]
+  }
+]

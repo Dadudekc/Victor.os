@@ -1,0 +1,54 @@
+[
+  {
+    "task_id": "FIX-TASK-SCHEMA-JSON-L116-001",
+    "name": "Fix JSON Syntax Error in task-schema.json (Line 116)",
+    "description": "Fix the persistent JSON syntax error 'Expecting value: line 116 column 5 (char 4208)' in src/dreamos/coordination/tasks/task-schema.json. The edit tool failed multiple times. Likely requires manual intervention or a different approach to add the comma after the 'properties' object closing brace (before 'required').",
+    "priority": "HIGH",
+    "status": "COMPLETED",
+    "assigned_agent": null,
+    "task_type": "BUG_FIX/TOOLING",
+    "dependencies": [],
+    "notes": "Detected during multiple CLI command executions. Blocks schema validation.\n[PROMOTED_TO_READY@2025-05-01T21:50:36.924546+00:00]",
+    "created_by": "Agent-4",
+    "created_at": "2025-05-01T21:49:12.383176+00:00",
+    "timestamp_updated": "2025-05-02T19:49:01.8084114-05:00",
+    "timestamp_created": "2025-05-01T21:49:12.382+00:00Z",
+    "claimed_by": "Agent-4",
+    "timestamp_claimed_utc": "2025-05-01T21:51:16.134900+00:00"
+  },
+  {
+    "task_id": "IMPROVE-PBM-STABILITY-001",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 1,
+    "status": "WORKING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "\n[PROMOTED_TO_READY@2025-05-02T00:41:58.425758+00:00]",
+    "created_by": "Agent-5",
+    "created_at": "2025-05-01T23:23:58.249923+00:00",
+    "timestamp_updated": "2025-05-02T00:42:11.497649+00:00",
+    "action": "improve_component",
+    "params": {
+      "component": "ProjectBoardManager",
+      "target_methods": [
+        "claim_ready_task",
+        "move_task_to_completed",
+        "_validate_task",
+        "_load_schema"
+      ],
+      "goals": [
+        "Harden against method-level AttributeErrors (e.g., missing \"_add_history\")",
+        "Improve fallback behavior for schema load failure",
+        "Add structured logs on all failure branches",
+        "Ensure atomicity or rollback for critical task moves"
+      ]
+    },
+    "injected_at": "{{NOW}}",
+    "injected_by": "general_victor",
+    "timestamp_created": "2025-05-01T23:23:58.242+00:00Z",
+    "claimed_by": "Agent-Test-Claimer",
+    "timestamp_claimed_utc": "2025-05-02T00:42:11.497649+00:00"
+  }
+]

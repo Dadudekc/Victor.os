@@ -1,0 +1,15 @@
+{
+  "task_id": "UNBLOCK-Agent-7-AGENT6-AUTOID",
+  "status": "PENDING",
+  "assigned_agent": null,
+  "created_by": "Agent-6",
+  "created_at": "{{[iso_timestamp_utc()]}}",
+  "description": "Agent-7 appears to be idle > 30 minutes, potentially blocked or failing loop.",
+  "details": {
+    "target_agent": "Agent-7",
+    "last_known_activity_timestamp": "2025-05-02T22:03Z",
+    "monitoring_task_id": "MONITOR-LOOP-INTEGRITY-AGENT6-AUTOID",
+    "reason": "Agent identified as idle > 30 mins based on devlog scan."
+  },
+  "priority": "HIGH"
+}

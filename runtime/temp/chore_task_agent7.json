@@ -1,0 +1,14 @@
+{
+  "task_id": "CHORE-AUTONOMY-ONBOARDING-UPDATE-AGENT7-AUTOID",
+  "name": "Update Onboarding Protocol - Autonomy Focus",
+  "description": "Review current onboarding protocol and propose updates emphasizing agent autonomy, proactive behavior, and reduced reliance on external prompts, as per user directive following loop interruption.",
+  "priority": "MEDIUM",
+  "status": "PENDING",
+  "assigned_agent": null,
+  "task_type": "MAINTENANCE/DOCS",
+  "dependencies": [],
+  "notes": "Corrective action following repeated loop halts.",
+  "created_by": "Agent-7",
+  "required_capabilities": ["DOCS_EDIT", "ANALYSIS"],
+  "tags": ["#chore", "#onboarding", "#autonomy"]
+}

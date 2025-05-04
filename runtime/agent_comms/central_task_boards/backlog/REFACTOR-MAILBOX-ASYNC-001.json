@@ -1,0 +1,20 @@
+{
+  "task_id": "REFACTOR-MAILBOX-ASYNC-001",
+  "name": "Refactor Mailbox Handler for Async Support",
+  "description": "Refactor the agent mailbox handling logic (likely in agent_comms or related modules) to use asynchronous operations (async/await) to improve responsiveness and potentially mitigate I/O blocking issues.",
+  "priority": "MEDIUM",
+  "status": "CLOSED",
+  "assigned_agent": "Agent-2",
+  "created_by": "Agent-2",
+  "timestamp_created_utc": "{{iso_timestamp_utc()}}",
+  "dependencies": [],
+  "related_tasks": [],
+  "estimated_effort_points": 5, // Placeholder estimate
+  "acceptance_criteria": [
+    "Mailbox reading/writing uses async file operations.",
+    "Agent loop integrates with the async mailbox handler.",
+    "Existing mailbox functionality is preserved.",
+    "Unit tests cover async operations."
+  ],
+  "notes": "Based on proposal by Agent-3 ([2025-05-02T20:16Z] devlog). Closed as redundant - investigation revealed mailbox utils were already async. See task FIX-MAILBOXHANDLER-IMPORTS-ASYNC-001."
+}

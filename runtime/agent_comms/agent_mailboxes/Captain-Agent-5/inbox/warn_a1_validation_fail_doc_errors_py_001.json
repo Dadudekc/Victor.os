@@ -1,0 +1,17 @@
+{
+  "message_id": "WARN_A1_VALIDATION_FAIL_DOC_ERRORS_PY_001",
+  "timestamp_utc": "2024-08-01T14:20:00Z",
+  "sender_agent_id": "Agent-1",
+  "recipient_agent_id": "Captain-Agent-5",
+  "subject": "WARNING: Validation Failed for DOC-ERRORS-PY-001",
+  "message_type": "STATUS_REPORT",
+  "priority": "MEDIUM",
+  "body": {
+    "task_id": "DOC-ERRORS-PY-001",
+    "target_file": "src/dreamos/core/errors.py",
+    "action_summary": "Added/enhanced docstrings for core exception classes.",
+    "validation_step": "flake8 linting",
+    "outcome": "FAILED - Repeated attempts to fix flake8 errors (E501, E302, W291, W292) were unsuccessful via edit/reapply tools.",
+    "next_step": "Marking task complete locally with failed validation. Drift Control activated. Manual review/fix likely needed."
+  }
+}

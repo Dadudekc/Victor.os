@@ -1,0 +1,13 @@
+{
+  "task_id": "SQLITE-TASK-BOARD-001",
+  "action": "finalize_sqlite_task_engine",
+  "params": {
+    "shared": true,
+    "supports_metrics": true
+  },
+  "priority": 4,
+  "tags": ["IMMORTALITY_LAYER", "REVENUE_IMPACT:high"],
+  "status": "PENDING",
+  "injected_by": "captain",
+  "injected_at": "2025-05-02T22:50:11.921300Z"
+}

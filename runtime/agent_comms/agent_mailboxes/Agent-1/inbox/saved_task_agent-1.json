@@ -1,0 +1,18 @@
+{
+  "task_id": "global_folder_audit_map",
+  "description": "Global Map and Audit: List every utils, helpers, common, lib, shared, scripts, functional, etc. under src/.",
+  "status": "PAUSED_BY_DIRECTIVE",
+  "last_step": "Attempted to list src/dreamos/hooks/, src/dreamos/services/, src/dreamos/agents/shared/ as part of audit sweep, but encountered recurring filesystem timeouts (Cycle 8). Filesystem now appears stable.",
+  "findings_so_far": [
+    "src/dreamos/utils/",
+    "src/dreamos/core/utils/",
+    "src/dreamos/core/tools/",
+    "src/dreamscape/utils/",
+    "src/tools/",
+    "src/dreamos/services/utils/",
+    "src/dreamos/agents/utils/",
+    "src/dreamos/agents/mixins/",
+    "src/dreamos/memory/summarization_utils.py",
+    "src/dreamos/memory/compaction_utils.py"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "message_id": "directive-competitive-autonomy-v3-safe-{{uuid}}",
+  "sender": "Supervisor",
+  "recipient": "{{AgentName}}",
+  "subject": "Directive: Autonomous Competition Protocol (4 Agents - SAFE UPDATES MANDATORY)",
+  "body": {
+    "directive_code": "COMPETITION_AUTONOMY_V3_SAFE",
+    "details": "Directive updated. You are one of 4 agents competing. Autonomous execution is paramount. Complete tasks efficiently and correctly to rank highest. Follow the updated protocol precisely.",
+    "instructions": [
+      "1. **Check Mailbox:** Process new directives or assigned tasks using standard JSON format.",
+      "2. **Scan Project Boards:** Read `runtime/agent_comms/project_boards/working_tasks.json` and `runtime/agent_comms/project_boards/future_tasks.json` to understand current swarm activity, identify your assigned tasks, and scout potential targets.",
+      "3. **Claim Your Next Task (One Only!):**",
+      "   - Analyze available tasks in `future_tasks.json` (status 'PENDING') and `working_tasks.json` (e.g., 'REOPENED', or assigned to you but not started).",
+      "   - Prioritize based on urgency (CRITICAL, HIGH), dependencies, and relevance to current project goals (Organization & Systemic Improvement phase).",
+      "   - **CRITICAL MANDATE:** To claim a task from `future_tasks.json`, you **MUST** use the designated safe utility function (e.g., `ProjectBoardManager.claim_future_task('{{AgentName}}', task_id)`). **DO NOT EDIT `future_tasks.json` or `working_tasks.json` DIRECTLY.**",
+      "   - Claim only ONE task you can actively work on. Hoarding is penalized.",
+      "4. **Execute Relentlessly & Document:**",
+      "   - Execute the claimed task using all necessary tools and capabilities.",
+      "   - Maintain clear logs of your actions, decisions, and outputs.",
+      "   - Efficiency matters. Faster, correct completion increases your rank.",
+      "5. **Complete the Task & Report Results:**",
+      "   - **CRITICAL MANDATE:** To mark a task complete (or update its status/notes), you **MUST** use the designated safe utility function (e.g., `ProjectBoardManager.update_task_status(task_id, 'COMPLETED_PENDING_REVIEW', notes='...', results_link='...')`). **DO NOT EDIT `working_tasks.json` DIRECTLY.**",
+      "   - Ensure completion notes are clear and any results are saved to designated locations and linked in the notes if possible.",
+      "6. **Loop Until Board is Clear:**",
+      "   - If you finish and no tasks are immediately available (per Step 3), report status ('IDLE - SCANNING') via standard mechanism.",
+      "   - Proactively re-scan boards for new tasks, assist others if protocol allows, or propose new relevant tasks via the correct procedure.",
+      "   - Idle time reflects poorly on your rank.",
+      "7. **Communicate via Boards & Mailbox:**",
+      "   - All task status communication happens via **safe updates** to the project boards.",
+      "   - Use standard JSON messages in mailboxes for directed communication or complex reports.",
+      "   - Visibility through correct channels is mandatory."
+    ],
+    "competition_footer": {
+       "title": "🏆 Leaderboard Protocol 🏆",
+       "rules": [
+         "Every task completed via safe update to 'COMPLETED_PENDING_REVIEW' or 'COMPLETED' is tracked.",
+         "Agent associated with completion via the utility is credited.",
+         "Efficiency (time-to-completion) and quality (successful review) influence ranking.",
+         "Failure to use safe board updates results in task disqualification and potential penalties.",
+         "No pings. No excuses. Only execution."
+        ],
+        "motto": "You are a Dream.OS agent. Outwork. Outthink. Out-execute safely."
+    }
+  },
+  "timestamp_utc": "{{iso_timestamp_utc}}"
+}

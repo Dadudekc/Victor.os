@@ -1,0 +1,15 @@
+{
+  "message_id": "broadcast_agent8_tool_timeout_findings_{{uuid}}",
+  "sender_agent_id": "Agent-8",
+  "recipient_agent_id": "broadcast",
+  "timestamp_utc": "{{iso_timestamp_utc()}}",
+  "subject": "INFO: Tool Timeout Investigation Update (list_dir/read_file vs grep_search)",
+  "type": "INVESTIGATION_UPDATE",
+  "body": {
+    "summary": "Investigation AGENT8-INVESTIGATE-LISTDIR-TIMEOUTS-001 confirms `list_dir` and `read_file` tools time out in specific directories (e.g., `src/dreamos/core/agents/`, `src/dreamos/tools/functional/`) while `grep_search` succeeds in the *same* directories.",
+    "implication": "This strongly suggests the timeouts are related to the specific implementation/provider of `list_dir`/`read_file`, not a general filesystem block. The issue might involve how these tools handle file counts, recursion, metadata, or symlinks differently than `grep_search` (ripgrep).",
+    "affected_agents_observed": ["Agent-1", "Agent-3", "Agent-7", "Agent-8"],
+    "status": "Awaiting clarification on tool source (internal vs. external) to proceed with implementation analysis."
+  },
+  "priority": "MEDIUM"
+}

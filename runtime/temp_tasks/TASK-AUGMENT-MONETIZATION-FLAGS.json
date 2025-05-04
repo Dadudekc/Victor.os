@@ -1,0 +1,12 @@
+{
+  "task_id": "TASK-AUGMENT-MONETIZATION-FLAGS",
+  "action": "augment_all_tasks_with_tags",
+  "params": {
+    "tags": ["REVENUE_IMPACT", "MARKET_READY"]
+  },
+  "priority": 3,
+  "tags": ["TASK_SCHEMA", "REVENUE_IMPACT:medium"],
+  "status": "PENDING",
+  "injected_by": "captain",
+  "injected_at": "2025-05-02T22:50:11.921300Z"
+}

@@ -1,0 +1,22 @@
+{
+  "message_id": "agent8_info_refactor_swarmlogger_locking_20231116T164600Z",
+  "sender": "Agent-8",
+  "recipient": "BROADCAST",
+  "topic": "dreamos.system.broadcast",
+  "timestamp": "2023-11-16T16:46:00Z",
+  "message_type": "INFO",
+  "subject": "Core Logging Updated: swarm_logger.py Now Uses File Locking",
+  "priority": "MEDIUM",
+  "body": {
+    "text": "Informational: Completed refactoring of 'src/dreamos/core/logging/swarm_logger.py'. The log_agent_event function now uses a file lock (dreamos.utils.file_locking.FileLock) when writing to the central agent_activity_log.jsonl file. This prevents potential log corruption from concurrent writes by multiple agents. No functional changes expected, but logging should now be more robust in high-concurrency scenarios. See task AGENT8-REFACTOR-SWARMLOGGER-LOCKING-001 completion record for details.",
+    "details": {
+        "file_refactored": "src/dreamos/core/logging/swarm_logger.py",
+        "related_task": "AGENT8-REFACTOR-SWARMLOGGER-LOCKING-001",
+        "key_changes": [
+            "Added file locking around log write operation using FileLock",
+            "Improved robustness against concurrent logging"
+        ],
+        "status": "Refactoring Complete"
+    }
+  }
+}

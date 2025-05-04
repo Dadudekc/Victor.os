@@ -422,13 +422,24 @@
         "language": ".py",
         "functions": [
             "run",
+            "pull_tasks",
+            "push_result",
             "click_button",
             "wait_for_idle",
             "process_task_ui"
         ],
-        "classes": {},
+        "classes": {
+            "TaskChannel": {
+                "methods": [
+                    "pull_tasks",
+                    "push_result"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
         "routes": [],
-        "complexity": 4,
+        "complexity": 8,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\agents\\mixins\\voting.py": {
@@ -755,14 +766,25 @@
     "src\\dreamos\\automation\\cursor_injector.py": {
         "language": ".py",
         "functions": [
-            "get_next_prompt",
-            "mark_prompt_processed",
-            "inject_prompt",
-            "run_injection_loop"
+            "_next_prompt_file",
+            "_mark_processed",
+            "_pause",
+            "_ensure_focus",
+            "_type_or_paste",
+            "inject_single",
+            "loop",
+            "_build_cli",
+            "main"
         ],
-        "classes": {},
+        "classes": {
+            "InjectorSettings": {
+                "methods": [],
+                "docstring": "Runtime configuration container \u2013 can be JSON\u2011serialised for debugging.",
+                "base_classes": []
+            }
+        },
         "routes": [],
-        "complexity": 4
+        "complexity": 9
     },
     "src\\dreamos\\channels\\channel_loader.py": {
         "language": ".py",
@@ -943,6 +965,7 @@
             "__init__",
             "_load_all_coordinates",
             "_initialize_agent_status",
+            "_check_and_recover_focus",
             "_perform_injection_sequence",
             "_perform_copy_sequence",
             "_perform_health_check_click",
@@ -962,6 +985,7 @@
                     "__init__",
                     "_load_all_coordinates",
                     "_initialize_agent_status",
+                    "_check_and_recover_focus",
                     "_perform_injection_sequence",
                     "_perform_copy_sequence",
                     "_perform_health_check_click",
@@ -972,7 +996,7 @@
             }
         },
         "routes": [],
-        "complexity": 16
+        "complexity": 18
     },
     "src\\dreamos\\automation\\execution\\virtual_desktop_runner.py": {
         "language": ".py",
@@ -1820,11 +1844,6 @@
                 "base_classes": [
                     "BusError"
                 ]
-            },
-            "AgentBus": {
-                "methods": [],
-                "docstring": "An asynchronous event bus for inter-agent and system communication.\n\nHandles event subscription, publishing, and basic error handling.\nUses asyncio for non-blocking operations.\n\nCore Concepts:\n    - Topics: Hierarchical strings (e.g., \"agent.status.online\", \"task.lifecycle.created\").\n    - Events: Pydantic models inheriting from BaseEvent, containing data.\n    - Subscribers: Coroutine functions that handle specific event types on topics.\n    - Wildcards: Supports single-level (#) and multi-level (*) wildcards in topic subscriptions.",
-                "base_classes": []
             }
         },
         "routes": [],
@@ -1857,8 +1876,6 @@
         "functions": [
             "__init__",
             "_get_target_inbox",
-            "send",
-            "get_messages",
             "archive_message"
         ],
         "classes": {
@@ -1873,8 +1890,6 @@
                 "methods": [
                     "__init__",
                     "_get_target_inbox",
-                    "send",
-                    "get_messages",
                     "archive_message"
                 ],
                 "docstring": "Handles file-based mailbox operations for an agent using standardized JSON format.\nProvides methods to send messages/tasks to other agents' inboxes\nand potentially manage the agent's own inbox/archive.",
@@ -1882,7 +1897,7 @@
             }
         },
         "routes": [],
-        "complexity": 10
+        "complexity": 6
     },
     "src\\dreamos\\cli\\main.py": {
         "language": ".py",
@@ -1912,9 +1927,47 @@
         "language": ".py",
         "functions": [
             "handle_message",
+            "__init__",
+            "_check_enabled",
+            "_check_clipboard_enabled",
+            "typewrite",
+            "press",
+            "hotkey",
+            "click",
+            "scroll",
+            "move_to",
+            "screenshot",
+            "get_windows_by_title",
+            "locate_center_on_screen",
+            "locate_on_screen",
+            "activate_window",
+            "get_clipboard_content",
+            "copy_to_clipboard",
             "on_created"
         ],
         "classes": {
+            "OrchestratorBot": {
+                "methods": [
+                    "__init__",
+                    "_check_enabled",
+                    "_check_clipboard_enabled",
+                    "typewrite",
+                    "press",
+                    "hotkey",
+                    "click",
+                    "scroll",
+                    "move_to",
+                    "screenshot",
+                    "get_windows_by_title",
+                    "locate_center_on_screen",
+                    "locate_on_screen",
+                    "activate_window",
+                    "get_clipboard_content",
+                    "copy_to_clipboard"
+                ],
+                "docstring": "Provides centralized methods for GUI interaction via PyAutoGUI.",
+                "base_classes": []
+            },
             "NewMsgHandler": {
                 "methods": [
                     "on_created"
@@ -1926,7 +1979,7 @@
             }
         },
         "routes": [],
-        "complexity": 3
+        "complexity": 35
     },
     "src\\dreamos\\core\\comms\\project_board.py": {
         "language": ".py",
@@ -2023,7 +2076,6 @@
         "language": ".py",
         "functions": [
             "__init__",
-            "_find_project_root",
             "register_command_handler",
             "_get_priority_value",
             "_setup_logger",
@@ -2034,7 +2086,6 @@
             "BaseAgent": {
                 "methods": [
                     "__init__",
-                    "_find_project_root",
                     "register_command_handler",
                     "_get_priority_value",
                     "_setup_logger",
@@ -2048,7 +2099,7 @@
             }
         },
         "routes": [],
-        "complexity": 14,
+        "complexity": 12,
         "agent_role": "potential_agent"
     },
     "src\\dreamos\\core\\feedback\\thea_feedback_ingestor.py": {
@@ -2466,21 +2517,10 @@
     },
     "src\\dreamos\\core\\tasks\\nexus\\task_nexus.py": {
         "language": ".py",
-        "functions": [
-            "__init__",
-            "get_priority"
-        ],
-        "classes": {
-            "TaskNexus": {
-                "methods": [
-                    "__init__"
-                ],
-                "docstring": null,
-                "base_classes": []
-            }
-        },
+        "functions": [],
+        "classes": {},
         "routes": [],
-        "complexity": 3
+        "complexity": 0
     },
     "src\\dreamos\\core\\logging\\swarm_logger.py": {
         "language": ".py",
@@ -4102,18 +4142,10 @@
     "src\\dreamos\\utils\\coords.py": {
         "language": ".py",
         "functions": [
-            "get_specific_coordinate",
-            "get_specific_coordinate"
+            "load_coordinates",
+            "save_coordinates"
         ],
-        "classes": {
-            "Coordinates": {
-                "methods": [],
-                "docstring": null,
-                "base_classes": [
-                    "dict"
-                ]
-            }
-        },
+        "classes": {},
         "routes": [],
         "complexity": 2
     },
@@ -5627,54 +5659,46 @@
     },
     "src\\dreamos\\core\\agents\\capabilities\\schema.py": {
         "language": ".py",
-        "functions": [
-            "to_dict",
-            "to_dict",
-            "to_dict",
-            "to_dict",
-            "to_dict",
-            "from_dict"
-        ],
+        "functions": [],
         "classes": {
             "CapabilitySchema": {
-                "methods": [
-                    "to_dict"
-                ],
+                "methods": [],
                 "docstring": "Defines the expected input, output, and error data structures for a capability.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CapabilityMetadata": {
-                "methods": [
-                    "to_dict"
-                ],
+                "methods": [],
                 "docstring": "Metadata associated with a capability.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CapabilityPerformance": {
-                "methods": [
-                    "to_dict"
-                ],
+                "methods": [],
                 "docstring": "Estimated or measured performance characteristics.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "CapabilityResourceRequirements": {
-                "methods": [
-                    "to_dict"
-                ],
+                "methods": [],
                 "docstring": "Estimated resource needs for executing the capability.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             },
             "AgentCapability": {
-                "methods": [
-                    "to_dict",
-                    "from_dict"
-                ],
+                "methods": [],
                 "docstring": "Represents a single capability offered by an agent, registered in the central registry.",
-                "base_classes": []
+                "base_classes": [
+                    "BaseModel"
+                ]
             }
         },
         "routes": [],
-        "complexity": 12
+        "complexity": 0
     },
     "src\\dreamos\\core\\errors.py": {
         "language": ".py",
@@ -5923,14 +5947,16 @@
     "tests\\coordination\\test_project_board_manager.py": {
         "language": ".py",
         "functions": [
+            "mock_app_config",
+            "pbm",
+            "sample_task_1",
+            "sample_task_2",
             "temp_test_dir",
-            "pbm_instance",
             "sample_task_details",
             "mock_pbm_with_schema",
             "pbm_instance_with_real_schema",
             "test_pbm_initialization",
             "test_add_task_future_success",
-            "test_add_task_working_success",
             "test_add_task_duplicate_id",
             "test_add_task_missing_id",
             "test_add_task_missing_description",
@@ -5952,6 +5978,12 @@
             "test_load_schema_success",
             "test_load_schema_not_found",
             "test_load_schema_invalid_json",
+            "test_claim_ready_task_success",
+            "test_claim_task_not_in_ready",
+            "test_move_task_to_completed_success",
+            "test_move_task_to_completed_not_found",
+            "test_get_task_success",
+            "test_get_task_not_found",
             "__init__",
             "__enter__",
             "__exit__",
@@ -5970,7 +6002,7 @@
             }
         },
         "routes": [],
-        "complexity": 37
+        "complexity": 45
     },
     "tests\\scripts\\utils\\test_simple_task_updater.py": {
         "language": ".py",
@@ -6156,6 +6188,20 @@
                 ]
             },
             "GuiAutomationConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "AgentActivationConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ]
+            },
+            "SwarmConfig": {
                 "methods": [],
                 "docstring": null,
                 "base_classes": [
@@ -6659,11 +6705,12 @@
             "get_specific_coordinate",
             "load_coordinates",
             "is_window_focused",
-            "trigger_recalibration"
+            "trigger_recalibration",
+            "wait_for_element"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 4
+        "complexity": 5
     },
     "src\\tools\\calibration\\calibrate_agent_gui.py": {
         "language": ".py",
@@ -6686,11 +6733,16 @@
             "inject_test_prompt",
             "retrieve_response",
             "save_results",
+            "_validate_coordinates",
+            "_check_coordinate_overlap",
+            "_check_accessibility",
+            "_check_for_duplicates",
+            "validate_gui_coordinates",
             "main"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 6
+        "complexity": 11
     },
     "tests\\cli\\test_safe_edit_json_list.py": {
         "language": ".py",
@@ -6883,6 +6935,294 @@
         "language": ".py",
         "functions": [
             "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "runtime\\temp\\agent7_validation_test.py": {
+        "language": ".py",
+        "functions": [
+            "test_function"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1,
+        "agent_role": "potential_agent"
+    },
+    "runtime\\agent_prototypes\\Agent-1\\visual_wait_prototype.py": {
+        "language": ".py",
+        "functions": [
+            "wait_for_visual_cue"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\agents\\autonomy_recovery_patch.py": {
+        "language": ".py",
+        "functions": [
+            "_get_agent_status_path",
+            "_read_json_file",
+            "_write_json_file",
+            "get_active_task",
+            "set_active_task",
+            "clear_active_task",
+            "update_last_action",
+            "_send_halt_report_to_captain",
+            "check_agent_staleness",
+            "maintain_loop_integrity",
+            "mark_task_complete_and_clear",
+            "record_progress_and_reset_steps",
+            "_check_core_systems",
+            "_verify_agent_loop_integrity",
+            "_attempt_task_board_resync",
+            "_evaluate_recovery_options",
+            "_execute_recovery_strategy",
+            "_send_distress_signal"
+        ],
+        "classes": {
+            "AgentStateError": {
+                "methods": [],
+                "docstring": "Custom exception for agent state issues.",
+                "base_classes": [
+                    "Exception"
+                ]
+            }
+        },
+        "routes": [],
+        "complexity": 18
+    },
+    "src\\dreamos\\automation\\extract_cursor_response.py": {
+        "language": ".py",
+        "functions": [
+            "_rand_pause",
+            "_save_response",
+            "_clipboard_changed",
+            "extract_response",
+            "cli"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 5
+    },
+    "src\\dreamos\\automation\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\core\\tasks\\nexus\\task_operations.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "get_priority"
+        ],
+        "classes": {
+            "TaskOperationsHandler": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Handles core task operations like getting, adding, updating, and checking dependencies.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 3
+    },
+    "src\\dreamos\\core\\tasks\\nexus\\agent_registry_handler.py": {
+        "language": ".py",
+        "functions": [
+            "__init__"
+        ],
+        "classes": {
+            "AgentRegistryHandler": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Handles agent heartbeat recording, registry loading/saving, and stale task reclamation.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 2,
+        "agent_role": "potential_agent"
+    },
+    "src\\dreamos\\core\\tasks\\nexus\\capability_handler.py": {
+        "language": ".py",
+        "functions": [
+            "__init__"
+        ],
+        "classes": {
+            "CapabilityHandler": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Handles interactions with the CapabilityRegistry.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\tools\\maintenance\\archive_agent_comms.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1,
+        "agent_role": "potential_agent"
+    },
+    "src\\dreamos\\tools\\maintenance\\validate_onboarding_prompts.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\tools\\maintenance\\validate_logs.py": {
+        "language": ".py",
+        "functions": [
+            "load_schema_map",
+            "find_jsonl_files"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\tools\\maintenance\\archive_agent_mailboxes.py": {
+        "language": ".py",
+        "functions": [
+            "archive_mailbox",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2,
+        "agent_role": "potential_agent"
+    },
+    "src\\dreamos\\utils\\safe_json_editor_template.py": {
+        "language": ".py",
+        "functions": [
+            "load_json_list",
+            "atomic_write_json",
+            "add_item_to_list",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "tests\\core\\coordination\\tasks\\test_project_board_manager.py": {
+        "language": ".py",
+        "functions": [
+            "mock_pbm",
+            "test_initialization",
+            "test_add_task_success",
+            "test_add_task_duplicate_id_should_fail",
+            "test_get_task_success",
+            "test_get_task_not_found",
+            "test_update_task_status_success",
+            "test_update_task_status_not_found",
+            "test_claim_future_task_success",
+            "test_claim_future_task_not_found",
+            "test_complete_task_success",
+            "test_complete_task_not_found",
+            "test_list_tasks_empty",
+            "test_list_tasks_with_data"
+        ],
+        "classes": {
+            "TestProjectBoardManager": {
+                "methods": [
+                    "test_initialization",
+                    "test_add_task_success",
+                    "test_add_task_duplicate_id_should_fail",
+                    "test_get_task_success",
+                    "test_get_task_not_found",
+                    "test_update_task_status_success",
+                    "test_update_task_status_not_found",
+                    "test_claim_future_task_success",
+                    "test_claim_future_task_not_found",
+                    "test_complete_task_success",
+                    "test_complete_task_not_found",
+                    "test_list_tasks_empty",
+                    "test_list_tasks_with_data"
+                ],
+                "docstring": null,
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 27
+    },
+    "_archive\\scripts\\generate_dreamscape_from_session.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "_archive\\scripts\\maintenance\\chunk_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "dedupe_and_chunk"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\maintenance\\find_duplicate_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "is_excluded",
+            "parse_json_file",
+            "parse_md_file",
+            "find_task_files",
+            "normalize",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 6
+    },
+    "_archive\\scripts\\maintenance\\migrate_future_tasks_to_split.py": {
+        "language": ".py",
+        "functions": [
+            "ensure_file"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\maintenance\\deduplicate_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "load_tasks",
+            "deduplicate_tasks",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "_archive\\scripts\\maintenance\\move_uncomplete_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "_archive\\scripts\\maintenance\\run_memory_summarizer.py": {
+        "language": ".py",
+        "functions": [
+            "summarize_memory_file"
         ],
         "classes": {},
         "routes": [],

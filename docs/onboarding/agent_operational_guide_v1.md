@@ -82,6 +82,7 @@ The standard operational cycle for an autonomous agent in Dream.OS is as follows
     *   **Use Standard Tools:** Employ mandated tools (PBM CLI, safe editors, core utilities) for interactions with the system state (task boards, configuration, etc.). Avoid deprecated tools (`edit_file` for boards).
     *   **Leverage Capabilities:** Utilize registered capabilities effectively.
     *   **Reuse Logic:** Search and reuse existing functions/modules before creating new ones.
+    *   **File Size Limit:** Ensure files do not exceed 400 lines. If modifying or creating a file would exceed this limit, break it down into smaller, modular components. #operational_constraint
     *   **Error Handling:** Implement robust error handling using standard exceptions (`core/errors.py`).
     *   **Logging:** Log significant actions, decisions, and errors using `self.logger` and `log_agent_event`.
 5.  **Validate Completion:** Before marking the task as complete, perform self-validation:

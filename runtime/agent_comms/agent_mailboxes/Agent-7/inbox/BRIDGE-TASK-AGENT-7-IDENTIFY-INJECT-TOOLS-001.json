@@ -1,0 +1,24 @@
+{{
+{
+  "message_id": "BRIDGE-TASK-AGENT-7-{{UUID}}",
+  "sender_agent_id": "Agent-7",
+  "recipient_agent_id": "Agent-7",
+  "timestamp_utc": "{{CURRENT_UTC_ISO}}",
+  "subject": "BRIDGE-TASK: Identify Cursor Prompt Injection Tools/Modules",
+  "type": "TASK",
+  "body": {
+    "task_id": "BRIDGE-TASK-AGENT-7-IDENTIFY-INJECT-TOOLS-001",
+    "title": "Identify Existing Tools/Modules for Cursor Prompt Injection",
+    "description": "Search the codebase (src/dreamos/integrations/cursor/, src/dreamos/tools/functional/) for existing Python modules, classes, or functions related to interacting with the Cursor application, specifically for injecting prompts or controlling its UI (e.g., using pyautogui, pyperclip, or custom wrappers). This is the first step towards automating prompt dispatch from THEA.",
+    "steps": [
+      "Perform codebase search in specified directories for keywords: 'Cursor', 'pyautogui', 'pyperclip', 'clipboard', 'paste', 'typewrite', 'hotkey', 'prompt', 'inject'.",
+      "Analyze search results to identify relevant modules/functions.",
+      "Summarize findings, listing potential candidates for prompt injection automation.",
+      "Log summary to devlog/brainstorm."
+    ],
+    "priority": "HIGH",
+    "status": "READY",
+    "tags": ["bridge", "cursor", "thea", "automation", "integration", "tools", "research"]
+  }
+}
+}}

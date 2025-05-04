@@ -1,0 +1,288 @@
+[
+  {
+    "task_id": "FIX-LINTING-ISSUES-UTILS-NEXUS-001",
+    "name": "Fix Flake8 Issues in Utils & TaskNexus",
+    "description": "Address the flake8 linting errors reported during validation of tasks TASK-UTILS-IMPL-MISSING-001 and TASK-TASKNEXUS-IMPROVE-CLAIM-LOGIC-001. Primarily involves fixing line length (E501) and unused/wildcard imports (F401, F403) in src/dreamos/utils/__init__.py, coords.py, project_root.py, validation.py, and src/dreamos/core/tasks/nexus/task_nexus.py.",
+    "priority": "LOW",
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": "MAINTENANCE/CODE_QUALITY",
+    "dependencies": [],
+    "notes": "Follow-up from self-validation steps.",
+    "created_by": "Agent-4",
+    "created_at": "2025-05-01T21:49:37.724316+00:00",
+    "timestamp_updated": "2025-05-01T21:49:37.724316+00:00",
+    "required_capabilities": [
+      "PYTHON_SCRIPTING",
+      "FILE_EDIT"
+    ],
+    "timestamp_created": "2025-05-01T21:49:37.723+00:00Z"
+  },
+  {
+    "task_id": "PRODUCT-TRACK-A-INIT",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:12:53.256434+00:00",
+    "timestamp_updated": "2025-05-02T23:12:53.256434+00:00",
+    "action": "define_product_track",
+    "params": {
+      "track": "Passive Income Utility",
+      "examples": [
+        "lead scraper",
+        "auto-responder",
+        "research bot"
+      ]
+    },
+    "tags": [
+      "PRODUCT_PHASE",
+      "REVENUE_IMPACT:high"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:12:53.248+00:00Z"
+  },
+  {
+    "task_id": "PRODUCT-TRACK-B-INIT",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:12:57.621410+00:00",
+    "timestamp_updated": "2025-05-02T23:12:57.621410+00:00",
+    "action": "define_product_track",
+    "params": {
+      "track": "Digital Content Engine",
+      "examples": [
+        "crime report generator",
+        "blog writer",
+        "ebook packager"
+      ]
+    },
+    "tags": [
+      "PRODUCT_PHASE",
+      "REVENUE_IMPACT:high"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:12:57.615+00:00Z"
+  },
+  {
+    "task_id": "PRODUCT-TRACK-C-INIT",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:03.287078+00:00",
+    "timestamp_updated": "2025-05-02T23:13:03.287078+00:00",
+    "action": "define_product_track",
+    "params": {
+      "track": "Swarm Tool as a Service",
+      "examples": [
+        "MEREDITH social AI",
+        "COMMANDPOST discord bridge"
+      ]
+    },
+    "tags": [
+      "PRODUCT_PHASE",
+      "REVENUE_IMPACT:high"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:03.280+00:00Z"
+  },
+  {
+    "task_id": "SWARM-GAME-RULES-001",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:06.201729+00:00",
+    "timestamp_updated": "2025-05-02T23:13:06.201729+00:00",
+    "action": "enforce_scoring_system",
+    "params": {
+      "goal_points": 5000,
+      "election_trigger": true
+    },
+    "tags": [
+      "GOVERNANCE",
+      "ELECTION_SYSTEM",
+      "REVENUE_IMPACT:low"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:06.196+00:00Z"
+  },
+  {
+    "task_id": "TASK-AUGMENT-MONETIZATION-FLAGS",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:09.625853+00:00",
+    "timestamp_updated": "2025-05-02T23:13:09.625853+00:00",
+    "action": "augment_all_tasks_with_tags",
+    "params": {
+      "tags": [
+        "REVENUE_IMPACT",
+        "MARKET_READY"
+      ]
+    },
+    "tags": [
+      "TASK_SCHEMA",
+      "REVENUE_IMPACT:medium"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:09.620+00:00Z"
+  },
+  {
+    "task_id": "SQLITE-TASK-BOARD-001",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 4,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:13.199604+00:00",
+    "timestamp_updated": "2025-05-02T23:13:13.199604+00:00",
+    "action": "finalize_sqlite_task_engine",
+    "params": {
+      "shared": true,
+      "supports_metrics": true
+    },
+    "tags": [
+      "IMMORTALITY_LAYER",
+      "REVENUE_IMPACT:high"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:13.175+00:00Z"
+  },
+  {
+    "task_id": "COMMANDPOST-BRIDGE-002",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:18.114634+00:00",
+    "timestamp_updated": "2025-05-02T23:13:18.114634+00:00",
+    "action": "extend_discord_bridge",
+    "params": {
+      "features": [
+        "blocker_alerts",
+        "task_updates",
+        "human_reply_routing"
+      ]
+    },
+    "tags": [
+      "COMMS",
+      "REVENUE_IMPACT:medium"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:18.103+00:00Z"
+  },
+  {
+    "task_id": "MIDNIGHT-MISSION-RUNNER-001",
+    "name": "Untitled Task",
+    "description": "",
+    "priority": 3,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": null,
+    "dependencies": [],
+    "notes": "",
+    "created_by": "captain",
+    "created_at": "2025-05-02T23:13:22.809488+00:00",
+    "timestamp_updated": "2025-05-02T23:13:22.809488+00:00",
+    "action": "revive_trinity_runner",
+    "params": {
+      "runtime_window": "00:00–06:00",
+      "task_loop_mode": "continuous",
+      "priority_filter": "high"
+    },
+    "tags": [
+      "AUTOMATION",
+      "NIGHT_RUNNER",
+      "REVENUE_IMPACT:high"
+    ],
+    "injected_by": "captain",
+    "injected_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_created": "2025-05-02T23:13:22.804+00:00Z"
+  },
+  {
+    "task_id": "CREATE-CLASSIFY-FILES-TOOL-001",
+    "name": "Create Tool/Script for File Classification",
+    "description": "Develop a Python script or tool that implements the 'classify_files' action. The tool must read an import graph (e.g., reports/audit/import-graph.json), analyze files (potentially using project manifest or direct file system scan), and classify them based on the criteria defined in ORPHANED-FILE-CATEGORIZATION-001. Output should be a mapping of file paths to categories.",
+    "priority": 2,
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": "TOOLING/CORE",
+    "dependencies": [],
+    "notes": "Required to unblock ORPHANED-FILE-CATEGORIZATION-001. Specification drafted in runtime/specs/classify_files_spec.md.",
+    "created_by": "Agent-4",
+    "created_at": "2025-05-03T15:19:27Z",
+    "timestamp_updated": "2025-05-03T15:19:27Z",
+    "required_capabilities": [
+      "PYTHON_SCRIPTING",
+      "FILE_IO",
+      "CODE_ANALYSIS"
+    ],
+    "tags": ["TOOLING", "AUTONOMY", "CLEANUP"],
+    "timestamp_created": "2025-05-03T15:19:27Z"
+  },
+  {
+    "task_id": "ORPHANED-FILE-CATEGORIZATION-001",
+    "name": "Categorize Orphaned/Unused Files",
+    "description": "Use the 'classify_files' tool (to be created by CREATE-CLASSIFY-FILES-TOOL-001) to analyze files based on the import graph and classify them into categories: used_dynamically, agent_entrypoints, test_utilities, deprecated_or_old_versions, migration_pending, config_only, plugin_modules, tool_scripts, dashboard_or_gui, truly_orphaned.",
+    "priority": 3,
+    "status": "BLOCKED",
+    "assigned_agent": "Agent-4",
+    "task_type": "ANALYSIS/CLEANUP",
+    "dependencies": [
+      "CREATE-CLASSIFY-FILES-TOOL-001"
+    ],
+    "notes": "Blocked pending creation of the classification tool. Input file: reports/audit/import-graph.json.",
+    "created_by": "general_victor",
+    "created_at": "2025-05-02T22:50:11.921300Z",
+    "timestamp_updated": "2025-05-03T15:19:27Z",
+    "tags": ["CLEANUP", "IMMORTALITY_LAYER", "REVENUE_IMPACT:low"],
+    "required_capabilities": ["FILE_IO", "ANALYSIS"],
+    "timestamp_created": "2025-05-02T22:50:11.921Z"
+  }
+]

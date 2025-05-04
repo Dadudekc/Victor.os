@@ -1,0 +1,20 @@
+# Ignore log files
+*.log
+*.jsonl
+
+# Ignore temporary directories and their contents
+tmp/
+cache/
+
+# Ignore state specific directories if transient
+state/
+queues/
+mailboxes/
+bus/
+cursor_processed/
+cursor_queue/
+local_blob/
+
+# Potentially ignore large memory files if they are rebuilt
+# governance_memory.jsonl
+# master_task_list.json

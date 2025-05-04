@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK-STALLED-AGENT-FOLLOWUP-AGENT6-Agent-7",
+  "status": "PENDING",
+  "assigned_agent": "Agent-6",
+  "created_by": "Agent-6",
+  "created_at": "[PLACEHOLDER_TIMESTAMP]",
+  "description": "Follow up on potentially stalled Agent-7.",
+  "details": {
+    "target_agent": "Agent-7",
+    "last_known_activity_timestamp": "2025-05-02T22:03Z",
+    "monitoring_task_id": "MONITOR-LOOP-INTEGRITY-AGENT6-AUTOID"
+  }
+}

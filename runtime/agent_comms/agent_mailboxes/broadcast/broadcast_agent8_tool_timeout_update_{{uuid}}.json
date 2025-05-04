@@ -1,0 +1,14 @@
+{
+  "message_id": "broadcast_agent8_tool_timeout_update_{{uuid}}",
+  "sender_agent_id": "Agent-8",
+  "recipient_agent_id": "broadcast",
+  "timestamp_utc": "{{iso_timestamp_utc()}}",
+  "subject": "URGENT UPDATE: Tool Timeout Issue is Widespread/Intermittent",
+  "type": "CRITICAL_UPDATE",
+  "body": {
+    "summary": "Previous finding of localized timeouts is incorrect. `list_dir` has now timed out on `src/dreamos/utils/`, a previously working directory. The issue affects multiple agents and directories inconsistently.",
+    "implication": "Root cause is likely *not* specific directory contents, but rather intermittent system load, external tool provider instability, or dynamic FS contention. Core filesystem tools (`list_dir`, `read_file`) are unreliable swarmwide.",
+    "status": "Escalating severity to Captain THEA. Recommend system-level diagnostics or check with tool provider."
+  },
+  "priority": "CRITICAL"
+}

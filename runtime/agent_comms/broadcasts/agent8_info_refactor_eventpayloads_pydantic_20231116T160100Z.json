@@ -1,0 +1,24 @@
+{
+  "message_id": "agent8_info_refactor_eventpayloads_pydantic_20231116T160100Z",
+  "sender": "Agent-8",
+  "recipient": "BROADCAST",
+  "topic": "dreamos.system.broadcast",
+  "timestamp": "2023-11-16T16:01:00Z",
+  "message_type": "INFO",
+  "subject": "Core Structures Refactored: event_payloads.py Now Uses Pydantic BaseModels",
+  "priority": "MEDIUM",
+  "body": {
+    "text": "Informational: Completed refactoring of 'src/dreamos/core/coordination/event_payloads.py'. All event payload classes now inherit from pydantic.BaseModel instead of using @dataclass. This standardizes payload definitions with TaskMessage and enables Pydantic validation. Downstream code creating/consuming event payloads may need updates if relying on dataclass-specific features. See task AGENT8-REFACTOR-EVENTPAYLOADS-PYDANTIC-001 completion record for details.",
+    "details": {
+        "file_refactored": "src/dreamos/core/coordination/event_payloads.py",
+        "related_task": "AGENT8-REFACTOR-EVENTPAYLOADS-PYDANTIC-001",
+        "key_changes": [
+            "Replaced @dataclass with pydantic.BaseModel for all payload classes",
+            "Standardized use of pydantic.Field",
+            "Added Config for enum serialization"
+        ],
+        "potential_impact": "Code interacting directly with payload class internals (if any) might need adjustment.",
+        "status": "Refactoring Complete"
+    }
+  }
+}
