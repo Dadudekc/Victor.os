@@ -20,10 +20,10 @@ try:
 except ImportError:
     try:
         # Try importing ShadowTaskNexus as fallback or primary if needed
-        from dreamos.agents.agent_1.shadow_task_nexus import (  # type: ignore
+        from dreamos.agents.shadow_task_nexus import (  # type: ignore
             ShadowTaskNexus as TaskNexus,
         )
-        from dreamos.agents.agent_1.shadow_task_nexus import Task
+        from dreamos.agents.shadow_task_nexus import Task
     except ImportError:
         print(
             "ERROR: Failed to import TaskNexus or ShadowTaskNexus. Ensure dreamos package is installed or paths are correct.",

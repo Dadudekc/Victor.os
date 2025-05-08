@@ -1,25 +1,22 @@
-"""Core task nexus functionalities for DreamOS.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This sub-package contains the central logic for task distribution,
-capability management, and agent coordination related to tasks.
-"""
-
-# Expose key components from this package.
-from .agent_registry_handler import AgentRegistryHandler
-from .capability_handler import CapabilityHandler
-from .capability_registry import CapabilityRegistry
-from .db_task_nexus import DbTaskNexus
-from .shadow_task_nexus import ShadowTaskNexus
-from .task_nexus import Task, TaskNexus
-from .task_operations import TaskOperationsHandler
+from . import (
+    agent_registry_handler,
+    capability_handler,
+    capability_registry,
+    db_task_nexus,
+    shadow_task_nexus,
+    task_nexus,
+    task_operations,
+)
 
 __all__ = [
-    "Task",
-    "TaskNexus",
-    "TaskOperationsHandler",
-    "DbTaskNexus",
-    "CapabilityHandler",
-    "CapabilityRegistry",
-    "AgentRegistryHandler",
-    "ShadowTaskNexus",
+    "agent_registry_handler",
+    "capability_handler",
+    "capability_registry",
+    "db_task_nexus",
+    "shadow_task_nexus",
+    "task_nexus",
+    "task_operations",
 ]

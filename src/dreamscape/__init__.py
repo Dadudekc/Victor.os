@@ -1,6 +1,11 @@
-"""Main package for the Digital Dreamscape subsystem.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-Handles autonomous devblog content generation, planning, and potentially publishing.
-"""
+# REMOVED: from . import chronicle_conversations
+from . import compile_devlog, config
 
-# src/dreamscape/__init__.py
+__all__ = [
+    # REMOVED: 'chronicle_conversations',
+    "compile_devlog",
+    "config",
+]

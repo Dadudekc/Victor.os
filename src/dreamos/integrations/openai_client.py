@@ -2,11 +2,12 @@
 
 import asyncio  # noqa: I001
 import logging
+from typing import Optional
 
 import openai
 import tenacity
-from dreamos.core.config import get_config
 
+from dreamos.core.config import get_config
 from . import APIError, IntegrationError
 
 logger = logging.getLogger(__name__)
@@ -14,34 +15,30 @@ logger = logging.getLogger(__name__)
 
 class OpenAIClient:
     def __init__(self):
-        """Initializes the OpenAI client, loading configuration automatically."""
-        self.api_key = get_config("integrations.openai.api_key")
-        self.api_base = get_config("integrations.openai.api_base", default=None)
+        """Initializes the OpenAI client, loading configuration automatically via get_config."""
+        try:
+            config = get_config() # Load global config
+            self.api_key = config.integrations.openai.api_key.get_secret_value() if config.integrations.openai.api_key else None
+            self.api_base = config.integrations.openai.api_base if hasattr(config.integrations.openai, 'api_base') else None
 
-        if not self.api_key:
-            logger.warning(
-                "OpenAI API key not found in configuration (integrations.openai.api_key). Client will be non-functional."  # noqa: E501
-            )
-            self._client = None
-            self._functional = False
-        else:
-            try:
+            if not self.api_key:
+                logger.warning("OpenAI API key not found in configuration. Client will be non-functional.")
+                self._client = None
+                self._functional = False
+            else:
                 # Configure the openai library
                 openai.api_key = self.api_key
                 if self.api_base:
                     openai.api_base = self.api_base
-                # Rely on module config for now.
-                self._client = openai  # Reference the module for calls
+                self._client = openai
                 self._functional = True
-                logger.info(
-                    f"OpenAIClient initialized (API Base: {self.api_base or 'Default'})."  # noqa: E501
-                )
-            except Exception as e:
-                logger.error(f"Failed to initialize OpenAI client: {e}", exc_info=True)
-                self._client = None
-                self._functional = False
-                # Don't raise here, allow graceful failure if init fails.
-                # raise IntegrationError(f"Failed to initialize OpenAI client: {e}")
+                logger.info(f"OpenAIClient initialized (API Base: {self.api_base or 'Default'}).")
+        except Exception as e:
+            logger.error(f"Failed to initialize OpenAI client using get_config: {e}", exc_info=True)
+            self._client = None
+            self._functional = False
+            # Optionally re-raise as IntegrationError
+            # raise IntegrationError(f"Failed to initialize OpenAI client: {e}")
 
     def is_functional(self) -> bool:
         """Returns True if the client was initialized successfully and has an API key."""  # noqa: E501

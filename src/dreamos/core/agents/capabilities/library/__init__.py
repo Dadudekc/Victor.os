@@ -1,19 +1,11 @@
-"""Library of predefined or standard agent capabilities.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package collects implementations or definitions of common capabilities
-that can be registered or used by agents.
-"""
-
-# This __init__.py can be used to expose specific capabilities or categories
-# from the modules within this library package.
-from .task_rewrite import (
-    TASK_REWRITE_CAPABILITY_ID,
-    TASK_REWRITE_CAPABILITY_INFO,
-    task_rewrite_capability,
-)
+from . import debate_management, meeting_management, narrative_generate, task_rewrite
 
 __all__ = [
-    "task_rewrite_capability",
-    "TASK_REWRITE_CAPABILITY_INFO",
-    "TASK_REWRITE_CAPABILITY_ID",
+    "debate_management",
+    "meeting_management",
+    "narrative_generate",
+    "task_rewrite",
 ]

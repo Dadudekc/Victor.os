@@ -9,12 +9,8 @@ from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from ..core.agent_bus import (
-    AgentBus,  # Assuming AgentBus can be directly imported and used
-)
-from ..core.bus_utils import EventType  # Assuming EventType can be directly imported
-from ..utils.log_exception import log_exception
-from ..utils.singleton import Singleton
+from dreamos.core.coordination import agent_bus
+from dreamos.core.coordination.event_types import EventType
 
 # Setup basic logging - REMOVED basicConfig
 # logging.basicConfig(
@@ -42,7 +38,7 @@ class ApprovalStatus(Enum):
     REJECTED = "rejected"
 
 
-class CommandSupervisor(Singleton):
+class CommandSupervisor:
     """Singleton class to manage potentially risky command execution requests.
 
     This supervisor acts as a central gatekeeper for shell commands requested by
@@ -72,18 +68,20 @@ class CommandSupervisor(Singleton):
 
     # FIXME: AgentBus ideally should be passed consistently, not fetched via AgentBus() default call.
     # This assumes AgentBus() reliably provides the correct singleton if None is passed.
-    def __init__(self, agent_bus: Optional[AgentBus] = None):
+    def __init__(self, agent_bus_instance: Optional[agent_bus.AgentBus] = None):
         """Initializes the CommandSupervisor singleton. Now fully async."""
         if self._initialized:
             return
         # self.agent_bus = agent_bus or AgentBus() # Ensure AgentBus is properly managed/injected
-        if agent_bus is None:
+        if agent_bus_instance is None:
             logger.warning(
                 "CommandSupervisor initialized without an explicit AgentBus. Attempting to get default."
             )
-            self.agent_bus = AgentBus()  # This should provide the singleton instance
+            self.agent_bus = (
+                agent_bus.AgentBus()
+            )  # This should provide the singleton instance
         else:
-            self.agent_bus = agent_bus
+            self.agent_bus = agent_bus_instance
 
         self.pending_approvals: Dict[str, SupervisorEvent] = {}
         self.approval_status: Dict[str, ApprovalStatus] = {}
@@ -248,46 +246,46 @@ class CommandSupervisor(Singleton):
             )
             stdout, stderr = await process.communicate()
 
-            stdout_str = stdout.decode("utf-8", errors="ignore") if stdout else ""
-            stderr_str = stderr.decode("utf-8", errors="ignore") if stderr else ""
+            exit_code = process.returncode
+            output = stdout.decode("utf-8", errors="replace").strip()
+            error_output = stderr.decode("utf-8", errors="replace").strip()
 
-            if process.returncode == 0:
-                result_payload["status"] = "success"
-                result_payload["output"] = stdout_str
-                logger.info(f"Command {command_id} executed successfully.")
+            if exit_code == 0:
+                result_payload["status"] = "completed"
+                result_payload["output"] = output
+                logger.info(f"Command {command_id} completed successfully.")
             else:
-                result_payload["status"] = "error"
+                result_payload["status"] = "failed"
+                result_payload["output"] = output
                 result_payload["error"] = (
-                    f"Command failed with exit code {process.returncode}: {stderr_str}"
+                    f"Exit Code {exit_code}: {error_output}"
+                    if error_output
+                    else f"Exit Code {exit_code}"
                 )
-                result_payload["output"] = stdout_str  # Include stdout even on error
-                logger.error(f"Command {command_id} failed: {result_payload['error']}")
+                logger.error(
+                    f"Command {command_id} failed with exit code {exit_code}. Error: {error_output or 'N/A'}"
+                )
 
         except Exception as e:
-            error_message = (
-                f"Exception during command execution: {traceback.format_exc()}"
+            logger.exception(
+                f"Command execution failed unexpectedly for ID {command_id}"
             )
-            log_exception(e, logger, f"Command execution failed for ID {command_id}")
             result_payload["status"] = "error"
-            result_payload["error"] = error_message
+            result_payload["error"] = f"Supervisor Error: {type(e).__name__}: {e}"
+            # Optionally include traceback
+            result_payload["traceback"] = traceback.format_exc()
 
         finally:
-            # Clean up status tracking
-            with self.lock:
-                if command_id in self.approval_status:
-                    del self.approval_status[command_id]  # Remove entry once done
-
-            # Send the result back to the original requester
-            result_event = SupervisorEvent(
+            result_event_data = SupervisorEvent(
                 event_type=EventType.COMMAND_EXECUTION_RESULT,
                 sender_id="CommandSupervisor",
                 payload=result_payload,
                 correlation_id=correlation_id,
             )
-            await self.agent_bus.publish(result_event)
-            logger.info(
-                f"Sent execution result for command ID {command_id} to {requester_id}"
-            )
+            await self.agent_bus.publish(result_event_data)
+            async with self.lock:  # Use asyncio.Lock
+                if command_id in self.approval_status:
+                    del self.approval_status[command_id]
 
 
 # Helper function for agents to request command execution
@@ -305,7 +303,7 @@ async def request_command_execution(
     Returns:
         The correlation ID used for the request.
     """
-    bus = AgentBus()  # Get the singleton instance
+    bus = agent_bus.AgentBus()  # Get the singleton instance
     request_payload = {"command": command, "details": details}
     # Ensure a correlation ID exists
     _correlation_id = correlation_id or str(uuid4())

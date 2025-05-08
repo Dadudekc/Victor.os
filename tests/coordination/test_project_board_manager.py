@@ -3,6 +3,7 @@
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 from unittest import mock
 from unittest.mock import patch
@@ -681,10 +682,12 @@ def test_add_task_schema_validation_fail(
 
 @patch("dreamos.coordination.project_board_manager.jsonschema.validate")
 def test_update_task_schema_validation_success(
-    mock_jsonschema_validate, pbm_with_real_schema: ProjectBoardManager, sample_task_details
+    mock_jsonschema_validate,
+    pbm_with_real_schema: ProjectBoardManager,
+    sample_task_details,
 ):
     """Test update_working_task passes schema validation with valid data."""
-    pbm = pbm_with_real_schema # Use the renamed fixture
+    pbm = pbm_with_real_schema  # Use the renamed fixture
     task_id = sample_task_details["task_id"]
 
     # Add initial task (assume valid or mock validation)
@@ -707,15 +710,17 @@ def test_update_task_schema_validation_success(
     # Assert jsonschema.validate was called (or however validation is triggered)
     mock_jsonschema_validate.assert_called_once()
     call_args = mock_jsonschema_validate.call_args[0]
-    assert call_args[0]["notes"] == "Updated notes" # Check instance being validated
+    assert call_args[0]["notes"] == "Updated notes"  # Check instance being validated
 
 
 @patch("dreamos.coordination.project_board_manager.jsonschema.validate")
 def test_update_task_schema_validation_fail(
-    mock_jsonschema_validate, pbm_with_real_schema: ProjectBoardManager, sample_task_details
+    mock_jsonschema_validate,
+    pbm_with_real_schema: ProjectBoardManager,
+    sample_task_details,
 ):
     """Test update_working_task raises TaskValidationError on schema failure."""
-    pbm = pbm_with_real_schema # Use the renamed fixture
+    pbm = pbm_with_real_schema  # Use the renamed fixture
     task_id = sample_task_details["task_id"]
 
     # Add initial task
@@ -723,14 +728,16 @@ def test_update_task_schema_validation_fail(
         pbm.add_task_to_board("ready", sample_task_details)
 
     # Invalid updates (e.g., wrong type for priority)
-    updates = {"priority": {"level": "VERY LOW"}} # Example invalid data
+    updates = {"priority": {"level": "VERY LOW"}}  # Example invalid data
 
     # Mock jsonschema.validate to raise a validation error
     mock_jsonschema_validate.side_effect = jsonschema.ValidationError(
         "Mock validation error"
     )
 
-    with pytest.raises(TaskValidationError, match=r"Task data failed schema validation"):
+    with pytest.raises(
+        TaskValidationError, match=r"Task data failed schema validation"
+    ):
         pbm.update_working_task(task_id, updates)
 
     # Assert jsonschema.validate was called

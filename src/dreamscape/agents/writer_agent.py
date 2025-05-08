@@ -8,9 +8,6 @@ import traceback  # Added for error details
 from typing import Any, Dict  # Removed Type
 
 # EDIT START: Add missing imports
-from dreamos.core.config import AppConfig  # Updated import
-from dreamos.core.coordination.agent_bus import AgentBus  # Removed BaseEvent, EventType
-
 # {{ EDIT START: Updated Imports }}
 from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage
 
@@ -19,15 +16,14 @@ from dreamos.integrations.openai_client import (  # Import the specific client
     OpenAIClient,
     OpenAIClientError,
 )
-from dreamos.utils.config_utils import (  # Keep for potential direct access if needed
-    get_config,
-)
 
 # Import Dreamscape specific models
 from ..core.content_models import ContentDraft, ContentPlan
 
 # EDIT END
 
+# ADDED: Import get_config
+from dreamos.core.config import get_config
 
 # from ..events.event_types import DreamscapeEventType # Removed
 # from ..schemas.event_schemas import WritingRequestedPayload # Removed
@@ -35,6 +31,9 @@ from ..core.content_models import ContentDraft, ContentPlan
 # {{ EDIT END }}
 
 logger = logging.getLogger(__name__)
+
+# Constants (Consider moving to config)
+# REMOVED: DEFAULT_MODEL, DEFAULT_MAX_TOKENS constants at module level
 
 
 # {{ EDIT START: Inherit from BaseAgent }}
@@ -44,36 +43,32 @@ class ContentWriterAgent(BaseAgent):
 
     WRITE_COMMAND_TYPE = "WRITE_CONTENT_DRAFT"
 
-    # {{ EDIT START: Updated __init__ }}
-    def __init__(self, config: AppConfig, agent_bus: AgentBus):
+    # EDIT START: Updated __init__
+    def __init__(self, agent_id: str, **kwargs):
         """
         Initializes the Content Writer Agent.
 
         Args:
-            config: The application configuration object.
-            agent_bus: An instance of the AgentBus for communication.
+            agent_id: The ID of the agent.
+            **kwargs: Additional keyword arguments.
         """
-        agent_id = get_config(
-            "dreamscape.writer_agent.agent_id",
-            default="dreamscape_writer_001",
-            config_obj=config,
-        )
-        super().__init__(agent_id=agent_id, agent_bus=agent_bus)
-        self.config = config  # Store config if needed
+        super().__init__(agent_id=agent_id, **kwargs)
 
-        # EDIT START: Initialize OpenAI Client
-        try:
-            self.openai_client = OpenAIClient(config=config)
-        except OpenAIClientError as e:
-            logger.error(
-                f"Failed to initialize OpenAI Client for {self.agent_id}: {e}",
-                exc_info=True,
-            )
-            self.openai_client = None
-            logger.warning(
-                f"{self.agent_id} initialized WITHOUT a functional OpenAI client."
-            )
-        # EDIT END
+        agent_config = get_config() # Get global config
+        # Assuming path like: agent_config.dreamscape.agents.writer.model
+        self.model = agent_config.dreamscape.agents.writer.model if \
+                       hasattr(agent_config.dreamscape.agents, 'writer') and \
+                       hasattr(agent_config.dreamscape.agents.writer, 'model') else "gpt-4-turbo"
+        self.max_tokens = agent_config.dreamscape.agents.writer.max_tokens if \
+                            hasattr(agent_config.dreamscape.agents, 'writer') and \
+                            hasattr(agent_config.dreamscape.agents.writer, 'max_tokens') else 4096
+
+        if not hasattr(self, 'openai_client') or not self.openai_client:
+             self.openai_client = OpenAIClient() # OpenAIClient uses get_config internally now
+
+        if not self.openai_client.is_functional():
+            logger.error("ContentWriterAgent requires a functional OpenAI client.")
+            # Handle appropriately
 
         # Register command handler
         self.register_command_handler(
@@ -168,21 +163,15 @@ class ContentWriterAgent(BaseAgent):
             # Construct prompt
             prompt = self._build_writing_prompt(plan)
             logger.debug(
-                f"Task {task.task_id}: Sending writing prompt to LLM:\n{prompt[:500]}..." # Log prompt start
+                f"Task {task.task_id}: Sending writing prompt to LLM:\n{prompt[:500]}..."  # Log prompt start
             )
-            await self.publish_task_progress(task, 0.3, "Calling LLM for draft...") # Update progress
+            await self.publish_task_progress(
+                task, 0.3, "Calling LLM for draft..."
+            )  # Update progress
 
             # Call LLM
-            model = get_config(
-                "dreamscape.writer_agent.llm_model",
-                default="gpt-3.5-turbo",
-                config_obj=self.config,
-            )
-            max_tokens = get_config(
-                "dreamscape.writer_agent.max_tokens",
-                default=1500,
-                config_obj=self.config,
-            )
+            model = self.model
+            max_tokens = self.max_tokens
 
             # === Actual LLM Call ===
             llm_response = await self.openai_client.generate_text(
@@ -194,7 +183,7 @@ class ContentWriterAgent(BaseAgent):
             # ========================
 
             logger.debug(
-                f"Task {task.task_id}: Received LLM response.\n{llm_response[:500]}..." # Log response start
+                f"Task {task.task_id}: Received LLM response.\n{llm_response[:500]}..."  # Log response start
             )
             await self.publish_task_progress(task, 0.7, "Parsing LLM response...")
 

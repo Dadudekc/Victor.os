@@ -612,3 +612,23 @@ def get_clipboard_content_safe() -> Optional[str]:
     except Exception as e:
         logger.error(f"Unexpected error getting clipboard content: {e}")
         return None
+
+
+def copy_text_from_agent(copy_coords: tuple[int, int], delay: float = 0.5) -> str:
+    """Click the copy area and capture clipboard content from the agent window."""
+    try:
+        logger.debug(f"Clicking copy coordinates: {copy_coords}")
+        pyautogui.click(copy_coords)
+        time.sleep(delay)  # Wait after click
+        pyautogui.hotkey("ctrl", "a")  # Select all
+        time.sleep(0.1)  # Short delay between hotkeys
+        pyautogui.hotkey("ctrl", "c")  # Copy
+        time.sleep(0.2)  # Allow clipboard to update
+        response = pyperclip.paste().strip()
+        logger.debug(f"Clipboard content retrieved: {len(response)} chars")
+        return response
+    except Exception as e:
+        logger.error(f"Error during agent text copy via GUI: {e}", exc_info=True)
+        # Depending on pyautogui setup, errors like FailSafeException might occur
+        # Returning empty string indicates failure to copy
+        return ""

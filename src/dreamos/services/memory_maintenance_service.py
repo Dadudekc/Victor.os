@@ -6,6 +6,7 @@ import os
 import shutil
 from pathlib import Path
 from typing import (  # Assuming Union is needed for BasePolicyConfig resolution below
+    TYPE_CHECKING,
     List,
     Literal,
     Optional,
@@ -14,13 +15,19 @@ from typing import (  # Assuming Union is needed for BasePolicyConfig resolution
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# Assuming config types are needed
-from dreamos.core.config import (  # Placeholder for BasePolicyConfig if it exists in config, otherwise remove/replace; BasePolicyConfig  # noqa: E501
-    AppConfig,
-    CompactionPolicyConfig,
-    MemoryMaintenanceConfig,
-    SummarizationPolicyConfig,
-)
+if TYPE_CHECKING:
+    from dreamos.core.config import (
+        AppConfig,
+        CompactionPolicyConfig,
+        MemoryMaintenanceConfig,
+    )
+    from dreamos.core.config import (
+        SummarizationPolicyConfig as SummarizationPolicyConfigType,
+    )
+
+    # Define BasePolicyConfig for type checking context if it's composed of these
+    BasePolicyConfig = Union[CompactionPolicyConfig, SummarizationPolicyConfigType]
+
 from dreamos.core.utils.file_locking import FileLock, LockAcquisitionError
 from dreamos.core.utils.summarizer import BaseSummarizer
 from dreamos.memory.compaction_utils import CompactionError, compact_segment_file
@@ -29,9 +36,12 @@ from dreamos.memory.summarization_utils import (
     summarize_segment_file,
 )
 
-# Define BasePolicyConfig if not imported - Use Union as placeholder based on flake8 fix attempt  # noqa: E501
-BasePolicyConfig = Union[CompactionPolicyConfig, SummarizationPolicyConfig]
-
+# Define BasePolicyConfig if not imported - Use Union as placeholder based on flake8 fix attempt
+# This definition might need adjustment based on where CompactionPolicyConfig and SummarizationPolicyConfig are truly defined for runtime.
+# For type hinting within this file, if TYPE_CHECKING is correctly set up, this global definition might be shadowed or managed by the type checker.
+# If runtime errors occur because BasePolicyConfig is not defined, it means it was expected from the removed import.
+# For now, assume type hints will resolve via string literals or the TYPE_CHECKING block for AppConfig components.
+BasePolicyConfig = Union["CompactionPolicyConfig", "SummarizationPolicyConfigType"]
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +52,9 @@ class MemoryMaintenanceService:
     Uses APScheduler for scheduling.
     """
 
-    def __init__(self, config: AppConfig, summarizer: Optional[BaseSummarizer] = None):
+    def __init__(
+        self, config: "AppConfig", summarizer: Optional[BaseSummarizer] = None
+    ):
         """
         Initializes the Memory Maintenance Service using application configuration.
 
@@ -51,7 +63,7 @@ class MemoryMaintenanceService:
             summarizer: An optional summarizer instance for the summarization task.
         """
         self.config = config
-        self.maintenance_config: MemoryMaintenanceConfig = config.memory_maintenance
+        self.maintenance_config: "MemoryMaintenanceConfig" = config.memory_maintenance
         self.summarizer = summarizer
 
         self.memory_base_path = config.paths.memory
@@ -350,14 +362,16 @@ class MemoryMaintenanceService:
                         continue  # Skip file if no applicable policy found
 
                     # Ensure policies are the correct type for the helper function
-                    comp_conf: Optional[CompactionPolicyConfig] = (
+                    comp_conf: Optional["CompactionPolicyConfig"] = (
                         compaction_policy
-                        if isinstance(compaction_policy, CompactionPolicyConfig)
+                        if isinstance(compaction_policy, "CompactionPolicyConfig")
                         else None
                     )
-                    summ_conf: Optional[SummarizationPolicyConfig] = (
+                    summ_conf: Optional["SummarizationPolicyConfigType"] = (
                         summarization_policy
-                        if isinstance(summarization_policy, SummarizationPolicyConfig)
+                        if isinstance(
+                            summarization_policy, "SummarizationPolicyConfigType"
+                        )
                         else None
                     )
 
@@ -490,8 +504,8 @@ class MemoryMaintenanceService:
     async def _process_segment_file(
         self,
         segment_file_path: Path,
-        compaction_policy: Optional[CompactionPolicyConfig],
-        summarization_policy: Optional[SummarizationPolicyConfig],
+        compaction_policy: Optional["CompactionPolicyConfig"],
+        summarization_policy: Optional["SummarizationPolicyConfigType"],
     ) -> bool:
         """Applies compaction and summarization to a single segment file."""
         logger.debug(f"Processing segment file: {segment_file_path.name}")

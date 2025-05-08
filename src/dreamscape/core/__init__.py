@@ -1,6 +1,8 @@
-"""Core logic, models, and services for the Dreamscape subsystem.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-Contains fundamental components like content models and potentially shared logic.
-"""
+from . import content_models
 
-# src/dreamscape/core/__init__.py
+__all__ = [
+    "content_models",
+]

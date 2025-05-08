@@ -1,7 +1,26 @@
-"""
-Dream.OS social media pipeline utilities package.
-"""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-# Keep this file simple. Avoid complex imports here to prevent circular dependencies.
-# Other modules should import directly from the specific util file they need,
-# e.g., from social.utils.logging_utils import log_event
+from . import (
+    chatgpt_scraper,
+    cursor,
+    devlog_analyzer,
+    devlog_dispatcher,
+    devlog_generator,
+    feedback_processor,
+    logging_utils,
+    retry_utils,
+    selenium_utils,
+)
+
+__all__ = [
+    "chatgpt_scraper",
+    "cursor",
+    "devlog_analyzer",
+    "devlog_dispatcher",
+    "devlog_generator",
+    "feedback_processor",
+    "logging_utils",
+    "retry_utils",
+    "selenium_utils",
+]

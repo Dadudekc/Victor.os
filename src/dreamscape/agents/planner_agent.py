@@ -3,17 +3,11 @@
 import asyncio
 import logging
 import traceback
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType # OLD PATH  # noqa: E501
-from dreamos.config import AppConfig  # Import AppConfig
-
 # from ..events.event_types import DreamscapeEventType # No longer needed
 # Import AgentBus interface
-from dreamos.coordination.agent_bus import (  # CORRECTED PATH
-    AgentBus,
-)
-
 # {{ EDIT: Import schema }}
 # from ..schemas.event_schemas import PlanRequestedPayload, BaseEventPayload # No longer needed  # noqa: E501
 # from pydantic import ValidationError # No longer needed for event handling
@@ -22,9 +16,7 @@ from dreamos.integrations.openai_client import (  # Import the specific client
     OpenAIClient,
     OpenAIClientError,
 )
-from dreamos.utils.config_utils import (  # Keep for potential direct access if needed
-    get_config,
-)
+from dreamos.core.config import get_config
 
 # {{ EDIT: Import necessary core models and events }}
 from ..core.content_models import ContentPlan
@@ -32,56 +24,53 @@ from ..core.content_models import ContentPlan
 logger = logging.getLogger(__name__)
 
 
-# {{ EDIT START: Inherit from BaseAgent }}
-class ContentPlannerAgent(BaseAgent):
-    # {{ EDIT END }}
-    """Generates content plans for the Digital Dreamscape devblog.
+class PlannerAgent(BaseAgent):
+    """Agent responsible for decomposing high-level goals into actionable tasks."""
 
-    Listens for tasks of type 'GENERATE_CONTENT_PLAN' via the AgentBus.
-    """
+    # EDIT: Reverted __init__ to use get_config for model and max_tokens
+    def __init__(self, agent_id: str, **kwargs):
+        super().__init__(agent_id=agent_id, **kwargs)  # BaseAgent handles its own config via get_config
 
-    PLAN_COMMAND_TYPE = "GENERATE_CONTENT_PLAN"
+        agent_config = get_config()  # Get global config
+        # Assuming path like: agent_config.dreamscape.agents.planner.model
+        self.model = agent_config.dreamscape.agents.planner.model if \
+                       hasattr(agent_config.dreamscape.agents, 'planner') and \
+                       hasattr(agent_config.dreamscape.agents.planner, 'model') else "gpt-4-turbo"
+        self.max_tokens = agent_config.dreamscape.agents.planner.max_tokens if \
+                            hasattr(agent_config.dreamscape.agents, 'planner') and \
+                            hasattr(agent_config.dreamscape.agents.planner, 'max_tokens') else 4096
 
-    # {{ EDIT START: Updated __init__ }}
-    def __init__(self, config: AppConfig, agent_bus: AgentBus):
-        """
-        Initializes the Content Planner Agent.
+        # OpenAIClient is initialized by BaseAgent or directly here if needed
+        # If BaseAgent initializes it with its own config, this might be redundant
+        # or we need to ensure PlannerAgent's specific client is used.
+        # For now, assuming BaseAgent provides self.openai_client or we init here based on global.
+        if not hasattr(self, 'openai_client') or not self.openai_client:
+             self.openai_client = OpenAIClient()  # OpenAIClient uses get_config internally now
 
-        Args:
-            config: The application configuration object.
-            agent_bus: An instance of the AgentBus for communication.
-        """
-        agent_id = get_config(
-            "dreamscape.planner_agent.agent_id",
-            default="dreamscape_planner_001",
-            config_obj=config,
-        )
-        super().__init__(agent_id=agent_id, agent_bus=agent_bus)
-        self.config = config  # Store config if needed for other settings
+        if not self.openai_client.is_functional():
+            logger.error("PlannerAgent requires a functional OpenAI client.")
+            # Handle appropriately - maybe raise or set a non-functional state
 
-        # EDIT START: Initialize OpenAI Client
+    async def generate_plan(self, goal: str, context: Optional[str] = None) -> Dict:
+        """Generates a plan based on the goal and context."""
+        prompt = self._build_planning_prompt(goal, context)
         try:
-            self.openai_client = OpenAIClient(config=config)
-        except OpenAIClientError as e:
-            logger.error(
-                f"Failed to initialize OpenAI Client for {self.agent_id}: {e}",
-                exc_info=True,
+            completion = await self.openai_client.get_completion(
+                prompt=prompt,
+                model=self.model,
+                max_tokens=self.max_tokens,
+                temperature=0.5,  # Example parameter
             )
-            # Agent might still start but LLM calls will fail. Consider raising or preventing start.  # noqa: E501
-            self.openai_client = None
-            logger.warning(
-                f"{self.agent_id} initialized WITHOUT a functional OpenAI client."
-            )
-        # EDIT END
+            plan = self._parse_plan(completion)
+            return plan
+        except IntegrationError as e:
+            logger.error(f"PlannerAgent failed to get completion: {e}", exc_info=True)
+            return {"error": str(e)}
+        except Exception as e:
+            logger.error(f"PlannerAgent failed to parse plan: {e}", exc_info=True)
+            return {"error": f"Plan parsing failed: {e}"}
 
-        # Register command handler
-        self.register_command_handler(self.PLAN_COMMAND_TYPE, self.handle_plan_request)
-
-        logger.info(
-            f"ContentPlannerAgent ({self.agent_id}) initialized and ready for '{self.PLAN_COMMAND_TYPE}' tasks."  # noqa: E501
-        )
-
-    # {{ EDIT END }}
+    # ... (_build_planning_prompt, _parse_plan methods) ...
 
     # {{ EDIT START: Implement _on_start/_on_stop (Optional placeholders) }}
     async def _on_start(self):

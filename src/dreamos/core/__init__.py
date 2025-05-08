@@ -1,8 +1,10 @@
-"""Core components and foundational functionalities for DreamOS.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This sub-package groups essential services, base classes, and utilities
-that form the backbone of the DreamOS system.
-"""
+# REMOVED: from . import config
+from . import swarm_sync
 
-# Required for package recognition
-# Further imports or initializations for the core package can be added below.
+__all__ = [
+    # REMOVED: 'config',
+    "swarm_sync",
+]

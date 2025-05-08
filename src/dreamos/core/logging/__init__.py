@@ -1,14 +1,8 @@
-"""Logging facilities for DreamOS core components and agents.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package provides structured logging capabilities, particularly for agent
-activities within the swarm. It aims to ensure safe concurrent log writing.
-
-Currently, it exposes:
-- `log_agent_event`: For recording detailed agent activities.
-"""
-
-from .swarm_logger import log_agent_event
+from . import swarm_logger
 
 __all__ = [
-    "log_agent_event",
+    "swarm_logger",
 ]

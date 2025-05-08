@@ -1,5 +1,11 @@
-"""Dream.OS Project Scanner Module."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .project_scanner import ProjectScanner
+from . import analyzer, concurrency, file_processor, report_generator
 
-__all__ = ["ProjectScanner"]
+__all__ = [
+    "analyzer",
+    "concurrency",
+    "file_processor",
+    "report_generator",
+]

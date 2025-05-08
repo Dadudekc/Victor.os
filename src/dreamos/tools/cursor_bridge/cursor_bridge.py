@@ -18,10 +18,7 @@ logger = logging.getLogger(__name__)
 # --- Non-standard library imports ---
 import pyautogui
 import pyperclip  # For reliable pasting
-from dreamos.core.config import (
-    AppConfig,  # Assuming AppConfig can be imported
-    get_config,  # Corrected import path for get_config
-)
+from dreamos.core.config import get_config #, AppConfig, DEFAULT_CONFIG_PATH (AppConfig not needed directly for get_config)
 from dreamos.core.coordination.agent_bus import AgentBus  # Import only AgentBus
 from PIL import Image  # Requires Pillow
 from pydantic import BaseModel, Field  # Ensure Field is imported for BusMessage
@@ -168,10 +165,49 @@ class CursorExtractError(CursorBridgeError):
 # --- Configuration Loading Helper ---
 
 
-def _get_bridge_config(key: str, default: any, config: Optional[AppConfig] = None):
-    """Safely retrieves config value from 'tools.cursor_bridge.{key}'."""
-    full_key = f"tools.cursor_bridge.{key}"  # Assuming bridge config is nested
-    return get_config(full_key, default=default, config_obj=config)
+def _get_bridge_config(key: str, default: Any, config: AppConfig) -> Any:
+    """Safely retrieves config value from config.tools.cursor_bridge.{key}.
+    Requires a valid AppConfig instance.
+    """
+    if (
+        not config
+        or not hasattr(config, "tools")
+        or not hasattr(config.tools, "cursor_bridge")
+    ):
+        logger.warning(
+            f"AppConfig object missing 'tools.cursor_bridge' structure. Cannot find key '{key}'. Returning default."
+        )
+        return default
+
+    # Access nested attribute safely
+    bridge_config_section = getattr(config.tools, "cursor_bridge", None)
+    if bridge_config_section:
+        return getattr(bridge_config_section, key, default)
+    else:
+        logger.warning(
+            f"AppConfig.tools missing 'cursor_bridge' attribute. Cannot find key '{key}'. Returning default."
+        )
+        return default
+
+
+# EDIT: Helper to load config if not provided
+def _ensure_config(config: Optional[AppConfig]) -> AppConfig:
+    if config is None:
+        logger.warning(
+            "AppConfig not provided to cursor_bridge function. Attempting to load default config."
+        )
+        try:
+            # This assumes DEFAULT_CONFIG_PATH is correctly set in core.config
+            return AppConfig.load(str(DEFAULT_CONFIG_PATH))
+        except Exception as e:
+            logger.error(
+                f"Failed to load default AppConfig: {e}. Bridge functionality may be impaired.",
+                exc_info=True,
+            )
+            # Create a default empty AppConfig as a last resort to prevent crashes
+            # This might need refinement based on required config fields
+            return AppConfig()
+    return config
 
 
 # --- Payload Handling --- #
@@ -179,6 +215,7 @@ def _get_bridge_config(key: str, default: any, config: Optional[AppConfig] = Non
 
 def handle_gpt_payload(payload: dict, config: Optional[AppConfig] = None):
     """Processes structured payload (type: code|text, content: str) and injects via inject_prompt_into_cursor."""
+    config = _ensure_config(config)  # Ensure config is loaded
     content_type = payload.get("type")
     content = payload.get("content")
 
@@ -221,6 +258,7 @@ def find_and_focus_cursor_window(config: Optional[AppConfig] = None):
     """Finds Cursor window and focuses it.
     Uses Config: window_title_substring, focus_wait_seconds
     """
+    config = _ensure_config(config)  # Ensure config is loaded
     title_substring = _get_bridge_config("window_title_substring", "Cursor", config)
     focus_wait = _get_bridge_config("focus_wait_seconds", 0.5, config)
     try:
@@ -298,6 +336,7 @@ def inject_prompt_into_cursor(prompt: str, config: Optional[AppConfig] = None):
     """Injects prompt into focused Cursor input field.
     Uses Config: paste_wait_seconds, input_coord_x, input_coord_y, paths.gui_snippets (for image location)
     """
+    config = _ensure_config(config)  # Ensure config is loaded
     paste_wait = _get_bridge_config("paste_wait_seconds", 0.1, config)
     try:
         find_and_focus_cursor_window(config)  # Pass config
@@ -308,7 +347,7 @@ def inject_prompt_into_cursor(prompt: str, config: Optional[AppConfig] = None):
 
         # Attempt 1: Locate via image template
         # Use config helper for path - assumes AppConfig structure
-        gui_snippets_dir = get_config("paths.gui_snippets", None, config_obj=config)
+        gui_snippets_dir = _get_bridge_config("gui_snippets_dir", None, config)
         if gui_snippets_dir:
             input_field_image_path = Path(gui_snippets_dir) / "cursor_input_field.png"
             if input_field_image_path.is_file():
@@ -451,6 +490,7 @@ def capture_response_area(
     Uses Config: response_area_region (if region_override not provided)
     """
     """Captures a screenshot of the response area (located via image or config)."""
+    config = _ensure_config(config)
     region_to_use = region_override
     if not region_to_use:
         region_to_use = _get_bridge_config("response_area_region", None, config)
@@ -507,6 +547,7 @@ def extract_text_from_image(
     image: Image.Image, config: Optional[AppConfig] = None
 ) -> str:
     """Extracts text from the provided image using Tesseract OCR."""
+    config = _ensure_config(config)
     if not PYTESSERACT_AVAILABLE:
         raise CursorExtractError("Pytesseract is not installed or available.")
 
@@ -553,6 +594,7 @@ def monitor_and_extract_response(
     config: Optional[AppConfig] = None,
 ) -> str:
     """Monitors the response area for stable text and extracts it."""
+    config = _ensure_config(config)
     timeout_seconds = _get_bridge_config("response_timeout_seconds", 60.0, config)
     stability_threshold = _get_bridge_config("response_stability_seconds", 2.0, config)
     poll_interval = _get_bridge_config("response_poll_interval_seconds", 0.5, config)
@@ -569,7 +611,7 @@ def monitor_and_extract_response(
     )
 
     response_area_image_path = None
-    gui_snippets_dir = get_config("paths.gui_snippets", None, config_obj=config)
+    gui_snippets_dir = _get_bridge_config("gui_snippets_dir", None, config)
     if gui_snippets_dir:
         response_area_image_path = Path(gui_snippets_dir) / "cursor_response_area.png"
         if not response_area_image_path.is_file():
@@ -813,6 +855,7 @@ def summarize_cursor_output(raw_text: str, max_length: int = 500) -> str:
 
 def interact_with_cursor(prompt: str, config: Optional[AppConfig] = None) -> str:
     """Injects prompt, monitors for response, extracts, summarizes and returns it."""
+    config = _ensure_config(config)
     try:
         structured_payload = {"type": "text", "content": prompt}
         handle_gpt_payload(structured_payload, config)
@@ -906,7 +949,7 @@ def push_telemetry(telemetry_data: dict, config: Optional[AppConfig] = None):
             # Basic attempt to make it relative to runtime if not absolute
             # A more robust solution would use config.resolve() if available
             try:
-                runtime_path = get_config("paths.runtime", "runtime", config_obj=config)
+                runtime_path = _get_bridge_config("runtime_path", "runtime", config)
                 telemetry_log_path = Path(runtime_path) / telemetry_log_path
                 logger.debug(
                     f"Resolved relative telemetry path to: {telemetry_log_path}"
@@ -1120,10 +1163,10 @@ def relay_prompt_via_web_and_gui(
         # Assuming AppConfig structure: config.tools.chatgpt_scraper.cookie_file
         # Or a more generic config.paths.data_dir / "chatgpt_cookies.json"
         # For now, let's use a placeholder path if config is not robustly providing this
-        cookie_file_path_str = get_config(
-            "tools.chatgpt_scraper.cookie_file",
+        cookie_file_path_str = _get_bridge_config(
+            "cookie_file_path",
             "runtime/config/chatgpt_cookies.json",
-            config_obj=config,
+            config,
         )
         cookie_file_path = Path(cookie_file_path_str)  # Ensure it's a Path object
 

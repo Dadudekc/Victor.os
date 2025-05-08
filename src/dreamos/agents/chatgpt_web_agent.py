@@ -15,15 +15,17 @@ from typing import Dict
 
 from dreamos.core.config import AppConfig
 from dreamos.core.tasks.nexus.task_nexus import TaskNexus
+from dreamos.utils.dream_mode_utils.browser import (
+    close_browser,
+    launch_browser,
+    navigate_to_page,
+    wait_for_login,
+)
 from dreamos.utils.dream_mode_utils.html_parser import extract_latest_reply
 from dreamos.utils.dream_mode_utils.task_parser import extract_task_metadata
 from dreamos.utils.gui_utils import (
     PYAUTOGUI_AVAILABLE,
-    close_browser,
     is_window_focused,
-    launch_browser,
-    navigate_to_page,
-    wait_for_login,
 )
 
 if PYAUTOGUI_AVAILABLE:

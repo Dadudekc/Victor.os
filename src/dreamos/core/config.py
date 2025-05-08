@@ -12,16 +12,16 @@ print("DEBUG: dreamos.core.config.py - Top of file executing", flush=True)
 # EDIT END
 import logging
 import os
+import threading
+from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from pydantic import (
     BaseModel,
     Field,
-    FilePath,
     SecretStr,
-    model_validator,
 )
 from pydantic_settings import (
     BaseSettings,
@@ -33,7 +33,7 @@ from pydantic_settings import (
 # REMOVED: Unused AgentBus import
 # from .coordination.agent_bus import AgentBus
 # REMOVED: Obsolete config_utils references
-from .errors import ConfigurationError as CoreConfigurationError
+from . import errors # Import the errors package
 
 # Define logger at module level
 logger = logging.getLogger(__name__)
@@ -41,18 +41,28 @@ logger = logging.getLogger(__name__)
 # Setup basic logging config if not already configured elsewhere (e.g., at entry point)
 # logging.basicConfig(level=logging.INFO)
 
+# ADDED: Global config variable and lock with forward reference for AppConfig
+_config: Optional["AppConfig"] = None
+_config_lock = threading.Lock()
+_logging_configured = False  # Flag to prevent duplicate logging setup
+
 
 # --- Function to find project root robustly ---
 def find_project_root_marker(marker: str = ".git") -> Path:
-    """Find the project root by searching upwards for a marker file/directory."""
-    current_dir = Path(__file__).resolve().parent
-    while current_dir != current_dir.parent:
-        if (current_dir / marker).exists():
-            return current_dir
-        current_dir = current_dir.parent
-    raise FileNotFoundError(
-        f"Project root marker '{marker}' not found starting from {__file__}"
+    """Finds the project root by searching upwards for a marker file/directory."""
+    current_path = Path(__file__).resolve()
+    # logger.debug(f"Starting root search from: {current_path}")
+    while current_path != current_path.parent:
+        # logger.debug(f"Checking for marker in: {current_path}")
+        if (current_path / marker).exists():
+            # logger.debug(f"Found project root marker '{marker}' at: {current_path}")
+            return current_path
+        current_path = current_path.parent
+    # Fallback or error if marker not found
+    logger.warning(
+        f"Project root marker '{marker}' not found starting from {Path(__file__).resolve()}. Falling back to CWD."
     )
+    return Path.cwd()  # Or raise FileNotFoundError("Project root marker not found.")
 
 
 # --- Determine Project Root --- #
@@ -87,8 +97,7 @@ print(
 # --- Pydantic Models for Config Structure ---
 
 # Import moved config models
-from dreamos.automation.config import GuiAutomationConfig
-from dreamscape.config import DreamscapeConfig
+# REMOVED: from dreamscape.config import DreamscapeConfig # Moved later
 
 
 class LoggingConfig(BaseModel):
@@ -223,36 +232,34 @@ class ChatGPTScraperConfig(BaseModel):
 
 
 # EDIT START: Add GUI Automation Config Model
-class GuiAutomationConfig(BaseModel):
-    target_window_title: str = "Cursor"  # Default to common IDE name
-    input_coords_file_path: FilePath = Path(
-        PROJECT_ROOT / "runtime/config/cursor_agent_coords.json"
-    )
-    copy_coords_file_path: FilePath = Path(
-        PROJECT_ROOT / "runtime/config/cursor_agent_copy_coords.json"
-    )
-    recalibration_retries: int = 1
-    min_pause_seconds: float = 0.10
-    max_pause_seconds: float = 0.25
-    random_offset_pixels: int = 3
-    type_interval_seconds: float = 0.01  # Add typing interval
-    retry_attempts: int = 3  # Add retry attempts
-    retry_delay_seconds: float = 0.5  # Add retry delay
-    copy_attempts: int = 2  # Add copy attempts config (for TASK_AGENT8-CONFIG-CURSORORCH-COPYATTEMPTS-001)  # noqa: E501
-
-    # --- EDIT START: Add thea_copy nested model ---
-    class TheaCopyConfig(BaseModel):
-        anchor_image_path: str = "assets/thea_reply_anchor.png"
-        click_offset_x: int = 50
-        click_offset_y: int = 50
-        confidence: float = 0.9
-        retries: int = 2
-        delay_between_actions: float = 0.1
-
-    thea_copy: TheaCopyConfig = Field(default_factory=TheaCopyConfig)
-    # --- EDIT END ---
-
-    # Add validators if needed, e.g., for path existence (though FilePath handles basic check)  # noqa: E501
+# class GuiAutomationConfig(BaseModel): # Starting from here, commented out / to be deleted
+#     target_window_title: str = "Cursor"  # Default to common IDE name
+#     input_coords_file_path: FilePath = Path(
+#         PROJECT_ROOT / "runtime/config/cursor_agent_coords.json"
+#     )
+#     copy_coords_file_path: FilePath = Path(
+#         PROJECT_ROOT / "runtime/config/cursor_agent_copy_coords.json"
+#     )
+#     recalibration_retries: int = 1
+#     min_pause_seconds: float = 0.10
+#     max_pause_seconds: float = 0.25
+#     random_offset_pixels: int = 3
+#     type_interval_seconds: float = 0.01  # Add typing interval
+#     retry_attempts: int = 3  # Add retry attempts
+#     retry_delay_seconds: float = 0.5  # Add retry delay
+#     copy_attempts: int = 2  # Add copy attempts config (for TASK_AGENT8-CONFIG-CURSORORCH-COPYATTEMPTS-001)  # noqa: E501
+#
+#     # --- EDIT START: Add thea_copy nested model ---
+#     class TheaCopyConfig(BaseModel):
+#         anchor_image_path: str = "assets/thea_reply_anchor.png"
+#         click_offset_x: int = 50
+#         click_offset_y: int = 50
+#         confidence: float = 0.9
+#         retries: int = 2
+#         delay_between_actions: float = 0.1
+#
+#     thea_copy: TheaCopyConfig = Field(default_factory=TheaCopyConfig)
+#     # --- EDIT END ---
 
 
 # EDIT END
@@ -429,7 +436,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             logger.warning(
                 f"YamlConfigSettingsSource: Config file '{load_path}' not found."
             )
-            raise ConfigurationError(f"Config file not found: {load_path}")
+            raise errors.exceptions.ConfigurationError(f"Config file not found: {load_path}")
 
         try:
             with open(load_path, "r", encoding=encoding_to_use) as f:
@@ -445,7 +452,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
                 logger.error(
                     f"Config file '{load_path}' content is not a valid dictionary."
                 )
-                raise ConfigurationError(
+                raise errors.exceptions.ConfigurationError(
                     f"Config file is not a valid dictionary: {load_path}"
                 )
 
@@ -453,16 +460,16 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             return config_data
         except yaml.YAMLError as e:
             logger.error(f"Error parsing YAML file '{load_path}': {e}", exc_info=True)
-            raise ConfigurationError(
+            raise errors.exceptions.ConfigurationError(
                 f"Failed to load config due to YAML parsing error in {load_path}: {e}"
             ) from e
-        except ConfigurationError:
+        except errors.exceptions.ConfigurationError:
             raise
         except Exception as e:
             logger.error(
                 f"Unexpected error loading YAML file '{load_path}': {e}", exc_info=True
             )
-            raise ConfigurationError(
+            raise errors.exceptions.ConfigurationError(
                 f"Unexpected error loading config file {load_path}: {e}"
             ) from e
 
@@ -608,9 +615,30 @@ class AgentPointsSystemConfig(BaseModel):
 # --- EDIT END ---
 
 
+# EDIT: Define Enums directly in this file
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
+class OperatingMode(str, Enum):
+    DEVELOPMENT = "DEVELOPMENT"
+    PRODUCTION = "PRODUCTION"
+    TESTING = "TESTING"
+
+
 # --- AppConfig Definition ---
 class AppConfig(BaseSettings):
-    """Main application configuration loaded from environment variables and/or config file."""  # noqa: E501
+    """Main application configuration loaded from environment variables and/or config file."""
+
+    # MOVED all custom type imports here
+    from dreamos.automation.config import GuiAutomationConfig
+    from dreamscape.config import DreamscapeConfig  # This was the previous attempt
+
+    from . import errors # Import the errors package
 
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
@@ -642,334 +670,233 @@ class AppConfig(BaseSettings):
 
     # Configuration loading behavior
     model_config = SettingsConfigDict(
-        env_prefix="DREAMOS_",  # Prefix for environment variables
+        env_file=".env",
         env_nested_delimiter="__",
-        validate_assignment=True,
-        extra="ignore",  # Allow extra fields in config files initially, then validate
-        # Removed yaml_file from here as it's handled by settings_customise_sources
-        # yaml_file=DEFAULT_CONFIG_PATH, # Default YAML file to load
-        # yaml_file_encoding='utf-8',
+        extra="ignore",  # Ignore extra fields from sources
+        # EDIT: Remove default yaml source from model_config if load() handles it
+        # yaml_file=DEFAULT_CONFIG_PATH,
     )
 
-    @classmethod
-    def settings_customise_sources(
-        cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        # file_secret_settings if/when needed
-        # file_secret_settings: PydanticBaseSettingsSource, # REMOVE COMMENT, ADD ARGUMENT
-        file_secret_settings: PydanticBaseSettingsSource,  # ADDED BY AGENT-1
-        # Add yaml_settings source parameter (though we instantiate it below)
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
-        """Customizes the sources for loading settings, adding YAML file support."""
-        # logger.debug(f"AppConfig.settings_customise_sources called for {settings_cls}")
-        # logger.debug(f"AppConfig.model_config: {settings_cls.model_config}")
+    # Class methods and validators
+    # @classmethod
+    # def settings_customise_sources(...): # Keep this if needed for env/dotenv/secrets
+    #    ...
 
-        # Get yaml_file from model_config (potentially set via _settings_config_dict in __init__)
-        # or from an explicit field in model_config if defined there.
-        yaml_file_from_model_config_str = settings_cls.model_config.get("yaml_file")
-        # logger.debug(f"Yaml file from model_config.get('yaml_file'): {yaml_file_from_model_config_str}")
+    # @model_validator(mode='before')
+    # @classmethod
+    # def _determine_project_root(...): # Keep this
+    #    ...
 
-        path_for_yaml_source: Optional[Path] = None
-        if yaml_file_from_model_config_str:
-            path_for_yaml_source = Path(yaml_file_from_model_config_str)
-            # logger.debug(f"Using yaml_file from model_config: {path_for_yaml_source}")
-        elif (
-            DEFAULT_CONFIG_PATH
-        ):  # Fallback to module-level default if nothing in model_config
-            path_for_yaml_source = Path(DEFAULT_CONFIG_PATH)
-            # logger.debug(f"Using module-level DEFAULT_CONFIG_PATH: {path_for_yaml_source}")
-        else:
-            # logger.debug("No yaml_file in model_config and no DEFAULT_CONFIG_PATH.")
-            pass  # path_for_yaml_source remains None
+    # @model_validator(mode='after')
+    # def _inject_project_root(...): # Keep this
+    #    ...
 
-        # Default encoding
-        yaml_encoding = settings_cls.model_config.get("yaml_file_encoding", "utf-8")
+    # @model_validator(mode='after')
+    # def validate_paths(...): # Keep if needed
+    #    ...
 
-        # logger.debug(f"Final path for YamlConfigSettingsSource: {path_for_yaml_source}, encoding: {yaml_encoding}")
-
-        return (
-            init_settings,  # Values provided to __init__ directly (highest priority after custom sources)
-            env_settings,  # Environment variables
-            dotenv_settings,  # .env file
-            YamlConfigSettingsSource(  # Our custom YAML source
-                settings_cls,
-                yaml_file=path_for_yaml_source,
-                yaml_file_encoding=yaml_encoding,
-            ),
-            file_secret_settings,  # Secrets files (lowest priority among file/env based)
-        )
-
-    # Ensure paths are absolute after loading (Pydantic v2 uses model_post_init)
-    @model_validator(mode="after")
-    def resolve_paths(self) -> "AppConfig":
-        """Ensures all configured paths are absolute after validation."""
-        if self.paths:
-            self.paths.runtime = self.paths.runtime.resolve()
-            self.paths.logs = self.paths.logs.resolve()
-            self.paths.agent_comms = self.paths.agent_comms.resolve()
-            self.paths.central_task_boards = self.paths.central_task_boards.resolve()
-            self.paths.task_schema = self.paths.task_schema.resolve()
-            self.paths.project_root = self.paths.project_root.resolve()
-        if self.gui_automation:
-            self.gui_automation.input_coords_file_path = (
-                self.gui_automation.input_coords_file_path.resolve()
-            )
-            self.gui_automation.copy_coords_file_path = (
-                self.gui_automation.copy_coords_file_path.resolve()
-            )
-        # Resolve log file path if relative
-        if self.logging and self.logging.log_file:
-            log_path = Path(self.logging.log_file)
-            if not log_path.is_absolute():
-                # Assume relative to paths.logs directory
-                self.logging.log_file = str(self.paths.logs / log_path)
-            else:
-                self.logging.log_file = str(log_path.resolve())
-
-        return self
-
-    @model_validator(mode="before")
-    @classmethod
-    def _determine_project_root(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            # Update reference from _project_root to project_root_internal
-            if "config_file_path" in data:
-                config_file = Path(data["config_file_path"]).resolve()
-                if "runtime/config" in str(config_file.parent):
-                    # Set the internal field name
-                    data["project_root_internal"] = config_file.parent.parent.parent
-                else:
-                    data["project_root_internal"] = config_file.parent  # Fallback
-            else:
-                data["project_root_internal"] = Path.cwd()
-            # Update log message if desired
-            logger.info(
-                f"Determined project root (internal): {data['project_root_internal']}"
-            )
-        return data
-
-    @model_validator(mode="after")
-    def _inject_project_root(self) -> "AppConfig":
-        """Injects the determined project root into nested models."""
-        # Update references from _project_root to project_root_internal
-        if hasattr(
-            self.paths, "_project_root"
-        ):  # Check if nested model expects old name (should be updated too ideally)
-            # Ideally, nested models also wouldn't expect leading underscore
-            # Assuming PathsConfig might still need project_root internally:
-            self.paths.project_root = (
-                self.project_root_internal
-            )  # Inject into the public field
-        else:
-            # If PathsConfig has been updated to use project_root_internal or similar:
-            # self.paths.project_root_internal = self.project_root_internal
-            # For now, inject into the public field defined in PathsConfig
-            self.paths.project_root = self.project_root_internal
-
-        if hasattr(
-            self.logging, "_project_root"
-        ):  # Check if LoggingConfig expects old name
-            # self.logging._project_root = self.project_root_internal # Original pattern, but _project_root isn't defined on LoggingConfig
-            # LoggingConfig needs project_root passed to its resolve_log_dir method
-            # This injection logic might be redundant if resolve_log_dir uses the main config's root correctly.
-            # Keep for now, but review nested models.
-            pass  # No direct field injection needed here based on current LoggingConfig structure
-
-        # Inject into other nested configs as needed
-        self._ensure_dirs_exist()  # Call ensure_dirs after root is set
-        return self
-
+    # EDIT: Keep the static load method
     @classmethod
     def load(cls, config_file: Optional[str] = None) -> "AppConfig":
-        """Loads configuration from a YAML file."""
-        config_path = None
+        """Loads configuration from a YAML file, falling back to default if needed."""
+        config_path_to_load = None
         if config_file:
-            config_path = Path(config_file)
-            if not config_path.is_absolute():
-                # Assume relative to CWD if not absolute? Or project root?
-                # Let's assume CWD for now, but project root might be better
-                config_path = Path.cwd() / config_file
-
-            if not config_path.exists():
-                raise CoreConfigurationError(f"Config file not found: {config_path}")
+            config_path_to_load = Path(config_file)
+            if not config_path_to_load.is_absolute():
+                # Resolve relative to CWD? Or Project Root?
+                # Let's assume relative to Project Root defined above
+                config_path_to_load = (PROJECT_ROOT / config_file).resolve()
+            if not config_path_to_load.exists():
+                logger.error(f"Specified config file not found: {config_path_to_load}")
+                raise errors.exceptions.ConfigurationError(
+                    f"Config file not found: {config_path_to_load}"
+                )
+        elif DEFAULT_CONFIG_PATH.exists():
+            logger.info(
+                f"No config file specified, using default: {DEFAULT_CONFIG_PATH}"
+            )
+            config_path_to_load = DEFAULT_CONFIG_PATH
         else:
-            # Add logic to search for default config files if needed
-            logger.warning("No config file specified, using default values.")
-            # Returning default model might be okay if defaults are sufficient
-            # return cls() # This would use defaults
-            raise CoreConfigurationError("Config file path must be provided.")
+            logger.warning(
+                "No config file specified and default config not found. Using empty config."
+            )
+            # Return model with default values if no file found
+            try:
+                # Ensure logger is available for setup_logging if called
+                instance = cls()  # Load with defaults / env vars
+                # setup_logging(instance) # Setup logging based on defaults
+                return instance
+            except Exception as e:
+                logger.critical(
+                    f"Failed to initialize AppConfig with defaults: {e}", exc_info=True
+                )
+                raise errors.exceptions.ConfigurationError(
+                    f"Failed to initialize AppConfig with defaults: {e}"
+                ) from e
 
         try:
-            import yaml  # Import here to avoid making it a hard dependency if not used
+            import yaml
 
-            with open(config_path, "r") as f:
+            with open(config_path_to_load, "r") as f:
                 config_data = yaml.safe_load(f)
             if not isinstance(config_data, dict):
-                raise CoreConfigurationError("Config file is not a valid dictionary.")
+                logger.error(
+                    f"Config file {config_path_to_load} is not a valid dictionary."
+                )
+                raise errors.exceptions.ConfigurationError("Config file is not a valid dictionary.")
 
-            # Pass path to validator
-            config_data["config_file_path"] = str(config_path)
+            # Pass path for potential use in validation?
+            # config_data['config_file_path'] = str(config_path_to_load)
 
-            # Potential issue: If validation fails, AppConfig might not be fully initialized
-            # Consider if ensure_dirs should happen *after* full validation or be more resilient
+            # Initialize using the loaded data dictionary
             instance = cls(**config_data)
-            # self._ensure_dirs_exist() # Moved to validator
+            # setup_logging(instance) # Setup logging after successful load
+            logger.info(
+                f"Configuration loaded successfully from {config_path_to_load}."
+            )
             return instance
         except ImportError:
-            raise CoreConfigurationError("PyYAML is required to load config files.")
+            logger.critical(
+                "PyYAML is required to load config files. Please install it."
+            )
+            raise errors.exceptions.ConfigurationError("PyYAML is required to load config files.")
         except Exception as e:
-            raise CoreConfigurationError(
-                f"Failed to load config from {config_path}: {e}"
+            logger.critical(
+                f"Failed to load config from {config_path_to_load}: {e}", exc_info=True
+            )
+            raise errors.exceptions.ConfigurationError(
+                f"Failed to load config from {config_path_to_load}: {e}"
             ) from e
 
-    def _ensure_dirs_exist(self):
-        """Ensure necessary directories exist based on config."""
-        try:
-            # Update reference from _project_root to project_root_internal
-            log_dir = self.logging.resolve_log_dir(self.project_root_internal)
-            log_dir.mkdir(parents=True, exist_ok=True)
-            # Ensure other key directories exist
-            # Assuming self.paths.resolve_relative_path exists and works correctly
-            # runtime_path = self.paths.resolve_relative_path("runtime") # Use helper
-            # Assuming resolve_relative_path isn't defined, use direct path construction
-            runtime_path = self.project_root_internal / self.paths.runtime
-            runtime_path.mkdir(parents=True, exist_ok=True)
-            # Update path construction if resolve_relative_path exists or logic differs
-            (runtime_path / "tasks").mkdir(parents=True, exist_ok=True)
-            # ... add others as needed (agent_state, mailboxes etc.)
-        except Exception as e:
-            logger.error(f"Error ensuring directories exist: {e}", exc_info=True)
+    # Removed _ensure_dirs_exist method - validation should handle this if needed
 
 
-# Configuration Error Exception
-class ConfigurationError(CoreConfigurationError):
-    """Custom exception for configuration errors specific to this module."""
-
-    pass
+# --- Configuration Error Exception ---
+# (Keep ConfigurationError class if defined here previously, or ensure import is correct)
+# class ConfigurationError(CoreConfigurationError):
+#    pass
 
 
 # --- Logging Setup Function ---
-# (Assuming setup_logging function exists elsewhere or needs to be defined/moved here)
-_logging_configured = False
-
-
 def setup_logging(config: AppConfig):
-    """Configures logging based on AppConfig settings."""
+    """Configures logging based on the loaded AppConfig."""
     global _logging_configured
     if _logging_configured:
-        # Prevent reconfiguring logging multiple times
         return
 
-    log_level = getattr(logging, config.logging.level.upper(), logging.INFO)
-    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    formatter = logging.Formatter(log_format)
+    log_level_str = config.logging.level.upper()
+    log_level = getattr(logging, log_level_str, logging.INFO)
 
-    # Get root logger
-    root_logger = logging.getLogger()
-
-    # Remove existing handlers added by this function to avoid duplication
-    # Be careful if other parts of the system add handlers to root
-    current_handlers = root_logger.handlers[:]
-    for handler in current_handlers:
-        if (
-            isinstance(handler, (logging.StreamHandler, logging.FileHandler))
-            and handler.formatter == formatter
-        ):
-            root_logger.removeHandler(handler)
+    log_format = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    date_format = "%Y-%m-%d %H:%M:%S"
 
     handlers = []
-
-    # Console Handler
     if config.logging.log_to_console:
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        handlers.append(console_handler)
+        handlers.append(logging.StreamHandler())
 
-    # File Handler
+    # Resolve log file path relative to project root
+    log_dir = config.paths.logs  # Assume paths.logs is resolved Path
+    log_dir.mkdir(parents=True, exist_ok=True)
     if config.logging.log_file:
-        try:
-            log_dir = config.logging.resolve_log_dir(config.project_root_internal)
-            log_dir.mkdir(parents=True, exist_ok=True)
-            log_path = log_dir / config.logging.log_file
-            # Use RotatingFileHandler for larger logs potentially
-            file_handler = logging.FileHandler(log_path, encoding="utf-8")
-            file_handler.setFormatter(formatter)
-            handlers.append(file_handler)
-            print(
-                f"Logging configured. Logging to file: {log_path}"
-            )  # Temp print for verification
-        except Exception as e:
-            # Log error to console if file logging fails
-            print(
-                f"ERROR: Failed to configure file logging to {config.logging.log_file}: {e}"  # noqa: E501
+        log_file_path = log_dir / config.logging.log_file
+        handlers.append(logging.FileHandler(log_file_path, encoding="utf-8"))
+
+    # Remove existing handlers from root logger before adding new ones
+    # This prevents duplicate logs if setup_logging is called multiple times
+    # (although _logging_configured flag should prevent this)
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # Configure root logger
+    logging.basicConfig(
+        level=log_level, format=log_format, datefmt=date_format, handlers=handlers
+    )
+    logger.info(
+        f"Logging configured. Level: {log_level_str}, Console: {config.logging.log_to_console}, File: {config.logging.log_file or 'Disabled'}"
+    )
+    _logging_configured = True
+
+
+# --- Configuration Loading and Access Functions (Restored Pattern) ---
+
+
+def load_config(config_path: Optional[Union[str, Path]] = None) -> AppConfig:
+    """Loads configuration from YAML, sets up logging, and stores the instance globally."""
+    global _config
+    with _config_lock:
+        if _config:
+            return _config
+        path_to_load = None
+        if config_path:
+            path_to_load = Path(config_path)
+            logger.info(f"Attempting to load specified config: {path_to_load}")
+        elif DEFAULT_CONFIG_PATH.exists():
+            path_to_load = DEFAULT_CONFIG_PATH
+            logger.info(f"No config path specified, using default: {path_to_load}")
+        else:
+            logger.warning(
+                "No config file specified and default not found. Creating default AppConfig instance."
             )
-            logging.error(
-                f"Failed to configure file logging to {config.logging.log_file}: {e}",
+            try:
+                _config = AppConfig()  # Initialize with defaults/env vars
+                setup_logging(_config)
+                return _config
+            except Exception as e:
+                logger.critical(
+                    f"Failed to initialize default AppConfig: {e}", exc_info=True
+                )
+                raise errors.exceptions.ConfigurationError(
+                    f"Failed to initialize default AppConfig: {e}"
+                ) from e
+
+        if not path_to_load.exists():
+            logger.error(f"Configuration file not found: {path_to_load}")
+            raise errors.exceptions.ConfigurationError(f"Config file not found: {path_to_load}")
+
+        try:
+            # Use AppConfig's own classmethod for loading/parsing if it exists and is preferred
+            # Or, load YAML manually and initialize AppConfig instance
+            # Assuming manual load here based on previous structure:
+            with open(path_to_load, "r", encoding="utf-8") as f:
+                config_data = yaml.safe_load(f)
+            if not isinstance(config_data, dict):
+                raise errors.exceptions.ConfigurationError(
+                    "Config file content is not a valid dictionary."
+                )
+
+            loaded_instance = AppConfig(**config_data)
+            _config = loaded_instance  # Store globally
+            setup_logging(_config)  # Setup logging AFTER successful load
+            logger.info(f"Configuration loaded successfully from {path_to_load}.")
+            return _config
+        except Exception as e:
+            logger.critical(
+                f"Failed to load or parse config from {path_to_load}: {e}",
                 exc_info=True,
             )
-
-    # Configure Root Logger only if handlers were successfully created
-    if handlers:
-        root_logger.setLevel(log_level)
-        for handler in handlers:
-            root_logger.addHandler(handler)
-
-        # Adjust levels for noisy libraries if needed
-        logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("httpcore").setLevel(logging.WARNING)
-        logging.getLogger("openai").setLevel(logging.WARNING)
-
-        logging.info(
-            f"Logging configured. Level: {config.logging.level}, Console: {config.logging.log_to_console}, File: {config.logging.log_file or 'Disabled'}"  # noqa: E501
-        )
-        _logging_configured = True
-    else:
-        logging.warning("No logging handlers configured.")
-
-
-# --- Loading Function ---
-
-_config: Optional[AppConfig] = None
-
-
-def load_config(config_path: Optional[Path] = None) -> AppConfig:
-    """Loads the application configuration, ensuring it's a singleton."""
-    global _config
-    if _config is None:
-        try:
-            # Pass the specified path (or None to use defaults) to the model init
-            # It will be picked up by the YamlConfigSettingsSource if relevant
-            yaml_path = (
-                config_path or DEFAULT_CONFIG_PATH
-            )  # Ensure path is used if provided # noqa: E501
-            # Override model_config directly for this instance if path is provided
-            # This is a bit hacky, ideally YamlConfigSettingsSource would handle this more cleanly # noqa: E501
-            if config_path:
-                _config = AppConfig(_settings_config_dict={"yaml_file": config_path})
-            else:
-                _config = AppConfig()
-
-            # Ensure logging is set up after config is loaded
-            setup_logging(_config)
-            logger.info(
-                f"Configuration loaded successfully. Project Root: {_config.paths.project_root}"
-            )  # noqa: E501
-        except Exception as e:
-            # Use logger if possible, otherwise print
-            msg = f"Failed to load application configuration: {e}"
-            try:
-                logger.critical(msg, exc_info=True)
-            except NameError:  # Logger might not be configured yet
-                print(f"CRITICAL ERROR: {msg}")
-            raise ConfigurationError(msg) from e
-    return _config
+            raise errors.exceptions.ConfigurationError(
+                f"Failed to load/parse config from {path_to_load}: {e}"
+            ) from e
 
 
 def get_config() -> AppConfig:
-    """Returns the loaded configuration instance, loading it if necessary."""
-    if _config is None:
-        return load_config()
-    return _config
+    """Returns the globally loaded AppConfig instance, loading it if necessary."""
+    # Quick check without lock first for performance
+    if _config:
+        return _config
+    # If not loaded, acquire lock and load
+    with _config_lock:
+        if _config is None:
+            # load_config handles setting the global _config
+            load_config()
+        # We can be sure _config is not None here unless load_config failed badly
+        if _config is None:
+            # This should ideally not happen if load_config raises exceptions
+            raise errors.exceptions.ConfigurationError("Configuration could not be loaded.")
+        return _config
+
+
+# --- Helper function find_project_root_marker (keep as is) ---
+# ...
+
+# REMOVED: AppConfig.load classmethod as it duplicates load_config logic

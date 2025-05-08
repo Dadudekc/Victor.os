@@ -10,10 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional  # Added type hinting
 
 from dreamos.core.comms.mailbox_utils import write_mailbox_message
-from dreamos.core.config import AppConfig  # For type hinting and config usage
-from dreamos.core.coordination.agent_bus import (
-    AgentBus,  # For type hinting and potential use
-)
+from dreamos.core.coordination import agent_bus
 
 # Correct import path
 from pydantic import (  # Import Pydantic
@@ -103,57 +100,29 @@ class TheaRelayAgent(BaseAgent):
     def __init__(
         self,
         agent_id: str = "TheaRelayAgent",
-        config: Optional[AppConfig] = None,
-        agent_bus: Optional[AgentBus] = None,
-        response_dir: Optional[Path] = None,
-        archive_dir: Optional[Path] = None,
-        error_dir: Optional[Path] = None,
-        mailbox_root_dir: Optional[Path] = None,
-        polling_interval: Optional[int] = None,
+        agent_bus_instance: Optional[agent_bus.AgentBus] = None,
     ):
-        if config is None:
-            # FIXME: Agent requires AppConfig. This fallback is not robust.
-            logger.error(
-                "TheaRelayAgent requires AppConfig. Attempting to load default (may fail)."
-            )
-            try:
-                config = AppConfig.load()
-            except Exception as e:
-                logger.critical(
-                    f"TheaRelayAgent failed to load default AppConfig: {e}. Cannot initialize."
-                )
-                # Or raise an error to prevent partial initialization
-                raise ValueError("AppConfig is required for TheaRelayAgent") from e
-
+        # Load config first using get_config()
+        loaded_config = get_config()
+        
+        # Call super().__init__ with the loaded config
         super().__init__(
-            agent_id=agent_id, config=config, agent_bus=agent_bus
-        )  # Pass config and agent_bus
+            agent_id=agent_id, config=loaded_config, agent_bus=agent_bus_instance
+        )
+        # self.config is now set by BaseAgent constructor
 
-        # Use provided paths/interval or defaults from AppConfig or fallbacks
-        # FIXME: These should primarily come from AppConfig if available.
-        self.response_dir = (
-            response_dir or config.paths.thea_responses_dir
-            if hasattr(config.paths, "thea_responses_dir")
-            else RESPONSE_DIR
-        )
-        self.archive_dir = archive_dir or self.response_dir / "archive"
-        self.error_dir = error_dir or self.response_dir / "error"
-        # Mailbox root should align with how get_agent_mailbox_path works or AppConfig.paths.agent_comms
-        self.mailbox_root_dir = (
-            mailbox_root_dir or config.paths.agent_comms
-            if hasattr(config.paths, "agent_comms")
-            else MAILBOX_ROOT_DIR
-        )
-        self.polling_interval = (
-            polling_interval or config.agent_settings.thea_relay_poll_interval
-            if hasattr(config, "agent_settings")
-            and hasattr(config.agent_settings, "thea_relay_poll_interval")
-            else POLLING_INTERVAL_SECONDS
-        )
+        # Use self.config (from BaseAgent) or fallbacks
+        self.response_dir = getattr(self.config.paths, 'thea_responses_dir', RESPONSE_DIR) if hasattr(self.config, 'paths') else RESPONSE_DIR
+        self.archive_dir = self.response_dir / "archive" # Derived
+        self.error_dir = self.response_dir / "error"     # Derived
+        self.mailbox_root_dir = getattr(self.config.paths, 'agent_comms', MAILBOX_ROOT_DIR) if hasattr(self.config, 'paths') else MAILBOX_ROOT_DIR
+        
+        poll_interval_default = POLLING_INTERVAL_SECONDS
+        if hasattr(self.config, 'agent_settings') and hasattr(self.config.agent_settings, 'thea_relay_poll_interval'):
+            poll_interval_default = self.config.agent_settings.thea_relay_poll_interval
+        self.polling_interval = poll_interval_default
 
-        # _ensure_dirs is now async, call in an async init method or first use.
-        # For now, we will call it at the start of the run loop.
-        # self._ensure_dirs() # Now async, cannot call directly from sync __init__
+        # _ensure_dirs is async, call in async setup or run loop
         self.logger.info(f"TheaRelayAgent '{self.agent_id}' initialized.")
         self.logger.info(f"Monitoring: {self.response_dir}")
         self.logger.info(f"Archive to: {self.archive_dir}")

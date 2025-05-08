@@ -2,11 +2,12 @@
 
 import asyncio  # noqa: I001
 import logging
+from typing import Optional
 
 import aiohttp
 import tenacity
-from dreamos.utils.config_utils import get_config
 
+from dreamos.core.config import get_config
 from . import APIError, IntegrationError
 
 logger = logging.getLogger(__name__)
@@ -18,52 +19,46 @@ DISCORD_API_BASE = (
 
 class DiscordClient:
     def __init__(self):
-        """Initializes the Discord client, loading configuration automatically."""
-        self.bot_token = get_config("integrations.discord.bot_token", default=None)
-        self.webhook_url = get_config("integrations.discord.webhook_url", default=None)
+        """Initializes the Discord client, loading config via get_config."""
+        self.client = None  # aiohttp session
+        self._functional = False
+        try:
+            config = get_config()
+            self.bot_token = config.integrations.discord.bot_token.get_secret_value() if config.integrations.discord.bot_token else None
+            self.webhook_url = config.integrations.discord.webhook_url if hasattr(config.integrations.discord, 'webhook_url') else None
 
-        self._webhook_functional = bool(self.webhook_url)
-        self._bot_functional = bool(self.bot_token)
+            if not self.bot_token and not self.webhook_url:
+                logger.warning("Discord bot token and webhook URL not found in config. Client will be non-functional.")
+            else:
+                self._functional = True
+                logger.info(f"DiscordClient initialized (Token: {'set' if self.bot_token else 'unset'}, Webhook: {'set' if self.webhook_url else 'unset'})")
 
-        if not self._webhook_functional and not self._bot_functional:
-            logger.warning(
-                "Neither Discord Bot Token nor Webhook URL found. Client non-functional."  # noqa: E501
-            )
-        elif not self._bot_functional:
-            logger.warning(
-                "Discord Bot Token not configured. Bot functionality disabled."
-            )
-        elif not self._webhook_functional:
-            logger.warning(
-                "Discord Webhook URL not configured. Webhook functionality disabled."
-            )
-
-        # TODO: Initialize discord.py bot if token provided -> Requires running bot loop
-        self._bot_client = None  # Placeholder for discord.py client
-        self._session: aiohttp.ClientSession | None = None  # Session for webhook
-        logger.info(
-            f"DiscordClient initialized (Webhook: {self._webhook_functional}, Bot: {self._bot_functional})."  # noqa: E501
-        )
+        except Exception as e:
+             logger.error(f"Failed to initialize DiscordClient using get_config: {e}", exc_info=True)
+             # Ensure fields are None if init fails
+             self.bot_token = None
+             self.webhook_url = None
+             self._functional = False
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create an aiohttp session."""
-        if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
+        if self.client is None or self.client.closed:
+            self.client = aiohttp.ClientSession()
             logger.debug("Created new aiohttp ClientSession.")
-        return self._session
+        return self.client
 
     async def close_session(self):
         """Close the aiohttp session if it exists."""
-        if self._session and not self._session.closed:
-            await self._session.close()
+        if self.client and not self.client.closed:
+            await self.client.close()
             logger.debug("Closed aiohttp ClientSession.")
-            self._session = None
+            self.client = None
 
     def is_webhook_functional(self) -> bool:
-        return self._webhook_functional
+        return self.webhook_url is not None
 
     def is_bot_functional(self) -> bool:
-        return self._bot_functional
+        return self.bot_token is not None
 
     @tenacity.retry(
         stop=tenacity.stop_after_attempt(3),
@@ -199,9 +194,7 @@ class DiscordClient:
                 f"Discord bot message failed after retries: Status {e.status}, Message: {e.message}"  # noqa: E501
             )
             if e.status == 401 or e.status == 403:  # Unauthorized/Forbidden
-                self._bot_functional = (
-                    False  # Disable bot if token invalid/perms missing
-                )
+                self._functional = False  # Disable bot if token invalid/perms missing
                 raise IntegrationError(
                     f"Discord bot auth/permission error (Status {e.status}): {e.message}",  # noqa: E501
                     original_exception=e,

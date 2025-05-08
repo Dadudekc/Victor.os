@@ -1,9 +1,32 @@
-"""
-DreamOS Agents Subpackage.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package contains various agent implementations and related utilities for the DreamOS system.
+from . import (
+    agent2_infra_surgeon,
+    agent9_response_injector,
+    autonomy_recovery_patch,
+    base_agent,
+    chatgpt_web_agent,
+    context_router_agent,
+    cursor_dispatcher,
+    cursor_worker,
+    recovery_coordinator,
+    supervisor_agent,
+    task_feedback_router,
+    utils,
+)
 
-TODO: Consider selectively importing key agent classes here to define the package's 
-      public API (e.g., `from .agent2_infra_surgeon import Agent2InfraSurgeon`).
-"""
-# src/dreamos/agents subpackage
+__all__ = [
+    "agent2_infra_surgeon",
+    "agent9_response_injector",
+    "autonomy_recovery_patch",
+    "base_agent",
+    "chatgpt_web_agent",
+    "context_router_agent",
+    "cursor_dispatcher",
+    "cursor_worker",
+    "recovery_coordinator",
+    "supervisor_agent",
+    "task_feedback_router",
+    "utils",
+]

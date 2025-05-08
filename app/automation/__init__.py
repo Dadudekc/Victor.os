@@ -1,3 +1,11 @@
-# app/automation package
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-# This file makes Python treat the directory app/automation as a package.
+from . import automation_interface, gui_automation, gui_controller, task_trigger
+
+__all__ = [
+    "automation_interface",
+    "gui_automation",
+    "gui_controller",
+    "task_trigger",
+]

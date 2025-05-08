@@ -1,3 +1,8 @@
-"""Data schemas (e.g., Pydantic models) for Dreamscape event payloads and data structures."""  # noqa: E501
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-# src/dreamscape/schemas/__init__.py
+from . import event_schemas
+
+__all__ = [
+    "event_schemas",
+]

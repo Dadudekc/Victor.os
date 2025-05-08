@@ -1,12 +1,8 @@
-"""Defines agent capability schemas and manages capability libraries.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This sub-package provides the Pydantic models for agent capabilities
-and may include a registry or library of predefined capabilities.
-"""
-
-# Expose key components from this package.
-from .schema import AgentCapability
+from . import schema
 
 __all__ = [
-    "AgentCapability",
+    "schema",
 ]

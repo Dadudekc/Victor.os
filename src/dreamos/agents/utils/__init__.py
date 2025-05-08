@@ -1,11 +1,10 @@
-"""
-DreamOS Agents Utilities Subpackage.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package provides utility functions and helper modules specifically for
-use by agents within the DreamOS system.
+from . import agent1_taskboard_workaround, agent_utils, onboarding_utils
 
-TODO: Consider selectively importing key utility functions/classes from modules
-      like agent_utils.py, onboarding_utils.py, etc., to define a clear
-      public API for this package (e.g., `from .agent_utils import some_helper`).
-"""
-# Placeholder __init__.py for dreamos.agents.utils
+__all__ = [
+    "agent1_taskboard_workaround",
+    "agent_utils",
+    "onboarding_utils",
+]

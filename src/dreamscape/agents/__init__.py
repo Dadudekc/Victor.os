@@ -1,6 +1,9 @@
-"""Agents specific to the Digital Dreamscape subsystem.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-Includes agents for planning, writing, and potentially other content-related tasks.
-"""
+from . import planner_agent, writer_agent
 
-# src/dreamscape/agents/__init__.py
+__all__ = [
+    "planner_agent",
+    "writer_agent",
+]

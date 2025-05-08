@@ -9,13 +9,10 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-# Assuming config loading happens differently now, remove direct import if unused
-# from dreamos.core.config_utils import load_config
-from dreamos.core.config import (  # Import AppConfig directly and DEFAULT_CONFIG_PATH
-    DEFAULT_CONFIG_PATH,
-    AppConfig,
-)
-
+# Internal imports (check these for chains leading back to config)
+# EDIT START: Defer import of AppConfig
+# from dreamos.core.config import AppConfig # <<< THIS IS THE PROBLEM IMPORT - REMOVE FROM TOP LEVEL
+# EDIT END
 # Local imports - use relative imports based on actual file structure
 # Remove the unused import causing the ModuleNotFoundError
 from .analyzer import LanguageAnalyzer  # noqa: E402
@@ -39,21 +36,15 @@ except ImportError:
     )
 
 # EDIT START: Define grammar base path relative to project root
-# Assuming PROJECT_ROOT is defined globally or accessible via config
-try:
-    # Attempt to get from config first (preferred)
-    config = AppConfig.load()  # This might fail if config path isn't set/found
-    PROJECT_ROOT = config.paths.project_root
-except Exception:
-    # Fallback: Determine project root based on this file's location
-    # This assumes a specific directory structure: src/dreamos/tools/analysis/...
-    PROJECT_ROOT = Path(__file__).resolve().parents[4]
-    logger.warning(
-        f"Failed to load AppConfig for PROJECT_ROOT, falling back to relative path: {PROJECT_ROOT}"
-    )
 
-GRAMMAR_BASE_DIR = PROJECT_ROOT / "runtime" / "tree-sitter-grammars"
-BUILD_LIB_PATH = GRAMMAR_BASE_DIR / "languages.so"  # Or .dll on Windows
+# --- REMOVE HELPER AND MODULE-LEVEL PATHS ---
+# _PROJECT_ROOT_CACHE: Optional[Path] = None
+# def _get_project_root() -> Path:
+#     ...
+# GRAMMAR_BASE_DIR = _get_project_root() / "runtime" / "tree-sitter-grammars"
+# BUILD_LIB_PATH = GRAMMAR_BASE_DIR / "languages.so"
+# --- END REMOVE ---
+
 # EDIT END
 
 # ---------------------------------
@@ -130,16 +121,37 @@ class LanguageAnalyzer:  # noqa: F811
     def __init__(self):
         """Initialize language analyzers and parsers."""
         # EDIT START: Define grammar locations and build library
+        # --- MOVED PATH DEFINITION LOGIC HERE ---
+        # Determine project root (e.g., pass it in or use find_project_root utility)
+        # Using a simple fallback for now, should ideally come from config passed to ProjectScanner
+        try:
+            from dreamos.utils.project_root import find_project_root
+
+            project_root_for_grammars = find_project_root()
+        except Exception as e:
+            project_root_for_grammars = Path(__file__).resolve().parents[4]  # Fallback
+            logger.warning(
+                f"Failed to find project root for grammar paths, using fallback: {project_root_for_grammars}, error: {e}"
+            )
+
+        self.grammar_base_dir = (
+            project_root_for_grammars / "runtime" / "tree-sitter-grammars"
+        )
+        self.build_lib_path = (
+            self.grammar_base_dir / "languages.so"
+        )  # Or .dll on Windows
+        # --- END MOVED LOGIC ---
+
         self.grammar_sources = {
-            "python": GRAMMAR_BASE_DIR / "tree-sitter-python",
-            "rust": GRAMMAR_BASE_DIR / "tree-sitter-rust",
-            "javascript": GRAMMAR_BASE_DIR / "tree-sitter-javascript",
+            "python": self.grammar_base_dir / "tree-sitter-python",
+            "rust": self.grammar_base_dir / "tree-sitter-rust",
+            "javascript": self.grammar_base_dir / "tree-sitter-javascript",
         }
         self.parsers = {}
 
         if Language and Parser:
             # Ensure the build directory exists
-            GRAMMAR_BASE_DIR.mkdir(parents=True, exist_ok=True)
+            self.grammar_base_dir.mkdir(parents=True, exist_ok=True)
 
             # Filter to existing source directories
             available_grammar_paths = [
@@ -153,12 +165,12 @@ class LanguageAnalyzer:  # noqa: F811
                 try:
                     Language.build_library(
                         # Store the library in the grammars directory
-                        str(BUILD_LIB_PATH),
+                        str(self.build_lib_path),
                         # Include paths to the grammar source directories
                         available_grammar_paths,
                     )
                     logger.info(
-                        f"Successfully built tree-sitter library at {BUILD_LIB_PATH}"
+                        f"Successfully built tree-sitter library at {self.build_lib_path}"
                     )
                     # _load_parsers_from_library is now async, so cannot be directly awaited in sync __init__
                     # This implies it should be part of an async initialization step.
@@ -191,7 +203,7 @@ class LanguageAnalyzer:  # noqa: F811
     async def _load_parsers_from_library(self):
         """Loads parsers for available languages from the built library. Async path check."""
         if (
-            not await asyncio.to_thread(BUILD_LIB_PATH.exists)
+            not await asyncio.to_thread(self.build_lib_path.exists)
             or not Language
             or not Parser
         ):
@@ -201,20 +213,20 @@ class LanguageAnalyzer:  # noqa: F811
                 )
             else:
                 logger.debug(
-                    f"Built library path {BUILD_LIB_PATH} does not exist. Cannot load parsers."
+                    f"Built library path {self.build_lib_path} does not exist. Cannot load parsers."
                 )
             return
 
         for lang_name in self.grammar_sources.keys():
             try:
-                lang_lib = Language(str(BUILD_LIB_PATH), lang_name)
+                lang_lib = Language(str(self.build_lib_path), lang_name)
                 parser = Parser()
                 parser.set_language(lang_lib)
                 self.parsers[lang_name] = parser
                 logger.info(f"Initialized tree-sitter parser for {lang_name}.")
             except Exception as e:
                 logger.warning(
-                    f"⚠️ Failed to load {lang_name} grammar from library {BUILD_LIB_PATH}: {e}"
+                    f"⚠️ Failed to load {lang_name} grammar from library {self.build_lib_path}: {e}"
                 )
 
     def analyze_file(self, file_path: Path, source_code: str) -> Dict:
@@ -417,11 +429,13 @@ class FileProcessor:  # noqa: F811
         cache: Dict,
         cache_lock: threading.Lock,
         additional_ignore_dirs: set,
+        use_cache: bool = True,
     ):
         self.project_root = project_root
         self.cache = cache
         self.cache_lock = cache_lock
         self.additional_ignore_dirs = additional_ignore_dirs
+        self.use_cache = use_cache
 
     def hash_file(self, file_path: Path) -> str:
         try:
@@ -519,30 +533,57 @@ class FileProcessor:  # noqa: F811
     def process_file(
         self, file_path: Path, language_analyzer: LanguageAnalyzer
     ) -> Optional[tuple]:
-        """Analyzes a file if not in cache or changed, else returns None."""
-        file_hash_val = self.hash_file(file_path)
-        relative_path = str(file_path.relative_to(self.project_root))
-        with self.cache_lock:
-            if (
-                relative_path in self.cache
-                and self.cache[relative_path].get("hash") == file_hash_val
-            ):
-                return None
+        """Analyzes a file. If use_cache is True, checks cache first and updates it."""
+        relative_path = str(file_path.relative_to(self.project_root)).replace(
+            "\\\\", "/"
+        )
+        file_hash_val = None
+
+        if self.use_cache:
+            file_hash_val = self.hash_file(file_path)
+            if not file_hash_val:  # Failed to hash
+                logger.warning(
+                    f"Could not hash file {file_path}, processing it directly."
+                )
+            else:
+                with self.cache_lock:
+                    cached_entry = self.cache.get(relative_path)
+                    if (
+                        isinstance(cached_entry, dict)
+                        and cached_entry.get("hash") == file_hash_val
+                    ):
+                        # File is in cache and hash matches.
+                        # If analysis is also in cache, we could return it.
+                        # For now, mirroring original logic: if hash matches, skip reprocessing.
+                        # The calling ProjectScanner._determine_files_to_process_sync will load analysis from cache.
+                        return None  # Indicates file is cached and unchanged
+
+        # Process the file if cache is disabled, or if enabled and file not cached/changed, or hash failed
         try:
-            with file_path.open("r", encoding="utf-8") as f:
+            # Ensure file_path is absolute for opening
+            abs_file_path = (self.project_root / relative_path).resolve()
+            with abs_file_path.open("r", encoding="utf-8") as f:
                 source_code = f.read()
-            analysis_result = language_analyzer.analyze_file(file_path, source_code)
-            with self.cache_lock:
-                self.cache[relative_path] = {"hash": file_hash_val}
-            return (relative_path, analysis_result)
         except UnicodeDecodeError:
             logger.warning(f"Skipping file due to decoding error: {file_path}")
-            return None  # Indicate failure
+            return (relative_path, {"error": "UnicodeDecodeError"})
         except Exception as e:
-            logger.error(f"Error processing file {file_path}: {e}", exc_info=True)
-            # Optionally store error info in cache or analysis?
-            # For now, return None to indicate processing failure
-            return None
+            logger.error(f"Error reading file {file_path}: {e}", exc_info=True)
+            return (relative_path, {"error": f"FileReadError: {e}"})
+
+        analysis_result = language_analyzer.analyze_file(file_path, source_code)
+
+        if (
+            self.use_cache and file_hash_val
+        ):  # Only update cache if enabled and hashing was successful
+            with self.cache_lock:
+                # Store hash and analysis result
+                self.cache[relative_path] = {
+                    "hash": file_hash_val,
+                    "analysis": analysis_result,
+                }
+
+        return (relative_path, analysis_result)
 
 
 # ---------------------------------
@@ -733,75 +774,88 @@ class ProjectScanner:
     Orchestrates the project scanning process using modular components.
     Responsibilities:
       - Initializes all components (analyzer, processor, reporter, concurrency manager).
-      - Loads and saves the file hash cache.
+      - Loads and saves the file hash cache (if enabled).
       - Discovers files to be scanned.
-      - Detects moved files based on hash.
+      - Detects moved files based on hash (if cache enabled).
       - Manages asynchronous file processing via MultibotManager.
       - Gathers results and passes them to the ReportGenerator.
       - Provides methods to trigger optional steps like __init__ generation or context export.
     """  # noqa: E501
 
     def __init__(
-        self, project_root: Path | str = ".", additional_ignore_dirs: set | None = None
+        self,
+        project_root: Path | str = ".",
+        additional_ignore_dirs: set | None = None,
+        cache_path: Optional[Path] = None,
+        analysis_output_path: Optional[Path] = None,
+        context_output_path: Optional[Path] = None,
+        use_cache: bool = True,
     ):
-        # Ensure project_root is Path object
         self.project_root = Path(project_root).resolve()
-        self.analysis: Dict[
-            str, Dict
-        ] = {}  # Stores results {relative_path: analysis_dict}
-
-        # Set DEFAULT paths initially - these might be updated in main()
-        self.cache_path: Path = (
-            self.project_root / ".dreamos_cache" / "dependency_cache.json"
-        )
-        # Use default paths for ReportGenerator initially
-        default_analysis_path = self.project_root / "project_analysis.json"
-        default_context_path = self.project_root / "chatgpt_project_context.json"
-
-        self.cache_instance = ProjectCache(
-            self.cache_path
-        )  # Renamed to avoid conflict with self.cache dict
-        self.cache = self._load_cache_sync()  # Initial load is sync for now
-
-        # FIXME: self.cache_lock is a threading.Lock passed to FileProcessor.
-        # This will be an issue if FileProcessor methods called by async workers need an asyncio.Lock.
-        self.cache_lock = (
-            self.cache_instance.cache_lock
-        )  # Use ProjectCache's lock for consistency with FileProcessor
-
+        self.analysis: Dict[str, Dict] = {}
         self.additional_ignore_dirs = additional_ignore_dirs or set()
+        self.use_cache = use_cache
 
-        # FIXME: LanguageAnalyzer() instantiation is synchronous and its __init__ contains
-        # a synchronous tree-sitter build step. This will block if ProjectScanner
-        # is created in an async context. An async factory or explicit async init for LanguageAnalyzer is needed.
+        if self.use_cache:
+            if cache_path:
+                self.cache_path = cache_path.resolve()
+            else:
+                self.cache_path = (
+                    self.project_root / ".dreamos_cache" / "dependency_cache.json"
+                )
+            self.cache_instance = ProjectCache(self.cache_path)
+            self.cache = self._load_cache_sync()  # This is the dict for FileProcessor
+            self.cache_lock = self.cache_instance.cache_lock  # Use ProjectCache's lock
+        else:
+            self.cache_path = (  # Define for clarity even if not used for ProjectCache instance
+                self.project_root / ".dreamos_cache" / "dependency_cache.json"
+            )  # Default, in case other parts expect it to exist
+            self.cache_instance = None  # No ProjectCache instance if cache is disabled
+            self.cache = {}  # Empty dict for FileProcessor
+            self.cache_lock = threading.Lock()  # Provide a fresh lock
+            logger.info("Cache is disabled for this scan.")
+
+        # Determine paths for ReportGenerator
+        final_analysis_output_path = (
+            analysis_output_path.resolve()
+            if analysis_output_path
+            else self.project_root / "project_analysis.json"
+        )
+        final_context_output_path = (
+            context_output_path.resolve()
+            if context_output_path
+            else self.project_root / "chatgpt_project_context.json"
+        )
+
         self.language_analyzer = LanguageAnalyzer()
-
-        # FileProcessor is given the ProjectCache's threading.Lock.
-        # FIXME: FileProcessor may need async refactoring if its methods are I/O bound and called concurrently.
         self.file_processor = FileProcessor(
-            self.project_root, self.cache, self.cache_lock, self.additional_ignore_dirs
+            self.project_root,
+            self.cache,  # Pass the shared cache dict
+            self.cache_lock,  # Pass the appropriate lock
+            self.additional_ignore_dirs,
+            use_cache=self.use_cache,  # Pass use_cache flag
         )
         self.report_generator = ReportGenerator(
             self.project_root,
-            self.analysis,
-            default_analysis_path,
-            default_context_path,
+            self.analysis,  # This will be populated by scan_project
+            final_analysis_output_path,
+            final_context_output_path,
         )
 
     def _load_cache_sync(self) -> Dict[str, Dict]:
-        """Loads the hash/analysis cache JSON from disk synchronously."""
+        """Loads the hash/analysis cache JSON from disk synchronously, if cache is enabled."""
+        if not self.use_cache or not self.cache_instance:
+            logger.debug("Cache disabled or no cache instance, skipping cache load.")
+            return {}
         # Uses self.cache_instance which has its own internal locking
-        return (
-            self.cache_instance._load()
-        )  # Accessing ProjectCache's internal method directly
+        return self.cache_instance._load()
 
     def _save_cache_sync(self):
-        """Writes the current file hash cache to disk synchronously."""
-        # Uses self.cache_instance which has its own internal locking
-        # And self.cache from ProjectScanner is passed to FileProcessor which might modify it.
-        # This is complex; direct modification of self.cache should be via self.cache_instance.set()
-        # For now, assume self.cache correctly reflects what should be in self.cache_instance.cache
-        # This needs a more robust design if ProjectCache is properly encapsulated.
+        """Writes the current file hash cache to disk synchronously, if cache is enabled."""
+        if not self.use_cache or not self.cache_instance:
+            logger.debug("Cache disabled or no cache instance, skipping cache save.")
+            return
+
         if isinstance(self.cache, dict):  # Ensure self.cache is a dict
             self.cache_instance.cache = (
                 self.cache
@@ -875,7 +929,10 @@ class ProjectScanner:
     # _walk_directory is effectively merged into _discover_files_async's iterative approach
 
     async def _detect_moved_files_async(self, current_files_rel: Set[str]):
-        """Compares hashes in cache to detect moved files. Async I/O for hashing."""
+        """Compares hashes in cache to detect moved files. Async I/O for hashing. Skips if cache disabled."""
+        if not self.use_cache:
+            logger.debug("Cache disabled, skipping moved file detection.")
+            return
         logger.debug("Detecting moved files (async mode)...")
         previous_files_rel = set(self.cache.keys())
         potential_new_files = current_files_rel - previous_files_rel
@@ -970,7 +1027,7 @@ class ProjectScanner:
 
         all_eligible_files = await self._discover_files_async()
         current_files_rel = {
-            str(f.relative_to(self.project_root)).replace("\\", "/")
+            str(f.relative_to(self.project_root)).replace("\\\\", "/")
             for f in all_eligible_files
         }
         await self._detect_moved_files_async(current_files_rel)
@@ -984,6 +1041,7 @@ class ProjectScanner:
             processed_count += 1
             if progress_callback:
                 try:
+                    # progress_callback now expects a percentage as per main()'s adjustment
                     percent = (
                         int((processed_count / total_files) * 100)
                         if total_files > 0
@@ -993,26 +1051,14 @@ class ProjectScanner:
                 except Exception as e:
                     logger.error(f"Error in progress callback: {e}")
 
-        # FIXME: MultibotManager interaction needs to be async-aware.
-        # If MultibotManager uses threads, _process_file must be thread-safe.
-        # If MultibotManager uses asyncio tasks, _process_file must be async and non-blocking.
         manager = MultibotManager(
             scanner=self, num_workers=num_workers, status_callback=_status_update
         )
 
         logger.info(f"Attempting to start workers. Manager type: {type(manager)}")
-        # Assuming MultibotManager.start_workers might be async or setup async workers
-        # If it's blocking or purely sync, this itself is an issue for an async scan_project
-        # For now, assume it correctly interfaces with an async _process_file if it uses async tasks.
-        if hasattr(manager, "async_start_workers"):  # Hypothetical async start
-            await manager.async_start_workers()
-        elif hasattr(manager, "start_workers"):
-            manager.start_workers()  # Assuming this is non-blocking or sets up async workers
-        else:
-            logger.error(
-                "MultibotManager does not have a recognized start_workers method."
-            )
-            return
+
+        # EDIT: Directly await the async methods of MultibotManager
+        await manager.start_workers()
 
         files_to_process = []
         patterns_to_force = []
@@ -1026,11 +1072,17 @@ class ProjectScanner:
         # and cache interactions made async-safe (e.g., with an async ProjectCache).
         def _determine_files_to_process_sync():
             _files_to_process = []
-            with self.cache_lock:  # This is ProjectCache's threading.Lock
+            if not self.use_cache:
+                logger.info("Cache disabled. All eligible files will be processed.")
+                # If cache is disabled, all discovered files should be processed.
+                # all_eligible_files is a list of Path objects.
+                return list(all_eligible_files)
+
+            with self.cache_lock:  # This is ProjectCache's threading.Lock or a new lock if cache disabled
                 for file_path in all_eligible_files:
                     relative_path = str(
                         file_path.relative_to(self.project_root)
-                    ).replace("\\", "/")
+                    ).replace("\\\\", "/")
                     force_this_file = False
                     if patterns_to_force:
                         if any(
@@ -1039,21 +1091,33 @@ class ProjectScanner:
                         ):
                             force_this_file = True
                             logger.debug(f"Forcing rescan for {relative_path}")
+
                     cached_item = self.cache.get(relative_path)  # self.cache is a dict
                     needs_processing = True
+
                     if (
                         not force_this_file
                         and isinstance(cached_item, dict)
                         and "hash" in cached_item
                     ):
                         # FileProcessor.hash_file is likely sync and I/O bound
-                        current_hash = self.file_processor.hash_file(file_path)
-                        if current_hash and current_hash == cached_item["hash"]:
-                            if "analysis" in cached_item:
+                        # Avoid re-hashing here if possible. FileProcessor.process_file will hash if needed.
+                        # The core idea is: if it's in cache with a hash, and `analysis` is also present,
+                        # we can skip processing.
+                        if (
+                            "analysis" in cached_item
+                        ):  # Check if analysis is already cached
+                            # We need to ensure the hash matches. The hash check must happen to confirm it's the *same* file.
+                            current_hash = self.file_processor.hash_file(
+                                file_path
+                            )  # Hash to confirm
+                            if current_hash and current_hash == cached_item["hash"]:
                                 needs_processing = False
+                        # If only hash is present but no analysis, it still needs processing to get analysis.
+
                     if needs_processing:
                         _files_to_process.append(file_path)
-                    else:
+                    else:  # Cached, hash matches, and analysis available
                         _status_update(
                             file_path, None
                         )  # Cached, not processed by worker
@@ -1069,28 +1133,14 @@ class ProjectScanner:
         )
 
         for file_path in files_to_process:
-            # Assuming MultibotManager.add_task can handle tasks that result in async execution
-            # if _process_file is async. Or it adapts.
-            manager.add_task(
-                file_path
-            )  # If manager expects async work func, _process_file must be async
+            # MultibotManager.add_task is async, so await it here
+            await manager.add_task(file_path)
 
-        # Assuming MultibotManager.wait_for_completion might be async or blocking.
-        if hasattr(manager, "async_wait_for_completion"):
-            await manager.async_wait_for_completion()
-        elif hasattr(manager, "wait_for_completion"):
-            manager.wait_for_completion()
-        else:
-            logger.error("MultibotManager does not have wait_for_completion method.")
+        # EDIT: Directly await the async methods of MultibotManager
+        await manager.wait_for_completion()
+        await manager.stop_workers()
 
-        if hasattr(manager, "async_stop_workers"):
-            await manager.async_stop_workers()
-        elif hasattr(manager, "stop_workers"):
-            manager.stop_workers()
-        else:
-            logger.error("MultibotManager does not have stop_workers method.")
-
-        scan_results = manager.get_results()  # Assuming sync get_results
+        scan_results = manager.get_results()  # get_results is synchronous
 
         logger.info(f"Gathered {len(scan_results)} analysis results from workers.")
         self.analysis.clear()
@@ -1239,22 +1289,37 @@ class ProjectScanner:
         )
 
     async def clear_cache_async(self):  # Renamed
-        """Deletes the cache file. Async."""
-        cache_path = self.cache_path
+        """Deletes the cache file and clears in-memory cache, if cache is enabled."""
+        if not self.use_cache:
+            logger.info("Cache is disabled, clear_cache operation skipped.")
+            self.cache.clear()  # Clear in-memory dict anyway
+            return
+
+        cache_path_to_delete = self.cache_path  # Path to the actual cache file on disk
+
         try:
-            if await asyncio.to_thread(cache_path.exists):
-                await asyncio.to_thread(cache_path.unlink)
-                logger.info(f"Deleted cache file: {cache_path}")
-            # Also clear in-memory representation if ProjectScanner holds one directly
+            if await asyncio.to_thread(cache_path_to_delete.exists):
+                await asyncio.to_thread(cache_path_to_delete.unlink)
+                logger.info(f"Deleted cache file: {cache_path_to_delete}")
+            else:
+                logger.info(
+                    f"Cache file {cache_path_to_delete} not found, nothing to delete."
+                )
+
             if hasattr(self, "cache") and isinstance(self.cache, dict):
                 self.cache.clear()
-            if hasattr(self, "cache_instance"):  # If using ProjectCache instance
+
+            # self.cache_instance might be None if use_cache was false during init,
+            # but we checked self.use_cache at the start of this method.
+            # So, if use_cache is true here, cache_instance should exist.
+            if hasattr(self, "cache_instance") and self.cache_instance:
                 await asyncio.to_thread(
                     self.cache_instance.clear
-                )  # Assuming ProjectCache might get an async clear
-            logger.info("In-memory cache cleared.")
+                )  # This clears ProjectCache's internal dict and deletes file
+
+            logger.info("In-memory cache cleared and disk cache file removed.")
         except Exception as e:
-            logger.error(f"Error clearing cache file {cache_path}: {e}")
+            logger.error(f"Error clearing cache file {cache_path_to_delete}: {e}")
 
     async def analyze_scan_results_async(self) -> Dict[str, Any]:  # Renamed
         """Analyzes the collected data in self.analysis. Async (no I/O here, but consistent)."""
@@ -1327,28 +1392,33 @@ class ProjectScanner:
 
 
 def main():
-    # EDIT START: Load config and define default paths
-    config = AppConfig.load(
-        config_file=str(DEFAULT_CONFIG_PATH)
-    )  # Pass the default config path here
-    project_root = config.paths.project_root
-    default_cache_path = (
-        config.paths.project_root / ".dreamos_cache" / "dependency_cache.json"
-    )
-    default_analysis_path = config.paths.project_root / "project_analysis.json"
-    default_context_path = config.paths.project_root / "chatgpt_project_context.json"
-    # EDIT END
+    print("Attempting to import AppConfig...")
+    try:
+        from dreamos.core.config import AppConfig
+
+        print("AppConfig imported successfully.")
+        # config = AppConfig()
+        # print("AppConfig instantiated.")
+        # project_root = config.paths.project_root
+        # print(f"Project root: {project_root}")
+    except ImportError as e:
+        print(f"ImportError: {e}")
+        import traceback
+
+        traceback.print_exc()
+    except Exception as e:
+        print(f"Other exception: {e}")
+        import traceback
+
+        traceback.print_exc()
 
     parser = argparse.ArgumentParser(
-        description="Scan a project directory, analyze code files, and generate reports."
+        description="Scan project files, analyze dependencies, and generate reports."
     )
     parser.add_argument(
-        "project_root",
-        nargs="?",  # Make project_root optional, default to config
-        # EDIT START: Default to config project root
-        default=str(project_root),  # Use config path as default string
-        # EDIT END
-        help=f"Path to the project root directory (default: {str(project_root)}).",  # Corrected help f-string
+        "--project-root",
+        default=str(project_root),  # Use determined root
+        help="Root directory of the project to scan.",
     )
     parser.add_argument(
         "--exclude",
@@ -1438,47 +1508,53 @@ def main():
     logger.info(f"Context Output: {context_output_path}")
 
     # Initialize scanner with resolved project root
-    # EDIT START: Pass resolved paths correctly to ProjectScanner constructor
-    # Assuming ProjectScanner now takes these paths in its __init__
     scanner = ProjectScanner(
         project_root=resolved_project_root,
-        cache_path=cache_path,  # Pass the resolved absolute cache path
+        cache_path=cache_path,
         analysis_output_path=analysis_output_path,
         context_output_path=context_output_path,
         additional_ignore_dirs=set(args.exclude),
         use_cache=(not args.no_cache),
     )
-    # EDIT END
 
-    if args.clear_cache:
-        logger.info("Clearing cache...")
-        scanner.clear_cache()
+    # EDIT: Define an async function to run scanner operations
+    async def run_scanner_operations():
+        if args.clear_cache:
+            logger.info("Clearing cache...")
+            await scanner.clear_cache_async()
 
-    # Define progress callback if needed
-    def progress_update(completed, total):
-        print(f"Scanned {completed}/{total} files...", end="\r")
+        # EDIT: Define progress callback to accept a single percentage argument
+        def progress_update(percent_complete):
+            print(f"Scan progress: {percent_complete}%...", end="\r")
 
-    logger.info("Starting project scan...")
-    # Run scan
-    scanner.scan_project(
-        progress_callback=progress_update,
-        num_workers=args.workers,
-        force_rescan_patterns=args.force_rescan,
-    )
-    print("\nScan complete. Generating reports...")
+        logger.info("Starting project scan...")
+        await scanner.scan_project(
+            progress_callback=progress_update,
+            num_workers=args.workers,
+            force_rescan_patterns=args.force_rescan,
+        )
+        print("\nScan complete. Generating reports...")
 
-    # Generate reports using resolved paths
-    # Ensure ReportGenerator gets the correct paths if they aren't handled internally by scanner
-    scanner.generate_init_files(overwrite=True)
-    scanner.export_chatgpt_context(template_path=args.template_path)
-    agent_categories = scanner.categorize_agents()
-    print(json.dumps(agent_categories, indent=2))
+        # Generate reports using resolved paths
+        await scanner.generate_init_files_async(overwrite=True)
+        await scanner.export_chatgpt_context_async(template_path=args.template_path)
 
-    analysis_summary = scanner.analyze_scan_results()
-    print("\n--- Analysis Summary ---")
-    print(json.dumps(analysis_summary, indent=2))
+        # categorize_agents was called without await and its result printed.
+        # Assuming categorize_agents_async might update internal state or return something.
+        # Based on its implementation, it updates self.analysis and calls save_report.
+        # It doesn't seem to return a value that was printed before.
+        await scanner.categorize_agents_async()
+        # The old code printed json.dumps(agent_categories, indent=2) - this return value is gone.
+        # The categorize_agents_async now logs its findings.
 
-    print("Done.")
+        analysis_summary = await scanner.analyze_scan_results_async()
+        print("\n--- Analysis Summary ---")
+        print(json.dumps(analysis_summary, indent=2))
+
+        print("Done.")
+
+    # EDIT: Run the async operations
+    asyncio.run(run_scanner_operations())
 
 
 # EDIT START: Remove duplicate find_project_root if no longer needed

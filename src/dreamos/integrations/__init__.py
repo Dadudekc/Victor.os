@@ -1,14 +1,18 @@
-"""Initialize the integrations package."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
+from . import (
+    azure_blob_client,
+    browser_client,
+    discord_bot,
+    discord_client,
+    openai_client,
+)
 
-# Maybe define base exceptions here later
-class IntegrationError(Exception):
-    "Base exception for integration client errors."
-
-    pass
-
-
-class APIError(IntegrationError):
-    "Exception for API-specific errors (e.g., 4xx, 5xx)."
-
-    pass
+__all__ = [
+    "azure_blob_client",
+    "browser_client",
+    "discord_bot",
+    "discord_client",
+    "openai_client",
+]

@@ -1,6 +1,16 @@
-"""Communication channel implementations."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .azure_blob_channel import AzureBlobChannel
-from .local_blob_channel import LocalBlobChannel
+from . import (
+    azure_blob_channel,
+    azure_eventhub_channel,
+    channel_loader,
+    local_blob_channel,
+)
 
-__all__ = ["LocalBlobChannel", "AzureBlobChannel"]
+__all__ = [
+    "azure_blob_channel",
+    "azure_eventhub_channel",
+    "channel_loader",
+    "local_blob_channel",
+]

@@ -1,10 +1,9 @@
-# src/dreamos/tools/_core/__init__.py
-# Core utilities for Dream.OS tools
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .base import BaseToolExecutor
-from .registry import ToolRegistry
+from . import base, registry
 
-# Add context if it provides exportable classes/functions
-# from .context import ...
-
-__all__ = ["ToolRegistry", "BaseToolExecutor"]
+__all__ = [
+    "base",
+    "registry",
+]

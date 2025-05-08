@@ -464,194 +464,196 @@ These documents define the Universal Agent Loop, non-idling requirements, drift 
 │   │       │   ├── __init__.py
 │   │       │   ├── __pycache__/ [...]
 │   │       │   ├── browser.py
-│   │       │   ├── channel_loader.py
-│   │       │   ├── cursor_session_manager.py
-│   │       │   ├── html_parser.py
-│   │       │   ├── prompt_renderer.py
-│   │       │   └── task_parser.py
-│   │       ├── file_io.py
-│   │       ├── gui_utils.py # Uses pyautogui
-│   │       ├── logging_utils.py
-│   │       ├── project_root.py
-│   │       ├── protocol_compliance_utils.py
-│   │       ├── safe_json_editor_template.py
-│   │       ├── schema_validator.py
-│   │       ├── search.py
-│   │       └── text.py
-│   └── dreamscape/
-│       ├── __init__.py
-│       ├── __pycache__/ [...]
-│       ├── agents/
-│       │   ├── __init__.py
-│       │   ├── __pycache__/ [...]
-│       │   ├── planner_agent.py
-│       │   └── writer_agent.py
-│       ├── core/
-│       │   ├── __init__.py
-│       │   ├── __pycache__/ [...]
-│       │   └── content_models.py
-│       ├── events/
-│       │   ├── __init__.py
-│       │   ├── __pycache__/ [...]
-│       │   └── event_types.py
-│       ├── schemas/
-│       │   ├── __init__.py
-│       │   ├── __pycache__/ [...]
-│       │   └── event_schemas.py
-│       └── utils/
-│           └── __init__.py
-├── templates/ (...)
-├── tests/
-│   ├── __init__.py
-│   ├── __pycache__/ [...]
-│   ├── _archive/ [...] # Empty
-│   ├── adapters/
-│   │   └── __pycache__/ [...]
-│   ├── agents/
-│   │   ├── __pycache__/ [...]
-│   │   └── cursor/
-│   │       └── __pycache__/ [...]
-│   ├── automation/ [...] # Empty
-│   ├── cli/
-│   │   ├── __pycache__/ [...]
-│   │   └── test_safe_edit_json_list.py
-│   ├── conftest.py
-│   ├── coordination/
-│   │   ├── __pycache__/ [...]
-│   │   ├── cursor/
-│   │   │   └── __pycache__/ [...]
-│   │   ├── dispatchers/
-│   │   │   ├── __pycache__/ [...]
-│   │   │   └── test_base_dispatcher.py
-│   │   ├── test_agent_bus.py
-│   │   ├── test_project_board_manager.py
-│   │   ├── test_voting_coordinator.py
-│   │   └── utils/
-│   │       └── __pycache__/ [...]
-│   ├── core/
+│   │   │   │   ├── channel_loader.py
+│   │   │   │   ├── cursor_session_manager.py
+│   │   │   │   ├── html_parser.py
+│   │   │   │   ├── prompt_renderer.py
+│   │   │   │   └── task_parser.py
+│   │   │   ├── file_io.py
+│   │   │   ├── gui_utils.py # Uses pyautogui
+│   │   │   ├── logging_utils.py
+│   │   │   ├── project_root.py
+│   │   │   ├── protocol_compliance_utils.py
+│   │   │   ├── safe_json_editor_template.py
+│   │   │   ├── schema_validator.py
+│   │   │   ├── search.py
+│   │   │   └── text.py
+│   │   └── dreamscape/
+│   │       ├── __init__.py
+│   │       ├── __pycache__/ [...]
+│   │       ├── agents/
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__/ [...]
+│   │       │   ├── planner_agent.py
+│   │       │   └── writer_agent.py
+│   │       ├── core/
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__/ [...]
+│   │       │   └── content_models.py
+│   │       ├── events/
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__/ [...]
+│   │       │   └── event_types.py
+│   │       ├── schemas/
+│   │       │   ├── __init__.py
+│   │       │   ├── __pycache__/ [...]
+│   │       │   └── event_schemas.py
+│   │       └── utils/
+│   │           └── __init__.py
+│   ├── templates/ (...)
+│   ├── tests/
 │   │   ├── __init__.py
 │   │   ├── __pycache__/ [...]
-│   │   ├── chat_engine/
+│   │   ├── _archive/ [...] # Empty
+│   │   ├── adapters/
 │   │   │   └── __pycache__/ [...]
-│   │   ├── comms/
-│   │   │   └── test_project_board.py
+│   │   ├── agents/
+│   │   │   ├── __pycache__/ [...]
+│   │   │   └── cursor/
+│   │   │       └── __pycache__/ [...]
+│   │   ├── automation/ [...] # Empty
+│   │   ├── cli/
+│   │   │   ├── __pycache__/ [...]
+│   │   │   └── test_safe_edit_json_list.py
+│   │   ├── conftest.py
 │   │   ├── coordination/
 │   │   │   ├── __pycache__/ [...]
-│   │   │   ├── tasks/
-│   │   │   │   └── test_project_board_manager.py
-│   │   │   ├── test_base_agent.py
-│   │   │   ├── test_message_patterns.py
-│   │   │   └── tools/
+│   │   │   ├── cursor/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── dispatchers/
+│   │   │   │   ├── __pycache__/ [...]
+│   │   │   │   └── test_base_dispatcher.py
+│   │   │   ├── test_agent_bus.py
+│   │   │   ├── test_project_board_manager.py
+│   │   │   ├── test_voting_coordinator.py
+│   │   │   └── utils/
 │   │   │       └── __pycache__/ [...]
-│   │   ├── gui/
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__/ [...]
+│   │   │   ├── chat_engine/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── comms/
+│   │   │   │   └── test_project_board.py
+│   │   │   ├── coordination/
+│   │   │   │   ├── __pycache__/ [...]
+│   │   │   │   ├── tasks/
+│   │   │   │   │   └── test_project_board_manager.py
+│   │   │   │   ├── test_base_agent.py
+│   │   │   │   ├── test_message_patterns.py
+│   │   │   │   └── tools/
+│   │   │   │       └── __pycache__/ [...]
+│   │   │   ├── gui/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── monitoring/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   └── utils/
+│   │   │       ├── __pycache__/ [...]
+│   │   │       ├── test_agent_utils.py
+│   │   │       └── test_onboarding_utils.py
+│   │   ├── dashboard/
+│   │   │   └── test_dashboard_ui.py
+│   │   ├── dreamforge/
+│   │   │   ├── .pytest_cache/ [...]
+│   │   │   ├── __pycache__/ [...]
+│   │   │   ├── agents/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── coordination/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── core/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   └── services/
+│   │   │       └── __pycache__/ [...]
+│   │   ├── dreamscape/
+│   │   │   └── agents/
+│   │   │       ├── test_planner_agent.py
+│   │   │       └── test_writer_agent.py
+│   │   ├── feedback/
+│   │   │   └── chat_engine/ [...] # Empty
+│   │   ├── gui/ [...] # Empty
+│   │   ├── hooks/
+│   │   │   ├── test_chatgpt_responder.py
+│   │   │   ├── test_chronicle_logger.py
+│   │   │   └── test_stats_logger.py
+│   │   ├── integrations/
+│   │   │   ├── __pycache__/ [...]
+│   │   │   ├── azure/
+│   │   │   │   └── test_azure_blob_channel.py
+│   │   │   └── test_discord_client.py
+│   │   ├── llm_bridge/ [...] # Empty
+│   │   ├── memory/
+│   │   │   ├── __pycache__/ [...]
+│   │   │   ├── test_compaction_utils.py
+│   │   │   ├── test_database_manager.py
+│   │   │   ├── test_governance_memory_engine.py
+│   │   │   ├── test_memory_compaction.py
+│   │   │   ├── test_memory_manager.py
+│   │   │   ├── test_summarization_utils.py
+│   │   │   └── test_summarizer.py
+│   │   ├── monitors/
 │   │   │   └── __pycache__/ [...]
 │   │   ├── monitoring/
 │   │   │   └── __pycache__/ [...]
-│   │   └── utils/
-│   │       ├── __pycache__/ [...]
-│   │       ├── test_agent_utils.py
-│   │       └── test_onboarding_utils.py
-│   ├── dashboard/
-│   │   └── test_dashboard_ui.py
-│   ├── dreamforge/
-│   │   ├── .pytest_cache/ [...]
-│   │   ├── __pycache__/ [...]
-│   │   ├── agents/
-│   │   │   └── __pycache__/ [...]
-│   │   ├── coordination/
-│   │   │   └── __pycache__/ [...]
-│   │   ├── core/
-│   │   │   └── __pycache__/ [...]
-│   │   └── services/
-│   │       └── __pycache__/ [...]
-│   ├── dreamscape/
-│   │   └── agents/
-│   │       ├── test_planner_agent.py
-│   │       └── test_writer_agent.py
-│   ├── feedback/
-│   │   └── chat_engine/ [...] # Empty
-│   ├── gui/ [...] # Empty
-│   ├── hooks/
-│   │   ├── test_chatgpt_responder.py
-│   │   ├── test_chronicle_logger.py
-│   │   └── test_stats_logger.py
-│   ├── integrations/
-│   │   ├── __pycache__/ [...]
-│   │   ├── azure/
-│   │   │   └── test_azure_blob_channel.py
-│   │   └── test_discord_client.py
-│   ├── llm_bridge/ [...] # Empty
-│   ├── memory/
-│   │   ├── __pycache__/ [...]
-│   │   ├── test_compaction_utils.py
-│   │   ├── test_database_manager.py
-│   │   ├── test_governance_memory_engine.py
-│   │   ├── test_memory_compaction.py
-│   │   ├── test_memory_manager.py
-│   │   ├── test_summarization_utils.py
-│   │   └── test_summarizer.py
-│   ├── monitors/
-│   │   └── __pycache__/ [...]
-│   ├── monitoring/
-│   │   └── __pycache__/ [...]
-│   ├── rendering/
-│   │   └── test_template_engine.py
-│   ├── scripts/
-│   │   ├── __pycache__/ [...]
-│   │   └── utils/
-│   │       └── test_simple_task_updater.py
-│   ├── services/
-│   │   ├── __pycache__/ [...]
-│   │   ├── test_event_logger.py
-│   │   ├── test_failed_prompt_archive.py
-│   │   ├── test_memory_maintenance_service.py
-│   │   └── utils/ [...] # Empty
-│   ├── social/
-│   │   ├── __pycache__/ [...]
-│   │   ├── core/
+│   │   ├── rendering/
+│   │   │   └── test_template_engine.py
+│   │   ├── scripts/
 │   │   │   ├── __pycache__/ [...]
-│   │   │   └── memory/
-│   │   │       └── __pycache__/ [...]
-│   │   ├── integration/
-│   │   │   └── __pycache__/ [...]
+│   │   │   └── utils/
+│   │   │       └── test_simple_task_updater.py
+│   │   ├── services/
+│   │   │   ├── __pycache__/ [...]
+│   │   │   ├── test_event_logger.py
+│   │   │   ├── test_failed_prompt_archive.py
+│   │   │   ├── test_memory_maintenance_service.py
+│   │   │   └── utils/ [...] # Empty
 │   │   ├── social/
 │   │   │   ├── __pycache__/ [...]
-│   │   │   └── strategies/
-│   │   │       └── __pycache__/ [...]
-│   │   ├── strategies/
-│   │   │   └── __pycache__/ [...]
-│   │   ├── tests/
-│   │   │   ├── __init__.py
-│   │   │   ├── __pycache__/ [...]
-│   │   │   ├── conftest.py
 │   │   │   ├── core/
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── __pycache__/ [...]
-│   │   │   │   └── memory/ [...] # Empty
+│   │   │   │   └── memory/
+│   │   │   │       └── __pycache__/ [...]
 │   │   │   ├── integration/
-│   │   │   │   ├── __init__.py
 │   │   │   │   └── __pycache__/ [...]
-│   │   │   ├── mock_data/
-│   │   │   │   └── sample_chat.json
 │   │   │   ├── social/
-│   │   │   │   ├── __init__.py
 │   │   │   │   ├── __pycache__/ [...]
-│   │   │   │   ├── snapshots/
-│   │   │   │   │   ├── linkedin_post.html
-│   │   │   │   │   └── twitter_tweet.txt
 │   │   │   │   └── strategies/
-│   │   │   │       ├── __pycache__/ [...]
-│   │   │   │       └── snapshots/ [...]
+│   │   │   │       └── __pycache__/ [...]
 │   │   │   ├── strategies/
+│   │   │   │   └── __pycache__/ [...]
+│   │   │   ├── tests/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── __pycache__/ [...]
-│   │   │   │   ├── base_strategy_test.py
-│   │   │   │   └── base_test.py
-│   │   │   ├── tools/
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── __pycache__/ [...]
+│   │   │   │   ├── conftest.py
+│   │   │   │   ├── core/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── __pycache__/ [...]
+│   │   │   │   │   └── memory/ [...] # Empty
+│   │   │   │   ├── integration/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── __pycache__/ [...]
+│   │   │   │   ├── mock_data/
+│   │   │   │   │   └── sample_chat.json
+│   │   │   │   ├── social/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── __pycache__/ [...]
+│   │   │   │   │   ├── snapshots/
+│   │   │   │   │   │   ├── linkedin_post.html
+│   │   │   │   │   │   └── twitter_tweet.txt
+│   │   │   │   │   └── strategies/
+│   │   │   │   │       ├── __pycache__/ [...]
+│   │   │   │   │       └── snapshots/ [...]
+│   │   │   │   ├── strategies/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── __pycache__/ [...]
+│   │   │   │   │   ├── base_strategy_test.py
+│   │   │   │   │   └── base_test.py
+│   │   │   │   ├── tools/
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── __pycache__/ [...]
+│   │   │   │   └── utils/
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── __pycache__/ [...]
 │   │   │   └── utils/
-│   │   │       ├── __init__.py
 │   │   │       └── __pycache__/ [...]
 │   │   ├── tools/
 │   │   │   └── __pycache__/ [...]
@@ -735,19 +737,19 @@ This section lists specific, active project tasks as well as ongoing initiatives
 | FIX-001 | Task Board Permissions (`task_board_updater.py`) | agent-1        | Done        | High     |            | Task seems obsolete. No active error found. `task_board.json` is read-only by dashboard; core logic uses `ProjectBoardManager` and `central_task_boards`. |
 | DEV-001 | Project Scanner: `categorize_agents` Impl.    | agent-1        | Done        | Medium     |            | Implemented agent categorization logic in `ProjectScanner` using path and class inheritance heuristics. |
 | DEV-002 | Project Scanner: Path Normalization           |                | To Do       | Low      |            | Reduce "Detected move" noise by consistent path separator usage.        |
-| DEV-003 | Project Scanner: Install Tree-sitter          | agent-1        | Blocked     | Medium     |            | Blocked by tooling limitations: Cannot fix SyntaxErrors in `test_project_board_manager.py` and `test_base_agent.py` required for testing. Tree-sitter installation/integration partially done. |
+| DEV-003 | Project Scanner: Install Tree-sitter          | {{AI Assistant (Gemini)}} | {{To Do}}       | Medium     |            | {{Blocker partially resolved. Syntax checks pass. `tree-sitter` Python package added to `requirements.txt`. Next step: Ensure Tree-sitter grammars can be built by `ProjectScanner` (in `src/dreamos/tools/analysis/project_scanner/project_scanner.py`), which likely requires a C compiler in the environment. If grammars build, implement the `TODO` for actual AST analysis. Tree-sitter installation/integration partially done.}} |
 | REV-001 | Dependency Review                             | agent-1        | Done        | Medium     |            | Audit `requirements.txt`/`pyproject.toml`, remove unused deps. Unused deps (streamlit, praw, markdownify) were already commented out in pyproject.toml. |
 | DEV-004 | YAML Updater Utility                          |                | To Do       | Low      |            | Evaluate/implement robust YAML list append utility (e.g., for contracts). |
-| REF-001 | `src/dreamos/dream_mode/` Integration         | agent-1        | To Do       | High     |            | Task Paused. Unblocked. `agent-1` should now use `dreamos.utils.file_io.safe_read_with_tool` for context gathering from `src/dreamos/utils/dream_mode_utils/` to proceed with integration. Previous tooling issues updating PROJECT_PLAN.md seem resolved. Also paused due to swarm priority shift to PyAutoGUI bridge (though general autonomy is now resumed). Analysis of `dream_mode_utils/` deferred. |
+| REF-001 | `src/dreamos/dream_mode/` Integration         | {{AI Assistant (Gemini)}} | {{Done}}        | High     |            | {{Context gathered from `dream_mode_utils`. Identified integration point in `chatgpt_web_agent.py`. Refactored agent imports to use browser utilities from `dreamos.utils.dream_mode_utils.browser` instead of placeholders from `gui_utils`. This completes the primary integration step identified for this task.}} |
 | ORG-006 | Scan codebase and populate `ai_docs/business_logic/` | agent-1        | Done        | Medium   | YYYY-MM-DD | Populated business logic documentation. (Description updated from 'Review apps/ Structure') |
 | REF-002 | Configuration Management                      | agent-1        | Done        | Medium     |            | Review complete. No significant hardcoded paths/settings found in core areas; major components appear to use AppConfig. |
 | TEST-001| Import Validation                             | agent-1        | Done        | Medium     |            | Checked imports via `py_compile` on `src/dreamos/`. Fixed `SyntaxError` in `augment_task_tags.py` related to `Agent-1` path. `py_compile` now passes. |
-| TEST-002| Test Coverage Increase                        | agent-1        | Blocked     | Medium     |            | Blocked by tooling limitations: Cannot apply critical fixes for NameError in `src/dreamos/core/config.py` and SyntaxErrors in `tests/core/coordination/*` test files. |
+| TEST-002| Test Coverage Increase                        | {{AI Assistant (Gemini)}} | Blocked     | Medium     |            | {{Blocker context updated. `py_compile` checks pass for `src/dreamos/core/config.py` and test files in `tests/core/coordination/*`, indicating syntax/name errors are likely resolved. However, the task remains blocked by the reported tooling limitation preventing *application* of critical fixes needed for coverage increase (possibly related to BLOCK-003's `edit_file` issues).}} |
 | TEST-003| Health Checks Review/Expansion                |                | To Do       | Low      |            | Review/expand health checks in `src/dreamos/core/health_checks/`.  |
 | DOC-001 | Update `README.md`                            |                | To Do       | Medium     |            | Refresh main README for current structure, setup, usage.              |
 | DOC-002 | Document `scripts/`                           |                | To Do       | Low      |            | Add READMEs/usage comments to scripts in `scripts/`.               |
 | DOC-003 | Review `DEVELOPER_NOTES.md`                   |                | To Do       | Low      |            | Integrate relevant info from `docs/DEVELOPER_NOTES.md`.             |
-| PIPE-001| Agent 2 (`prototype_context_router`)          | Agent 2        | Blocked     | Medium     |            | Proceed with design/prototyping once task board is unblocked.       |
+| PIPE-001| Agent 2 (`prototype_context_router`)          | Agent 2        | Blocked     | Medium     |            | {{Proceed with design/prototyping once task board is unblocked. Note: The underlying `read_file` instability (BLOCK-002) affecting task board access may be resolved by the `safe_read_with_tool` utility. Agent 2 should re-evaluate if access is now possible. If other specific task board issues persist, please provide details.}} |
 | PIPE-002| Agent 3 (`ROUTE_INJECTION_REQUEST`)           | Agent 3        | To Do       | Medium     |            | Define schema and provide example.                                  |
 | PIPE-003| Agent 4 (`scraper_attach_context_metadata`)   | Agent 4        | To Do       | Medium     |            | Identify sources and integration hooks.                             |
 | PIPE-004| Agent 5 (`scraper_state_machine_conversion`)  | Agent 5        | To Do       | Medium     |            | Define states and refactor.                                         |

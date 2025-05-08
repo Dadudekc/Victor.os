@@ -1,0 +1,8 @@
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
+
+from . import check_dependencies
+
+__all__ = [
+    "check_dependencies",
+]

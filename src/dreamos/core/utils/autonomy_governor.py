@@ -6,6 +6,8 @@ import subprocess
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+logger = logging.getLogger("AutonomyGovernor")
+
 try:
     from ..coordination.agent_bus import AgentBus, BaseEvent, EventType
 except ImportError:
@@ -21,8 +23,6 @@ if TYPE_CHECKING:
     from ..coordination.project_board_manager import ProjectBoardManager
 
 # Moved error import to top
-
-logger = logging.getLogger("AutonomyGovernor")
 
 # REMOVED Global Paths - Use injected config
 # WORKING_TASKS_PATH = PROJECT_ROOT / "runtime/agent_comms/project_boards/working_tasks.json"  # noqa: E501

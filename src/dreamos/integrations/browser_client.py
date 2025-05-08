@@ -2,12 +2,11 @@
 
 import asyncio  # noqa: I001
 import logging
-from typing import Optional
 
-from dreamos.utils.config_utils import get_config
-from playwright.async_api import Browser, Page, Playwright, async_playwright
+from playwright.async_api import Page, async_playwright
 
-from . import APIError, IntegrationError
+from dreamos.core.config import get_config
+from . import APIError, IntegrationError, BrowserClientError
 
 logger = logging.getLogger(__name__)
 
@@ -19,17 +18,32 @@ class BrowserClient:
     """Asynchronous client for browser automation using Playwright."""
 
     def __init__(self):
-        """Initializes the Browser client config. Call connect() to start."""
-        self.browser_type = get_config(
-            "integrations.browser.type", default="chromium"
-        )  # playwright options: chromium, firefox, webkit
-        self.headless = get_config("integrations.browser.headless", default=True)
-        self._playwright: Optional[Playwright] = None
-        self._browser: Optional[Browser] = None
+        """Initializes the Playwright client, loading config via get_config."""
+        self._playwright = None
+        self._browser = None
+        self._context = None
+        self._page = None
         self._functional = False
-        logger.info(
-            f"BrowserClient configured for {self.browser_type} (headless={self.headless}). Call connect() to initialize."  # noqa: E501
-        )
+        self.browser_type = "chrome" # Default
+        self.headless = True # Default
+
+        try:
+            config = get_config()
+            # Assuming path like: config.integrations.playwright.browser_type
+            self.browser_type = config.integrations.playwright.browser_type.lower() if hasattr(config.integrations, 'playwright') else "chrome"
+            self.headless = config.integrations.playwright.headless if hasattr(config.integrations, 'playwright') else True
+
+            if self.browser_type not in ["chromium", "firefox", "webkit"]:
+                logger.error(f"Unsupported browser type in config: '{self.browser_type}'. Use 'chromium', 'firefox', or 'webkit'. Defaulting to chromium.")
+                self.browser_type = "chromium"
+                # Or raise ConfigurationError here
+
+            self._functional = True # Mark as potentially functional, connect() does the real work
+            logger.info(f"BrowserClient configured (Type: {self.browser_type}, Headless: {self.headless})")
+        except Exception as e:
+             logger.error(f"Failed to configure BrowserClient using get_config: {e}", exc_info=True)
+             # Keep defaults
+             self._functional = False # Cannot be functional if config load fails
 
     async def connect(self):
         """Connects to Playwright and launches the browser."""

@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from dreamos.core.config import AppConfig
+from dreamos.core.config import get_config #, AppConfig (AppConfig not used directly)
 
 # Assuming FeedbackEngineV2 and task-schema.json might be used later
 # from dreamos.feedback.feedback_engine_v2 import FeedbackEngineV2
@@ -69,11 +69,25 @@ class TaskAutoRewriter:
     actionability, or to break down complex tasks.
     """
 
-    def __init__(self, config: AppConfig):
-        self.config = config
-        # self.feedback_engine = FeedbackEngineV2(config) # If using FeedbackEngine
-        # self.task_schema = self._load_task_schema() # Load schema for validation
-        logger.info("TaskAutoRewriter initialized.")
+    def __init__(self):
+        self.config = get_config()
+        # Ensure openai_client is initialized, assuming it's needed and configured
+        # This part depends on how OpenAIClient is expected to be accessed
+        if hasattr(self.config, 'integrations') and hasattr(self.config.integrations, 'openai'):
+            # Assuming OpenAIClient now uses get_config() internally for its own setup
+            from dreamos.integrations.openai_client import OpenAIClient 
+            self.openai_client = OpenAIClient()
+            if not self.openai_client.is_functional():
+                logger.error("TaskAutoRewriter: OpenAI client is not functional. Rewriting capabilities may be limited.")
+        else:
+            logger.warning("TaskAutoRewriter: OpenAI configuration not found. Rewriting capabilities disabled.")
+            self.openai_client = None 
+
+        # Default model for rewriting, can be overridden by config
+        self.rewrite_model_name = "gpt-3.5-turbo" # Default
+        if hasattr(self.config, 'tools') and hasattr(self.config.tools, 'task_editor') and \
+           hasattr(self.config.tools.task_editor, 'rewrite_model_name'):
+            self.rewrite_model_name = self.config.tools.task_editor.rewrite_model_name
 
     def _load_task_schema(self) -> Optional[Dict[str, Any]]:
         """Loads the task JSON schema for validation and reference."""
@@ -194,33 +208,91 @@ class TaskAutoRewriter:
 
         # Check 4: Overly broad task (conceptual - example of proposing a split)
         # This requires more sophisticated understanding or keywords
-        broad_task_keywords = [
-            "implement entire system",
-            "build full application",
-            "develop new platform",
-        ]
-        if any(keyword in task_name.lower() for keyword in broad_task_keywords) or any(
-            keyword in description.lower() for keyword in broad_task_keywords
-        ):
-            if not task_data.get(
-                "is_epic"
-            ):  # Avoid splitting tasks already marked as epics
-                logger.info(
-                    f"Task {task_id} appears too broad. Proposing it be marked as an Epic or split."
+        broad_task_keywords = ["implement entire system", "build full application", "develop new platform"]
+        if any(keyword in task_name.lower() for keyword in broad_task_keywords) or \
+           any(keyword in description.lower() for keyword in broad_task_keywords):
+            if not task_data.get("is_epic"): # Avoid splitting tasks already marked as epics
+                logger.info(f"Task {task_id} appears too broad. Proposing it be marked as an Epic AND SPLIT.")
+                proposal.rationale += "Task appears very broad. Auto-splitting into sub-tasks and marking original as Epic. "
+                
+                # Option 1: Suggest marking original as an epic
+                proposal.add_modification(
+                    op="add", # or "replace" if is_epic might exist and we want to ensure it's true
+                    path="/is_epic",
+                    value=True
                 )
-                proposal.rationale += "Task appears very broad and might be an Epic. Consider splitting into sub-tasks or marking as 'is_epic: true'. "
-                # Option 1: Suggest marking as an epic
-                proposal.add_modification(op="add", path="/is_epic", value=True)
                 proposal.add_modification(
                     op="add",
-                    path="/params/ai_rewrite_guidance/split",
-                    value="This task seems large. Review if it should be an Epic and broken down into smaller, actionable sub-tasks. If so, define sub-tasks.",
+                    path="/params/ai_rewrite_guidance/split_outcome", # New guidance field
+                    value="This task was automatically split into sub-tasks by TaskAutoRewriter. Review the generated sub-tasks for detail and accuracy."
                 )
-                # Option 2: Could also attempt to define example sub-tasks here if AI is capable
-                # (e.g., by adding to proposal.new_tasks_to_create)
-                # For now, just guiding the user/AI to do it.
-                made_proposal = True
+                
+                # Option 2: Define example sub-tasks
+                # A more sophisticated AI could infer logical splits based on task content.
+                # For now, we create generic placeholder sub-tasks.
+                original_name = params.get("name", "Unnamed Epic Task")
+                original_description = params.get("description", "No description provided for the epic task.")
+                parent_action = task_data.get("action", "generic_sub_task_action") # Inherit or default action
+                # Ensure _dt is available if not already imported at module level. Assuming datetime is imported as _dt from SwarmController context.
+                # For TaskAutoRewriter, we'd need to ensure 'import datetime as _dt' or similar.
+                # Let's assume datetime is available via 'import datetime'
+                import datetime # Ensure datetime is available
 
+                sub_task_base_properties = {
+                    "status": "PENDING",
+                    "priority": task_data.get("priority", 3), # Inherit priority
+                    "injected_by": f"TaskAutoRewriter (split from {task_id})",
+                    "timestamp_injected_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    # Other common fields from original task if applicable (e.g. project_context from task_data.get("context"))
+                    "context": task_data.get("context", {}), # Inherit context
+                    "assigned_to_type": task_data.get("assigned_to_type"), # Inherit assignment preference
+                }
+
+                sub_task_1_id = f"{task_id}-SUB-1"
+                sub_task_1_data = {
+                    **sub_task_base_properties,
+                    "task_id": sub_task_1_id,
+                    "action": parent_action, 
+                    "params": {
+                        "name": f"Phase 1: Planning for '{original_name}'",
+                        "description": f"Sub-task 1 (Planning Phase) for epic '{original_name}'.\\nParent description: '{original_description}'.\\nFocus on initial planning, detailed requirement gathering, and resource allocation for the epic.",
+                        "parent_task_id": task_id,
+                        # Potentially copy other relevant params from parent, or set defaults
+                    }
+                }
+                proposal.add_new_task(sub_task_1_data)
+                logger.info(f"Generated sub-task {sub_task_1_id} for epic {task_id}.")
+
+                sub_task_2_id = f"{task_id}-SUB-2"
+                sub_task_2_data = {
+                    **sub_task_base_properties,
+                    "task_id": sub_task_2_id,
+                    "action": parent_action,
+                    "params": {
+                        "name": f"Phase 2: Core Implementation of '{original_name}'",
+                        "description": f"Sub-task 2 (Core Implementation Phase) for epic '{original_name}'.\\nParent description: '{original_description}'.\\nFocus on developing core features and functionalities as defined in the planning phase.",
+                        "parent_task_id": task_id,
+                    }
+                }
+                proposal.add_new_task(sub_task_2_data)
+                logger.info(f"Generated sub-task {sub_task_2_id} for epic {task_id}.")
+                
+                sub_task_3_id = f"{task_id}-SUB-3"
+                sub_task_3_data = {
+                    **sub_task_base_properties,
+                    "task_id": sub_task_3_id,
+                    "action": parent_action,
+                    "params": {
+                        "name": f"Phase 3: Testing & Refinement for '{original_name}'",
+                        "description": f"Sub-task 3 (Testing & Refinement Phase) for epic '{original_name}'.\\nParent description: '{original_description}'.\\nFocus on comprehensive testing, bug fixing, and refinement of the implemented features.",
+                        "parent_task_id": task_id,
+                    }
+                }
+                proposal.add_new_task(sub_task_3_data)
+                logger.info(f"Generated sub-task {sub_task_3_id} for epic {task_id}.")
+                
+                made_proposal = True
+        
         # TODO: Add more checks:
         # - Alignment with task schema (e.g., using self.task_schema if loaded)
         # - Input from FeedbackEngineV2 for patterns of past failures related to task structure.

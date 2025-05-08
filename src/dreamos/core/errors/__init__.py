@@ -1,15 +1,14 @@
-"""Custom error types for the DreamOS system.
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package defines and exposes custom exception classes used throughout DreamOS
-to provide more specific error handling.
-"""
+from . import (
+    exceptions,  # Keep this if other modules expect to access dreamos.core.errors.exceptions directly
+)
 
-# Makes the 'errors' directory a Python package
-
+# Re-export key exceptions for easier access
 from .exceptions import (
     AgentError,
     ArchivingError,
-    BoardLockError,
     CommunicationError,
     ConfigurationError,
     CoordinateError,
@@ -18,13 +17,12 @@ from .exceptions import (
     MemoryError,
     ProjectBoardError,
     TaskError,
-    TaskNotFoundError,
-    TaskValidationError,
     ToolError,
     ValidationError,
 )
 
 __all__ = [
+    "exceptions",  # Keep if needed
     "DreamOSError",
     "ConfigurationError",
     "AgentError",
@@ -32,9 +30,6 @@ __all__ = [
     "ToolError",
     "ProjectBoardError",
     "CoordinateError",
-    "TaskNotFoundError",
-    "TaskValidationError",
-    "BoardLockError",
     "CommunicationError",
     "MemoryError",
     "ValidationError",

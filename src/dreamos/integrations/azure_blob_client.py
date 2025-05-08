@@ -1,49 +1,57 @@
 """Client for interacting with Azure Blob Storage."""
 
 import logging  # noqa: I001
+from typing import Optional
 
 import tenacity  # Add tenacity for retry logic
 from azure.core.exceptions import AzureError, ResourceNotFoundError
 from azure.storage.blob.aio import BlobServiceClient  # Import async client
-from dreamos.utils.config_utils import get_config
 
-from . import APIError, IntegrationError
+from dreamos.core.config import get_config
+from . import APIError, IntegrationError, AzureBlobError
 
 logger = logging.getLogger(__name__)
 
 
+class AzureBlobError(IntegrationError):
+    pass
+
+
 class AzureBlobClient:
     def __init__(self):
-        """Initializes the Azure Blob client using configuration."""
-        self.connection_string = get_config(
-            "integrations.azure_blob.connection_string", default=None
-        )
-        self._client = None
+        """Initializes the Azure Blob client, loading config via get_config."""
+        self.blob_service_client = None
         self._functional = False
+        self.connection_string = None # Initialize
 
-        if self.connection_string:
-            try:
-                # Initialize async client
-                self._client = BlobServiceClient.from_connection_string(
+        try:
+            config = get_config()
+            # Assuming path like: config.integrations.azure_blob.connection_string
+            conn_str_secret = config.integrations.azure_blob.connection_string if hasattr(config.integrations, 'azure_blob') else None
+            self.connection_string = conn_str_secret.get_secret_value() if conn_str_secret else None
+
+            if not self.connection_string:
+                logger.warning("Azure Blob connection string not found in config. Client will be non-functional.")
+            else:
+                self.blob_service_client = BlobServiceClient.from_connection_string(
                     self.connection_string
                 )
                 self._functional = True
                 logger.info("AzureBlobClient initialized successfully.")
-            except ValueError as e:
-                logger.error(
-                    f"Invalid Azure Blob Storage connection string provided: {e}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to initialize Azure BlobServiceClient: {e}", exc_info=True
-                )
-        else:
-            logger.warning(
-                "Azure Blob connection string not found in config (integrations.azure_blob.connection_string). Client non-functional."  # noqa: E501
-            )
+
+        except ValueError as e:
+            logger.error(f"Invalid Azure Blob connection string format in config: {e}")
+            raise AzureBlobError(f"Invalid Azure Blob connection string format: {e}")
+        except ImportError:
+             logger.error("'azure-storage-blob' package is required. Please install it.")
+             raise AzureBlobError("'azure-storage-blob' package not installed.")
+        except Exception as e:
+            logger.error(f"Failed to initialize Azure Blob client using get_config: {e}", exc_info=True)
+            self._functional = False # Ensure non-functional on error
+            # raise AzureBlobError(f"Failed to initialize Azure Blob client: {e}")
 
         if not self._functional:
-            logger.warning("AzureBlobClient is non-functional.")
+            logger.warning("AzureBlobClient is non-functional after attempting config load.")
 
     def is_functional(self) -> bool:
         return self._functional
@@ -69,8 +77,8 @@ class AzureBlobClient:
             f"Attempting to upload blob {blob_name} to container {container_name}."
         )
         try:
-            async with self._client:
-                blob_client = self._client.get_blob_client(
+            async with self.blob_service_client:
+                blob_client = self.blob_service_client.get_blob_client(
                     container=container_name, blob=blob_name
                 )
                 await blob_client.upload_blob(data, overwrite=True)
@@ -109,8 +117,8 @@ class AzureBlobClient:
             f"Attempting to download blob {blob_name} from container {container_name}."
         )
         try:
-            async with self._client:
-                blob_client = self._client.get_blob_client(
+            async with self.blob_service_client:
+                blob_client = self.blob_service_client.get_blob_client(
                     container=container_name, blob=blob_name
                 )
                 download_stream = await blob_client.download_blob()
@@ -139,12 +147,12 @@ class AzureBlobClient:
 
     async def close(self):
         """Closes the underlying client connection gracefully."""
-        if self._client:
+        if self.blob_service_client:
             try:
-                await self._client.close()
+                await self.blob_service_client.close()
                 logger.info("AzureBlobClient connection closed.")
             except Exception as e:
                 logger.error(f"Error closing AzureBlobClient: {e}", exc_info=True)
             finally:
-                self._client = None
+                self.blob_service_client = None
                 self._functional = False

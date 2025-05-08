@@ -3,9 +3,10 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from dreamos.core.config import AppConfig
+if TYPE_CHECKING:
+    from dreamos.core.config import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def write_json_safe(file_path: Path, data: Any) -> None:
 class FailedPromptArchiveService:
     """Service to archive failed prompts with full metadata."""
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: "AppConfig"):
         # Derive path from config, assuming memory_dir is defined
         self.archive_path = config.paths.memory_dir / "failed_prompt_archive.json"
         # Ensure archive directory exists
