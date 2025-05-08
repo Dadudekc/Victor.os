@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 # Import BaseTool for type hinting
 from .base import BaseTool
@@ -19,7 +19,9 @@ class ToolRegistry:
         tool_name = getattr(tool_instance, "name", None)
         if tool_name:
             if tool_name in self._tools:
-                logger.warning(f"Tool '{tool_name}' is already registered. Overwriting placeholder registration.")
+                logger.warning(
+                    f"Tool '{tool_name}' is already registered. Overwriting placeholder registration."
+                )
             logger.info(f"Placeholder ToolRegistry: Registering tool: {tool_name}")
             self._tools[tool_name] = tool_instance
         else:

@@ -9,6 +9,7 @@ and then pushes results back to the channel.
 FIXME: The TaskChannel is a placeholder and needs to be replaced with a real
        task queuing/communication mechanism (e.g., AgentBus, ProjectBoardManager).
 """
+
 import logging
 import os
 import time
@@ -48,7 +49,7 @@ logger = logging.getLogger("CursorWorker")
 
 # EDIT: Define missing constant (copied from gui_interaction.py)
 RESPONSE_CHECK_INTERVAL = 1  # Seconds between response checks
-# TODO: Consider making UI element identifiers (image names, window titles) 
+# TODO: Consider making UI element identifiers (image names, window titles)
 #       configurable via AppConfig instead of being hardcoded strings.
 #       Example: CURSOR_IDE_WINDOW_TITLE = "Cursor IDE"
 #                ACCEPT_BUTTON_IMAGE = "accept_button.png"

@@ -42,8 +42,10 @@ class TaskMemoryLayer:
         self.memory_file = self.project_root / (
             memory_file_rel or DEFAULT_MEMORY_FILE_REL
         )
-        self._memory_data: Optional[Dict[str, Dict[str, Any]]] = None # Initialize as None, load lazily
-        self._lock = asyncio.Lock() # Use asyncio.Lock
+        self._memory_data: Optional[Dict[str, Dict[str, Any]]] = (
+            None  # Initialize as None, load lazily
+        )
+        self._lock = asyncio.Lock()  # Use asyncio.Lock
         # self._load_memory() # REMOVED: _load_memory is now async
         logger.info(f"TaskMemoryLayer initialized. Using file: {self.memory_file}")
 
@@ -55,13 +57,15 @@ class TaskMemoryLayer:
     async def _load_memory(self):
         """Loads memory data from the JSON file. Handles file not found and decode errors. Async."""  # noqa: E501
         async with self._lock:
-            if self._memory_data is not None: # Already loaded by another coroutine
+            if self._memory_data is not None:  # Already loaded by another coroutine
                 return
             try:
                 if await asyncio.to_thread(self.memory_file.exists):
+
                     def _sync_load():
                         with open(self.memory_file, "r", encoding="utf-8") as f:
                             return json.load(f)
+
                     self._memory_data = await asyncio.to_thread(_sync_load)
                     logger.debug(
                         f"Loaded {len(self._memory_data)} task records from {self.memory_file}"  # noqa: E501
@@ -86,11 +90,15 @@ class TaskMemoryLayer:
 
     async def _save_memory(self):
         """Saves the current memory data to the JSON file. Assumes lock is already held. Async."""  # noqa: E501
-        if self._memory_data is None: # Should not happen if ensure_loaded was called by public methods
-            logger.warning("_save_memory called but _memory_data is None. Skipping save.")
+        if (
+            self._memory_data is None
+        ):  # Should not happen if ensure_loaded was called by public methods
+            logger.warning(
+                "_save_memory called but _memory_data is None. Skipping save."
+            )
             return
-        
-        memory_data_copy = dict(self._memory_data) # Work with a copy for thread safety
+
+        memory_data_copy = dict(self._memory_data)  # Work with a copy for thread safety
 
         def _sync_save():
             # Ensure the directory exists
@@ -125,14 +133,16 @@ class TaskMemoryLayer:
 
         await self._ensure_loaded()
         async with self._lock:
-            if self._memory_data is None: # Should be loaded by _ensure_loaded
-                self._memory_data = {} # Initialize if somehow still None (defensive)
-            
-            timestamp = time.time() # time.time() is fine for a simple timestamp
+            if self._memory_data is None:  # Should be loaded by _ensure_loaded
+                self._memory_data = {}  # Initialize if somehow still None (defensive)
+
+            timestamp = time.time()  # time.time() is fine for a simple timestamp
             task_record = {"outcome": outcome, "notes": notes, "timestamp": timestamp}
             self._memory_data[task_id] = task_record
             logger.info(f"Recorded outcome '{outcome}' for task_id: {task_id}")
-            await self._save_memory() # _save_memory is now async and called within lock
+            await (
+                self._save_memory()
+            )  # _save_memory is now async and called within lock
 
     async def recall_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -143,15 +153,13 @@ class TaskMemoryLayer:
         # but to ensure consistency with _ensure_loaded, we acquire it.
         # If _memory_data was guaranteed to be a thread/coroutine-safe dict, this might differ.
         async with self._lock:
-            if self._memory_data is None: # Should be loaded by _ensure_loaded
-                 return None # Should not happen
-            
+            if self._memory_data is None:  # Should be loaded by _ensure_loaded
+                return None  # Should not happen
+
             task_data = self._memory_data.get(task_id)
             if task_data:
                 logger.debug(f"Recalled data for task_id: {task_id}")
-                return (
-                    task_data.copy()
-                ) 
+                return task_data.copy()
             else:
                 logger.debug(f"No record found for task_id: {task_id}")
                 return None

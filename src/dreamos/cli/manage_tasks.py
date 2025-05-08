@@ -11,6 +11,7 @@ ProjectBoardManager abstraction layer for safe concurrent access.
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import click
 
@@ -71,48 +72,52 @@ TASK_READY_QUEUE_FILENAME = "task_ready_queue.json"
 
 # --- CLI Definition ---
 @click.group()
-@click.option(
-    "--config-path",
-    default=None,
-    help="Path to the application config file (e.g., config.yaml)",
-    type=click.Path(file_okay=True, dir_okay=False, exists=True, path_type=Path),
-)
 @click.pass_context
-def cli(ctx, config_path):
+def cli(ctx):
     """Manage DreamOS Task Boards via the ProjectBoardManager."""
     ctx.ensure_object(dict)
     try:
-        # EDIT START: Provide default config path if None
-        if config_path is None:
-            # Determine the default path relative to the project root
-            default_config_file = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
-            click.echo(f"No --config-path provided, attempting default: {default_config_file}", err=True)
-            effective_config_path = default_config_file
-        else:
-            effective_config_path = config_path
+        # --- BEGIN EDIT: Simplified PBM Initialization ---
 
-        # Pass the effective path (which might be the default)
-        app_config = AppConfig.load(config_file=effective_config_path)
-        # EDIT END
-        ctx.obj = ProjectBoardManager(config=app_config)
-        # click.echo(
-        #     f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",  # noqa: E501
-        #     err=True,
-        # )
-        config_display_path = getattr(app_config, "config_file_path", None)
-        if not config_display_path and config_path:
-            config_display_path = config_path
-        elif not config_display_path:
-            config_display_path = (
-                app_config.paths.project_root / "runtime/config/config.yaml"
-            )
+        # Manually construct the minimal paths needed by PBM
+        # Note: This bypasses config file values for these specific paths!
+        boards_base_dir = (
+            PROJECT_ROOT / "runtime" / "agent_comms" / "central_task_boards"
+        )
+        task_schema_path = (
+            PROJECT_ROOT
+            / "src"
+            / "dreamos"
+            / "coordination"
+            / "tasks"
+            / "task-schema.json"
+        )
+
+        # Create a minimal mock config object structure expected by PBM
+        mock_paths_config = SimpleNamespace(
+            project_root=PROJECT_ROOT,
+            central_task_boards=boards_base_dir,
+            task_schema=task_schema_path,
+            # Add other paths.* attributes IF PBM uses them directly
+        )
+        mock_app_config = SimpleNamespace(
+            paths=mock_paths_config
+            # Add other config.* attributes IF PBM uses them directly
+        )
+
+        # Instantiate PBM with the minimal mock config
+        # NOTE: This assumes PBM doesn't rely on other AppConfig sections in __init__
+        ctx.obj = ProjectBoardManager(config=mock_app_config)  # Pass mock config
+
         click.echo(
-            f"ProjectBoardManager initialized using config: {config_display_path}",
+            f"ProjectBoardManager initialized using derived paths (bypassing full config load). Base: {boards_base_dir}",
             err=True,
         )
+        # --- END EDIT ---
     except Exception as e:
         click.echo(
-            f"Error initializing ProjectBoardManager or loading config: {e}", err=True
+            f"Error initializing ProjectBoardManager: {e}",
+            err=True,  # Error message simplified
         )
         sys.exit(1)
 

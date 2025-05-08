@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # scripts/monitor_bridge.py
 """Script to perform a single check of the Cursor Bridge components and log status."""
+
 import logging
 import sys
-import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Add src to path to allow importing dreamos
@@ -17,11 +16,17 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 try:
+    from dreamos.core.config import (
+        AppConfig,  # Assuming base config loading is sufficient
+    )
     from dreamos.tools.cursor_bridge import cursor_bridge
-    from dreamos.core.config import AppConfig # Assuming base config loading is sufficient
 except ImportError as e:
-    print(f"Error importing DreamOS components: {e}. Ensure PYTHONPATH or script location is correct.", file=sys.stderr)
+    print(
+        f"Error importing DreamOS components: {e}. Ensure PYTHONPATH or script location is correct.",
+        file=sys.stderr,
+    )
     sys.exit(1)
+
 
 def setup_logging():
     """Sets up logging to file and console."""
@@ -29,7 +34,7 @@ def setup_logging():
     log_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     # File handler
-    file_handler = logging.FileHandler(LOG_FILE, mode='a') # Append mode
+    file_handler = logging.FileHandler(LOG_FILE, mode="a")  # Append mode
     file_handler.setFormatter(log_formatter)
 
     # Console handler
@@ -42,6 +47,7 @@ def setup_logging():
     root_logger.addHandler(console_handler)
     return root_logger
 
+
 def run_bridge_check(logger):
     """Performs checks on bridge components."""
     logger.info("--- Starting Bridge Status Check ---")
@@ -50,7 +56,9 @@ def run_bridge_check(logger):
 
     # 1. Check if Cursor window can be found
     try:
-        logger.info(f"Checking for Cursor window (Title: {cursor_bridge.CURSOR_WINDOW_TITLE_SUBSTRING})...")
+        logger.info(
+            f"Checking for Cursor window (Title: {cursor_bridge.CURSOR_WINDOW_TITLE_SUBSTRING})..."
+        )
         window = cursor_bridge.find_and_focus_cursor_window()
         if window:
             logger.info(f"Cursor window found and focused: {window.title}")
@@ -58,7 +66,9 @@ def run_bridge_check(logger):
             # Note: find_and_focus raises error if not found, so this else might not be reached
             status = "WARN"
             issues.append("Cursor window found but focus failed (unexpected state).")
-            logger.warning("Cursor window found but find_and_focus did not raise error and returned None.")
+            logger.warning(
+                "Cursor window found but find_and_focus did not raise error and returned None."
+            )
     except cursor_bridge.CursorInjectError as e:
         status = "ERROR"
         issues.append(f"Finding/Focusing Cursor window failed: {e}")
@@ -75,15 +85,17 @@ def run_bridge_check(logger):
             # Attempt a simple version check or use dummy image if possible
             # This is a proxy check; actual OCR depends on image quality
             # TODO: Implement a more robust check, maybe OCR a known small image?
-            logger.info(f"Pytesseract library is available.") # Basic check
+            logger.info("Pytesseract library is available.")  # Basic check
             # Potentially check tesseract command path from config here
             # conf = AppConfig.load() # Load config if needed for path
             # t_path = cursor_bridge.get_config("tools.tesseract.cmd_path", config_obj=conf)
             # logger.info(f"Configured Tesseract path: {t_path}")
         except ImportError:
-             status = "ERROR"
-             issues.append("Pytesseract import failed despite initial check.")
-             logger.error("Pytesseract check failed unexpectedly after initial import success.")
+            status = "ERROR"
+            issues.append("Pytesseract import failed despite initial check.")
+            logger.error(
+                "Pytesseract check failed unexpectedly after initial import success."
+            )
         except Exception as e:
             status = "WARN"
             issues.append(f"Potential issue during OCR check: {e}")
@@ -94,7 +106,9 @@ def run_bridge_check(logger):
         logger.warning("OCR support is unavailable (Pytesseract not found).")
 
     # 3. Log overall status
-    final_message = f"Bridge Status: {status}. Issues: {'; '.join(issues) if issues else 'None'}"
+    final_message = (
+        f"Bridge Status: {status}. Issues: {'; '.join(issues) if issues else 'None'}"
+    )
     if status == "ERROR":
         logger.error(final_message)
     elif status == "WARN":
@@ -105,6 +119,7 @@ def run_bridge_check(logger):
     logger.info("--- Bridge Status Check Complete ---")
     return status
 
+
 if __name__ == "__main__":
     logger = setup_logging()
     check_status = run_bridge_check(logger)
@@ -114,4 +129,4 @@ if __name__ == "__main__":
     elif check_status == "WARN":
         sys.exit(1)
     else:
-        sys.exit(0) 
+        sys.exit(0)

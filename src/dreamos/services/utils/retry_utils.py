@@ -2,8 +2,8 @@
 # Placeholder for retry logic
 
 import logging
-from functools import wraps
 import time
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,8 @@ def retry_selenium_action(
             # This part should not be reached if max_attempts > 0
             # but as a fallback, if max_attempts is 0 or negative, execute once.
             if max_attempts <= 0:
-                 return func(*args, **kwargs) 
-            return None # Should be unreachable if max_attempts > 0
+                return func(*args, **kwargs)
+            return None  # Should be unreachable if max_attempts > 0
 
         return wrapper
 

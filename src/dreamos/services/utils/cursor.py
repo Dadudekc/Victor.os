@@ -5,13 +5,12 @@ Handles cursor state management, chat history, and context tracking.
 
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from datetime import datetime
-
-from dreamos.utils.common_utils import get_utc_iso_timestamp
 
 from dreamos.services.utils.logging_utils import log_event
+from dreamos.utils.common_utils import get_utc_iso_timestamp
 
 logger = logging.getLogger("dreamos.cursor")
 

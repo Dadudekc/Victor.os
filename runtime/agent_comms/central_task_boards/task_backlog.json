@@ -284,5 +284,34 @@
     "tags": ["CLEANUP", "IMMORTALITY_LAYER", "REVENUE_IMPACT:low"],
     "required_capabilities": ["FILE_IO", "ANALYSIS"],
     "timestamp_created": "2025-05-02T22:50:11.921Z"
+  },
+  {
+    "task_id": "BLOCK-002-DIAG-READFILE-001",
+    "name": "BLOCK-002 Diagnostic: Run read_file tests",
+    "description": "Run tools/test_read_file_diagnostics.py to diagnose BLOCK-002 and report to runtime/diagnostics/read_file_diagnostic_report.md. Focus on specified files.",
+    "action": "run_diagnostic_script",
+    "params": {
+        "script_path": "tools/test_read_file_diagnostics.py",
+        "report_output_path": "runtime/diagnostics/read_file_diagnostic_report.md",
+        "focus_files": [
+            "onboarding_autonomous_operation.md",
+            "PF-BRIDGE-INT-001_PyAutoGUIControlModule_API.md",
+            "runtime/agent_comms/project_boards/task_backlog.json",
+            "runtime/config/cursor_agent_coords.json",
+            "runtime/tasks/task_ready_queue.json",
+            "ai_docs/governance/onboarding/onboarding_autonomy_patch.md"
+        ]
+    },
+    "priority": "CRITICAL",
+    "status": "PENDING",
+    "assigned_agent": null,
+    "task_type": "DIAGNOSTIC/TOOLING",
+    "dependencies": [],
+    "notes": "Injecting diagnostic task for critical read_file blocker BLOCK-002. Bypassing standard PBM due to CLI config errors.",
+    "created_by": "Agent-1 (Migration)",
+    "created_at": "2024-05-17T10:00:00Z",
+    "timestamp_updated": "2024-05-17T10:00:00Z",
+    "required_capabilities": ["PYTHON_SCRIPTING", "FILE_IO"],
+    "tags": ["blocker", "critical", "tooling_stability", "read_file", "diagnostic"]
   }
 ]

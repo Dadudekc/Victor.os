@@ -2,7 +2,6 @@
 """Centralized manager for interacting with project task boards."""
 
 import argparse  # Add argparse import
-import datetime
 import json
 import logging
 import os
@@ -37,12 +36,13 @@ from ..core.errors import (
 )
 
 # EDIT END
-# EDIT START: Import specific utils
-from ..utils.common_utils import get_utc_iso_timestamp
-# EDIT END
-
 # EDIT START: Import AgentPointsManager
 from ..governance.agent_points_manager import AgentPointsManager
+
+# EDIT END
+# EDIT START: Import specific utils
+from ..utils.common_utils import get_utc_iso_timestamp
+
 # EDIT END
 
 logger = logging.getLogger(__name__)
@@ -122,12 +122,14 @@ class ProjectBoardManager:
         self._task_schema: Optional[Dict[str, Any]] = self._load_schema()
 
         # --- EDIT START: Initialize AgentPointsManager ---
-        self.points_manager: Optional[AgentPointsManager] = None # Type hint
+        self.points_manager: Optional[AgentPointsManager] = None  # Type hint
         try:
             self.points_manager = AgentPointsManager(config=config)
             logger.info("AgentPointsManager initialized within ProjectBoardManager.")
         except Exception as e_apm:
-            logger.error(f"Failed to initialize AgentPointsManager: {e_apm}", exc_info=True)
+            logger.error(
+                f"Failed to initialize AgentPointsManager: {e_apm}", exc_info=True
+            )
             # Allow PBM to function without points if init fails
         # --- EDIT END ---
 
@@ -293,9 +295,12 @@ class ProjectBoardManager:
         """Loads the task schema from the configured path."""
         if jsonschema is None:
             logger.warning(
-                "jsonschema library not installed. Task validation will be skipped."
+                "jsonschema library not installed. Task validation will be skipped.",
                 # EDIT START: Add structured log details
-                , extra={"pbm_event": "SCHEMA_VALIDATION_SKIPPED", "reason": "jsonschema_missing"}
+                extra={
+                    "pbm_event": "SCHEMA_VALIDATION_SKIPPED",
+                    "reason": "jsonschema_missing",
+                },
                 # EDIT END
             )
             return None
@@ -305,28 +310,28 @@ class ProjectBoardManager:
         )
         if not isinstance(schema_path, (str, Path)):
             logger.error(
-                f"Invalid task_schema path type in config: {type(schema_path)}. Using default."
+                f"Invalid task_schema path type in config: {type(schema_path)}. Using default.",
                 # EDIT START: Add structured log details
-                , extra={
-                    "pbm_event": "SCHEMA_LOAD_FAIL", 
-                    "reason": "invalid_config_path_type", 
-                    "config_value": schema_path
-                }
+                extra={
+                    "pbm_event": "SCHEMA_LOAD_FAIL",
+                    "reason": "invalid_config_path_type",
+                    "config_value": schema_path,
+                },
                 # EDIT END
             )
             schema_path = "src/dreamos/coordination/tasks/task-schema.json"
-            
+
         resolved_schema_path = self._resolve_path(schema_path)
 
         if not resolved_schema_path.exists():
             logger.error(
-                f"Task schema file not found at: {resolved_schema_path}"
+                f"Task schema file not found at: {resolved_schema_path}",
                 # EDIT START: Add structured log details
-                , extra={
-                    "pbm_event": "SCHEMA_LOAD_FAIL", 
-                    "reason": "file_not_found", 
-                    "path": str(resolved_schema_path)
-                }
+                extra={
+                    "pbm_event": "SCHEMA_LOAD_FAIL",
+                    "reason": "file_not_found",
+                    "path": str(resolved_schema_path),
+                },
                 # EDIT END
             )
             return None
@@ -337,42 +342,42 @@ class ProjectBoardManager:
             # Basic validation of schema structure itself
             if not isinstance(schema_data, dict) or "properties" not in schema_data:
                 logger.error(
-                    f"Invalid schema format in {resolved_schema_path}. Expected dict with 'properties'."
+                    f"Invalid schema format in {resolved_schema_path}. Expected dict with 'properties'.",
                     # EDIT START: Add structured log details
-                    , extra={
-                        "pbm_event": "SCHEMA_LOAD_FAIL", 
-                        "reason": "invalid_schema_format", 
-                        "path": str(resolved_schema_path)
-                    }
+                    extra={
+                        "pbm_event": "SCHEMA_LOAD_FAIL",
+                        "reason": "invalid_schema_format",
+                        "path": str(resolved_schema_path),
+                    },
                     # EDIT END
                 )
                 return None
-            
+
             logger.info(f"Task schema loaded successfully from {resolved_schema_path}")
             return schema_data
         except json.JSONDecodeError as e:
             logger.error(
-                f"Error decoding JSON from schema file {resolved_schema_path}: {e}"
+                f"Error decoding JSON from schema file {resolved_schema_path}: {e}",
                 # EDIT START: Add structured log details
-                , extra={
-                    "pbm_event": "SCHEMA_LOAD_FAIL", 
-                    "reason": "json_decode_error", 
-                    "path": str(resolved_schema_path), 
-                    "error": str(e)
-                }
+                extra={
+                    "pbm_event": "SCHEMA_LOAD_FAIL",
+                    "reason": "json_decode_error",
+                    "path": str(resolved_schema_path),
+                    "error": str(e),
+                },
                 # EDIT END
             )
             return None
         except Exception as e:
             logger.exception(
-                f"Unexpected error loading schema file {resolved_schema_path}: {e}"
+                f"Unexpected error loading schema file {resolved_schema_path}: {e}",
                 # EDIT START: Add structured log details
-                , extra={
-                    "pbm_event": "SCHEMA_LOAD_FAIL", 
-                    "reason": "unexpected_error", 
-                    "path": str(resolved_schema_path), 
-                    "error": str(e)
-                }
+                extra={
+                    "pbm_event": "SCHEMA_LOAD_FAIL",
+                    "reason": "unexpected_error",
+                    "path": str(resolved_schema_path),
+                    "error": str(e),
+                },
                 # EDIT END
             )
             return None
@@ -380,8 +385,10 @@ class ProjectBoardManager:
     def _validate_task(self, task_data: Dict[str, Any]) -> bool:
         """Validate task data against the loaded JSON schema."""
         if not isinstance(task_data, dict):
-            logger.error(f"Invalid task_data type for validation: {type(task_data)}. Skipping validation.")
-            return False # Or raise TaskValidationError? For stability, maybe return False.
+            logger.error(
+                f"Invalid task_data type for validation: {type(task_data)}. Skipping validation."
+            )
+            return False  # Or raise TaskValidationError? For stability, maybe return False.
 
         if jsonschema is None:
             # NOTE: Fail open - If jsonschema library is missing, validation is skipped.
@@ -645,7 +652,7 @@ class ProjectBoardManager:
             # Logged by _validate_task, which now raises TaskValidationError
             # logger.warning(...) - No longer needed here
             # return False - TaskValidationError will be raised by _validate_task
-            pass # Let the exception propagate
+            pass  # Let the exception propagate
 
         try:
             backlog = self._load_backlog()
@@ -710,7 +717,7 @@ class ProjectBoardManager:
                 # Logged by _validate_task, which now raises TaskValidationError
                 # logger.error(...) - No longer needed here
                 # return False - TaskValidationError will be raised by _validate_task
-                pass # Let the exception propagate
+                pass  # Let the exception propagate
 
             # Update the list in place
             working_tasks[task_index] = updated_task
@@ -804,7 +811,9 @@ class ProjectBoardManager:
         """Moves a task from the working board to the completed board."""
         logger.info(f"Attempting to move task {task_id} to completed.")
         if not isinstance(final_updates, dict):
-            logger.warning(f"Invalid final_updates type ({type(final_updates)}) for task {task_id}. Using empty dict.")
+            logger.warning(
+                f"Invalid final_updates type ({type(final_updates)}) for task {task_id}. Using empty dict."
+            )
             final_updates = {}
 
         task_to_move_original_state = None
@@ -823,7 +832,12 @@ class ProjectBoardManager:
                 task_to_move["status"] = str(final_updates["status"]).upper()
             task_to_move["completed_at"] = get_utc_iso_timestamp()
             task_to_move.setdefault("history", []).append(
-                {"timestamp": get_utc_iso_timestamp(), "agent": "ProjectBoardManager", "action": "COMPLETED", "details": f"Moved from working to completed."}
+                {
+                    "timestamp": get_utc_iso_timestamp(),
+                    "agent": "ProjectBoardManager",
+                    "action": "COMPLETED",
+                    "details": "Moved from working to completed.",
+                }
             )
 
             self._save_working_tasks(working_tasks)
@@ -839,71 +853,115 @@ class ProjectBoardManager:
                 if self.points_manager:
                     try:
                         final_status = task_to_move.get("status", "UNKNOWN").upper()
-                        agent_id = task_to_move.get("completed_by") or task_to_move.get("claimed_by") or task_to_move.get("assigned_agent") or "UnknownAgent"
-                        
+                        agent_id = (
+                            task_to_move.get("completed_by")
+                            or task_to_move.get("claimed_by")
+                            or task_to_move.get("assigned_agent")
+                            or "UnknownAgent"
+                        )
+
                         points_change = 0
-                        reason_key = "task_unknown_outcome" # Default reason key
+                        reason_key = "task_unknown_outcome"  # Default reason key
 
                         if final_status == "COMPLETED":
                             # TODO: Differentiate points based on task type/priority?
                             # For now, use a general completion key.
                             reason_key = "task_completion"
-                            points_change = self.points_manager.get_points_for_reason(reason_key)
+                            points_change = self.points_manager.get_points_for_reason(
+                                reason_key
+                            )
                         elif final_status == "FAILED":
                             reason_key = "task_failure"
-                            points_change = self.points_manager.get_points_for_reason(reason_key)
+                            points_change = self.points_manager.get_points_for_reason(
+                                reason_key
+                            )
                         # Add other status checks if needed and map to other reason_keys
 
                         if points_change != 0:
                             self.points_manager.adjust_points(
                                 agent_id=agent_id,
                                 points_change=points_change,
-                                reason=reason_key, # Log the reason key
-                                related_task_id=task_id
+                                reason=reason_key,  # Log the reason key
+                                related_task_id=task_id,
                             )
                         else:
-                             logger.debug(f"No points adjustment for task {task_id} (reason: {reason_key}, status: {final_status}). Points value: {points_change}")
+                            logger.debug(
+                                f"No points adjustment for task {task_id} (reason: {reason_key}, status: {final_status}). Points value: {points_change}"
+                            )
 
                     except Exception as e_points:
-                        logger.error(f"Failed to adjust points for agent {agent_id} after task {task_id} completion/failure: {e_points}", exc_info=True)
+                        logger.error(
+                            f"Failed to adjust points for agent {agent_id} after task {task_id} completion/failure: {e_points}",
+                            exc_info=True,
+                        )
                 else:
-                    logger.warning(f"AgentPointsManager not available, skipping points adjustment for task {task_id}.")
+                    logger.warning(
+                        f"AgentPointsManager not available, skipping points adjustment for task {task_id}."
+                    )
                 # --- EDIT END ---
 
-                return True # Success!
+                return True  # Success!
             except Exception as e_complete:
                 logger.error(
-                    f"Failed to add task {task_id} to completed board after removing from working: {e_complete}", 
+                    f"Failed to add task {task_id} to completed board after removing from working: {e_complete}",
                     exc_info=True,
-                    extra={ "pbm_event": "TASK_MOVE_INCOMPLETE_ROLLBACK", "task_id": task_id, "error": str(e_complete) }
+                    extra={
+                        "pbm_event": "TASK_MOVE_INCOMPLETE_ROLLBACK",
+                        "task_id": task_id,
+                        "error": str(e_complete),
+                    },
                 )
                 if task_to_move_original_state:
-                    logger.warning(f"Attempting rollback: Re-adding task {task_id} to working board.")
+                    logger.warning(
+                        f"Attempting rollback: Re-adding task {task_id} to working board."
+                    )
                     try:
                         working_tasks_for_rollback = self._load_working_tasks()
                         if task_index <= len(working_tasks_for_rollback):
-                            working_tasks_for_rollback.insert(task_index, task_to_move_original_state)
+                            working_tasks_for_rollback.insert(
+                                task_index, task_to_move_original_state
+                            )
                         else:
-                            working_tasks_for_rollback.append(task_to_move_original_state)
+                            working_tasks_for_rollback.append(
+                                task_to_move_original_state
+                            )
                         self._save_working_tasks(working_tasks_for_rollback)
-                        logger.info(f"Rollback successful: Task {task_id} re-inserted into working board.")
+                        logger.info(
+                            f"Rollback successful: Task {task_id} re-inserted into working board."
+                        )
                     except Exception as e_rollback:
                         logger.error(
-                            f"Rollback FAILED for task {task_id}: Could not re-insert into working board: {e_rollback}", 
+                            f"Rollback FAILED for task {task_id}: Could not re-insert into working board: {e_rollback}",
                             exc_info=True,
-                            extra={ "pbm_event": "TASK_MOVE_ROLLBACK_FAILED", "task_id": task_id, "error": str(e_rollback) }
+                            extra={
+                                "pbm_event": "TASK_MOVE_ROLLBACK_FAILED",
+                                "task_id": task_id,
+                                "error": str(e_rollback),
+                            },
                         )
-                        raise ProjectBoardError(f"Rollback failed for task {task_id}. Task may be lost.") from e_rollback
+                        raise ProjectBoardError(
+                            f"Rollback failed for task {task_id}. Task may be lost."
+                        ) from e_rollback
                 return False
 
         except (TaskNotFoundError, BoardLockError, ProjectBoardError) as e:
-            logger.error(f"Failed to move task {task_id} to completed: {e}", 
-                         extra={ "pbm_event": "TASK_MOVE_FAILED", "task_id": task_id, "error": str(e) })
+            logger.error(
+                f"Failed to move task {task_id} to completed: {e}",
+                extra={
+                    "pbm_event": "TASK_MOVE_FAILED",
+                    "task_id": task_id,
+                    "error": str(e),
+                },
+            )
             return False
         except Exception as e:
             logger.exception(
                 f"Unexpected error moving task {task_id} to completed: {e}",
-                extra={ "pbm_event": "TASK_MOVE_UNEXPECTED_ERROR", "task_id": task_id, "error": str(e) }
+                extra={
+                    "pbm_event": "TASK_MOVE_UNEXPECTED_ERROR",
+                    "task_id": task_id,
+                    "error": str(e),
+                },
             )
             return False
 
@@ -918,7 +976,9 @@ class ProjectBoardManager:
         working_lock = self._get_lock(self.working_tasks_path)
         ready_lock_acquired = False
         working_lock_acquired = False
-        task_to_claim_original_state = None # Store original state for potential rollback
+        task_to_claim_original_state = (
+            None  # Store original state for potential rollback
+        )
 
         try:
             # Acquire locks (Ready Queue first, then Working)
@@ -952,7 +1012,9 @@ class ProjectBoardManager:
                     logger.info(
                         f"Task {task_id} is already in the working tasks board. Claim considered successful (idempotent)."
                     )
-                    return True # Idempotency: If already working, the goal is achieved.
+                    return (
+                        True  # Idempotency: If already working, the goal is achieved.
+                    )
                 # EDIT: Use imported central error
                 raise TaskNotFoundError(f"Task {task_id} not found in ready queue.")
 
@@ -994,8 +1056,12 @@ class ProjectBoardManager:
                 )
                 # Need rollback strategy
                 # EDIT START: Rollback by re-adding to ready_queue list (not yet saved)
-                ready_queue.insert(task_index, original_task_in_ready_queue) # Put it back
-                logger.info(f"Rollback: Task {task_id} re-inserted into ready_queue in memory due to validation failure.")
+                ready_queue.insert(
+                    task_index, original_task_in_ready_queue
+                )  # Put it back
+                logger.info(
+                    f"Rollback: Task {task_id} re-inserted into ready_queue in memory due to validation failure."
+                )
                 # Do not save ready_queue here as the overall operation failed before any writes.
                 # EDIT END
                 # EDIT: Use imported central error
@@ -1026,29 +1092,54 @@ class ProjectBoardManager:
                     f"Saved updated working tasks file ({self.working_tasks_path.name})."
                 )
             except Exception as write_error:
-                logger.error(f"Error during file writes in claim_ready_task: {write_error}", exc_info=True)
+                logger.error(
+                    f"Error during file writes in claim_ready_task: {write_error}",
+                    exc_info=True,
+                )
                 if saved_ready_queue_successfully:
                     # ready_queue was saved (task removed), but working_tasks save failed.
                     # Rollback: Attempt to re-add task to ready_queue.
-                    logger.info(f"Rollback: Attempting to re-add task {task_id} to {self.ready_queue_path.name} because working_tasks save failed.")
-                    current_ready_queue_for_rollback = self._read_board_file(self.ready_queue_path) # Re-read for current state
+                    logger.info(
+                        f"Rollback: Attempting to re-add task {task_id} to {self.ready_queue_path.name} because working_tasks save failed."
+                    )
+                    current_ready_queue_for_rollback = self._read_board_file(
+                        self.ready_queue_path
+                    )  # Re-read for current state
                     # Check if task is still missing (it should be if save was successful)
-                    if self._find_task_index(current_ready_queue_for_rollback, task_id) is None:
-                        current_ready_queue_for_rollback.insert(task_index, original_task_in_ready_queue) # Use original index if sensible, or append
+                    if (
+                        self._find_task_index(current_ready_queue_for_rollback, task_id)
+                        is None
+                    ):
+                        current_ready_queue_for_rollback.insert(
+                            task_index, original_task_in_ready_queue
+                        )  # Use original index if sensible, or append
                         try:
-                            self._atomic_write(self.ready_queue_path, current_ready_queue_for_rollback)
-                            logger.info(f"Rollback: Successfully re-added task {task_id} to {self.ready_queue_path.name}.")
+                            self._atomic_write(
+                                self.ready_queue_path, current_ready_queue_for_rollback
+                            )
+                            logger.info(
+                                f"Rollback: Successfully re-added task {task_id} to {self.ready_queue_path.name}."
+                            )
                         except Exception as rollback_save_error:
-                            logger.error(f"Rollback CRITICAL: Failed to re-save ready_queue for task {task_id}: {rollback_save_error}", exc_info=True)
+                            logger.error(
+                                f"Rollback CRITICAL: Failed to re-save ready_queue for task {task_id}: {rollback_save_error}",
+                                exc_info=True,
+                            )
                             # This is a critical state, manual intervention likely needed.
                     else:
-                        logger.warning(f"Rollback: Task {task_id} found back in ready_queue; no re-add needed or concurrent modification occurred.")
+                        logger.warning(
+                            f"Rollback: Task {task_id} found back in ready_queue; no re-add needed or concurrent modification occurred."
+                        )
                 else:
                     # ready_queue save failed. working_tasks was not attempted or its list in memory should be original.
                     # Task is still in original_task_in_ready_queue, and ready_queue list in memory was modified.
                     # No disk operations to directly revert here for working_tasks, but ensure consistency.
-                    logger.info(f"Rollback: Ready queue save failed for task {task_id}. Working tasks not committed or uses original state if re-read.")
-                raise ProjectBoardError(f"Failed to save changes during claim task {task_id}: {write_error}") from write_error
+                    logger.info(
+                        f"Rollback: Ready queue save failed for task {task_id}. Working tasks not committed or uses original state if re-read."
+                    )
+                raise ProjectBoardError(
+                    f"Failed to save changes during claim task {task_id}: {write_error}"
+                ) from write_error
             # EDIT END
             # --- End Critical Section ---
 

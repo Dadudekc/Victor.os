@@ -2,12 +2,13 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
+from dreamos.core.agents.capabilities.schema import AgentCapability
+
 # Import the adapter to pass to the registry
 from dreamos.core.db.sqlite_adapter import SQLiteAdapter
 
 # Import the *specific* registry class and the Capability model
 from .capability_registry import CapabilityRegistry
-from dreamos.core.agents.capabilities.schema import AgentCapability
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,9 @@ class CapabilityHandler:
             )
             return False
 
-    async def get_capability(self, agent_id: str, capability_id: str) -> Optional[AgentCapability]:
+    async def get_capability(
+        self, agent_id: str, capability_id: str
+    ) -> Optional[AgentCapability]:
         """Retrieves a specific capability via the CapabilityRegistry."""
         if not self.registry:
             logger.error("CapabilityRegistry not available. Cannot get capability.")

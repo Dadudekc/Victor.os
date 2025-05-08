@@ -2,13 +2,15 @@
 # This module will be responsible for listening to the task queue or other triggers
 # and initiating automation sequences via the automation_interface.
 
-# TODO: Implement logic for task queue listening and triggering 
+# TODO: Implement logic for task queue listening and triggering
+
 
 class TaskTrigger:
     """
     Listens for events or conditions to trigger automation tasks.
     This could involve monitoring file changes, time schedules, API callbacks, message queues, etc.
     """
+
     def __init__(self):
         # Placeholder for initialization (e.g., setting up listeners)
         print("TaskTrigger initialized.")
@@ -25,10 +27,10 @@ class TaskTrigger:
         print(f"Registering trigger: {trigger_name} (Type: {trigger_type})")
         # TODO: Implement logic to store and activate the trigger based on type and config
         self._active_triggers[trigger_name] = {
-            'type': trigger_type,
-            'config': config,
-            'callback': callback,
-            'status': 'registered'
+            "type": trigger_type,
+            "config": config,
+            "callback": callback,
+            "status": "registered",
         }
         # Example: Start a monitoring thread/process if needed
         self._start_monitoring(trigger_name)
@@ -58,4 +60,4 @@ class TaskTrigger:
         # TODO: Add actual logic to stop monitoring
         pass
 
-    # Add methods to check trigger status, list active triggers, etc. 
+    # Add methods to check trigger status, list active triggers, etc.

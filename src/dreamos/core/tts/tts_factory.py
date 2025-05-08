@@ -1,6 +1,6 @@
 import logging
+import os  # Added os for example usage
 from typing import Optional
-import os # Added os for example usage
 
 # Placeholder imports (resolve pathing/imports properly later)
 # from .tts_interface import TTSInterface
@@ -8,72 +8,102 @@ import os # Added os for example usage
 # from .local_tts import LocalTTS
 # from ..config import AppConfig
 
-# --- Replicating Placeholders from other files for context ---
-class TTSInterface: # Placeholder
-     def is_available(self) -> bool: pass
-     def synthesize(self, text: str, output_path: str) -> bool: pass
 
-class AppConfig: # Placeholder
+# --- Replicating Placeholders from other files for context ---
+class TTSInterface:  # Placeholder
+    def is_available(self) -> bool:
+        pass
+
+    def synthesize(self, text: str, output_path: str) -> bool:
+        pass
+
+
+class AppConfig:  # Placeholder
     def __init__(self):
         self.elevenlabs_api_key = os.environ.get("ELEVENLABS_API_KEY", None)
 
-# --- ElevenLabs Placeholder --- 
+
+# --- ElevenLabs Placeholder ---
 ELEVENLABS_AVAILABLE_LIB = False
 try:
     # We don't actually need the library here, just the class def
     # from elevenlabs.client import ElevenLabs
     # from elevenlabs import save
-    ELEVENLABS_AVAILABLE_LIB = True # Assume library *could* be present
+    ELEVENLABS_AVAILABLE_LIB = True  # Assume library *could* be present
 except ImportError:
     pass
 
-class ElevenLabsTTS(TTSInterface): # Placeholder
-     def __init__(self, config: Optional[AppConfig] = None):
-          self.api_key = config.elevenlabs_api_key if config else os.environ.get("ELEVENLABS_API_KEY")
-          # Simplified availability check logic for placeholder
-          self._available = ELEVENLABS_AVAILABLE_LIB and bool(self.api_key)
-          if self._available: logger.info("[Placeholder] ElevenLabsTTS initialized conceptually.")
 
-     def is_available(self) -> bool: return self._available
-     def synthesize(self, text: str, output_path: str) -> bool:
-         logger.info(f"[Placeholder] Synthesizing '{text[:20]}...' to {output_path} via ElevenLabs")
-         # Simulate file creation
-         try:
-             output_dir = os.path.dirname(output_path)
-             if output_dir and not os.path.exists(output_dir):
-                 os.makedirs(output_dir)
-             with open(output_path, 'w') as f: f.write("dummy elevenlabs audio")
-             return True
-         except: return False
+class ElevenLabsTTS(TTSInterface):  # Placeholder
+    def __init__(self, config: Optional[AppConfig] = None):
+        self.api_key = (
+            config.elevenlabs_api_key
+            if config
+            else os.environ.get("ELEVENLABS_API_KEY")
+        )
+        # Simplified availability check logic for placeholder
+        self._available = ELEVENLABS_AVAILABLE_LIB and bool(self.api_key)
+        if self._available:
+            logger.info("[Placeholder] ElevenLabsTTS initialized conceptually.")
 
-# --- LocalTTS Placeholder --- 
+    def is_available(self) -> bool:
+        return self._available
+
+    def synthesize(self, text: str, output_path: str) -> bool:
+        logger.info(
+            f"[Placeholder] Synthesizing '{text[:20]}...' to {output_path} via ElevenLabs"
+        )
+        # Simulate file creation
+        try:
+            output_dir = os.path.dirname(output_path)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            with open(output_path, "w") as f:
+                f.write("dummy elevenlabs audio")
+            return True
+        except:
+            return False
+
+
+# --- LocalTTS Placeholder ---
 PYTTSX3_AVAILABLE_LIB = False
 try:
     # import pyttsx3 # Don't need library here
-    PYTTSX3_AVAILABLE_LIB = True # Assume lib *could* be present
+    PYTTSX3_AVAILABLE_LIB = True  # Assume lib *could* be present
 except ImportError:
     pass
 
-class LocalTTS(TTSInterface): # Placeholder
-     def __init__(self):
-         # Simplified availability - assume if lib present, it inits
-         self._available = PYTTSX3_AVAILABLE_LIB
-         if self._available: logger.info("[Placeholder] LocalTTS initialized conceptually.")
 
-     def is_available(self) -> bool: return self._available
-     def synthesize(self, text: str, output_path: str) -> bool:
-         logger.info(f"[Placeholder] Synthesizing '{text[:20]}...' to {output_path} via LocalTTS")
-         # Simulate file creation
-         try:
-             output_dir = os.path.dirname(output_path)
-             if output_dir and not os.path.exists(output_dir):
-                 os.makedirs(output_dir)
-             with open(output_path, 'w') as f: f.write("dummy local audio")
-             return True
-         except: return False
+class LocalTTS(TTSInterface):  # Placeholder
+    def __init__(self):
+        # Simplified availability - assume if lib present, it inits
+        self._available = PYTTSX3_AVAILABLE_LIB
+        if self._available:
+            logger.info("[Placeholder] LocalTTS initialized conceptually.")
+
+    def is_available(self) -> bool:
+        return self._available
+
+    def synthesize(self, text: str, output_path: str) -> bool:
+        logger.info(
+            f"[Placeholder] Synthesizing '{text[:20]}...' to {output_path} via LocalTTS"
+        )
+        # Simulate file creation
+        try:
+            output_dir = os.path.dirname(output_path)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            with open(output_path, "w") as f:
+                f.write("dummy local audio")
+            return True
+        except:
+            return False
+
+
 # --- End Placeholders ---
 
 logger = logging.getLogger(__name__)
+
 
 def get_tts_engine(config: Optional[AppConfig] = None) -> Optional[TTSInterface]:
     """
@@ -94,7 +124,9 @@ def get_tts_engine(config: Optional[AppConfig] = None) -> Optional[TTSInterface]
             logger.info("Selected ElevenLabsTTS engine.")
             return eleven_tts
         else:
-            logger.info("ElevenLabsTTS not available (API key, install, or init failure).")
+            logger.info(
+                "ElevenLabsTTS not available (API key, install, or init failure)."
+            )
     except Exception as e:
         logger.error(f"Error initializing ElevenLabsTTS: {e}", exc_info=True)
 
@@ -113,6 +145,7 @@ def get_tts_engine(config: Optional[AppConfig] = None) -> Optional[TTSInterface]
     # 3. No engine available
     logger.error("No suitable TTS engine found or available.")
     return None
+
 
 # Example Usage
 # if __name__ == '__main__':
@@ -133,4 +166,4 @@ def get_tts_engine(config: Optional[AppConfig] = None) -> Optional[TTSInterface]
 #         else:
 #             print("Synthesis failed.")
 #     else:
-#         print("Could not get any TTS engine.") 
+#         print("Could not get any TTS engine.")

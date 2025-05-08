@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+
 
 class TTSInterface(ABC):
     """Abstract base class for Text-to-Speech engines."""
@@ -26,4 +26,4 @@ class TTSInterface(ABC):
         Returns:
             True if available, False otherwise.
         """
-        pass 
+        pass

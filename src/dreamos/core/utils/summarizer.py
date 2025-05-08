@@ -1,2 +1,2 @@
 class BaseSummarizer:
-    pass 
+    pass

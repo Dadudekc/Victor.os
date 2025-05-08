@@ -3,7 +3,6 @@ import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Dict
-from filelock import AsyncFileLock, Timeout
 
 from dreamos.core.config import AppConfig
 
@@ -11,6 +10,7 @@ from dreamos.core.config import AppConfig
 from dreamos.core.coordination.agent_bus import AgentBus
 from dreamos.core.coordination.event_types import EventType
 from dreamos.utils.common_utils import get_utc_iso_timestamp
+from filelock import AsyncFileLock, Timeout
 
 logger = logging.getLogger(__name__)
 

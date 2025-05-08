@@ -4,8 +4,7 @@ import logging
 import re
 import shutil
 import subprocess
-from pathlib import Path
-from typing import List, Optional, Dict, TypedDict
+from typing import List, Optional, TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -134,11 +133,13 @@ def parse_ripgrep_output(raw_output: str) -> List[RipgrepMatch]:
                 line_number = int(match.group(2))
                 match_text = match.group(3).strip()
 
-                matches.append({
-                    "file_path": file_path,
-                    "line_number": line_number,
-                    "match_text": match_text,
-                })
+                matches.append(
+                    {
+                        "file_path": file_path,
+                        "line_number": line_number,
+                        "match_text": match_text,
+                    }
+                )
             except (ValueError, IndexError) as e:
                 logger.warning(f"Could not parse Ripgrep line '{line}': {e}")
         else:

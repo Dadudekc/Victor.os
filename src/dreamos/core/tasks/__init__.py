@@ -6,15 +6,16 @@ and executing tasks within the DreamOS agent system.
 
 # Expose key components from this package.
 from .nexus import (
+    AgentRegistryHandler,
+    CapabilityHandler,
+    CapabilityRegistry,
+    DbTaskNexus,
+    ShadowTaskNexus,
     Task,
     TaskNexus,
     TaskOperationsHandler,
-    DbTaskNexus,
-    CapabilityHandler,
-    CapabilityRegistry,
-    AgentRegistryHandler,
-    ShadowTaskNexus,
 )
+
 # Alternatively, could expose the nexus module itself:
 # from . import nexus
 
@@ -28,4 +29,4 @@ __all__ = [
     "AgentRegistryHandler",
     "ShadowTaskNexus",
     # "nexus", # if exposing the module
-] 
+]

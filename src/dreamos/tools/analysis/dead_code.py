@@ -4,6 +4,7 @@ import asyncio
 import logging
 import re
 import shutil
+
 # import subprocess # No longer directly used, use asyncio.create_subprocess_exec
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -62,7 +63,7 @@ async def find_dead_code(
             vulture_cmd_path,
             *command_args,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
 
@@ -127,7 +128,9 @@ async def find_dead_code(
         return findings
 
     except FileNotFoundError:
-        logger.error(f"Vulture command '{vulture_cmd_path}' not found during subprocess run.")
+        logger.error(
+            f"Vulture command '{vulture_cmd_path}' not found during subprocess run."
+        )
         return None
     except Exception as e:
         logger.error(f"Error running Vulture subprocess: {e}", exc_info=True)

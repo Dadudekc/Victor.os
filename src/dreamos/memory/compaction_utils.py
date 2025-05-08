@@ -135,7 +135,7 @@ async def _rewrite_memory_safely(
         Errors during write or replace are logged.
     """
     temp_path = file_path.with_suffix(file_path.suffix + f".{os.getpid()}.tmp")
-    
+
     def _sync_rewrite():
         # Prepare data for JSON serialization (handle datetimes)
         def dt_serializer(obj):
@@ -155,7 +155,7 @@ async def _rewrite_memory_safely(
         else:
             with open(temp_path, "w", encoding="utf-8") as f:
                 f.write(json_data)
-        
+
         os.replace(temp_path, file_path)
         # Removed temp_path.exists() check before os.remove as os.replace handles it.
         # The finally block will catch if temp_path still exists due to an error before os.replace.
@@ -167,9 +167,9 @@ async def _rewrite_memory_safely(
     except Exception as e:
         logger.error(f"Failed to rewrite memory file {file_path}: {e}", exc_info=True)
         # Clean up temp file if save failed
-        if await asyncio.to_thread(temp_path.exists): # Check existence async
+        if await asyncio.to_thread(temp_path.exists):  # Check existence async
             try:
-                await asyncio.to_thread(os.remove, temp_path) # Remove async
+                await asyncio.to_thread(os.remove, temp_path)  # Remove async
             except OSError:
                 logger.error(f"Failed to remove temporary save file: {temp_path}")
         return False
@@ -201,7 +201,7 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         FileNotFoundError: If the input file does not exist.
     """
     logger.info(f"Starting compaction process for: {file_path}")
-    
+
     exists = await asyncio.to_thread(file_path.exists)
     size = (await asyncio.to_thread(file_path.stat)).st_size if exists else 0
 
@@ -225,7 +225,7 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
             logger.warning(
                 f"Compaction skipped: File content is empty after potential decompression - {file_path}"  # noqa: E501
             )
-            return None # Special marker for empty content after read
+            return None  # Special marker for empty content after read
 
         loaded_data = json.loads(json_str)
         if not isinstance(loaded_data, list):
@@ -239,8 +239,8 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
 
     try:
         original_data = await asyncio.to_thread(_sync_read_and_parse)
-        if original_data is None: # Marker for empty content after read
-            return True # Treat as success
+        if original_data is None:  # Marker for empty content after read
+            return True  # Treat as success
 
     except json.JSONDecodeError as e:
         # EDIT START: Raise specific error
@@ -274,7 +274,9 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
                 f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
             # _rewrite_memory_safely is now async
-            rewrite_success = await _rewrite_memory_safely(file_path, compacted_data, is_compressed)
+            rewrite_success = await _rewrite_memory_safely(
+                file_path, compacted_data, is_compressed
+            )
             if not rewrite_success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")
@@ -309,7 +311,9 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
                 f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
             # _rewrite_memory_safely is now async
-            rewrite_success = await _rewrite_memory_safely(file_path, compacted_data, is_compressed)
+            rewrite_success = await _rewrite_memory_safely(
+                file_path, compacted_data, is_compressed
+            )
             if not rewrite_success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")

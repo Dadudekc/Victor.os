@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 # from ..core.errors import AgentError
 # Import decorators if they are defined elsewhere and used here
 from ...agents.utils.agent_utils import with_error_handling
+
 # Import log_event if used directly here
 from ..memory.governance_memory_engine import log_event
 

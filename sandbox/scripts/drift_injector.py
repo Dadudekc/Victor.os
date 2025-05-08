@@ -1,6 +1,7 @@
-import pandas as pd
 from datetime import datetime, timezone
-import re
+
+import pandas as pd
+
 
 def normalize_timestamp_utc(ts_string):
     """Placeholder: Converts various timestamp formats to UTC ISO 8601."""
@@ -9,45 +10,48 @@ def normalize_timestamp_utc(ts_string):
         # Attempt parsing standard log format: YYYY-MM-DD HH:MM:SS,fff
         # CRITICAL ASSUMPTION: This format is treated as implicitly UTC.
         # This is a potential source of error if logs are in local time.
-        dt_obj = datetime.strptime(ts_string, '%Y-%m-%d %H:%M:%S,%f')
-        dt_obj_utc = dt_obj.replace(tzinfo=timezone.utc) # Explicitly treat as UTC
-        return dt_obj_utc.isoformat(timespec='milliseconds')
+        dt_obj = datetime.strptime(ts_string, "%Y-%m-%d %H:%M:%S,%f")
+        dt_obj_utc = dt_obj.replace(tzinfo=timezone.utc)  # Explicitly treat as UTC
+        return dt_obj_utc.isoformat(timespec="milliseconds")
     except ValueError:
         # Attempt parsing ISO format (handling Z and offsets)
         try:
             # Handle 'Z' for UTC explicitly
-            if ts_string.endswith('Z'):
-                ts_string = ts_string[:-1] + '+00:00'
+            if ts_string.endswith("Z"):
+                ts_string = ts_string[:-1] + "+00:00"
             dt_obj = datetime.fromisoformat(ts_string)
             # Convert to UTC regardless of original offset
             dt_obj_utc = dt_obj.astimezone(timezone.utc)
-            return dt_obj_utc.isoformat(timespec='milliseconds')
+            return dt_obj_utc.isoformat(timespec="milliseconds")
         except ValueError:
             # Fallback or raise error - return None to indicate failure
             # print(f"DEBUG: Failed to parse timestamp: {ts_string}") # Optional debug
-            return None # Return None if parsing fails completely
+            return None  # Return None if parsing fails completely
+
 
 def process_log_data(log_file_path):
     """Processes log data from a file, normalizing timestamps."""
     data = []
     try:
-        with open(log_file_path, 'r') as f:
+        with open(log_file_path, "r") as f:
             for line in f:
                 # Basic log parsing assumption: Timestamp is the first part, separated by ' - '
-                parts = line.split(' - ', 1)
+                parts = line.split(" - ", 1)
                 if len(parts) < 2:
-                    continue # Skip lines without the expected format
+                    continue  # Skip lines without the expected format
 
                 raw_timestamp_str = parts[0]
                 log_message = parts[1].strip()
 
                 normalized_ts = normalize_timestamp_utc(raw_timestamp_str)
 
-                if normalized_ts: # Only include entries with valid, normalized timestamps
+                if (
+                    normalized_ts
+                ):  # Only include entries with valid, normalized timestamps
                     processed_entry = {
                         "original_timestamp": raw_timestamp_str,
                         "normalized_timestamp_utc": normalized_ts,
-                        "message": log_message
+                        "message": log_message,
                         # Potentially extract other fields if needed
                     }
                     data.append(processed_entry)
@@ -66,6 +70,7 @@ def process_log_data(log_file_path):
     # For now, focus is on normalization pipeline testing
     return df
 
+
 # Example usage (optional, for direct testing)
 # if __name__ == "__main__":
 #     # Assumes script is run from workspace root or sandbox/scripts
@@ -80,4 +85,4 @@ def process_log_data(log_file_path):
 #
 #     processed_df = process_log_data(test_log)
 #     if processed_df is not None:
-#         print(processed_df.to_string()) 
+#         print(processed_df.to_string())

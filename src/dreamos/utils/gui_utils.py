@@ -10,11 +10,10 @@ from pathlib import Path  # Added Path
 from typing import Any, Dict, Optional, Tuple
 
 # Import core error and potentially PROJECT_ROOT if needed here
-
 # from ..core.config import PROJECT_ROOT # If needed for default paths
-
 # --- EDIT START: Import AppConfig ---
 from dreamos.core.config import AppConfig, load_config
+
 # --- EDIT END ---
 
 logger = logging.getLogger(__name__)
@@ -198,6 +197,7 @@ except ImportError:
 
 try:
     import pyperclip
+
     PYPERCLIP_AVAILABLE = True
 except ImportError:
     pyperclip = None
@@ -463,10 +463,14 @@ def copy_thea_reply(
                 f"Failed to load AppConfig for copy_thea_reply: {e}. Using defaults.",
                 exc_info=True,
             )
-            config = None # Ensure config is None if loading fails
+            config = None  # Ensure config is None if loading fails
 
     # Get parameters from config or use defaults
-    thea_config = getattr(config.gui_automation, "thea_copy", {}) if config and hasattr(config, "gui_automation") else {}
+    thea_config = (
+        getattr(config.gui_automation, "thea_copy", {})
+        if config and hasattr(config, "gui_automation")
+        else {}
+    )
 
     anchor_image_path_str = thea_config.get(
         "anchor_image_path", DEFAULT_THEA_COPY_CONFIG["anchor_image_path"]
@@ -477,9 +481,7 @@ def copy_thea_reply(
     click_offset_y = thea_config.get(
         "click_offset_y", DEFAULT_THEA_COPY_CONFIG["click_offset_y"]
     )
-    confidence = thea_config.get(
-        "confidence", DEFAULT_THEA_COPY_CONFIG["confidence"]
-    )
+    confidence = thea_config.get("confidence", DEFAULT_THEA_COPY_CONFIG["confidence"])
     retries = thea_config.get("retries", DEFAULT_THEA_COPY_CONFIG["retries"])
     delay_between_actions = thea_config.get(
         "delay_between_actions", DEFAULT_THEA_COPY_CONFIG["delay_between_actions"]
@@ -490,7 +492,9 @@ def copy_thea_reply(
         anchor_image_path = config.paths.project_root / anchor_image_path_str
     else:
         # Fallback if config or project_root couldn't be loaded
-        logger.warning("Cannot resolve project root. Assuming anchor image path is absolute or relative to CWD.")
+        logger.warning(
+            "Cannot resolve project root. Assuming anchor image path is absolute or relative to CWD."
+        )
         anchor_image_path = Path(anchor_image_path_str)
 
     click_offset = (click_offset_x, click_offset_y)
@@ -512,7 +516,9 @@ def copy_thea_reply(
         try:
             logger.debug(f"Attempt {attempt + 1}/{retries + 1}: Locating anchor...")
             center = pyautogui.locateCenterOnScreen(
-                str(anchor_image_path), confidence=confidence, grayscale=True # Greyscale often helps
+                str(anchor_image_path),
+                confidence=confidence,
+                grayscale=True,  # Greyscale often helps
             )
 
             if center is None:
@@ -531,12 +537,14 @@ def copy_thea_reply(
                 f"Anchor found at {center}. Clicking at offset ({target_x}, {target_y})."
             )
             pyautogui.moveTo(target_x, target_y, duration=0.1)
-            time.sleep(delay_between_actions) # Small delay before click
+            time.sleep(delay_between_actions)  # Small delay before click
             pyautogui.click()
-            time.sleep(delay_between_actions) # Small delay after click
+            time.sleep(delay_between_actions)  # Small delay after click
 
             # --- EDIT START: Platform-specific hotkeys ---
-            logger.debug(f"Executing select-all and copy hotkeys for platform: {sys.platform}")
+            logger.debug(
+                f"Executing select-all and copy hotkeys for platform: {sys.platform}"
+            )
             if sys.platform == "darwin":  # macOS
                 pyautogui.hotkey("command", "a")
                 time.sleep(delay_between_actions)
@@ -564,10 +572,12 @@ def copy_thea_reply(
                 # time.sleep(0.1)
                 if attempt >= retries:
                     logger.error("Failed to copy new content after all retries.")
-                    return None # Failed after retries
+                    return None  # Failed after retries
 
         except pyautogui.FailSafeException:
-            logger.error("PyAutoGUI fail-safe triggered (mouse moved to corner). Aborting.")
+            logger.error(
+                "PyAutoGUI fail-safe triggered (mouse moved to corner). Aborting."
+            )
             return None
         except Exception as e:
             logger.error(
@@ -575,8 +585,10 @@ def copy_thea_reply(
                 exc_info=True,
             )
             if attempt >= retries:
-                 logger.error("Aborting THEA copy after encountering errors in final attempt.")
-                 return None # Failed after retries
+                logger.error(
+                    "Aborting THEA copy after encountering errors in final attempt."
+                )
+                return None  # Failed after retries
 
         # Wait before next attempt if not the last one
         if attempt < retries:
@@ -595,8 +607,8 @@ def get_clipboard_content_safe() -> Optional[str]:
         content = safe_paste_from_clipboard()
         return content
     except RuntimeError as e:
-         logger.error(f"Failed to get clipboard content after retries: {e}")
-         return None
+        logger.error(f"Failed to get clipboard content after retries: {e}")
+        return None
     except Exception as e:
-         logger.error(f"Unexpected error getting clipboard content: {e}")
-         return None
+        logger.error(f"Unexpected error getting clipboard content: {e}")
+        return None

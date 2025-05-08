@@ -5,6 +5,7 @@ Monitors tasks managed by a PersistentTaskMemoryAPI, identifies failed or stuck 
 tasks, and attempts recovery actions such as retrying tasks or marking them as
 permanently failed. Uses an AgentBus to re-dispatch tasks for retry.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -273,21 +274,23 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 details={"reason": "Task memory update failed for retry state"},
                 escalation=True,
             )
-            return 
-        
+            return
+
         # Re-dispatch the task for execution
         try:
             # FIXME: Ensure TaskMessage.model_dump() is correct for Pydantic version.
-            event_data = task.model_dump() 
+            event_data = task.model_dump()
             # Ensure the target_agent_id is set to the original agent for re-dispatch
-            event_data['target_agent_id'] = original_agent_id
-            event_data['source_agent_id'] = self.agent_id # Recovery agent is re-issuing
+            event_data["target_agent_id"] = original_agent_id
+            event_data["source_agent_id"] = (
+                self.agent_id
+            )  # Recovery agent is re-issuing
 
             command_event = BaseEvent(
                 event_type=EventType.TASK_COMMAND,
-                source_id=self.agent_id, 
+                source_id=self.agent_id,
                 data=event_data,
-                correlation_id=task.correlation_id # Propagate original correlation_id if available
+                correlation_id=task.correlation_id,  # Propagate original correlation_id if available
             )
             await self.agent_bus.dispatch_event(command_event)
             logger.info(
@@ -301,7 +304,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
                 details={
                     "retry_count": task.retry_count,
                     "published_event": EventType.TASK_COMMAND.name,
-                    "target_agent": original_agent_id
+                    "target_agent": original_agent_id,
                 },
             )
         except Exception as e:
@@ -334,8 +337,12 @@ class RecoveryCoordinatorAgent(BaseAgent):
 
         # Log the event
         # FIXME: Verify TaskMessage.model_dump() or .to_dict() based on Pydantic version.
-        log_details = task.model_dump() if hasattr(task, 'model_dump') else task.to_dict()
-        log_details["reason"] = reason # Ensure explicit reason is part of logged details
+        log_details = (
+            task.model_dump() if hasattr(task, "model_dump") else task.to_dict()
+        )
+        log_details["reason"] = (
+            reason  # Ensure explicit reason is part of logged details
+        )
         log_agent_event(
             agent_id=self.agent_id,
             action="task_permanently_failed",
@@ -405,7 +412,9 @@ class RecoveryCoordinatorAgent(BaseAgent):
             # FIXME: Consider using self.publish_task_failed (from BaseAgent) for consistency
             #        if its functionality matches the needs here.
             # FIXME: Verify TaskMessage.model_dump() or .to_dict() based on Pydantic version.
-            event_data = task.model_dump() if hasattr(task, 'model_dump') else task.to_dict()
+            event_data = (
+                task.model_dump() if hasattr(task, "model_dump") else task.to_dict()
+            )
             event = BaseEvent(
                 event_type=EventType.TASK_FAILED,  # Use standard TASK_FAILED event
                 source_id=self.agent_id,

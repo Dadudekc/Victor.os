@@ -4,7 +4,6 @@ Consolidated logging utilities for consistent event tracking.
 
 import json
 import logging
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from dreamos.utils.common_utils import get_utc_iso_timestamp

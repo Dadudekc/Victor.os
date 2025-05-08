@@ -37,7 +37,7 @@ class ReportGenerator:
         """Loads any existing JSON report file. Async."""
         if not await asyncio.to_thread(report_path.exists):
             return {}
-        
+
         def _sync_load():
             try:
                 with report_path.open("r", encoding="utf-8") as f:
@@ -52,6 +52,7 @@ class ReportGenerator:
             except Exception as e:
                 logger.error(f"Error loading report {report_path}: {e}")
             return {}
+
         return await asyncio.to_thread(_sync_load)
 
     async def save_report(self):
@@ -69,7 +70,9 @@ class ReportGenerator:
         # Separated directory creation and loading from the main save logic for clarity with async
         try:
             if not await asyncio.to_thread(self.reports_dir_abs.exists):
-                await asyncio.to_thread(self.reports_dir_abs.mkdir, parents=True, exist_ok=True)
+                await asyncio.to_thread(
+                    self.reports_dir_abs.mkdir, parents=True, exist_ok=True
+                )
         except OSError as e:
             logger.error(
                 f"Failed to create reports directory {self.reports_dir_abs}: {e}"
@@ -93,7 +96,7 @@ class ReportGenerator:
                     f"Unexpected error saving report to {report_path}: {e}",
                     exc_info=True,
                 )
-        
+
         await asyncio.to_thread(_sync_final_write)
 
     async def generate_init_files(self, overwrite: bool = True):
@@ -125,7 +128,7 @@ class ReportGenerator:
                     lines.append(f"    '{module}',")
                 lines.append("]\n")
                 content = "\n".join(lines)
-                
+
                 if overwrite or not init_file.exists():
                     with init_file.open("w", encoding="utf-8") as f:
                         f.write(content)
@@ -134,7 +137,7 @@ class ReportGenerator:
                 else:
                     logger.info(f"ℹ️ Skipped {init_file} (already exists)")
                     return False
-            
+
             # Handle exists() check asynchronously before deciding to run _sync_io_for_init
             init_exists = await asyncio.to_thread(init_file.exists)
             if overwrite or not init_exists:
@@ -146,6 +149,7 @@ class ReportGenerator:
         """Load any existing chatgpt_project_context.json. Async."""
         if not await asyncio.to_thread(context_path.exists):
             return {}
+
         def _sync_load_context():
             try:
                 with context_path.open("r", encoding="utf-8") as f:
@@ -158,10 +162,9 @@ class ReportGenerator:
                     f"Error decoding JSON from {context_path}: {e}. Starting fresh."
                 )
             except Exception as e:
-                logger.error(
-                    f"Error loading context {context_path}: {e}"
-                )
+                logger.error(f"Error loading context {context_path}: {e}")
             return {}
+
         return await asyncio.to_thread(_sync_load_context)
 
     async def export_chatgpt_context(
@@ -175,7 +178,9 @@ class ReportGenerator:
 
         try:
             if not await asyncio.to_thread(self.reports_dir_abs.exists):
-                await asyncio.to_thread(self.reports_dir_abs.mkdir, parents=True, exist_ok=True)
+                await asyncio.to_thread(
+                    self.reports_dir_abs.mkdir, parents=True, exist_ok=True
+                )
         except OSError as e:
             logger.error(
                 f"Failed to create reports directory {self.reports_dir_abs}: {e}"
@@ -183,7 +188,9 @@ class ReportGenerator:
             return
 
         async def _sync_export_no_template():
-            existing_context = await self.load_existing_chatgpt_context(context_output_path)
+            existing_context = await self.load_existing_chatgpt_context(
+                context_output_path
+            )
             payload = {
                 "project_root": str(self.reports_dir_abs),
                 "num_files_analyzed": len(self.analysis),
@@ -193,7 +200,9 @@ class ReportGenerator:
             try:
                 with context_output_path.open("w", encoding="utf-8") as f:
                     json.dump(merged_context, f, indent=4)
-                logger.info(f"✅ Merged ChatGPT context saved to: {context_output_path}")
+                logger.info(
+                    f"✅ Merged ChatGPT context saved to: {context_output_path}"
+                )
             except IOError as e:
                 logger.error(f"Failed to write context to {context_output_path}: {e}")
             except Exception as e:
@@ -201,7 +210,7 @@ class ReportGenerator:
                     f"Unexpected error saving context to {context_output_path}: {e}",
                     exc_info=True,
                 )
-        
+
         async def _sync_export_with_template():
             if not Template:
                 logger.error(
@@ -209,11 +218,13 @@ class ReportGenerator:
                 )
                 return
             try:
+
                 def _read_template():
                     with open(template_path, "r", encoding="utf-8") as tf:
                         return tf.read()
+
                 template_content = await asyncio.to_thread(_read_template)
-                
+
                 t = Template(template_content)
                 context_dict = {
                     "project_root": str(self.reports_dir_abs),
@@ -221,10 +232,11 @@ class ReportGenerator:
                     "num_files_analyzed": len(self.analysis),
                 }
                 rendered = t.render(context=context_dict)
-                
+
                 def _write_rendered():
                     with context_output_path.open("w", encoding="utf-8") as outf:
                         outf.write(rendered)
+
                 await asyncio.to_thread(_write_rendered)
                 logger.info(
                     f"✅ Rendered ChatGPT context using template to: {context_output_path}"
@@ -235,25 +247,33 @@ class ReportGenerator:
                 logger.error(f"❌ Error rendering Jinja template: {e}", exc_info=True)
 
         if not template_path:
-            existing_context = await self.load_existing_chatgpt_context(context_output_path)
+            existing_context = await self.load_existing_chatgpt_context(
+                context_output_path
+            )
             payload = {
                 "project_root": str(self.reports_dir_abs),
                 "num_files_analyzed": len(self.analysis),
                 "analysis_details": self.analysis,
             }
             merged_context = {**existing_context, **payload}
+
             def _sync_write_json_context():
                 try:
                     with context_output_path.open("w", encoding="utf-8") as f:
                         json.dump(merged_context, f, indent=4)
-                    logger.info(f"✅ Merged ChatGPT context saved to: {context_output_path}")
+                    logger.info(
+                        f"✅ Merged ChatGPT context saved to: {context_output_path}"
+                    )
                 except IOError as e:
-                    logger.error(f"Failed to write context to {context_output_path}: {e}")
+                    logger.error(
+                        f"Failed to write context to {context_output_path}: {e}"
+                    )
                 except Exception as e:
                     logger.error(
                         f"Unexpected error saving context to {context_output_path}: {e}",
                         exc_info=True,
                     )
+
             await asyncio.to_thread(_sync_write_json_context)
         else:
             await _sync_export_with_template()

@@ -1,10 +1,10 @@
 # src/dreamos/agents/library/agent_devlog.py
 import asyncio
-import logging
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Set, List, Dict, Any
+from typing import Any, Dict, Optional, Set
 
 from dreamos.core.agents.base_agent import BaseAgent
 from dreamos.core.config import AppConfig
@@ -226,7 +226,7 @@ class AgentDevlog(BaseAgent):
     def _append_entry(self, entry: Dict[str, Any]):
         """Appends a single entry to the devlog file, handling locking."""
         lock_path = self.log_directory.with_suffix(".lock")
-        lock = FileLock(lock_path, timeout=10) # 10 second timeout
+        lock = FileLock(lock_path, timeout=10)  # 10 second timeout
         try:
             with lock:
                 # Read existing content
@@ -235,9 +235,9 @@ class AgentDevlog(BaseAgent):
                         try:
                             data = json.load(f)
                             if not isinstance(data, list):
-                                data = [] # Overwrite if not a list
+                                data = []  # Overwrite if not a list
                         except json.JSONDecodeError:
-                            data = [] # Overwrite if corrupt
+                            data = []  # Overwrite if corrupt
                 else:
                     data = []
 
@@ -246,9 +246,13 @@ class AgentDevlog(BaseAgent):
 
                 # Write back
                 with open(self.log_directory, "w") as f:
-                    json.dump(data, f, indent=2) # Use imported json
+                    json.dump(data, f, indent=2)  # Use imported json
 
         except Timeout:
-            logger.error(f"Timeout acquiring lock for {self.log_directory}. Devlog entry lost.")
+            logger.error(
+                f"Timeout acquiring lock for {self.log_directory}. Devlog entry lost."
+            )
         except Exception as e:
-            logger.error(f"Error writing to devlog {self.log_directory}: {e}", exc_info=True)
+            logger.error(
+                f"Error writing to devlog {self.log_directory}: {e}", exc_info=True
+            )

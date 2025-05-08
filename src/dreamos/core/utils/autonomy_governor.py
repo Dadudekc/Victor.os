@@ -1,17 +1,17 @@
 # src/dreamos/core/utils/autonomy_governor.py
-import logging
 import asyncio
-import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+import logging
 import py_compile
 import subprocess
-from pathlib import Path
-import json
+import time
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 try:
     from ..coordination.agent_bus import AgentBus, BaseEvent, EventType
 except ImportError:
-    logger.warning("AgentBus/BaseEvent/EventType not found. Compliance event dispatching disabled.")
+    logger.warning(
+        "AgentBus/BaseEvent/EventType not found. Compliance event dispatching disabled."
+    )
     AgentBus, BaseEvent, EventType = None, None, None
 
 # Type checking imports to avoid circular dependencies
@@ -59,8 +59,12 @@ class AgentAutonomyGovernor:
             )
             # Optionally raise an error
             # raise ValueError("AutonomyGovernor missing required dependencies")
-        if not agent_bus and EventType: # Only warn if bus was expected (EventType exists)
-             logger.warning("AutonomyGovernor initialized without AgentBus. Compliance event dispatching disabled.")
+        if (
+            not agent_bus and EventType
+        ):  # Only warn if bus was expected (EventType exists)
+            logger.warning(
+                "AutonomyGovernor initialized without AgentBus. Compliance event dispatching disabled."
+            )
 
     def check_operational_status(self, agent_id: str) -> Tuple[str, Optional[str]]:
         """Checks agent status based on mailbox, central boards, and agent's own inbox (v2.1).
@@ -203,10 +207,12 @@ class AgentAutonomyGovernor:
                         py_compile.compile(py_file, doraise=True)
                         logger.debug(f"py_compile PASSED for {py_file}")
                     except py_compile.PyCompileError as e:
-                        logger.warning(f"py_compile FAILED for task {task_id}, file {py_file}: {e}")
+                        logger.warning(
+                            f"py_compile FAILED for task {task_id}, file {py_file}: {e}"
+                        )
                         files_ok = False
-                        compile_failed = True # Stop further checks if compile fails
-                        break # Stop checking other files if one fails compilation
+                        compile_failed = True  # Stop further checks if compile fails
+                        break  # Stop checking other files if one fails compilation
                     except Exception as e:
                         logger.error(f"Error during py_compile for {py_file}: {e}")
                         files_ok = False
@@ -214,7 +220,7 @@ class AgentAutonomyGovernor:
                         break
 
                 if compile_failed:
-                    return False # Return early if compilation failed
+                    return False  # Return early if compilation failed
 
                 # --- Flake8 Check (only if compile passed) ---
                 try:
@@ -264,46 +270,51 @@ class AgentAutonomyGovernor:
         if files_ok:
             logger.info(f"Basic file validation passed for task {task_id}.")
             self.log_compliance_event(
-                 task_id=task_id, # Pass task_id if relevant
-                 event_type="VALIDATION_PASSED",
-                 details={"modified_files": modified_files or []}
+                task_id=task_id,  # Pass task_id if relevant
+                event_type="VALIDATION_PASSED",
+                details={"modified_files": modified_files or []},
             )
             return True
         else:
             logger.warning(f"Basic file validation failed for task {task_id}.")
             self.log_compliance_event(
-                 task_id=task_id,
-                 event_type="VALIDATION_FAILED",
-                 details={"reason": "Static analysis failed (py_compile or flake8)", "modified_files": modified_files or []}
+                task_id=task_id,
+                event_type="VALIDATION_FAILED",
+                details={
+                    "reason": "Static analysis failed (py_compile or flake8)",
+                    "modified_files": modified_files or [],
+                },
             )
             return False
 
     # TODO: Consider dispatching compliance events to AgentBus
     async def log_compliance_event(
         self,
-        event_type: str, # Use string for flexibility or Enum if defined
+        event_type: str,  # Use string for flexibility or Enum if defined
         details: Dict[str, Any],
-        agent_id: Optional[str] = None, # Optional: agent performing action
-        task_id: Optional[str] = None, # Optional: associated task
+        agent_id: Optional[str] = None,  # Optional: agent performing action
+        task_id: Optional[str] = None,  # Optional: associated task
     ):
         """Logs key autonomy loop events for compliance/monitoring, optionally dispatching to AgentBus."""
         log_entry = {
             "event_type": event_type,
             "agent_id": agent_id,
             "task_id": task_id,
-            "timestamp": time.time(), # Replace with timezone-aware timestamp
+            "timestamp": time.time(),  # Replace with timezone-aware timestamp
             "details": details,
         }
         logger.info(f"Compliance Event: {event_type} - {details}")
 
         if self.agent_bus and BaseEvent and EventType:
             bus_event = BaseEvent(
-                event_type=EventType.GOVERNANCE_COMPLIANCE_LOGGED, # Assuming this event type exists
+                event_type=EventType.GOVERNANCE_COMPLIANCE_LOGGED,  # Assuming this event type exists
                 source_id=agent_id or "AutonomyGovernor",
                 data=log_entry,
             )
             try:
-                await self.agent_bus.publish(bus_event) # Assuming publish exists and is async
+                await self.agent_bus.publish(
+                    bus_event
+                )  # Assuming publish exists and is async
                 logger.debug(f"Dispatched compliance event to AgentBus: {event_type}")
             except Exception as e:
                 logger.error(f"Failed to dispatch compliance event to AgentBus: {e}")
@@ -318,7 +329,7 @@ class AgentAutonomyGovernor:
         """Validates if a state transition is allowed (placeholder)."""
         # Implement actual state machine logic here
         logger.debug(f"Validating transition: {current_state} -> {next_state}")
-        await asyncio.sleep(0) # Placeholder for potential async checks
+        await asyncio.sleep(0)  # Placeholder for potential async checks
         return True
 
 

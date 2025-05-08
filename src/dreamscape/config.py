@@ -1,6 +1,6 @@
 # src/dreamscape/config.py
-from typing import Optional
 from pydantic import BaseModel, Field
+
 
 class DreamscapePlannerAgentConfig(BaseModel):
     agent_id: str = Field(
@@ -8,6 +8,7 @@ class DreamscapePlannerAgentConfig(BaseModel):
     )
     llm_model: str = Field("gpt-3.5-turbo", description="LLM model to use for planning")
     max_tokens: int = Field(500, description="Max tokens for planning LLM response")
+
 
 class DreamscapeWriterAgentConfig(BaseModel):
     agent_id: str = Field(
@@ -21,6 +22,7 @@ class DreamscapeWriterAgentConfig(BaseModel):
         2000, description="Max tokens for writing LLM response"
     )  # Example: more tokens
 
+
 class DreamscapeConfig(BaseModel):
     # NOTE (Captain-Agent-5): This config section appears specific to a
     # 'Dreamscape' planner/writer application. Review if this is still actively
@@ -30,4 +32,4 @@ class DreamscapeConfig(BaseModel):
     )
     writer_agent: DreamscapeWriterAgentConfig = Field(
         default_factory=DreamscapeWriterAgentConfig
-    ) 
+    )

@@ -1,7 +1,7 @@
 """
 Agent9: Response Injector Agent for ChatGPT Scraped Events.
 
-Listens for CHATGPT_RESPONSE_SCRAPED events on the AgentBus, creates a 
+Listens for CHATGPT_RESPONSE_SCRAPED events on the AgentBus, creates a
 "cursor_inject_prompt" task, and dispatches it as a TASK_COMMAND event for
 Agent2 (or a configurable CURSOR_INJECTION_AGENT_ID) to handle.
 """
@@ -10,16 +10,15 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 
 # Core Dream.OS imports aligned with BaseAgent
 from dreamos.core.config import AppConfig
+
 # FIXME: BaseAgent import path should be consistent across all agents.
 #        Using dreamos.core.coordination.base_agent here. Ensure this is the canonical path.
-from dreamos.core.coordination.base_agent import BaseAgent 
+from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.tasks.models import TaskMessage, TaskPriority, TaskStatus
 
 # from dreamos.core.coordination.message_patterns import create_task_message # Removed unused import  # noqa: E501
@@ -41,11 +40,7 @@ class Agent9ResponseInjector(BaseAgent):
     """Listens for CHATGPT_RESPONSE_SCRAPED events and triggers Cursor injection tasks."""  # noqa: E501
 
     def __init__(
-        self,
-        agent_id: str, 
-        config: AppConfig,
-        agent_bus: AgentBus,
-        **kwargs
+        self, agent_id: str, config: AppConfig, agent_bus: AgentBus, **kwargs
     ) -> None:
         # FIXME: AgentBus should be a mandatory injected dependency.
         #        Fallback creation is for testing/standalone and can hide issues.
@@ -56,12 +51,17 @@ class Agent9ResponseInjector(BaseAgent):
             from dreamos.coordination.agent_bus import (
                 AgentBus as FallbackAgentBus,
             )
+
             agent_bus = FallbackAgentBus()
 
         if config is None:
-            raise ValueError("AppConfig instance is required for Agent9ResponseInjector")
+            raise ValueError(
+                "AppConfig instance is required for Agent9ResponseInjector"
+            )
 
-        super().__init__(agent_id=agent_id, config=config, agent_bus=agent_bus, **kwargs)
+        super().__init__(
+            agent_id=agent_id, config=config, agent_bus=agent_bus, **kwargs
+        )
         logger.info(f"Agent9ResponseInjector '{self.agent_id}' initialized.")
 
     async def initialize(self) -> None:
@@ -152,7 +152,7 @@ class Agent9ResponseInjector(BaseAgent):
             command_event = BaseEvent(
                 event_type=EventType.TASK_COMMAND,
                 source_id=self.agent_id,
-                # FIXME: Verify if TaskMessage uses .model_dump() (Pydantic v2+) 
+                # FIXME: Verify if TaskMessage uses .model_dump() (Pydantic v2+)
                 #        or .to_dict() (Pydantic v1 or custom). Using .model_dump() assuming Pydantic v2+.
                 data=injection_task_msg.model_dump(),
                 correlation_id=correlation_id,
@@ -187,6 +187,7 @@ async def main():
     from dreamos.coordination.agent_bus import (
         AgentBus as ExampleAgentBus,
     )
+
     bus = ExampleAgentBus()
     await bus.start()
 
@@ -197,7 +198,9 @@ async def main():
         await bus.shutdown()
         return
 
-    agent9 = Agent9ResponseInjector(agent_id="Agent9-Injector-Test", config=config, agent_bus=bus)
+    agent9 = Agent9ResponseInjector(
+        agent_id="Agent9-Injector-Test", config=config, agent_bus=bus
+    )
     await agent9.start()
 
     logger.info("Agent9 started. Waiting for CHATGPT_RESPONSE_SCRAPED events...")

@@ -162,7 +162,7 @@ async def publish_error(
         # TODO: Consider if full tracebacks should be sent over the bus.
         #       Local logging of traceback might be sufficient, with bus event
         #       carrying a summary or error ID.
-        "traceback": traceback.format_exc(), 
+        "traceback": traceback.format_exc(),
         **(details or {}),  # Merge additional details
     }
     error_message_payload = {
@@ -252,7 +252,7 @@ async def handle_task_cancellation(
             "status": "success",
             "message": f"Cancellation requested for task {task_id}.",
         }
-        if response_topic and bus: # Ensure bus is available for publishing
+        if response_topic and bus:  # Ensure bus is available for publishing
             try:
                 await bus.publish(response_topic, response_payload)
                 util_logger.debug(
@@ -287,7 +287,7 @@ async def handle_task_cancellation(
             "message": f"Task {task_id} not found or already completed, cannot cancel.",
         }
 
-        if response_topic and bus: # Ensure bus is available for publishing
+        if response_topic and bus:  # Ensure bus is available for publishing
             try:
                 await bus.publish(response_topic, response_payload)
                 util_logger.debug(
@@ -355,7 +355,7 @@ def format_agent_report(
     Args:
         agent_id: The reporting agent's unique identifier.
         task: A brief description of the current or most recent task.
-        status: The current operational status of the agent or task 
+        status: The current operational status of the agent or task
                 (e.g., "🟡 Executing", "✅ Complete", "🔴 Blocked").
         action: A short statement describing the action just taken, the next step,
                 or the reason for being blocked or on standby.
@@ -392,7 +392,7 @@ async def publish_supervisor_alert(
 
     Returns:
         The alert_id of the published alert.
-    
+
     Raises:
         Exception: If publishing the event to the bus fails.
     """
@@ -433,7 +433,7 @@ async def publish_supervisor_alert(
 
 def example_agent_util_function(*args, **kwargs):
     """A placeholder example of a utility function that agents might need.
-    
+
     Currently logs a warning when called.
     """
     logger.warning("Placeholder agent utility function called.")
@@ -446,13 +446,16 @@ def example_agent_util_function(*args, **kwargs):
 async def safe_create_task(coro, *, name=None, logger_instance=None):
     """Safely create an asyncio task and log errors if it raises an exception."""
     current_logger = logger_instance or util_logger
+
     def _task_done_callback(task: asyncio.Task):
         try:
             task.result()  # Raise exception if task failed
         except asyncio.CancelledError:
             current_logger.debug(f"Task {task.get_name()} was cancelled.")
         except Exception:
-            current_logger.error(f"Task {task.get_name()} raised an exception:", exc_info=True)
+            current_logger.error(
+                f"Task {task.get_name()} raised an exception:", exc_info=True
+            )
 
     task = asyncio.create_task(coro, name=name)
     task.add_done_callback(_task_done_callback)

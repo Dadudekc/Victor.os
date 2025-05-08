@@ -84,6 +84,9 @@ htmlcov/
 # Node.js dependencies
 node_modules/
 
+# Chrome profile data
+chrome_profile/
+
 # Ignore stray root script
 r.py
 
@@ -95,6 +98,3 @@ r.py
 # Test output logs
 test_stdout.log
 test_stderr.log
-
-# Chrome Profile
-chrome_profile/

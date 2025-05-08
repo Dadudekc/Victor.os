@@ -6,10 +6,11 @@ with a GUI (e.g., Cursor) via an event-driven mechanism. It publishes requests
 (e.g., CURSOR_INJECT_REQUEST) and awaits corresponding success/failure responses.
 Tasks are managed through a ProjectBoardManager.
 """
+
 import asyncio
 import logging
-import uuid
 import traceback
+import uuid
 from typing import Any, Dict, Optional, Tuple
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
@@ -17,8 +18,11 @@ from dreamos.core.comms.mailbox_utils import (
     # delete_message, # No longer called directly by Agent2, BaseAgent handles it
     # list_mailbox_messages, # No longer called directly by Agent2
     # read_message, # No longer called directly by Agent2
-    get_agent_mailbox_path
+    get_agent_mailbox_path,
 )
+
+# Import AppConfig
+from dreamos.core.config import AppConfig
 from dreamos.core.coordination.message_patterns import TaskMessage
 from dreamos.core.eventing.publishers import publish_cursor_inject_event
 
@@ -30,9 +34,6 @@ from ..coordination.project_board_manager import (
 
 # --- Core DreamOS Imports ---
 from .base_agent import BaseAgent
-
-# Import AppConfig
-from dreamos.core.config import AppConfig
 
 # Configure basic logging
 # logging.basicConfig(
@@ -66,7 +67,7 @@ class Agent2InfraSurgeon(BaseAgent):
             raise ValueError(
                 "ProjectBoardManager instance is required for Agent2InfraSurgeon"
             )
-        
+
         # FIXME: Ensure BaseAgent.__init__ correctly handles/expects 'pbm' or uses **kwargs.
         super().__init__(agent_id=agent_id, config=config, pbm=pbm, agent_bus=agent_bus)
         logger.info(f"Agent {self.agent_id} (Infra Surgeon) initializing...")
@@ -258,9 +259,14 @@ class Agent2InfraSurgeon(BaseAgent):
             }
 
             # Update the stored tuple with the response data
-            self._pending_cursor_requests[correlation_id] = (response_event, response_data)
+            self._pending_cursor_requests[correlation_id] = (
+                response_event,
+                response_data,
+            )
             response_event.set()  # Signal that the response has been received
-            logger.debug(f"[{self.agent_id}] Processed response for CorrID: {correlation_id}, event set.")
+            logger.debug(
+                f"[{self.agent_id}] Processed response for CorrID: {correlation_id}, event set."
+            )
         else:
             logger.warning(
                 f"[{self.agent_id}] Received cursor response for unknown/timed-out CorrID: {correlation_id}. Ignoring."
@@ -269,7 +275,7 @@ class Agent2InfraSurgeon(BaseAgent):
     # --- Main Autonomous Loop ---
     async def run_autonomous_loop(self):
         """Main autonomous execution loop for Agent 2.
-        
+
         Handles mailbox scanning by calling the BaseAgent's implementation,
         checking for and claiming suitable GUI tasks from the ProjectBoardManager,
         and processing them.
@@ -285,7 +291,9 @@ class Agent2InfraSurgeon(BaseAgent):
                 self.logger.debug(f"[{self.agent_id}] Starting new loop iteration.")
 
                 # 1. Mailbox Scan (using BaseAgent's implementation)
-                await self._scan_and_process_mailbox(my_inbox_path) # Call inherited method
+                await self._scan_and_process_mailbox(
+                    my_inbox_path
+                )  # Call inherited method
 
                 # 2. Working Tasks (Check if BaseAgent handles this)
                 # BaseAgent._process_task_queue likely handles tasks added internally.
@@ -440,9 +448,9 @@ class Agent2InfraSurgeon(BaseAgent):
 
         Overrides BaseAgent._process_single_task to integrate Agent 2's specific
         GUI-based task execution. Converts TaskMessage to dict for _perform_task.
-        FIXME: The logic to finalize the task with ProjectBoardManager (e.g., 
+        FIXME: The logic to finalize the task with ProjectBoardManager (e.g.,
                updating status to COMPLETED/FAILED and storing results) is missing
-               at the end of this method. It should call something like 
+               at the end of this method. It should call something like
                `self.finalize_task_processing(task_id, status, result, completion_summary)`
                which would then interact with PBM.
 
@@ -489,8 +497,8 @@ class Agent2InfraSurgeon(BaseAgent):
 
             # Update PBM (handle potential errors)
             # FIXME: ProjectBoardManager.update_task_status might only store a summary.
-            #        Consider if a more comprehensive method (e.g., finalize_task that 
-            #        accepts the full 'result' dict) is needed in PBM to persist 
+            #        Consider if a more comprehensive method (e.g., finalize_task that
+            #        accepts the full 'result' dict) is needed in PBM to persist
             #        detailed output from _perform_task on the board itself.
             try:
                 await self.pbm.update_task_status(

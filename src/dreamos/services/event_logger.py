@@ -6,7 +6,6 @@ Structured event logger service: appends typed events to a JSONL file in runtime
 """  # noqa: E501
 
 import json
-import os
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -15,7 +14,7 @@ from pathlib import Path
 # FIXME: Determine project root more robustly if this service is used widely.
 #        For now, assumes script is run from a context where Path.cwd() is project root
 #        or that this path is correctly resolved by the application.
-PROJECT_ROOT_ASSUMED = Path.cwd() # Or use a marker file based approach
+PROJECT_ROOT_ASSUMED = Path.cwd()  # Or use a marker file based approach
 DEFAULT_LOG_PATH = PROJECT_ROOT_ASSUMED / "runtime" / "structured_events.jsonl"
 
 

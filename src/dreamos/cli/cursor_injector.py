@@ -51,42 +51,64 @@ _FOCUS_OK = False
 
 try:
     import pyperclip  # fast paste support  # noqa: F401
+
     _PASTE_OK = True
 except ImportError:
-    pass # Keep _PASTE_OK as False
+    pass  # Keep _PASTE_OK as False
 
 try:
     import pygetwindow  # focus checks
+
     _FOCUS_OK = True
 except ImportError:
-    pass # Keep _FOCUS_OK as False
+    pass  # Keep _FOCUS_OK as False
 
 # ─── Dream.OS utilities ───────────────────────────────────────────────────────
 # These are still needed for the CLI part and potentially for advanced features
 # if InjectorSettings were to be used more broadly by the class.
 from dreamos.utils.gui_utils import (
-    get_specific_coordinate as get_coord_from_map, # Renamed to avoid conflict if used in class
     is_window_focused,
     load_coordinates,
-    trigger_recalibration,
 )
 from dreamos.utils.project_root import find_project_root
 
 # ─── Module‑level logger ──────────────────────────────────────────────────────
-log = logging.getLogger("dreamos.cursor_injector") # Remains for CLI part primarily
+log = logging.getLogger("dreamos.cursor_injector")  # Remains for CLI part primarily
+
 
 # ─── Defaults & Settings dataclass for CLI mode ───────────────────────────────
 @dataclass(slots=True)
 class CLISettings:
     """Runtime configuration container for CLI script operations."""
-    project_root: Path = field(default_factory=lambda: Path(find_project_root(__file__)))
-    coords_path: Path = field(default_factory=lambda:
-        Path(os.getenv("DREAMOS_CURSOR_COORDS", CLISettings.project_root / "runtime/config/cursor_agent_coords.json")))
+
+    project_root: Path = field(
+        default_factory=lambda: Path(find_project_root(__file__))
+    )
+    coords_path: Path = field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DREAMOS_CURSOR_COORDS",
+                CLISettings.project_root / "runtime/config/cursor_agent_coords.json",
+            )
+        )
+    )
     target_window_title: str = os.getenv("DREAMOS_CURSOR_TITLE", "Cursor")
-    queue_root: Path = field(default_factory=lambda:
-        Path(os.getenv("DREAMOS_CURSOR_QUEUE", CLISettings.project_root / "runtime/cursor_queue")))
-    processed_root: Path = field(default_factory=lambda:
-        Path(os.getenv("DREAMOS_CURSOR_PROCESSED", CLISettings.project_root / "runtime/cursor_processed")))
+    queue_root: Path = field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DREAMOS_CURSOR_QUEUE",
+                CLISettings.project_root / "runtime/cursor_queue",
+            )
+        )
+    )
+    processed_root: Path = field(
+        default_factory=lambda: Path(
+            os.getenv(
+                "DREAMOS_CURSOR_PROCESSED",
+                CLISettings.project_root / "runtime/cursor_processed",
+            )
+        )
+    )
 
     min_pause: float = 0.10
     max_pause: float = 0.25
@@ -96,14 +118,17 @@ class CLISettings:
     max_recalibration: int = 1
     screenshot_on_error: bool = False
 
+
 # Global settings object for CLI mode
 _cli_settings_instance: Optional[CLISettings] = None
+
 
 def get_cli_settings() -> CLISettings:
     global _cli_settings_instance
     if _cli_settings_instance is None:
         _cli_settings_instance = CLISettings()
     return _cli_settings_instance
+
 
 # ─── CursorInjector Class ───────────────────────────────────────────────────
 class CursorInjector:
@@ -116,8 +141,8 @@ class CursorInjector:
         min_pause: float = 0.10,
         max_pause: float = 0.25,
         random_offset: int = 3,
-        focus_verify: bool = True, # Should pygetwindow be used
-        use_paste: bool = True,    # Should pyperclip be used
+        focus_verify: bool = True,  # Should pygetwindow be used
+        use_paste: bool = True,  # Should pyperclip be used
     ):
         self.window_title = window_title
         self.coords = coords  # Expects e.g. {"chat_input_field": [x, y]}
@@ -132,7 +157,9 @@ class CursorInjector:
         self.focus_check_available = _FOCUS_OK
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.debug(f"CursorInjector initialized for window '{window_title}'. Paste: {self.paste_available}, Focus Check: {self.focus_check_available}")
+        self.log.debug(
+            f"CursorInjector initialized for window '{window_title}'. Paste: {self.paste_available}, Focus Check: {self.focus_check_available}"
+        )
 
     def _pause(self) -> None:
         time.sleep(random.uniform(self.min_pause, self.max_pause))
@@ -141,7 +168,9 @@ class CursorInjector:
         """Brings the target window to the foreground and focuses it."""
         self.log.debug(f"Attempting to focus window: {self.window_title}")
         if not self.focus_verify_enabled or not self.focus_check_available:
-            self.log.debug("Focus verification skipped (disabled or pygetwindow not available).")
+            self.log.debug(
+                "Focus verification skipped (disabled or pygetwindow not available)."
+            )
             # Try a generic focus/activate if possible, or just assume success
             # For simplicity here, we can try activating if pygetwindow is available for that
             if self.focus_check_available:
@@ -149,15 +178,18 @@ class CursorInjector:
                     windows = pygetwindow.getWindowsWithTitle(self.window_title)
                     if windows:
                         win = windows[0]
-                        if win.isMinimized: win.restore()
+                        if win.isMinimized:
+                            win.restore()
                         win.activate()
-                        self.log.debug(f"Window '{self.window_title}' activated (no verification). ")
-                        return True # Assuming activation worked
+                        self.log.debug(
+                            f"Window '{self.window_title}' activated (no verification). "
+                        )
+                        return True  # Assuming activation worked
                 except Exception as e:
                     self.log.warning(f"Error during basic window activation: {e}")
-            return True # Assume success if no verification
+            return True  # Assume success if no verification
 
-        if is_window_focused(self.window_title): # from dreamos.utils.gui_utils
+        if is_window_focused(self.window_title):  # from dreamos.utils.gui_utils
             self.log.debug(f"Window '{self.window_title}' is already focused.")
             return True
 
@@ -169,14 +201,16 @@ class CursorInjector:
             win = windows[0]
             if win.isMinimized:
                 win.restore()
-            win.activate() # pygetwindow's activate method
-            time.sleep(0.1) # Small delay to allow focus to shift
+            win.activate()  # pygetwindow's activate method
+            time.sleep(0.1)  # Small delay to allow focus to shift
             if is_window_focused(self.window_title):
                 self.log.info(f"Successfully focused window: '{self.window_title}'")
                 return True
             else:
-                self.log.warning(f"Window '{self.window_title}' activated but focus check failed.")
-                return False # Or True if activation is deemed sufficient
+                self.log.warning(
+                    f"Window '{self.window_title}' activated but focus check failed."
+                )
+                return False  # Or True if activation is deemed sufficient
         except Exception as e:
             self.log.error(f"Error focusing window '{self.window_title}': {e}")
             return False
@@ -189,15 +223,23 @@ class CursorInjector:
                 self.log.debug("Pasted text via clipboard.")
                 return
             except Exception as e:
-                self.log.warning(f"Clipboard paste failed ({e}). Falling back to typing.")
-        pyautogui.typewrite(text, interval=0.01) # Reduced default interval slightly
+                self.log.warning(
+                    f"Clipboard paste failed ({e}). Falling back to typing."
+                )
+        pyautogui.typewrite(text, interval=0.01)  # Reduced default interval slightly
         self.log.debug("Typed text using pyautogui.typewrite.")
 
     def type_text(self, text: str, element_key: str = "chat_input_field") -> bool:
         """Clicks on the specified element (using coords) and types text."""
         self.log.debug(f"Attempting to type text into '{element_key}'.")
-        if element_key not in self.coords or not isinstance(self.coords[element_key], list) or len(self.coords[element_key]) != 2:
-            self.log.error(f"Coordinates for '{element_key}' are missing or invalid in self.coords.")
+        if (
+            element_key not in self.coords
+            or not isinstance(self.coords[element_key], list)
+            or len(self.coords[element_key]) != 2
+        ):
+            self.log.error(
+                f"Coordinates for '{element_key}' are missing or invalid in self.coords."
+            )
             return False
 
         tx, ty = self.coords[element_key]
@@ -225,13 +267,17 @@ class CursorInjector:
             self.log.critical("PyAutoGUI fail-safe triggered during type_text.")
             return False
         except Exception as e:
-            self.log.error(f"Error during type_text for '{element_key}': {e}", exc_info=True)
+            self.log.error(
+                f"Error during type_text for '{element_key}': {e}", exc_info=True
+            )
             # Optionally add screenshot on error like in original script
             return False
+
 
 # ─── CLI Script Functionality (preserved) ───────────────────────────────────
 
 # Note: These functions now use get_cli_settings() to access CLI-specific settings.
+
 
 def _cli_next_prompt_file(agent_id: str) -> Optional[Path]:
     settings = get_cli_settings()
@@ -241,11 +287,13 @@ def _cli_next_prompt_file(agent_id: str) -> Optional[Path]:
     files: List[Path] = sorted(f for f in qdir.iterdir() if f.is_file())
     return files[0] if files else None
 
+
 def _cli_mark_processed(prompt_file: Path) -> None:
     settings = get_cli_settings()
     dest = settings.processed_root / prompt_file.parent.name
     dest.mkdir(parents=True, exist_ok=True)
     prompt_file.rename(dest / prompt_file.name)
+
 
 def _cli_ensure_focus(title: str) -> bool:
     settings = get_cli_settings()
@@ -255,22 +303,27 @@ def _cli_ensure_focus(title: str) -> bool:
         return True
     wins = pygetwindow.getWindowsWithTitle(title)
     if wins:
-        log.warning("(CLI) Window '%s' exists but not focused – aborting injection.", title)
+        log.warning(
+            "(CLI) Window '%s' exists but not focused – aborting injection.", title
+        )
     else:
         log.error("(CLI) Window '%s' not found!", title)
     return False
+
 
 def _cli_type_or_paste(text: str) -> None:
     settings = get_cli_settings()
     if settings.use_paste and _PASTE_OK:
         try:
             import pyperclip
+
             pyperclip.copy(text)
             pyautogui.hotkey("ctrl", "v")
             return
         except Exception as e:
             log.warning("(CLI) Clipboard paste failed (%s). Falling back to typing.", e)
     pyautogui.typewrite(text, interval=0.02)
+
 
 def _cli_inject_single(
     agent_id: str,
@@ -279,10 +332,10 @@ def _cli_inject_single(
     element_key: str = "input_box",
 ) -> bool:
     settings = get_cli_settings()
-    ident = f"{agent_id}.{element_key}" # Original script used agent_id in ident, but coords might not be structured that way.
-                                        # For CLI, load_coordinates is used, which might return a flat map or agent-keyed map.
-                                        # This part needs careful checking against how load_coordinates and coords are used in CLI.
-                                        # Assuming coords passed in is already the correct agent's coord map for now.
+    ident = f"{agent_id}.{element_key}"  # Original script used agent_id in ident, but coords might not be structured that way.
+    # For CLI, load_coordinates is used, which might return a flat map or agent-keyed map.
+    # This part needs careful checking against how load_coordinates and coords are used in CLI.
+    # Assuming coords passed in is already the correct agent's coord map for now.
 
     # If coords is a map like {"Agent-1": {"input_box": ...}}, adjust access.
     # For now, assume coords is flat like {"input_box": ...} for the targeted element.
@@ -294,14 +347,22 @@ def _cli_inject_single(
             target_coord_data = agent_specific_coords.get(element_key)
 
         if not isinstance(target_coord_data, list) or len(target_coord_data) != 2:
-            log.error(f"(CLI) Coordinate for '{element_key}' (agent '{agent_id}') missing or invalid in provided coords map.")
+            log.error(
+                f"(CLI) Coordinate for '{element_key}' (agent '{agent_id}') missing or invalid in provided coords map."
+            )
             # Recalibration logic from original script might go here if desired for CLI
             return False
 
     coord_x, coord_y = target_coord_data
     tx = coord_x + random.randint(-settings.random_offset, settings.random_offset)
     ty = coord_y + random.randint(-settings.random_offset, settings.random_offset)
-    log.debug("(CLI) Moving to (%s,%s) for element '%s' of agent '%s'", tx, ty, element_key, agent_id)
+    log.debug(
+        "(CLI) Moving to (%s,%s) for element '%s' of agent '%s'",
+        tx,
+        ty,
+        element_key,
+        agent_id,
+    )
 
     try:
         pyautogui.moveTo(tx, ty, duration=random.uniform(0.1, 0.3))
@@ -324,15 +385,22 @@ def _cli_inject_single(
     except Exception as e:
         log.error("(CLI) Injection error: %s", e, exc_info=True)
         if settings.screenshot_on_error:
-            pyautogui.screenshot(settings.project_root / f"cli_inject_err_{time.time()}.png")
+            pyautogui.screenshot(
+                settings.project_root / f"cli_inject_err_{time.time()}.png"
+            )
         return False
-    return False # Should not be reached if recalibration not used
+    return False  # Should not be reached if recalibration not used
 
-def _cli_loop(agent_ids: Optional[Iterable[str]] = None, cycle_pause: float = 1.0) -> None:
+
+def _cli_loop(
+    agent_ids: Optional[Iterable[str]] = None, cycle_pause: float = 1.0
+) -> None:
     settings = get_cli_settings()
     # In CLI mode, coords are typically loaded once from settings.coords_path
     cli_coords = load_coordinates(settings.coords_path) or {}
-    watch = list(agent_ids) if agent_ids else list(cli_coords.keys()) # Watch agents found in coords file if no specific ids
+    watch = (
+        list(agent_ids) if agent_ids else list(cli_coords.keys())
+    )  # Watch agents found in coords file if no specific ids
     log.info("(CLI) Monitoring queues for agents: %s", ", ".join(watch))
 
     while True:
@@ -342,38 +410,63 @@ def _cli_loop(agent_ids: Optional[Iterable[str]] = None, cycle_pause: float = 1.
             if not prompt_file_path:
                 continue
             prompt_content = prompt_file_path.read_text(encoding="utf-8")
-            
+
             # Extract the correct coordinate sub-map for the current agent
             # The run_bridge_loop now prepares a flat map like {"chat_input_field":...}
             # The CLI version might need to handle the agent-keyed map from cursor_agent_coords.json
-            agent_coord_map = cli_coords.get(aid) # e.g. cli_coords["Agent-1"]
+            agent_coord_map = cli_coords.get(aid)  # e.g. cli_coords["Agent-1"]
             if not agent_coord_map:
-                 log.warning(f"(CLI) No coordinates found for agent {aid} in {settings.coords_path}. Skipping.")
-                 continue
+                log.warning(
+                    f"(CLI) No coordinates found for agent {aid} in {settings.coords_path}. Skipping."
+                )
+                continue
 
-            if _cli_inject_single(aid, prompt_content, agent_coord_map): # Pass the agent_coord_map
+            if _cli_inject_single(
+                aid, prompt_content, agent_coord_map
+            ):  # Pass the agent_coord_map
                 _cli_mark_processed(prompt_file_path)
                 processed_count += 1
         if processed_count == 0:
             time.sleep(cycle_pause)
         else:
-            log.info("(CLI) Processed %s prompt(s); sleeping %.2fs", processed_count, cycle_pause / 5)
+            log.info(
+                "(CLI) Processed %s prompt(s); sleeping %.2fs",
+                processed_count,
+                cycle_pause / 5,
+            )
             time.sleep(max(0.1, cycle_pause / 5))
 
+
 def _build_cli_parser() -> argparse.ArgumentParser:
-    settings = get_cli_settings() # Access defaults for help strings
-    parser = argparse.ArgumentParser(description="Injects prompts into Cursor for a given agent (CLI mode).")
+    settings = get_cli_settings()  # Access defaults for help strings
+    parser = argparse.ArgumentParser(
+        description="Injects prompts into Cursor for a given agent (CLI mode)."
+    )
     parser.add_argument("--agent-id", required=True, help="Agent ID (e.g. Agent-5)")
-    parser.add_argument("--prompt-text", help="Direct prompt text (optional, for single injection)")
-    parser.add_argument("--target-window-title", default=settings.target_window_title, help="Substring of target window title")
-    parser.add_argument("--coords-file", default=settings.coords_path, type=Path, help="Path to coordinates JSON")
+    parser.add_argument(
+        "--prompt-text", help="Direct prompt text (optional, for single injection)"
+    )
+    parser.add_argument(
+        "--target-window-title",
+        default=settings.target_window_title,
+        help="Substring of target window title",
+    )
+    parser.add_argument(
+        "--coords-file",
+        default=settings.coords_path,
+        type=Path,
+        help="Path to coordinates JSON",
+    )
     return parser
+
 
 def cli_main() -> None:
     args = _build_cli_parser().parse_args()
-    
+
     # Setup basic logging for CLI mode
-    logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(name)-25s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)-8s %(name)-25s %(message)s"
+    )
     log.info(f"CLI mode initiated for agent: {args.agent_id}")
 
     # Update CLI settings from args
@@ -385,13 +478,15 @@ def cli_main() -> None:
     # Load coordinates for CLI operation.
     # This should be the full map, e.g., from cursor_agent_coords.json
     loaded_coords_map = load_coordinates(cli_settings.coords_path) or {}
-    
+
     # For single injection, we need the specific agent's coordinate map portion.
     # The inject_single_cli expects a map like {"input_box": [x,y], ...} for the specific agent.
-    agent_id_for_coords = args.agent_id # e.g., "Agent-5"
+    agent_id_for_coords = args.agent_id  # e.g., "Agent-5"
     coords_for_single_agent = loaded_coords_map.get(agent_id_for_coords, {})
     if not coords_for_single_agent and args.prompt_text:
-        log.error(f"Coordinates for agent '{agent_id_for_coords}' not found in '{cli_settings.coords_path}'. Cannot perform single injection.")
+        log.error(
+            f"Coordinates for agent '{agent_id_for_coords}' not found in '{cli_settings.coords_path}'. Cannot perform single injection."
+        )
         sys.exit(1)
 
     if args.prompt_text:
@@ -405,10 +500,13 @@ def cli_main() -> None:
     else:
         log.info(f"Entering queue monitoring mode for agent(s): {args.agent_id}")
         try:
-            _cli_loop(agent_ids=[args.agent_id]) # Pass agent_id as a list for consistency with _cli_loop logic
+            _cli_loop(
+                agent_ids=[args.agent_id]
+            )  # Pass agent_id as a list for consistency with _cli_loop logic
         except KeyboardInterrupt:
             log.info("(CLI) User interrupted queue monitoring.")
         sys.exit(0)
 
+
 if __name__ == "__main__":
-    cli_main() 
+    cli_main()

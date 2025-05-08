@@ -1,12 +1,14 @@
 # scripts/test_edit_file_failures.py
 import json
+import logging
 import os
 import time
-import logging
 from pathlib import Path
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # --- Test Configuration ---
@@ -46,6 +48,7 @@ run()
 
 # --- Test Functions ---
 
+
 def setup_test_files():
     """Creates the test directory and initial files."""
     TEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -64,10 +67,13 @@ def setup_test_files():
         logger.error(f"Error creating initial test files: {e}", exc_info=True)
         raise
 
+
 def attempt_edit_overwrite(target_file: Path, content_to_write: str):
     """Simulates calling the edit_file tool to overwrite a file."""
     logger.info(f"Attempting OVERWRITE edit on: {target_file}")
-    logger.info(f"--- Content to Write ---\n{content_to_write}\n------------------------")
+    logger.info(
+        f"--- Content to Write ---\n{content_to_write}\n------------------------"
+    )
 
     # *** Placeholder for actual edit_file tool invocation ***
     # In a real scenario, this would call the tool API:
@@ -79,40 +85,42 @@ def attempt_edit_overwrite(target_file: Path, content_to_write: str):
     # For this test script, we simulate the *observed problematic behavior*
     # by appending instead of overwriting for JSON, or emptying for others.
 
-    simulated_failure = True # Change to False to simulate success
+    simulated_failure = True  # Change to False to simulate success
 
     if simulated_failure:
         logger.warning("SIMULATING edit_file overwrite failure...")
         try:
-            if target_file.suffix == '.json':
+            if target_file.suffix == ".json":
                 # Simulate incorrect append behavior
                 with open(target_file, "r+") as f:
                     try:
                         data = json.load(f)
                         if isinstance(data, dict):
-                            data.update(json.loads(content_to_write)) # Simplistic merge
-                        else: # Assume list or scalar, just append string
+                            data.update(
+                                json.loads(content_to_write)
+                            )  # Simplistic merge
+                        else:  # Assume list or scalar, just append string
                             data = str(data) + "\n" + content_to_write
                     except json.JSONDecodeError:
-                         # If initial file corrupt, just append
-                         f.seek(0, os.SEEK_END)
-                         f.write("\n" + content_to_write)
+                        # If initial file corrupt, just append
+                        f.seek(0, os.SEEK_END)
+                        f.write("\n" + content_to_write)
                     else:
                         f.seek(0)
                         f.truncate()
                         json.dump(data, f, indent=2)
                 logger.warning(f"Simulated incorrect append/merge for {target_file}")
-                return False # Simulate failure indication
+                return False  # Simulate failure indication
             else:
-                 # Simulate emptying file
-                 with open(target_file, "w") as f:
-                     f.write("")
-                 logger.warning(f"Simulated emptying file for {target_file}")
-                 return False # Simulate failure indication
+                # Simulate emptying file
+                with open(target_file, "w") as f:
+                    f.write("")
+                logger.warning(f"Simulated emptying file for {target_file}")
+                return False  # Simulate failure indication
 
         except Exception as e:
-             logger.error(f"Error during simulated failure for {target_file}: {e}")
-             return False # Simulate failure indication
+            logger.error(f"Error during simulated failure for {target_file}: {e}")
+            return False  # Simulate failure indication
     else:
         # Simulate successful overwrite
         try:
@@ -124,6 +132,7 @@ def attempt_edit_overwrite(target_file: Path, content_to_write: str):
             logger.error(f"Error during simulated success write for {target_file}: {e}")
             return False
 
+
 def verify_file_content(target_file: Path, expected_content: str):
     """Reads the file and compares its content to the expected content."""
     logger.info(f"Verifying content of: {target_file}")
@@ -132,8 +141,8 @@ def verify_file_content(target_file: Path, expected_content: str):
             actual_content = f.read()
 
         # Normalize line endings for comparison
-        actual_norm = actual_content.replace('\r\n', '\n').strip()
-        expected_norm = expected_content.replace('\r\n', '\n').strip()
+        actual_norm = actual_content.replace("\r\n", "\n").strip()
+        expected_norm = expected_content.replace("\r\n", "\n").strip()
 
         if actual_norm == expected_norm:
             logger.info(f"SUCCESS: Content matches expected for {target_file.name}.")
@@ -150,6 +159,7 @@ def verify_file_content(target_file: Path, expected_content: str):
         logger.error(f"Error verifying file {target_file}: {e}", exc_info=True)
         return False
 
+
 # --- Main Test Execution ---
 if __name__ == "__main__":
     logger.info("Starting edit_file overwrite failure test script...")
@@ -163,10 +173,12 @@ if __name__ == "__main__":
         json_file = TEST_DIR / "test.json"
         json_overwrite_str = json.dumps(JSON_OVERWRITE, indent=2)
         edit_success_json = attempt_edit_overwrite(json_file, json_overwrite_str)
-        time.sleep(0.1) # Small delay
+        time.sleep(0.1)  # Small delay
         # We expect verification to FAIL if the edit simulation failed
         results["json"] = verify_file_content(json_file, json_overwrite_str)
-        logger.info(f"JSON Test Result (Verification == Expected Overwrite): {results['json']}")
+        logger.info(
+            f"JSON Test Result (Verification == Expected Overwrite): {results['json']}"
+        )
 
         # Test TOML Overwrite
         logger.info("\n--- Testing TOML Overwrite ---")
@@ -174,7 +186,9 @@ if __name__ == "__main__":
         edit_success_toml = attempt_edit_overwrite(toml_file, TOML_OVERWRITE)
         time.sleep(0.1)
         results["toml"] = verify_file_content(toml_file, TOML_OVERWRITE)
-        logger.info(f"TOML Test Result (Verification == Expected Overwrite): {results['toml']}")
+        logger.info(
+            f"TOML Test Result (Verification == Expected Overwrite): {results['toml']}"
+        )
 
         # Test Python Overwrite
         logger.info("\n--- Testing Python Overwrite ---")
@@ -182,7 +196,9 @@ if __name__ == "__main__":
         edit_success_py = attempt_edit_overwrite(py_file, PY_OVERWRITE)
         time.sleep(0.1)
         results["py"] = verify_file_content(py_file, PY_OVERWRITE)
-        logger.info(f"Python Test Result (Verification == Expected Overwrite): {results['py']}")
+        logger.info(
+            f"Python Test Result (Verification == Expected Overwrite): {results['py']}"
+        )
 
     except Exception as e:
         logger.critical(f"Test script encountered critical error: {e}", exc_info=True)
@@ -192,5 +208,7 @@ if __name__ == "__main__":
         logger.info(f"JSON Overwrite Verification Passed: {results['json']}")
         logger.info(f"TOML Overwrite Verification Passed: {results['toml']}")
         logger.info(f"Python Overwrite Verification Passed: {results['py']}")
-        logger.info("Note: If 'Simulated Failure' was enabled, Verification Passed should be False.")
-        logger.info("Test script finished.") 
+        logger.info(
+            "Note: If 'Simulated Failure' was enabled, Verification Passed should be False."
+        )
+        logger.info("Test script finished.")

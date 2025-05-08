@@ -5,14 +5,15 @@ import json
 import logging  # Import logging
 import re  # Import re for regex validation
 import shutil
-import sys  # Added for sys.modules check
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional  # Added type hinting
 
 from dreamos.core.comms.mailbox_utils import write_mailbox_message
 from dreamos.core.config import AppConfig  # For type hinting and config usage
-from dreamos.core.coordination.agent_bus import AgentBus  # For type hinting and potential use
+from dreamos.core.coordination.agent_bus import (
+    AgentBus,  # For type hinting and potential use
+)
 
 # Correct import path
 from pydantic import (  # Import Pydantic
@@ -53,7 +54,7 @@ except ImportError:
 #     logging.warning(
 #         "[TheaRelayAgent WARNING] Could not import write_mailbox_message. Using dummy implementation."  # noqa: E501
 #     )
-# 
+#
 #     def write_mailbox_message(path: Path, content: Dict[str, Any]):
 #         logging.info(f"[TheaRelayAgent DUMMY WRITE] Would write to {path}")
 #         logging.debug(f"[TheaRelayAgent DUMMY CONTENT] {json.dumps(content)}")
@@ -99,37 +100,57 @@ class TheaRelayAgent(BaseAgent):
     and dispatches them to the appropriate agent mailboxes.
     """
 
-    def __init__(self, 
-                 agent_id: str = "TheaRelayAgent", 
-                 config: Optional[AppConfig] = None, 
-                 agent_bus: Optional[AgentBus] = None, 
-                 response_dir: Optional[Path] = None,
-                 archive_dir: Optional[Path] = None,
-                 error_dir: Optional[Path] = None,
-                 mailbox_root_dir: Optional[Path] = None,
-                 polling_interval: Optional[int] = None):
-        
+    def __init__(
+        self,
+        agent_id: str = "TheaRelayAgent",
+        config: Optional[AppConfig] = None,
+        agent_bus: Optional[AgentBus] = None,
+        response_dir: Optional[Path] = None,
+        archive_dir: Optional[Path] = None,
+        error_dir: Optional[Path] = None,
+        mailbox_root_dir: Optional[Path] = None,
+        polling_interval: Optional[int] = None,
+    ):
         if config is None:
             # FIXME: Agent requires AppConfig. This fallback is not robust.
-            logger.error("TheaRelayAgent requires AppConfig. Attempting to load default (may fail).")
+            logger.error(
+                "TheaRelayAgent requires AppConfig. Attempting to load default (may fail)."
+            )
             try:
-                config = AppConfig.load() 
+                config = AppConfig.load()
             except Exception as e:
-                logger.critical(f"TheaRelayAgent failed to load default AppConfig: {e}. Cannot initialize.")
+                logger.critical(
+                    f"TheaRelayAgent failed to load default AppConfig: {e}. Cannot initialize."
+                )
                 # Or raise an error to prevent partial initialization
                 raise ValueError("AppConfig is required for TheaRelayAgent") from e
 
-        super().__init__(agent_id=agent_id, config=config, agent_bus=agent_bus) # Pass config and agent_bus
-        
+        super().__init__(
+            agent_id=agent_id, config=config, agent_bus=agent_bus
+        )  # Pass config and agent_bus
+
         # Use provided paths/interval or defaults from AppConfig or fallbacks
         # FIXME: These should primarily come from AppConfig if available.
-        self.response_dir = response_dir or config.paths.thea_responses_dir if hasattr(config.paths, 'thea_responses_dir') else RESPONSE_DIR
+        self.response_dir = (
+            response_dir or config.paths.thea_responses_dir
+            if hasattr(config.paths, "thea_responses_dir")
+            else RESPONSE_DIR
+        )
         self.archive_dir = archive_dir or self.response_dir / "archive"
         self.error_dir = error_dir or self.response_dir / "error"
         # Mailbox root should align with how get_agent_mailbox_path works or AppConfig.paths.agent_comms
-        self.mailbox_root_dir = mailbox_root_dir or config.paths.agent_comms if hasattr(config.paths, 'agent_comms') else MAILBOX_ROOT_DIR
-        self.polling_interval = polling_interval or config.agent_settings.thea_relay_poll_interval if hasattr(config, 'agent_settings') and hasattr(config.agent_settings, 'thea_relay_poll_interval') else POLLING_INTERVAL_SECONDS
-        
+        self.mailbox_root_dir = (
+            mailbox_root_dir or config.paths.agent_comms
+            if hasattr(config.paths, "agent_comms")
+            else MAILBOX_ROOT_DIR
+        )
+        self.polling_interval = (
+            polling_interval or config.agent_settings.thea_relay_poll_interval
+            if hasattr(config, "agent_settings")
+            and hasattr(config.agent_settings, "thea_relay_poll_interval")
+            else POLLING_INTERVAL_SECONDS
+        )
+
         # _ensure_dirs is now async, call in an async init method or first use.
         # For now, we will call it at the start of the run loop.
         # self._ensure_dirs() # Now async, cannot call directly from sync __init__
@@ -146,7 +167,7 @@ class TheaRelayAgent(BaseAgent):
             self.response_dir,
             self.archive_dir,
             self.error_dir,
-            self.mailbox_root_dir # This one is particularly important if agents don't create their own base.
+            self.mailbox_root_dir,  # This one is particularly important if agents don't create their own base.
         ]
         try:
             for d in dirs_to_create:
@@ -158,22 +179,25 @@ class TheaRelayAgent(BaseAgent):
                 f"Failed to create monitored directories (async): {e}", exc_info=True
             )
             # Consider raising to halt agent if dirs are critical
-            raise # Re-raise for now, as dir creation failure might be fatal
+            raise  # Re-raise for now, as dir creation failure might be fatal
 
     async def _load_thea_response(self, file_path: Path) -> Optional[Dict[str, Any]]:
         """Loads a JSON response from the specified file path. Async."""
         self.logger.debug(f"Loading response from: {file_path.name}")
-        
+
         def _sync_load():
             with open(file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
+
         try:
             return await asyncio.to_thread(_sync_load)
         except json.JSONDecodeError as e:
             self.logger.error(f"Failed to decode JSON from {file_path.name}: {e}")
             return None
         except Exception as e:
-            self.logger.error(f"Failed to read file {file_path.name}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to read file {file_path.name}: {e}", exc_info=True
+            )
             return None
 
     def _validate_response(
@@ -193,7 +217,9 @@ class TheaRelayAgent(BaseAgent):
         # REMOVED old basic validation
         # TODO REMOVED: Add more validation based on DEFINE-THEA-MESSAGE-SCHEMA-001
 
-    async def _get_mailbox_path(self, agent_id: str, context_id: Optional[str]) -> Optional[Path]:
+    async def _get_mailbox_path(
+        self, agent_id: str, context_id: Optional[str]
+    ) -> Optional[Path]:
         """Constructs the target mailbox path, validating agent ID format. Async for mkdir."""
         if not re.match(r"^Agent-\d+$", agent_id):
             self.logger.warning(
@@ -204,14 +230,16 @@ class TheaRelayAgent(BaseAgent):
         agent_mailbox_dir = self.mailbox_root_dir / agent_id / "inbox"
         try:
             if not await asyncio.to_thread(agent_mailbox_dir.exists):
-                await asyncio.to_thread(agent_mailbox_dir.mkdir, parents=True, exist_ok=True)
+                await asyncio.to_thread(
+                    agent_mailbox_dir.mkdir, parents=True, exist_ok=True
+                )
         except Exception as e:
             self.logger.error(
                 f"Failed to create mailbox directory {agent_mailbox_dir}: {e}",
                 exc_info=True,
             )
             return None
-        
+
         safe_context_id = re.sub(
             r"[^a-zA-Z0-9_\-]",
             "_",
@@ -233,7 +261,7 @@ class TheaRelayAgent(BaseAgent):
         )
         try:
             # write_mailbox_message is async
-            await write_mailbox_message(msg_path, response) 
+            await write_mailbox_message(msg_path, response)
             self.logger.info(
                 f"Successfully dispatched to {msg_path.relative_to(Path.cwd())}"
             )
@@ -247,10 +275,10 @@ class TheaRelayAgent(BaseAgent):
     async def _move_file(self, file_path: Path, target_dir: Path):
         """Moves a file to a target directory (archive or error). Async."""
         target_path = target_dir / file_path.name
-        
+
         def _sync_move():
             shutil.move(str(file_path), str(target_path))
-            
+
         try:
             await asyncio.to_thread(_sync_move)
             self.logger.info(f"Moved {file_path.name} to {target_dir.name} directory.")
@@ -269,15 +297,18 @@ class TheaRelayAgent(BaseAgent):
 
         def _sync_glob():
             return list(self.response_dir.glob("*.json"))
-        
+
         files_to_process = await asyncio.to_thread(_sync_glob)
 
         files_found = len(files_to_process)
         if files_found > 0:
             self.logger.info(f"Found {files_found} potential response file(s).")
 
-        for file_path in files_to_process: # Renamed file to file_path for clarity
-            if await asyncio.to_thread(file_path.is_dir) or file_path.parent != self.response_dir:
+        for file_path in files_to_process:  # Renamed file to file_path for clarity
+            if (
+                await asyncio.to_thread(file_path.is_dir)
+                or file_path.parent != self.response_dir
+            ):
                 continue
 
             self.logger.info(f"Processing file: {file_path.name}")
@@ -290,7 +321,7 @@ class TheaRelayAgent(BaseAgent):
                 await self._move_file(file_path, self.error_dir)
                 error_count += 1
                 continue
-            
+
             if self._validate_response(response_data, file_path.name):
                 if await self._dispatch_message(response_data, file_path.name):
                     await self._move_file(file_path, self.archive_dir)
@@ -307,7 +338,7 @@ class TheaRelayAgent(BaseAgent):
                 )
                 await self._move_file(file_path, self.error_dir)
                 error_count += 1
-        
+
         if files_found > 0:
             self.logger.info(
                 f"File processing complete. Processed: {processed_count}, Errors: {error_count}"
@@ -316,22 +347,25 @@ class TheaRelayAgent(BaseAgent):
     async def run(self):
         """Main execution loop for the TheaRelayAgent."""
         self.logger.info(f"TheaRelayAgent '{self.agent_id}' starting run loop.")
-        await self._ensure_dirs() # Ensure directories are created before starting loop
-        
+        await self._ensure_dirs()  # Ensure directories are created before starting loop
+
         try:
-            while True: # Assuming BaseAgent or main loop will handle graceful shutdown
+            while True:  # Assuming BaseAgent or main loop will handle graceful shutdown
                 await self._process_files()
-                self.logger.debug(f"Waiting for {self.polling_interval} seconds before next scan...")
+                self.logger.debug(
+                    f"Waiting for {self.polling_interval} seconds before next scan..."
+                )
                 await asyncio.sleep(self.polling_interval)
         except asyncio.CancelledError:
             self.logger.info(f"TheaRelayAgent '{self.agent_id}' run loop cancelled.")
         except Exception as e:
             self.logger.critical(
                 f"TheaRelayAgent '{self.agent_id}' run loop encountered a critical error: {e}",
-                exc_info=True
+                exc_info=True,
             )
         finally:
             self.logger.info(f"TheaRelayAgent '{self.agent_id}' run loop stopped.")
+
 
 # Example usage (if run as a standalone script for testing)
 # This would need to be adapted for async execution, e.g.:
@@ -341,7 +375,7 @@ class TheaRelayAgent(BaseAgent):
 #     # agent_bus = AgentBus()
 #     relay_agent = TheaRelayAgent(config=config, agent_bus=None) # Pass None for bus if not testing bus interactions
 #     await relay_agent.run()
-# 
+#
 # if __name__ == "__main__":
 #     logging.basicConfig(level=logging.INFO)
 #     try:

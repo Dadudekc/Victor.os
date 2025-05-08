@@ -1,8 +1,8 @@
 # src/dreamos/core/identity/agent_identity.py
 import logging
+import re  # Added for regex validation
 from datetime import datetime, timezone
 from typing import Any, Dict
-import re # Added for regex validation
 
 from pydantic import BaseModel, Field, validator
 
@@ -26,11 +26,11 @@ class AgentIdentity(BaseModel):
     #      Replace `datetime.utcnow` with `lambda: datetime.now(timezone.utc)`
     #      and refine validator for stricter timezone handling. (DONE - lambda added below)
     registered_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), # Use timezone.utc
+        default_factory=lambda: datetime.now(timezone.utc),  # Use timezone.utc
         description="Timestamp when the agent was first registered.",
     )
     last_updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), # Use timezone.utc
+        default_factory=lambda: datetime.now(timezone.utc),  # Use timezone.utc
         description="Timestamp when the identity was last updated.",
     )
 
@@ -40,7 +40,9 @@ class AgentIdentity(BaseModel):
             raise ValueError("agent_id must be a non-empty string")
         # Example for a more specific format (e.g., alphanumeric, dashes, underscores)
         if not re.match(r"^[a-zA-Z0-9_.-]+$", v):
-            logger.warning(f"Agent ID '{v}' contains potentially unusual characters. Recommended: alphanumeric, dash, underscore, dot.")
+            logger.warning(
+                f"Agent ID '{v}' contains potentially unusual characters. Recommended: alphanumeric, dash, underscore, dot."
+            )
         # If a strict UUID format were required:
         # try:
         #     uuid.UUID(v)
@@ -70,7 +72,7 @@ class AgentIdentity(BaseModel):
             if v.tzinfo is None:
                 # Assign UTC if naive
                 return v.replace(tzinfo=timezone.utc)
-            return v # Already aware
+            return v  # Already aware
         logger.warning(
             f"Unexpected type for datetime field: {type(v)}. Using current UTC time."
         )

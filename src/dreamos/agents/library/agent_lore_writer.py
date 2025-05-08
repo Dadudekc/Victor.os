@@ -6,8 +6,8 @@ Generates narrative lore based on system events and mailbox instructions.
 Reconstructed after file corruption.
 """
 
-import logging
 import json
+import logging
 import time
 from pathlib import Path
 
@@ -18,15 +18,19 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-class AgentLoreWriter: # Placeholder for BaseAgent inheritance
+
+class AgentLoreWriter:  # Placeholder for BaseAgent inheritance
     """Minimal Lore Writer Agent Scaffold."""
+
     def __init__(self, agent_id="LoreWriter", config=None):
         self.agent_id = agent_id
         # self.config = config or Config()
         # self.bus = AgentBus()
         self.lore_output_file = Path("runtime/logs/system_devlog.md")
         self.mailbox_dir = Path(f"runtime/agent_comms/agent_mailboxes/{agent_id}/inbox")
-        logger.info(f"{self.agent_id} initialized. Outputting lore to: {self.lore_output_file}")
+        logger.info(
+            f"{self.agent_id} initialized. Outputting lore to: {self.lore_output_file}"
+        )
         self.mailbox_dir.mkdir(parents=True, exist_ok=True)
 
     def check_mailbox(self):
@@ -35,16 +39,16 @@ class AgentLoreWriter: # Placeholder for BaseAgent inheritance
         instructions = []
         try:
             for item in self.mailbox_dir.iterdir():
-                if item.is_file() and item.suffix == '.json':
+                if item.is_file() and item.suffix == ".json":
                     try:
-                        with open(item, 'r') as f:
+                        with open(item, "r") as f:
                             content = json.load(f)
                         # Basic instruction check (adjust as needed)
                         if content.get("instruction_type") == "GENERATE_LORE":
                             instructions.append(content)
                         # TODO: Implement message deletion/archiving
                         logger.info(f"Processed instruction: {item.name}")
-                        item.unlink() # Simple deletion for now
+                        item.unlink()  # Simple deletion for now
                     except Exception as e:
                         logger.error(f"Error processing mailbox item {item.name}: {e}")
         except Exception as e:
@@ -57,10 +61,14 @@ class AgentLoreWriter: # Placeholder for BaseAgent inheritance
 
         if trigger_event:
             lore_entry += f"**Trigger Event:** {trigger_event.get('type', 'Unknown')}\n"
-            lore_entry += f"**Details:** {json.dumps(trigger_event.get('payload', {}))}\n"
+            lore_entry += (
+                f"**Details:** {json.dumps(trigger_event.get('payload', {}))}\n"
+            )
         elif instructions:
             lore_entry += f"**Instruction:** {instructions.get('description', 'Manual trigger')}\n"
-            lore_entry += f"**Payload:** {json.dumps(instructions.get('payload', {}))}\n"
+            lore_entry += (
+                f"**Payload:** {json.dumps(instructions.get('payload', {}))}\n"
+            )
         else:
             lore_entry += "**Trigger:** Periodic generation (stubbed)\n"
 
@@ -74,7 +82,7 @@ class AgentLoreWriter: # Placeholder for BaseAgent inheritance
     def write_lore(self, lore_entry):
         """Appends the generated lore entry to the output file."""
         try:
-            with open(self.lore_output_file, 'a', encoding='utf-8') as f:
+            with open(self.lore_output_file, "a", encoding="utf-8") as f:
                 f.write(lore_entry)
             logger.debug(f"Appended lore to {self.lore_output_file}")
         except Exception as e:
@@ -93,18 +101,22 @@ class AgentLoreWriter: # Placeholder for BaseAgent inheritance
             # 2. Placeholder for event bus listening or periodic generation
             # In a real agent, this would be driven by bus messages or timers.
             # For this scaffold, we'll just generate a periodic entry sometimes.
-            if random.random() < 0.1: # Simulate occasional periodic trigger
-                 lore = self.generate_lore()
-                 self.write_lore(lore)
+            if random.random() < 0.1:  # Simulate occasional periodic trigger
+                lore = self.generate_lore()
+                self.write_lore(lore)
             else:
-                 logger.info("No instructions or periodic trigger this cycle.")
+                logger.info("No instructions or periodic trigger this cycle.")
 
         logger.info("Lore Writer cycle finished.")
+
 
 # --- Standalone Execution (for testing scaffold) ---
 if __name__ == "__main__":
     import random
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     logger.info("Running AgentLoreWriter scaffold in standalone mode...")
     agent = AgentLoreWriter()
 
@@ -112,11 +124,11 @@ if __name__ == "__main__":
     instruction_payload = {
         "instruction_type": "GENERATE_LORE",
         "description": "Summarize recent task completions",
-        "payload": {"task_ids": ["TASK-A", "TASK-B"]}
+        "payload": {"task_ids": ["TASK-A", "TASK-B"]},
     }
     instruction_file = agent.mailbox_dir / "instruction_001.json"
     try:
-        with open(instruction_file, 'w') as f:
+        with open(instruction_file, "w") as f:
             json.dump(instruction_payload, f, indent=2)
         logger.info(f"Created dummy instruction file: {instruction_file}")
     except Exception as e:

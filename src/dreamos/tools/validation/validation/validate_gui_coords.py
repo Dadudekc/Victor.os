@@ -13,15 +13,18 @@ from typing import Any, Dict, Optional, Tuple
 # Try importing GUI libraries, warn if unavailable
 try:
     import pyautogui
-    import pyperclip
     import pygetwindow
+    import pyperclip
+
     GUI_AVAILABLE = True
 except ImportError:
     pyautogui = None
     pyperclip = None
     pygetwindow = None
     GUI_AVAILABLE = False
-    logging.warning("PyAutoGUI or PyGetWindow not found. GUI validation checks disabled.")
+    logging.warning(
+        "PyAutoGUI or PyGetWindow not found. GUI validation checks disabled."
+    )
 
 # EDIT START: Remove dummy OrchestratorBot fallback, require real import
 try:
@@ -259,7 +262,9 @@ def _validate_coord_structure(coords_data: Dict[str, Any], results: Dict[str, An
             )
 
 
-def _check_coord_proximity(coords_data: Dict[str, Any], results: Dict[str, Any], min_distance: float):
+def _check_coord_proximity(
+    coords_data: Dict[str, Any], results: Dict[str, Any], min_distance: float
+):
     """Checks if any coordinate pairs are too close together."""
     coords_list = [
         (name, data["x"], data["y"])
@@ -369,7 +374,7 @@ def main():
     parser.add_argument(
         "--agent-id",
         type=str,
-        default="Agent-1", # Keep a default for testing
+        default="Agent-1",  # Keep a default for testing
         help="Agent ID whose coordinates should be used for live injection test.",
     )
     parser.add_argument(
@@ -432,9 +437,13 @@ def main():
                 args.agent_id, agent_coords, args.window_title, args.force_unsafe_clicks
             )
             if response:
-                logging.info(f"Live injection test PASSED. Retrieved: '{response[:50]}...'")
+                logging.info(
+                    f"Live injection test PASSED. Retrieved: '{response[:50]}...'"
+                )
             else:
-                logging.error("Live injection test FAILED. Could not retrieve response.")
+                logging.error(
+                    "Live injection test FAILED. Could not retrieve response."
+                )
         else:
             logging.error("Live injection test FAILED during prompt injection.")
 

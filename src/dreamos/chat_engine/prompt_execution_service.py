@@ -52,8 +52,10 @@ class PromptExecutionService:
         Accepts an optional chat_context dictionary with metadata from the scraper.
         """
         logger.info(f"🚀 Executing prompt cycle using model '{self.model}'...")
-        
-        original_prompt_text = prompt_text # Preserve original for logging or comparison
+
+        original_prompt_text = (
+            prompt_text  # Preserve original for logging or comparison
+        )
 
         if chat_context:
             logger.info(f"🗒️ Received chat context: {chat_context}")
@@ -70,10 +72,14 @@ class PromptExecutionService:
             snippet = chat_context.get("snippet")
             if snippet:
                 # Potentially truncate snippet if too long
-                max_snippet_len = 150 # Configurable?
-                truncated_snippet = snippet[:max_snippet_len] + "..." if len(snippet) > max_snippet_len else snippet
-                context_strings.append(f"Previous Snippet: \"{truncated_snippet}\"")
-            
+                max_snippet_len = 150  # Configurable?
+                truncated_snippet = (
+                    snippet[:max_snippet_len] + "..."
+                    if len(snippet) > max_snippet_len
+                    else snippet
+                )
+                context_strings.append(f'Previous Snippet: "{truncated_snippet}"')
+
             if context_strings:
                 # Construct a clear, well-formatted context prefix
                 context_prefix = "[Chat Context Summary]\n"
@@ -82,11 +88,17 @@ class PromptExecutionService:
                 context_prefix += "[End Context Summary]\n\n"
 
                 prompt_text = context_prefix + original_prompt_text
-                logger.info(f"INFO: Augmented prompt with context. Original prompt start: '{original_prompt_text[:100]}...', New prompt start: '{prompt_text[:250]}...'")
+                logger.info(
+                    f"INFO: Augmented prompt with context. Original prompt start: '{original_prompt_text[:100]}...', New prompt start: '{prompt_text[:250]}...'"
+                )
             else:
-                logger.info("INFO: Chat context provided, but no fields (snippet, last_active_time) deemed suitable for direct prompt augmentation in this cycle.")
+                logger.info(
+                    "INFO: Chat context provided, but no fields (snippet, last_active_time) deemed suitable for direct prompt augmentation in this cycle."
+                )
         else:
-            logger.info("🗒️ No chat context provided for this cycle, using original prompt.")
+            logger.info(
+                "🗒️ No chat context provided for this cycle, using original prompt."
+            )
 
         # Send the prompt
         self._send_prompt(prompt_text)
@@ -114,14 +126,16 @@ class PromptExecutionService:
             # Pass chat_context to FeedbackEngine
             memory_update = self.feedback_engine.parse_and_update_memory(
                 response,
-                chat_context=chat_context # Pass the context here
-            ) 
+                chat_context=chat_context,  # Pass the context here
+            )
             if memory_update:
                 logger.info(f"🧠 Memory updated: {memory_update}")
 
         return response
 
-    def execute_prompts_single_chat(self, prompt_list: list, chat_context: dict = None) -> list:
+    def execute_prompts_single_chat(
+        self, prompt_list: list, chat_context: dict = None
+    ) -> list:
         """
         Executes a list of prompts in sequence on a single chat.
         Returns a list of responses.
@@ -132,7 +146,7 @@ class PromptExecutionService:
         )
         if chat_context:
             logger.info(f"🗒️ Using base chat context for sequence: {chat_context}")
-        
+
         responses = []
 
         for prompt_name in prompt_list:
@@ -180,7 +194,9 @@ class PromptExecutionService:
     # THREAD EXECUTION FOR SINGLE PROMPT
     # ----------------------------------------
 
-    def _execute_single_prompt_thread(self, chat_link, prompt_name, chat_context: dict = None):
+    def _execute_single_prompt_thread(
+        self, chat_link, prompt_name, chat_context: dict = None
+    ):
         """
         Executes a single prompt in its own thread.
         Accepts an optional chat_context dictionary.
@@ -190,7 +206,9 @@ class PromptExecutionService:
             logger.info(f"🗒️ [Thread] Received chat context: {chat_context}")
 
         prompt_text = self.get_prompt(prompt_name)
-        response = self.execute_prompt_cycle(prompt_text, chat_context=chat_context) # Pass context here too
+        response = self.execute_prompt_cycle(
+            prompt_text, chat_context=chat_context
+        )  # Pass context here too
 
         if not response:
             logger.warning(
@@ -202,9 +220,9 @@ class PromptExecutionService:
         if self.feedback_engine:
             # Pass chat_context to FeedbackEngine
             memory_update = self.feedback_engine.parse_and_update_memory(
-                response, 
-                chat_context=chat_context # Pass context here too
-            ) 
+                response,
+                chat_context=chat_context,  # Pass context here too
+            )
             if memory_update:
                 logger.info(f"🧠 [Thread] Memory updated: {memory_update}")
 
@@ -242,7 +260,9 @@ class PromptExecutionService:
         Sends a prompt to the active chat input field.
         """
         logger.info("💬 Locating input field to send prompt...")
-        logger.debug(f"Attempting to send prompt text: {prompt_text[:500]}... (potentially augmented)")
+        logger.debug(
+            f"Attempting to send prompt text: {prompt_text[:500]}... (potentially augmented)"
+        )
 
         try:
             # Locate the input text area
@@ -292,7 +312,7 @@ class PromptExecutionService:
     # Renaming this to match what ChatCycleController calls, and adding context
     def send_prompt_and_wait(self, prompt_text: str, chat_context: dict = None) -> str:
         """
-        Public wrapper for execute_prompt_cycle. 
+        Public wrapper for execute_prompt_cycle.
         This is the method intended to be called by external orchestrators like ChatCycleController.
         Accepts an optional chat_context dictionary.
         """

@@ -6,16 +6,13 @@ and dispatches it to various platforms using the appropriate strategies.
 import hashlib  # noqa: I001
 import json
 import logging
-import time
 from pathlib import Path
 from queue import Queue, Empty
 from threading import Thread
 from typing import Dict, List, Optional
-from unittest.mock import MagicMock
 from datetime import datetime, timedelta
 
 from dreamos.core.config import AppConfig, LinkedInConfig, TwitterConfig
-from dreamos.services.utils.logging_utils import get_logger
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -25,17 +22,19 @@ from apscheduler.triggers.date import DateTrigger
 # FIXME: If these strategies are not found, the dispatcher will not function.
 try:
     from dreamos.core.strategies.twitter_strategy import TwitterStrategy
+
     TWITTER_STRATEGY_AVAILABLE = True
 except ImportError:
-    TwitterStrategy = None # type: ignore
+    TwitterStrategy = None  # type: ignore
     TWITTER_STRATEGY_AVAILABLE = False
     logger.error("TwitterStrategy not found. Twitter dispatching will be disabled.")
 
 try:
     from dreamos.core.strategies.linkedin_strategy import LinkedInStrategy
+
     LINKEDIN_STRATEGY_AVAILABLE = True
 except ImportError:
-    LinkedInStrategy = None # type: ignore
+    LinkedInStrategy = None  # type: ignore
     LINKEDIN_STRATEGY_AVAILABLE = False
     logger.error("LinkedInStrategy not found. LinkedIn dispatching will be disabled.")
 
@@ -43,9 +42,10 @@ except ImportError:
 # FIXME: Ensure DevLogAnalyzer is correctly located and its dependencies (like pandas) are managed.
 try:
     from dreamos.services.utils.devlog_analyzer import DevLogAnalyzer
+
     ANALYZER_AVAILABLE = True
 except ImportError:
-    DevLogAnalyzer = None # type: ignore
+    DevLogAnalyzer = None  # type: ignore
     ANALYZER_AVAILABLE = False
     logger.error("DevLogAnalyzer not found. Analytics features will be disabled.")
 
@@ -59,7 +59,7 @@ class ContentHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.is_directory:
             return
-        
+
         # Put a dictionary or a simple tuple/object identifying type and path
         item = None
         if event.src_path.endswith(".md"):
@@ -68,7 +68,7 @@ class ContentHandler(FileSystemEventHandler):
         elif event.src_path.endswith("-posts.json"):
             logger.info(f"New social content detected by handler: {event.src_path}")
             item = {"type": "social", "path": event.src_path}
-        
+
         if item:
             try:
                 self.dispatcher.content_queue.put(item)
@@ -107,11 +107,11 @@ class DevLogDispatcher:
         self.social_dir.mkdir(parents=True, exist_ok=True)
 
         self.strategies = self._initialize_strategies()
-        
+
         if ANALYZER_AVAILABLE and DevLogAnalyzer is not None:
             self.analyzer = DevLogAnalyzer(config=config)
         else:
-            self.analyzer = None # type: ignore
+            self.analyzer = None  # type: ignore
             logger.warning("DevLogAnalyzer not available, analytics will be limited.")
 
         self.published: Dict[str, set] = {
@@ -141,7 +141,13 @@ class DevLogDispatcher:
         twitter_conf: Optional[TwitterConfig] = getattr(
             self.config.integrations, "twitter", None
         )
-        if TWITTER_STRATEGY_AVAILABLE and TwitterStrategy is not None and twitter_conf and twitter_conf.api_key and twitter_conf.api_secret_key:
+        if (
+            TWITTER_STRATEGY_AVAILABLE
+            and TwitterStrategy is not None
+            and twitter_conf
+            and twitter_conf.api_key
+            and twitter_conf.api_secret_key
+        ):
             try:
                 strategies["twitter"] = TwitterStrategy(**twitter_conf.dict())
                 logger.info("TwitterStrategy initialized.")
@@ -157,7 +163,13 @@ class DevLogDispatcher:
         linkedin_conf: Optional[LinkedInConfig] = getattr(
             self.config.integrations, "linkedin", None
         )
-        if LINKEDIN_STRATEGY_AVAILABLE and LinkedInStrategy is not None and linkedin_conf and linkedin_conf.client_id and linkedin_conf.client_secret:
+        if (
+            LINKEDIN_STRATEGY_AVAILABLE
+            and LinkedInStrategy is not None
+            and linkedin_conf
+            and linkedin_conf.client_id
+            and linkedin_conf.client_secret
+        ):
             try:
                 strategies["linkedin"] = LinkedInStrategy(**linkedin_conf.dict())
                 logger.info("LinkedInStrategy initialized.")
@@ -188,7 +200,9 @@ class DevLogDispatcher:
         self.observer.schedule(self.handler, str(self.posts_dir), recursive=False)
         self.observer.schedule(self.handler, str(self.social_dir), recursive=True)
         self.observer.start()
-        logger.info(f"Started watching for new content in {self.posts_dir} and {self.social_dir}")
+        logger.info(
+            f"Started watching for new content in {self.posts_dir} and {self.social_dir}"
+        )
 
         # Start the content queue worker thread
         self.worker_thread = Thread(target=self._process_content_queue, daemon=True)
@@ -207,7 +221,7 @@ class DevLogDispatcher:
             self.observer.stop()
             self.observer.join()
             logger.info("Watchdog observer stopped.")
-        
+
         if self.scheduler.running:
             try:
                 self.scheduler.shutdown()
@@ -216,10 +230,12 @@ class DevLogDispatcher:
                 logger.error(f"Error shutting down APScheduler: {e}")
 
         if self.worker_thread and self.worker_thread.is_alive():
-            logger.info("Stopping content queue worker thread... (will process remaining items if queue is not empty)")
+            logger.info(
+                "Stopping content queue worker thread... (will process remaining items if queue is not empty)"
+            )
             self.content_queue.put(None)
             self.worker_thread.join(timeout=10)
-        
+
         logger.info("DevLog Dispatcher stopped.")
 
     def _process_content_queue(self):
@@ -231,7 +247,7 @@ class DevLogDispatcher:
                 if item is None:
                     logger.info("Content queue worker received stop signal.")
                     break
-                
+
                 content_type = item.get("type")
                 content_path = item.get("path")
 
@@ -241,12 +257,14 @@ class DevLogDispatcher:
                     self.handle_new_social_content(content_path)
                 else:
                     logger.warning(f"Unknown content type in queue: {content_type}")
-                
+
                 self.content_queue.task_done()
             except Empty:
                 continue
             except Exception as e:
-                logger.error(f"Error processing item from content queue: {e}", exc_info=True)
+                logger.error(
+                    f"Error processing item from content queue: {e}", exc_info=True
+                )
         logger.info("Content queue worker finished.")
 
     def handle_new_blog_post(self, post_path: str):

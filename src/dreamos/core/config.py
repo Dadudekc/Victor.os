@@ -5,6 +5,7 @@ This module defines the Pydantic models for various configuration sections,
 manages loading settings from YAML files and environment variables, and provides
 centralized access to application configuration.
 """
+
 # core/config.py
 # EDIT START: Add print at the very beginning of the file
 print("DEBUG: dreamos.core.config.py - Top of file executing", flush=True)
@@ -12,7 +13,7 @@ print("DEBUG: dreamos.core.config.py - Top of file executing", flush=True)
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 import yaml
 from pydantic import (
@@ -21,7 +22,6 @@ from pydantic import (
     FilePath,
     SecretStr,
     model_validator,
-    field_validator,
 )
 from pydantic_settings import (
     BaseSettings,
@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 # Setup basic logging config if not already configured elsewhere (e.g., at entry point)
 # logging.basicConfig(level=logging.INFO)
 
+
 # --- Function to find project root robustly ---
 def find_project_root_marker(marker: str = ".git") -> Path:
     """Find the project root by searching upwards for a marker file/directory."""
@@ -49,31 +50,46 @@ def find_project_root_marker(marker: str = ".git") -> Path:
         if (current_dir / marker).exists():
             return current_dir
         current_dir = current_dir.parent
-    raise FileNotFoundError(f"Project root marker '{marker}' not found starting from {__file__}")
+    raise FileNotFoundError(
+        f"Project root marker '{marker}' not found starting from {__file__}"
+    )
+
 
 # --- Determine Project Root --- #
 try:
     PROJECT_ROOT = find_project_root_marker()
     # EDIT START: Add print after PROJECT_ROOT determination
-    print(f"DEBUG: dreamos.core.config.py - PROJECT_ROOT determined: {PROJECT_ROOT}", flush=True)
+    print(
+        f"DEBUG: dreamos.core.config.py - PROJECT_ROOT determined: {PROJECT_ROOT}",
+        flush=True,
+    )
     # EDIT END
 except FileNotFoundError as e:
-    logger.error(f"Failed to find project root automatically: {e}. Falling back to relative path.")
+    logger.error(
+        f"Failed to find project root automatically: {e}. Falling back to relative path."
+    )
     PROJECT_ROOT = Path(__file__).resolve().parents[3]
     # EDIT START: Add print after fallback PROJECT_ROOT determination
-    print(f"DEBUG: dreamos.core.config.py - PROJECT_ROOT fallback: {PROJECT_ROOT}", flush=True)
+    print(
+        f"DEBUG: dreamos.core.config.py - PROJECT_ROOT fallback: {PROJECT_ROOT}",
+        flush=True,
+    )
     # EDIT END
 
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
 # EDIT START: Add print after DEFAULT_CONFIG_PATH determination
-print(f"DEBUG: dreamos.core.config.py - DEFAULT_CONFIG_PATH: {DEFAULT_CONFIG_PATH}", flush=True)
+print(
+    f"DEBUG: dreamos.core.config.py - DEFAULT_CONFIG_PATH: {DEFAULT_CONFIG_PATH}",
+    flush=True,
+)
 # EDIT END
 
 # --- Pydantic Models for Config Structure ---
 
 # Import moved config models
-from dreamscape.config import DreamscapeConfig
 from dreamos.automation.config import GuiAutomationConfig
+from dreamscape.config import DreamscapeConfig
+
 
 class LoggingConfig(BaseModel):
     level: str = Field("INFO", description="Logging level (e.g., DEBUG, INFO, WARNING)")
@@ -86,9 +102,9 @@ class LoggingConfig(BaseModel):
         """Resolves the log directory path, creating it if necessary."""
         # Use the passed project_root argument directly
         root = project_root
-        
+
         # Safely access log_dir attribute
-        custom_log_dir_value = getattr(self, 'log_dir', None)
+        custom_log_dir_value = getattr(self, "log_dir", None)
 
         if custom_log_dir_value:
             log_path = Path(custom_log_dir_value)
@@ -135,27 +151,51 @@ class PathsConfig(BaseModel):
     )
     # Paths identified during configuration management refactoring (TASK-REFACTOR-CONFIG-PATHS-001)
     # Define path for cursor state file (used in dreamos.services.utils.cursor)
-    cursor_state_path: Optional[Path] = Field(None, description="Path to the cursor state JSON file.")
+    cursor_state_path: Optional[Path] = Field(
+        None, description="Path to the cursor state JSON file."
+    )
     # Define path for task memory layer file (used in dreamos.memory.layers.task_memory_layer)
-    task_memory_path: Optional[Path] = Field(None, description="Path to the task memory JSON file.")
+    task_memory_path: Optional[Path] = Field(
+        None, description="Path to the task memory JSON file."
+    )
     # Define path for failed prompt archive (used in dreamos.services.failed_prompt_archive)
-    failed_prompt_archive_path: Optional[Path] = Field(None, description="Path to the failed prompt archive JSON file.")
+    failed_prompt_archive_path: Optional[Path] = Field(
+        None, description="Path to the failed prompt archive JSON file."
+    )
     # Define path for persistent memory (used in legacy dreamos.chat_engine.feedback_engine)
-    persistent_memory_path: Optional[Path] = Field(None, description="Path to the persistent memory JSON file (legacy FeedbackEngine).")
+    persistent_memory_path: Optional[Path] = Field(
+        None,
+        description="Path to the persistent memory JSON file (legacy FeedbackEngine).",
+    )
     # Define path for feedback log (used in legacy dreamos.chat_engine.feedback_engine)
-    feedback_log_path: Optional[Path] = Field(None, description="Path to the feedback log JSON file (legacy FeedbackEngine).")
+    feedback_log_path: Optional[Path] = Field(
+        None, description="Path to the feedback log JSON file (legacy FeedbackEngine)."
+    )
     # Define path for context memory (used in legacy dreamos.chat_engine.feedback_engine)
-    context_memory_path: Optional[Path] = Field(None, description="Path to the context memory JSON file (legacy FeedbackEngine).")
+    context_memory_path: Optional[Path] = Field(
+        None,
+        description="Path to the context memory JSON file (legacy FeedbackEngine).",
+    )
     # Define path for GUI validation output (used in tools/validation/validate_gui_coords.py)
-    gui_validation_output_path: Optional[Path] = Field(None, description="Path for GUI coordinate validation results JSON.")
+    gui_validation_output_path: Optional[Path] = Field(
+        None, description="Path for GUI coordinate validation results JSON."
+    )
     # Define path for scanner cache (used in dreamos.tools.analysis.project_scanner)
-    scanner_cache_path: Optional[Path] = Field(None, description="Path to the project scanner dependency cache JSON file.")
+    scanner_cache_path: Optional[Path] = Field(
+        None, description="Path to the project scanner dependency cache JSON file."
+    )
     # Define path for analysis output (used in dreamos.tools.analysis.project_scanner)
-    analysis_output_path: Optional[Path] = Field(None, description="Path for the main project analysis JSON report.")
+    analysis_output_path: Optional[Path] = Field(
+        None, description="Path for the main project analysis JSON report."
+    )
     # Define path for ChatGPT context output (used in dreamos.tools.analysis.project_scanner)
-    chatgpt_context_output_path: Optional[Path] = Field(None, description="Path for the ChatGPT context JSON export.")
+    chatgpt_context_output_path: Optional[Path] = Field(
+        None, description="Path for the ChatGPT context JSON export."
+    )
     # Define path for completed tasks (used in dreamos.reporting.scoring_analyzer)
-    completed_tasks_path: Optional[Path] = Field(None, description="Path to the completed tasks JSON file for reporting.")
+    completed_tasks_path: Optional[Path] = Field(
+        None, description="Path to the completed tasks JSON file for reporting."
+    )
 
     # NOTE: GUI coords input path is handled under GuiAutomationConfig below
 
@@ -296,15 +336,36 @@ class OrchestratorConfig(BaseModel):
 
 # EDIT START: Add PyAutoGUIBridgeConfig Model (as proposed in API doc)
 class PyAutoGUIBridgeConfig(BaseModel):
-    default_confidence: float = Field(0.9, description="Default confidence for image matching.")
-    default_timeout_seconds: float = Field(10.0, description="Default timeout for finding elements.")
-    default_retry_attempts: int = Field(3, description="Default retry attempts for failing PyAutoGUI actions.")
-    default_retry_delay_seconds: float = Field(0.5, description="Default delay between retries.")
-    type_interval_seconds: float = Field(0.01, description="Default interval between keystrokes for typing.")
-    image_assets_path: str = Field("runtime/assets/bridge_gui_snippets/", description="Path to image assets for the bridge, relative to project root.")
-    clipboard_wait_timeout: float = Field(5.0, description="Timeout in seconds to wait for clipboard content to update after a copy action.")
-    pause_before_action: float = Field(0.1, description="Default pause in seconds before performing a GUI action like click.")
+    default_confidence: float = Field(
+        0.9, description="Default confidence for image matching."
+    )
+    default_timeout_seconds: float = Field(
+        10.0, description="Default timeout for finding elements."
+    )
+    default_retry_attempts: int = Field(
+        3, description="Default retry attempts for failing PyAutoGUI actions."
+    )
+    default_retry_delay_seconds: float = Field(
+        0.5, description="Default delay between retries."
+    )
+    type_interval_seconds: float = Field(
+        0.01, description="Default interval between keystrokes for typing."
+    )
+    image_assets_path: str = Field(
+        "runtime/assets/bridge_gui_snippets/",
+        description="Path to image assets for the bridge, relative to project root.",
+    )
+    clipboard_wait_timeout: float = Field(
+        5.0,
+        description="Timeout in seconds to wait for clipboard content to update after a copy action.",
+    )
+    pause_before_action: float = Field(
+        0.1,
+        description="Default pause in seconds before performing a GUI action like click.",
+    )
     # Add other specific settings as needed
+
+
 # EDIT END
 
 
@@ -323,7 +384,9 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
     def __init__(
         self,
         settings_cls: type[BaseSettings],
-        yaml_file: Optional[Path] = None, # This is the default path from settings_customise_sources
+        yaml_file: Optional[
+            Path
+        ] = None,  # This is the default path from settings_customise_sources
         yaml_file_encoding: Optional[str] = None,
     ):
         super().__init__(settings_cls)
@@ -334,12 +397,12 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
 
     def _load_config(self) -> dict[str, Any]:
         # Determine the config file to load.
-        # Priority: 
+        # Priority:
         # 1. DREAMOS_CONFIG_PATH environment variable (set by AppConfig.load for specific files).
         # 2. self.default_config_file_path (provided during __init__, typically DEFAULT_CONFIG_PATH).
-        
+
         env_config_path_str = os.environ.get("DREAMOS_CONFIG_PATH")
-        
+
         load_path: Optional[Path] = None
         # Use the instance's default encoding if set, otherwise fallback to utf-8
         encoding_to_use: str = self.default_config_file_encoding or "utf-8"
@@ -353,7 +416,9 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
         else:
             # This case should ideally not be reached if DEFAULT_CONFIG_PATH is always valid
             # and AppConfig.load ensures a path when calling the AppConfig constructor.
-            logger.warning("YamlConfigSettingsSource: No YAML file path specified (no env var, no default path from init). Returning empty dict.")
+            logger.warning(
+                "YamlConfigSettingsSource: No YAML file path specified (no env var, no default path from init). Returning empty dict."
+            )
             return {}
 
         # Ensure load_path is a Path object if it was derived from string (already handled by Path() above)
@@ -361,31 +426,45 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
         #     load_path = Path(load_path)
 
         if not load_path.exists():
-            logger.warning(f"YamlConfigSettingsSource: Config file '{load_path}' not found.")
+            logger.warning(
+                f"YamlConfigSettingsSource: Config file '{load_path}' not found."
+            )
             raise ConfigurationError(f"Config file not found: {load_path}")
 
         try:
             with open(load_path, "r", encoding=encoding_to_use) as f:
                 config_data = yaml.safe_load(f)
-            
-            if config_data is None: # Handle empty YAML file case
-                logger.warning(f"Config file '{load_path}' is empty. Returning empty dict.")
-                return {} 
+
+            if config_data is None:  # Handle empty YAML file case
+                logger.warning(
+                    f"Config file '{load_path}' is empty. Returning empty dict."
+                )
+                return {}
 
             if not isinstance(config_data, dict):
-                logger.error(f"Config file '{load_path}' content is not a valid dictionary.")
-                raise ConfigurationError(f"Config file is not a valid dictionary: {load_path}")
-            
+                logger.error(
+                    f"Config file '{load_path}' content is not a valid dictionary."
+                )
+                raise ConfigurationError(
+                    f"Config file is not a valid dictionary: {load_path}"
+                )
+
             logger.info(f"Loaded configuration from YAML file: {load_path}")
             return config_data
         except yaml.YAMLError as e:
             logger.error(f"Error parsing YAML file '{load_path}': {e}", exc_info=True)
-            raise ConfigurationError(f"Failed to load config due to YAML parsing error in {load_path}: {e}") from e
-        except ConfigurationError: 
+            raise ConfigurationError(
+                f"Failed to load config due to YAML parsing error in {load_path}: {e}"
+            ) from e
+        except ConfigurationError:
             raise
         except Exception as e:
-            logger.error(f"Unexpected error loading YAML file '{load_path}': {e}", exc_info=True)
-            raise ConfigurationError(f"Unexpected error loading config file {load_path}: {e}") from e
+            logger.error(
+                f"Unexpected error loading YAML file '{load_path}': {e}", exc_info=True
+            )
+            raise ConfigurationError(
+                f"Unexpected error loading config file {load_path}: {e}"
+            ) from e
 
     def get_field_value(self, field: Any, field_name: str) -> tuple[Any, str, bool]:
         # This method is not strictly needed if __call__ loads the whole file
@@ -394,7 +473,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
         # Returning None indicates the source doesn't provide this specific field directly.
         config = self._load_config()
         field_value = config.get(field_name)
-        return field_value, field_name, False # Assume value isn't complex here
+        return field_value, field_name, False  # Assume value isn't complex here
 
     def prepare_field_value(
         self, field_name: str, field: Any, value: Any, value_is_complex: bool
@@ -406,6 +485,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
         """Load and return the entire config dictionary from the YAML file."""
         return self._load_config()
 
+
 # --- End Moved YAML Source Class Definition ---
 
 
@@ -414,42 +494,90 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
 class BasePolicyConfig(BaseModel):
     enabled: bool = Field(True, description="Whether this policy is active.")
     file_pattern: Optional[str] = Field(
-        None, description="Glob pattern to match specific files (e.g., '*.log', 'chat_history*'). None matches all."
+        None,
+        description="Glob pattern to match specific files (e.g., '*.log', 'chat_history*'). None matches all.",
     )
-    compress_after_processing: bool = Field(False, description="Compress the output file (e.g., with zlib) after processing.")
-    delete_original_after_processing: bool = Field(False, description="Delete the original file after successful processing.")
+    compress_after_processing: bool = Field(
+        False,
+        description="Compress the output file (e.g., with zlib) after processing.",
+    )
+    delete_original_after_processing: bool = Field(
+        False, description="Delete the original file after successful processing."
+    )
+
 
 class CompactionPolicyConfig(BasePolicyConfig):
-    compaction_strategy: str = Field("default", description="Strategy for compaction (e.g., 'default', 'json_collate').")
-    max_file_size_kb: Optional[int] = Field(None, description="Trigger compaction if file size exceeds this limit.")
-    max_entry_count: Optional[int] = Field(None, description="Trigger compaction if entry count exceeds this limit.")
-    min_age_hours: Optional[float] = Field(None, description="Only compact files older than this many hours.")
+    compaction_strategy: str = Field(
+        "default",
+        description="Strategy for compaction (e.g., 'default', 'json_collate').",
+    )
+    max_file_size_kb: Optional[int] = Field(
+        None, description="Trigger compaction if file size exceeds this limit."
+    )
+    max_entry_count: Optional[int] = Field(
+        None, description="Trigger compaction if entry count exceeds this limit."
+    )
+    min_age_hours: Optional[float] = Field(
+        None, description="Only compact files older than this many hours."
+    )
+
 
 # RENAME SummarizationPolicyConfig to SummarizationConfig
-class SummarizationConfig(BasePolicyConfig): # Renamed from SummarizationPolicyConfig
-    trigger_threshold_entries: int = Field(200, description="Minimum entries before summarization is triggered.")
-    summarize_n_oldest: int = Field(50, description="Number of oldest entries to summarize in one go.")
-    min_chunk_size: int = Field(10, description="Minimum number of entries required to form a chunk for summarization.")
-    summarization_model_name: Optional[str] = Field(None, description="Specific AI model to use for summarization (overrides default).")
-    target_summary_length_tokens: Optional[int] = Field(None, description="Target length for the summary.")
-    summarization_prompt_template: Optional[str] = Field(None, description="Custom prompt template name for summarization.")
+class SummarizationConfig(BasePolicyConfig):  # Renamed from SummarizationPolicyConfig
+    trigger_threshold_entries: int = Field(
+        200, description="Minimum entries before summarization is triggered."
+    )
+    summarize_n_oldest: int = Field(
+        50, description="Number of oldest entries to summarize in one go."
+    )
+    min_chunk_size: int = Field(
+        10,
+        description="Minimum number of entries required to form a chunk for summarization.",
+    )
+    summarization_model_name: Optional[str] = Field(
+        None,
+        description="Specific AI model to use for summarization (overrides default).",
+    )
+    target_summary_length_tokens: Optional[int] = Field(
+        None, description="Target length for the summary."
+    )
+    summarization_prompt_template: Optional[str] = Field(
+        None, description="Custom prompt template name for summarization."
+    )
     # REMOVED: type field as it might not belong here if SummarizationConfig is the intended name
     # type: str = Field("default", description="Policy type identifier, mainly for config clarity.") # Added based on test usage
-    summarization_chunk_size: int = Field(50, description="Alias/duplicate for summarize_n_oldest for compatibility?") # Added based on test usage
+    summarization_chunk_size: int = Field(
+        50, description="Alias/duplicate for summarize_n_oldest for compatibility?"
+    )  # Added based on test usage
+
 
 # Config for agent-specific overrides - Update reference
 class AgentMemoryPolicyOverride(BaseModel):
     compaction_policies: List[CompactionPolicyConfig] = Field(default_factory=list)
-    summarization_policies: List[SummarizationConfig] = Field(default_factory=list) # Updated reference
+    summarization_policies: List[SummarizationConfig] = Field(
+        default_factory=list
+    )  # Updated reference
+
 
 # Main config block for memory maintenance service - Update reference
 class MemoryMaintenanceConfig(BaseModel):
     enabled: bool = Field(True, description="Enable the memory maintenance service.")
-    schedule_interval_minutes: int = Field(60, description="How often the maintenance job runs.")
-    snapshot_base_path_override: Optional[str] = Field(None, description="Override the base path for agent memory snapshots.")
-    default_compaction_policies: List[CompactionPolicyConfig] = Field(default_factory=list)
-    default_summarization_policies: List[SummarizationConfig] = Field(default_factory=list) # Updated reference
-    agent_policy_overrides: Dict[str, AgentMemoryPolicyOverride] = Field(default_factory=dict)
+    schedule_interval_minutes: int = Field(
+        60, description="How often the maintenance job runs."
+    )
+    snapshot_base_path_override: Optional[str] = Field(
+        None, description="Override the base path for agent memory snapshots."
+    )
+    default_compaction_policies: List[CompactionPolicyConfig] = Field(
+        default_factory=list
+    )
+    default_summarization_policies: List[SummarizationConfig] = Field(
+        default_factory=list
+    )  # Updated reference
+    agent_policy_overrides: Dict[str, AgentMemoryPolicyOverride] = Field(
+        default_factory=dict
+    )
+
 
 # --- End Memory Maintenance Policies ---
 
@@ -457,15 +585,26 @@ class MemoryMaintenanceConfig(BaseModel):
 # --- EDIT START: Add AgentPointsSystemConfig ---
 class AgentPointsSystemConfig(BaseModel):
     """Configuration for the agent points system."""
-    point_values: Dict[str, int] = Field(default_factory=dict, description="Specific point values for various event keys.")
-    # --- Add new fields for captaincy check --- 
-    captaincy_check_interval_minutes: int = Field(15, description="How often (in minutes) to check for captaincy changes.")
-    captain_status_file: str = Field("runtime/governance/current_captain.txt", description="Path relative to project root to store the current captain\'s ID.")
+
+    point_values: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Specific point values for various event keys.",
+    )
+    # --- Add new fields for captaincy check ---
+    captaincy_check_interval_minutes: int = Field(
+        15, description="How often (in minutes) to check for captaincy changes."
+    )
+    captain_status_file: str = Field(
+        "runtime/governance/current_captain.txt",
+        description="Path relative to project root to store the current captain's ID.",
+    )
     # --- End new fields ---
 
     class Config:
         anystr_strip_whitespace = True
-        extra = 'ignore'
+        extra = "ignore"
+
+
 # --- EDIT END ---
 
 
@@ -479,7 +618,9 @@ class AppConfig(BaseSettings):
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
     gui_automation: Optional[GuiAutomationConfig] = None
-    pyautogui_bridge: PyAutoGUIBridgeConfig = Field(default_factory=PyAutoGUIBridgeConfig)
+    pyautogui_bridge: PyAutoGUIBridgeConfig = Field(
+        default_factory=PyAutoGUIBridgeConfig
+    )
     orchestrator: OrchestratorConfig = Field(default_factory=OrchestratorConfig)
     swarm: SwarmConfig = Field(default_factory=SwarmConfig)
     integrations: IntegrationsConfig = Field(default_factory=IntegrationsConfig)
@@ -487,20 +628,24 @@ class AppConfig(BaseSettings):
         default_factory=HealthCheckConfig
     )  # ADD health_checks field
     monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
-    memory_maintenance: MemoryMaintenanceConfig = Field(default_factory=MemoryMaintenanceConfig) # This reference is now correct
-    
+    memory_maintenance: MemoryMaintenanceConfig = Field(
+        default_factory=MemoryMaintenanceConfig
+    )  # This reference is now correct
+
     # --- EDIT START: Add agent_points_system field ---
-    agent_points_system: Optional[AgentPointsSystemConfig] = Field(None, description="Configuration for the Agent Points System")
+    agent_points_system: Optional[AgentPointsSystemConfig] = Field(
+        None, description="Configuration for the Agent Points System"
+    )
     # --- EDIT END ---
 
     project_root_internal: Path = Field(exclude=True, default_factory=Path.cwd)
 
     # Configuration loading behavior
     model_config = SettingsConfigDict(
-        env_prefix="DREAMOS_", # Prefix for environment variables
-        env_nested_delimiter='__',
+        env_prefix="DREAMOS_",  # Prefix for environment variables
+        env_nested_delimiter="__",
         validate_assignment=True,
-        extra='ignore', # Allow extra fields in config files initially, then validate
+        extra="ignore",  # Allow extra fields in config files initially, then validate
         # Removed yaml_file from here as it's handled by settings_customise_sources
         # yaml_file=DEFAULT_CONFIG_PATH, # Default YAML file to load
         # yaml_file_encoding='utf-8',
@@ -531,12 +676,14 @@ class AppConfig(BaseSettings):
         if yaml_file_from_model_config_str:
             path_for_yaml_source = Path(yaml_file_from_model_config_str)
             # logger.debug(f"Using yaml_file from model_config: {path_for_yaml_source}")
-        elif DEFAULT_CONFIG_PATH: # Fallback to module-level default if nothing in model_config
+        elif (
+            DEFAULT_CONFIG_PATH
+        ):  # Fallback to module-level default if nothing in model_config
             path_for_yaml_source = Path(DEFAULT_CONFIG_PATH)
             # logger.debug(f"Using module-level DEFAULT_CONFIG_PATH: {path_for_yaml_source}")
         else:
             # logger.debug("No yaml_file in model_config and no DEFAULT_CONFIG_PATH.")
-            pass # path_for_yaml_source remains None
+            pass  # path_for_yaml_source remains None
 
         # Default encoding
         yaml_encoding = settings_cls.model_config.get("yaml_file_encoding", "utf-8")
@@ -544,15 +691,15 @@ class AppConfig(BaseSettings):
         # logger.debug(f"Final path for YamlConfigSettingsSource: {path_for_yaml_source}, encoding: {yaml_encoding}")
 
         return (
-            init_settings,    # Values provided to __init__ directly (highest priority after custom sources)
-            env_settings,     # Environment variables
+            init_settings,  # Values provided to __init__ directly (highest priority after custom sources)
+            env_settings,  # Environment variables
             dotenv_settings,  # .env file
-            YamlConfigSettingsSource( # Our custom YAML source
+            YamlConfigSettingsSource(  # Our custom YAML source
                 settings_cls,
-                yaml_file=path_for_yaml_source, 
+                yaml_file=path_for_yaml_source,
                 yaml_file_encoding=yaml_encoding,
             ),
-            file_secret_settings, # Secrets files (lowest priority among file/env based)
+            file_secret_settings,  # Secrets files (lowest priority among file/env based)
         )
 
     # Ensure paths are absolute after loading (Pydantic v2 uses model_post_init)
@@ -584,47 +731,55 @@ class AppConfig(BaseSettings):
 
         return self
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def _determine_project_root(cls, data: Any) -> Any:
         if isinstance(data, dict):
             # Update reference from _project_root to project_root_internal
-            if 'config_file_path' in data:
-                 config_file = Path(data['config_file_path']).resolve()
-                 if "runtime/config" in str(config_file.parent):
-                      # Set the internal field name
-                      data['project_root_internal'] = config_file.parent.parent.parent
-                 else:
-                      data['project_root_internal'] = config_file.parent # Fallback
+            if "config_file_path" in data:
+                config_file = Path(data["config_file_path"]).resolve()
+                if "runtime/config" in str(config_file.parent):
+                    # Set the internal field name
+                    data["project_root_internal"] = config_file.parent.parent.parent
+                else:
+                    data["project_root_internal"] = config_file.parent  # Fallback
             else:
-                 data['project_root_internal'] = Path.cwd()
+                data["project_root_internal"] = Path.cwd()
             # Update log message if desired
-            logger.info(f"Determined project root (internal): {data['project_root_internal']}")
+            logger.info(
+                f"Determined project root (internal): {data['project_root_internal']}"
+            )
         return data
 
-    @model_validator(mode='after')
-    def _inject_project_root(self) -> 'AppConfig':
+    @model_validator(mode="after")
+    def _inject_project_root(self) -> "AppConfig":
         """Injects the determined project root into nested models."""
         # Update references from _project_root to project_root_internal
-        if hasattr(self.paths, '_project_root'): # Check if nested model expects old name (should be updated too ideally)
+        if hasattr(
+            self.paths, "_project_root"
+        ):  # Check if nested model expects old name (should be updated too ideally)
             # Ideally, nested models also wouldn't expect leading underscore
             # Assuming PathsConfig might still need project_root internally:
-            self.paths.project_root = self.project_root_internal # Inject into the public field
+            self.paths.project_root = (
+                self.project_root_internal
+            )  # Inject into the public field
         else:
-             # If PathsConfig has been updated to use project_root_internal or similar:
-             # self.paths.project_root_internal = self.project_root_internal
-             # For now, inject into the public field defined in PathsConfig
-             self.paths.project_root = self.project_root_internal
+            # If PathsConfig has been updated to use project_root_internal or similar:
+            # self.paths.project_root_internal = self.project_root_internal
+            # For now, inject into the public field defined in PathsConfig
+            self.paths.project_root = self.project_root_internal
 
-        if hasattr(self.logging, '_project_root'): # Check if LoggingConfig expects old name
-             # self.logging._project_root = self.project_root_internal # Original pattern, but _project_root isn't defined on LoggingConfig
-             # LoggingConfig needs project_root passed to its resolve_log_dir method
-             # This injection logic might be redundant if resolve_log_dir uses the main config's root correctly.
-             # Keep for now, but review nested models.
-             pass # No direct field injection needed here based on current LoggingConfig structure
-        
+        if hasattr(
+            self.logging, "_project_root"
+        ):  # Check if LoggingConfig expects old name
+            # self.logging._project_root = self.project_root_internal # Original pattern, but _project_root isn't defined on LoggingConfig
+            # LoggingConfig needs project_root passed to its resolve_log_dir method
+            # This injection logic might be redundant if resolve_log_dir uses the main config's root correctly.
+            # Keep for now, but review nested models.
+            pass  # No direct field injection needed here based on current LoggingConfig structure
+
         # Inject into other nested configs as needed
-        self._ensure_dirs_exist() # Call ensure_dirs after root is set
+        self._ensure_dirs_exist()  # Call ensure_dirs after root is set
         return self
 
     @classmethod
@@ -634,9 +789,9 @@ class AppConfig(BaseSettings):
         if config_file:
             config_path = Path(config_file)
             if not config_path.is_absolute():
-                 # Assume relative to CWD if not absolute? Or project root?
-                 # Let's assume CWD for now, but project root might be better
-                 config_path = Path.cwd() / config_file
+                # Assume relative to CWD if not absolute? Or project root?
+                # Let's assume CWD for now, but project root might be better
+                config_path = Path.cwd() / config_file
 
             if not config_path.exists():
                 raise CoreConfigurationError(f"Config file not found: {config_path}")
@@ -648,7 +803,7 @@ class AppConfig(BaseSettings):
             raise CoreConfigurationError("Config file path must be provided.")
 
         try:
-            import yaml # Import here to avoid making it a hard dependency if not used
+            import yaml  # Import here to avoid making it a hard dependency if not used
 
             with open(config_path, "r") as f:
                 config_data = yaml.safe_load(f)
@@ -656,7 +811,7 @@ class AppConfig(BaseSettings):
                 raise CoreConfigurationError("Config file is not a valid dictionary.")
 
             # Pass path to validator
-            config_data['config_file_path'] = str(config_path)
+            config_data["config_file_path"] = str(config_path)
 
             # Potential issue: If validation fails, AppConfig might not be fully initialized
             # Consider if ensure_dirs should happen *after* full validation or be more resilient
@@ -664,9 +819,11 @@ class AppConfig(BaseSettings):
             # self._ensure_dirs_exist() # Moved to validator
             return instance
         except ImportError:
-             raise CoreConfigurationError("PyYAML is required to load config files.")
+            raise CoreConfigurationError("PyYAML is required to load config files.")
         except Exception as e:
-            raise CoreConfigurationError(f"Failed to load config from {config_path}: {e}") from e
+            raise CoreConfigurationError(
+                f"Failed to load config from {config_path}: {e}"
+            ) from e
 
     def _ensure_dirs_exist(self):
         """Ensure necessary directories exist based on config."""
@@ -678,7 +835,7 @@ class AppConfig(BaseSettings):
             # Assuming self.paths.resolve_relative_path exists and works correctly
             # runtime_path = self.paths.resolve_relative_path("runtime") # Use helper
             # Assuming resolve_relative_path isn't defined, use direct path construction
-            runtime_path = self.project_root_internal / self.paths.runtime 
+            runtime_path = self.project_root_internal / self.paths.runtime
             runtime_path.mkdir(parents=True, exist_ok=True)
             # Update path construction if resolve_relative_path exists or logic differs
             (runtime_path / "tasks").mkdir(parents=True, exist_ok=True)

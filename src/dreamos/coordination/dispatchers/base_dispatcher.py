@@ -5,13 +5,15 @@ FIXME: This dispatcher is synchronous and uses stdlib `queue.Queue`.
        If an asynchronous dispatcher is needed for integration with asyncio-based
        parts of the system, this will need to be refactored (e.g., use `asyncio.Queue`).
 """
+
+import logging  # Added for improved error handling
 import queue
-import logging # Added for improved error handling
-from abc import ABC, abstractmethod # Added for abstract method
+from abc import ABC, abstractmethod  # Added for abstract method
 
-logger = logging.getLogger(__name__) # Added logger
+logger = logging.getLogger(__name__)  # Added logger
 
-class BaseDispatcher(ABC): # Inherit from ABC
+
+class BaseDispatcher(ABC):  # Inherit from ABC
     """Base dispatcher that manages a task queue and processes tasks."""
 
     def __init__(self):
@@ -27,12 +29,12 @@ class BaseDispatcher(ABC): # Inherit from ABC
     def execute_task(self, task):
         """Executes a single task. Must be implemented by subclasses."""
         # raise NotImplementedError("Subclasses must implement execute_task")
-        pass # Or raise NotImplementedError
+        pass  # Or raise NotImplementedError
 
     def run_dispatcher_loop(self):
         """Start processing tasks in the queue.
-        
-        Loops as long as is_running is True and tasks are available, 
+
+        Loops as long as is_running is True and tasks are available,
         or waits for new tasks if queue is empty (blocking get).
         If intended as a continuously running service, ensure tasks are added
         by other threads/processes, or adapt loop for non-blocking checks if preferred.
@@ -43,10 +45,10 @@ class BaseDispatcher(ABC): # Inherit from ABC
             try:
                 # Using a timeout allows the loop to check is_running periodically
                 # even if the queue is empty, preventing a hard block if stop() is called.
-                task = self.task_queue.get(timeout=1) 
+                task = self.task_queue.get(timeout=1)
             except queue.Empty:
                 # Queue is empty, loop continues to check self.is_running
-                continue 
+                continue
 
             self.current_task = task
             logger.debug(f"Executing task: {task}")
@@ -57,7 +59,7 @@ class BaseDispatcher(ABC): # Inherit from ABC
                 logger.error(f"Error executing task {task}: {e}", exc_info=True)
             finally:
                 self.current_task = None
-                self.task_queue.task_done() # Signal that the task is done
+                self.task_queue.task_done()  # Signal that the task is done
         logger.info(f"{self.__class__.__name__} dispatcher loop stopped.")
 
     def stop(self):

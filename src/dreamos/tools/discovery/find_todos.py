@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+
 from dreamos.core.config import load_app_config
 
 # Configure logging
@@ -147,7 +148,9 @@ def scan_directory(
 def main():
     # EDIT START: Load AppConfig
     config = load_app_config()
-    default_log_file_path = config.paths.logs_dir / "feedback.jsonl" # Construct path using config
+    default_log_file_path = (
+        config.paths.logs_dir / "feedback.jsonl"
+    )  # Construct path using config
     # EDIT END
 
     parser = argparse.ArgumentParser(
@@ -167,7 +170,7 @@ def main():
         type=Path,
         # EDIT START: Use config path as default
         default=default_log_file_path,
-        help=f"Output JSON Lines log file. Default: {default_log_file_path}", # Update help text
+        help=f"Output JSON Lines log file. Default: {default_log_file_path}",  # Update help text
         # EDIT END
     )
     parser.add_argument(

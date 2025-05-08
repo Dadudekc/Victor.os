@@ -1,6 +1,5 @@
 # Language analysis logic
 
-import asyncio
 import ast
 import logging
 from pathlib import Path
@@ -57,17 +56,21 @@ class LanguageAnalyzer:
             "javascript": "path/to/tree-sitter-javascript.so",
         }
         if lang_name not in grammar_paths:
-            logger.warning(f"⚠️ No grammar path for {lang_name} in analyzer.py. Skipping.")
+            logger.warning(
+                f"⚠️ No grammar path for {lang_name} in analyzer.py. Skipping."
+            )
             return None
 
         grammar_path_str = grammar_paths[lang_name]
         grammar_p = Path(grammar_path_str)
-        
+
         # Illustrative async check, though the overall method remains problematic if called from sync __init__
         # if not await asyncio.to_thread(grammar_p.exists):
         # For now, keeping it sync to match the __init__ context, with FIXMEs.
-        if not grammar_p.exists(): # Synchronous check
-            logger.warning(f"⚠️ {lang_name} grammar not found at {grammar_path_str} (analyzer.py)")
+        if not grammar_p.exists():  # Synchronous check
+            logger.warning(
+                f"⚠️ {lang_name} grammar not found at {grammar_path_str} (analyzer.py)"
+            )
             return None
 
         try:
@@ -77,7 +80,9 @@ class LanguageAnalyzer:
             parser.set_language(lang_lib)
             return parser
         except Exception as e:
-            logger.error(f"⚠️ Failed to initialize tree-sitter {lang_name} parser (analyzer.py): {e}")
+            logger.error(
+                f"⚠️ Failed to initialize tree-sitter {lang_name} parser (analyzer.py): {e}"
+            )
             return None
 
     def analyze_file(self, file_path: Path, source_code: str) -> Dict:

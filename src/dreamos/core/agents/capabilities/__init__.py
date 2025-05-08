@@ -9,4 +9,4 @@ from .schema import AgentCapability
 
 __all__ = [
     "AgentCapability",
-] 
+]

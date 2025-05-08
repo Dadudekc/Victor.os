@@ -131,7 +131,7 @@ def run_loop(shutdown_event):
 
             if not inbox_file.exists():
                 continue
-            
+
             # FIXME: The read-process-rewrite logic for inbox_file is not atomic.
             #        Concurrent modifications or crashes could lead to data loss or
             #         reprocessing. Consider file locking or a more robust queue.

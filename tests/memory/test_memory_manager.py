@@ -1,6 +1,5 @@
 import json
-from unittest.mock import patch, MagicMock
-from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,10 +18,13 @@ def mock_config(tmp_path):
         runtime=tmp_path / "runtime",
         logs=tmp_path / "runtime" / "logs",
         agent_comms=tmp_path / "runtime" / "agent_comms",
-        central_task_boards=tmp_path / "runtime" / "agent_comms" / "central_task_boards",
+        central_task_boards=tmp_path
+        / "runtime"
+        / "agent_comms"
+        / "central_task_boards",
         # Assuming memory path is derived or needed
         memory=tmp_path / "runtime" / "memory",
-        project_root=tmp_path # Mock project root as tmp_path for simplicity
+        project_root=tmp_path,  # Mock project root as tmp_path for simplicity
         # Add other required PathsConfig fields if MemoryManager needs them
     )
     # Create a mock AppConfig
@@ -67,7 +69,7 @@ def test_memory_manager_initialization_creates_file(temp_memory_file, mock_confi
         assert json.loads(content) == {}
     except json.JSONDecodeError:
         # Handle case where file might be created but empty, depending on impl.
-        assert temp_memory_file.read_text() == "{}" # Explicit check for the string
+        assert temp_memory_file.read_text() == "{}"  # Explicit check for the string
 
 
 def test_memory_manager_initialization_loads_existing(temp_memory_file, mock_config):

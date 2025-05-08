@@ -5,7 +5,7 @@ import hashlib
 import logging
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional, Set, Any
+from typing import TYPE_CHECKING, Dict, Optional, Set
 
 # Avoid circular import for type hinting LanguageAnalyzer
 if TYPE_CHECKING:
@@ -32,6 +32,7 @@ class FileProcessor:
 
     async def hash_file(self, file_path: Path) -> str:
         """Calculates the MD5 hash of a file. Async."""
+
         def _sync_hash():
             try:
                 hasher = hashlib.md5()
@@ -48,6 +49,7 @@ class FileProcessor:
             except Exception as e:
                 logger.error(f"Error hashing file {file_path}: {e}", exc_info=True)
                 return ""
+
         return await asyncio.to_thread(_sync_hash)
 
     async def should_exclude(self, file_path: Path) -> bool:
@@ -127,10 +129,15 @@ class FileProcessor:
                 ignore_path = Path(ignore_str)
                 is_abs = await asyncio.to_thread(ignore_path.is_absolute)
                 if not is_abs:
-                    ignore_path = (self.project_root / ignore_path)
-                resolved_ignore_path = await asyncio.to_thread(ignore_path.resolve) # Resolve after potential join
+                    ignore_path = self.project_root / ignore_path
+                resolved_ignore_path = await asyncio.to_thread(
+                    ignore_path.resolve
+                )  # Resolve after potential join
                 # Check if the file is within the ignored directory
-                if resolved_ignore_path in file_abs.parents or file_abs == resolved_ignore_path:
+                if (
+                    resolved_ignore_path in file_abs.parents
+                    or file_abs == resolved_ignore_path
+                ):
                     # logger.debug(f"Excluding {file_path} due to ignore rule: {ignore_str}")  # noqa: E501
                     return True
             except (OSError, ValueError) as e:
@@ -162,7 +169,9 @@ class FileProcessor:
                     # logger.debug(f"Excluding {file_path} due to pyvenv.cfg in {parent}")  # noqa: E501
                     return True
                 if await asyncio.to_thread((parent / "bin" / "activate").exists) or (
-                    await asyncio.to_thread((parent / "Scripts" / "activate.bat").exists)
+                    await asyncio.to_thread(
+                        (parent / "Scripts" / "activate.bat").exists
+                    )
                 ):
                     # logger.debug(f"Excluding {file_path} due to activate script in {parent}")  # noqa: E501
                     return True
@@ -200,6 +209,7 @@ class FileProcessor:
                 with self.cache_lock:
                     if relative_path in self.cache:
                         del self.cache[relative_path]
+
             await asyncio.to_thread(_sync_remove_excluded_from_cache)
             return None
 
@@ -223,19 +233,21 @@ class FileProcessor:
             else:
                 update_cache_needed = True
             return _cached_item
-        
+
         await asyncio.to_thread(_sync_check_cache_and_get_data)
 
         if not update_cache_needed and cached_data and "analysis" in cached_data:
             return (relative_path, cached_data["analysis"])
-        
+
         # If we need to analyze (cache miss, hash mismatch, or missing analysis in cache)  # noqa: E501
         if update_cache_needed:
             # logger.debug(f"Analyzing file: {relative_path}")
             try:
+
                 def _sync_read_source():
                     with file_path.open("r", encoding="utf-8", errors="ignore") as f:
                         return f.read()
+
                 source_code = await asyncio.to_thread(_sync_read_source)
 
                 # Perform the analysis
@@ -247,44 +259,53 @@ class FileProcessor:
                             "hash": file_hash_val,
                             "analysis": analysis_result,
                         }
+
                 await asyncio.to_thread(_sync_update_cache_with_analysis)
                 return (relative_path, analysis_result)
 
             except FileNotFoundError:
                 logger.warning(f"File not found during analysis: {file_path}")
+
                 # Remove from cache if it was there
                 def _sync_remove_fnf_from_cache():
                     with self.cache_lock:
                         if relative_path in self.cache:
                             del self.cache[relative_path]
+
                 await asyncio.to_thread(_sync_remove_fnf_from_cache)
                 return None
             except PermissionError:
                 logger.warning(f"Permission error analyzing file: {file_path}")
+
                 def _sync_remove_perm_error_from_cache():
                     with self.cache_lock:
                         if relative_path in self.cache:
                             del self.cache[relative_path]
+
                 await asyncio.to_thread(_sync_remove_perm_error_from_cache)
                 return None
             except UnicodeDecodeError as e:
                 logger.warning(
                     f"Encoding error analyzing file {file_path}: {e}. Skipping."
                 )
+
                 def _sync_remove_encoding_error_from_cache():
                     with self.cache_lock:
                         if relative_path in self.cache:
                             del self.cache[relative_path]
+
                 await asyncio.to_thread(_sync_remove_encoding_error_from_cache)
                 return None
             except Exception as e:
                 logger.error(f"❌ Error analyzing {file_path}: {e}", exc_info=True)
+
                 # Update cache with hash but mark analysis as failed?
                 # For now, just remove from cache to force retry next time.
                 def _sync_remove_general_error_from_cache():
                     with self.cache_lock:
                         if relative_path in self.cache:
                             del self.cache[relative_path]
+
                 await asyncio.to_thread(_sync_remove_general_error_from_cache)
                 return None
 

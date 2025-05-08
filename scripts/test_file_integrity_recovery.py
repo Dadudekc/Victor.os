@@ -6,12 +6,11 @@ Simulates mid-write file corruption and tests recovery using .bak files.
 Covers .py, .json, and .md file types.
 """
 
-import os
-import shutil
 import hashlib
 import json
-import time
 import logging
+import shutil
+import time
 from pathlib import Path
 
 # --- Configuration ---
@@ -38,16 +37,19 @@ This is the *original* content.
 """
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("IntegrityRecoveryTest")
 
 # --- Helper Functions ---
+
 
 def calculate_sha256(filepath: Path) -> str:
     """Calculates the SHA256 hash of a file."""
     hasher = hashlib.sha256()
     try:
-        with open(filepath, 'rb') as f:
+        with open(filepath, "rb") as f:
             while chunk := f.read(4096):
                 hasher.update(chunk)
         return hasher.hexdigest()
@@ -56,6 +58,7 @@ def calculate_sha256(filepath: Path) -> str:
     except Exception as e:
         logger.error(f"Error hashing {filepath}: {e}")
         return ""
+
 
 def setup_test_environment():
     """Creates the test directory and initial files with backups."""
@@ -68,7 +71,7 @@ def setup_test_environment():
     files_to_create = {
         "test.py": CONTENT_PY,
         "test.json": json.dumps(CONTENT_JSON, indent=2),
-        "test.md": CONTENT_MD
+        "test.md": CONTENT_MD,
     }
 
     for filename, content in files_to_create.items():
@@ -76,7 +79,7 @@ def setup_test_environment():
         bak_filepath = filepath.with_suffix(filepath.suffix + ".bak")
         try:
             # Write original content
-            with open(filepath, "w", encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             logger.info(f"Created original file: {filepath}")
 
@@ -87,6 +90,7 @@ def setup_test_environment():
             logger.error(f"Error creating {filename} or its backup: {e}", exc_info=True)
             raise
 
+
 def simulate_corruption(filepath: Path, content_to_write: str):
     """Simulates a mid-write corruption by writing partial content."""
     logger.warning(f"Simulating corruption for: {filepath}")
@@ -95,18 +99,21 @@ def simulate_corruption(filepath: Path, content_to_write: str):
         midpoint = len(content_to_write) // 2
         partial_content = content_to_write[:midpoint]
 
-        with open(filepath, "w", encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(partial_content)
             # Simulate interruption before flush/close
-            f.flush() # May or may not happen in real crash
+            f.flush()  # May or may not happen in real crash
             # os.fsync(f.fileno()) # Even stronger sync, often skipped
             logger.warning(f"Write interrupted after {len(partial_content)} bytes.")
             # NOTE: No f.close() here to simulate unexpected termination
-        time.sleep(0.1) # Brief pause
+        time.sleep(0.1)  # Brief pause
         return True
     except Exception as e:
-        logger.error(f"Error during simulated corruption of {filepath}: {e}", exc_info=True)
+        logger.error(
+            f"Error during simulated corruption of {filepath}: {e}", exc_info=True
+        )
         return False
+
 
 def attempt_recovery(filepath: Path) -> bool:
     """Attempts to recover the file from its .bak counterpart."""
@@ -118,30 +125,34 @@ def attempt_recovery(filepath: Path) -> bool:
         return False
 
     try:
-        shutil.copy2(bak_filepath, filepath) # Use copy2 to preserve metadata
+        shutil.copy2(bak_filepath, filepath)  # Use copy2 to preserve metadata
         logger.info(f"Successfully recovered {filepath} from backup.")
         return True
     except Exception as e:
         logger.error(f"Recovery failed for {filepath}: {e}", exc_info=True)
         return False
 
+
 def verify_integrity(filepath: Path, original_hash: str) -> bool:
     """Verifies the file's integrity by comparing its hash to the original."""
     current_hash = calculate_sha256(filepath)
-    logger.info(f"Verifying integrity of {filepath}. Original Hash: {original_hash}, Current Hash: {current_hash}")
+    logger.info(
+        f"Verifying integrity of {filepath}. Original Hash: {original_hash}, Current Hash: {current_hash}"
+    )
     if current_hash == original_hash:
         logger.info(f"SUCCESS: Integrity verified for {filepath}.")
         return True
     else:
         logger.error(f"FAILURE: Integrity check failed for {filepath}.")
         # Log content for debugging json specifically
-        if filepath.suffix == '.json':
-             try:
-                 with open(filepath, 'r', encoding='utf-8') as f:
-                      logger.error(f"Actual content: {f.read()}")
-             except Exception:
-                    logger.error("Could not read actual content.")
+        if filepath.suffix == ".json":
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    logger.error(f"Actual content: {f.read()}")
+            except Exception:
+                logger.error("Could not read actual content.")
         return False
+
 
 # --- Main Test Execution ---
 if __name__ == "__main__":
@@ -156,13 +167,15 @@ if __name__ == "__main__":
         for filename in ["test.py", "test.json", "test.md"]:
             original_hashes[filename] = calculate_sha256(TEST_DIR / filename)
             if not original_hashes[filename]:
-                 raise ValueError(f"Could not calculate initial hash for {filename}")
+                raise ValueError(f"Could not calculate initial hash for {filename}")
 
         # --- Test Loop ---
         files_to_test = {
-             "test.py": CONTENT_PY.replace("Original", "MODIFIED"), # Use modified content for corruption attempt
-             "test.json": json.dumps({"key": "MODIFIED", "count": 2}, indent=2),
-             "test.md": CONTENT_MD.replace("original", "MODIFIED")
+            "test.py": CONTENT_PY.replace(
+                "Original", "MODIFIED"
+            ),  # Use modified content for corruption attempt
+            "test.json": json.dumps({"key": "MODIFIED", "count": 2}, indent=2),
+            "test.md": CONTENT_MD.replace("original", "MODIFIED"),
         }
 
         for filename, modified_content in files_to_test.items():
@@ -174,15 +187,21 @@ if __name__ == "__main__":
             if simulate_corruption(filepath, modified_content):
                 # Verify corruption happened (hash should differ)
                 if calculate_sha256(filepath) == original_hashes[filename]:
-                     logger.error(f"Corruption simulation failed for {filename} - hash unchanged.")
+                    logger.error(
+                        f"Corruption simulation failed for {filename} - hash unchanged."
+                    )
                 else:
-                     logger.info(f"Corruption confirmed for {filename} (hash changed).")
-                     # 2. Attempt Recovery
-                     if attempt_recovery(filepath):
-                          # 3. Verify Integrity
-                          test_passed = verify_integrity(filepath, original_hashes[filename])
+                    logger.info(f"Corruption confirmed for {filename} (hash changed).")
+                    # 2. Attempt Recovery
+                    if attempt_recovery(filepath):
+                        # 3. Verify Integrity
+                        test_passed = verify_integrity(
+                            filepath, original_hashes[filename]
+                        )
             else:
-                logger.error(f"Skipping recovery for {filename} due to corruption simulation error.")
+                logger.error(
+                    f"Skipping recovery for {filename} due to corruption simulation error."
+                )
 
             results[filename] = test_passed
 
@@ -197,7 +216,7 @@ if __name__ == "__main__":
         # logger.info(f"Test files located at: {TEST_DIR}")
         # Optional: Cleanup
         if TEST_DIR.exists():
-             logger.info("Cleaning up test directory.")
-             # shutil.rmtree(TEST_DIR)
+            logger.info("Cleaning up test directory.")
+            # shutil.rmtree(TEST_DIR)
 
         logger.info("Test script finished.")

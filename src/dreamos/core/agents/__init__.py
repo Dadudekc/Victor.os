@@ -10,4 +10,4 @@ from .capabilities import AgentCapability
 
 __all__ = [
     "AgentCapability",
-] 
+]

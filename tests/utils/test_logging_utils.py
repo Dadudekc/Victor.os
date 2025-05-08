@@ -1,14 +1,13 @@
 # tests/utils/test_logging_utils.py
-import logging
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Assuming the utility function is importable
 from dreamos.utils.logging_utils import log_handler_exception
 
-class TestLogHandlerException(unittest.TestCase):
 
-    @patch('dreamos.utils.logging_utils.logger') # Patch the logger within the module
+class TestLogHandlerException(unittest.TestCase):
+    @patch("dreamos.utils.logging_utils.logger")  # Patch the logger within the module
     def test_log_handler_exception_basic(self, mock_logger):
         """Test basic logging of an exception from a handler."""
 
@@ -37,11 +36,11 @@ class TestLogHandlerException(unittest.TestCase):
         self.assertIn("Exception Args: ('Something went wrong',)", log_message)
         self.assertIn("Traceback:", log_message)
 
-    @patch('dreamos.utils.logging_utils.logger')
+    @patch("dreamos.utils.logging_utils.logger")
     def test_log_handler_exception_no_handler_name(self, mock_logger):
         """Test logging when the handler object has no standard name attributes."""
 
-        handler_obj = object() # A plain object without __name__ or __qualname__
+        handler_obj = object()  # A plain object without __name__ or __qualname__
         event_data_example = {"data": "simple"}
         exception_example = TypeError("Invalid type")
 
@@ -54,8 +53,11 @@ class TestLogHandlerException(unittest.TestCase):
         call_args, call_kwargs = mock_logger.error.call_args
         log_message = call_args[0]
         # Check if it falls back to a generic representation or 'unknown_handler'
-        self.assertIn("handler 'unknown_handler'", log_message) # Or check for repr(handler_obj)
+        self.assertIn(
+            "handler 'unknown_handler'", log_message
+        )  # Or check for repr(handler_obj)
         self.assertIn("Exception Type: TypeError", log_message)
 
-if __name__ == '__main__':
-    unittest.main() 
+
+if __name__ == "__main__":
+    unittest.main()

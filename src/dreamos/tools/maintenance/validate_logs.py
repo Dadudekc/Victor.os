@@ -8,6 +8,7 @@ from typing import Dict, List
 
 # EDIT START: Import AppConfig
 from dreamos.core.config import load_app_config
+
 # EDIT END
 
 # Ensure log_validator exists and jsonschema is available (handled internally by validator)  # noqa: E501
@@ -83,8 +84,12 @@ def find_jsonl_files(log_dir: str, recursive: bool = False) -> List[str]:
 if __name__ == "__main__":
     # EDIT START: Load AppConfig first
     config = load_app_config()
-    default_log_dir = config.paths.logs_dir # Assuming logs_dir is defined in config paths
-    default_schema_map_config_path = config.paths.runtime / "config" / "log_schema_map.json"
+    default_log_dir = (
+        config.paths.logs_dir
+    )  # Assuming logs_dir is defined in config paths
+    default_schema_map_config_path = (
+        config.paths.runtime / "config" / "log_schema_map.json"
+    )
     # EDIT END
 
     parser = argparse.ArgumentParser(

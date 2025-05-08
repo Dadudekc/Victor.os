@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 from typing import Dict
-import pytest
 
+import pytest
 from dreamos.tools.discovery.find_todos import find_todos_in_file
 
 # Remove the skipped stub function
@@ -135,6 +135,7 @@ def test_scan_directory(tmp_path: Path):
     assert found_todo
     assert found_fixme
 
+
 @pytest.mark.parametrize(
     "file_contents, ignore_list, extensions, expected_count",
     [
@@ -149,14 +150,23 @@ def test_scan_directory(tmp_path: Path):
         # File ignored by name
         ({"ignore_me.py": "# TODO: Ignore me"}, ["ignore_me.py"], [".py"], 0),
         # Multiple files, mixed results
-        ({"file1.py": "# TODO: Find me", "file2.py": "# Just code", "sub/file3.py": "# FIXME: Find me too"}, [], [".py"], 2),
+        (
+            {
+                "file1.py": "# TODO: Find me",
+                "file2.py": "# Just code",
+                "sub/file3.py": "# FIXME: Find me too",
+            },
+            [],
+            [".py"],
+            2,
+        ),
         # Default ignore patterns (.venv)
         ({".venv/lib/file.py": "# TODO: Should be ignored"}, [], [".py"], 0),
         # Case-insensitive pattern matching
         ({"file1.py": "# todo: lowercase"}, ["TODO"], [".py"], 1),
         # Custom patterns
         ({"file1.py": "# HACK: Nasty workaround"}, ["HACK"], [".py"], 1),
-    ]
+    ],
 )
 def test_scan_directory(
     tmp_path: Path,
@@ -164,7 +174,7 @@ def test_scan_directory(
     ignore_list: list[str],
     extensions: list[str],
     expected_count: int,
-    patterns = ["TODO", "FIXME", "BUG", "HACK"] # Use combined patterns for testing
+    patterns=["TODO", "FIXME", "BUG", "HACK"],  # Use combined patterns for testing
 ):
     """Tests scan_directory with various file structures and ignore rules."""
     # Create directory structure
@@ -194,7 +204,9 @@ def test_scan_directory(
                 except json.JSONDecodeError:
                     pytest.fail(f"Log file contains invalid JSON: {line.strip()}")
                 except AssertionError as e:
-                    pytest.fail(f"Log entry format unexpected: {e} - Entry: {line.strip()}")
+                    pytest.fail(
+                        f"Log entry format unexpected: {e} - Entry: {line.strip()}"
+                    )
 
     assert found_count == expected_count
 

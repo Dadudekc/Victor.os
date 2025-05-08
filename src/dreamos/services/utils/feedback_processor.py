@@ -1,10 +1,7 @@
-import json
-import logging
 import os
 import re
 import uuid
 from pathlib import Path
-from datetime import datetime, timezone
 
 # --- Project Path Setup ---
 # script_dir = os.path.dirname(__file__)  # social/
@@ -12,27 +9,20 @@ from datetime import datetime, timezone
 # if project_root not in sys.path:
 #     sys.path.insert(0, project_root)
 # -------------------------
-
 # --- Dependencies ---
 from dreamforge.core.governance_memory_engine import log_event  # noqa: I001
-from dreamos.core.comms.mailbox import (
-    MAILBOXES_DIR_NAME,
-    MailboxError,
-    MailboxHandler,
-)
-from dreamos.core.config import AppConfig
 from dreamos.utils.common_utils import get_utc_iso_timestamp
 
 # FIXME: The source of AGENT_ID (recipient for tasks) needs to be clarified.
 #        It was 'from social.constants import AGENT_ID'. This suggests a dependency
-#        outside the dreamos structure or a mislocated constant. 
+#        outside the dreamos structure or a mislocated constant.
 #        For now, define it as a placeholder that needs configuration.
-RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS = "PLACEHOLDER_CONFIGURE_ME" 
+RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS = "PLACEHOLDER_CONFIGURE_ME"
 
 # --------------------
 
 _SOURCE = "FeedbackProcessor"
-_SOURCE_AGENT_ID = "FeedbackProcessorService" # Made more specific for a service
+_SOURCE_AGENT_ID = "FeedbackProcessorService"  # Made more specific for a service
 
 # --- Configuration ---
 # Simple keyword matching for MVP
@@ -54,6 +44,7 @@ BUG_KEYWORDS = ["bug", "error", "problem", "issue", "fix", "broken", "doesn't wo
 # --- Initialize Mailbox Handler ---
 # MailboxHandler (task_sender_mailbox) should be initialized in a class or main function
 # that receives AppConfig.
+
 
 def _extract_potential_suggestions(text: str) -> list[tuple[str, str]]:
     """Rudimentary extraction of sentences containing keywords."""
@@ -106,7 +97,7 @@ def _create_task_message(
     message = {
         "message_id": task_id,
         "sender_agent_id": _SOURCE_AGENT_ID,
-        "recipient_agent_id": RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS, # Use defined placeholder
+        "recipient_agent_id": RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS,  # Use defined placeholder
         "timestamp": timestamp,
         "type": "COMMAND",  # It's a command for the agent
         "command": command,
@@ -166,10 +157,10 @@ def process_feedback(feedback_items: list[dict]):
                     # Send the task message using MailboxHandler
                     # Requires MailboxHandler to be initialized correctly and AGENT_INBOX path to be valid  # noqa: E501
                     filename_prefix = f"task_{feedback_type}"
-                    if task_sender_mailbox: # task_sender_mailbox needs to be passed or initialized in context
+                    if task_sender_mailbox:  # task_sender_mailbox needs to be passed or initialized in context
                         success = task_sender_mailbox.send_message(
                             task_message,
-                            recipient_agent_id=RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS, # Use defined placeholder
+                            recipient_agent_id=RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS,  # Use defined placeholder
                             filename_prefix=filename_prefix,
                         )
                         if success:

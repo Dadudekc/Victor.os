@@ -2,7 +2,7 @@
 import logging
 import re
 import subprocess
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict
 
@@ -10,10 +10,8 @@ from typing import Any, Dict, List, Optional, TypedDict
 # from dreamos.core.db.sqlite_adapter import SQLiteAdapter, TaskDict
 # TODO (Masterpiece Review - Captain-Agent-8): Replace Any with specific Adapter type
 # from ....db.sqlite_adapter import SQLiteAdapter # Example import path
-
 # TODO (Masterpiece Review - Captain-Agent-8): Consider raising specific custom exceptions
 # (e.g., GitLogError, LogParsingError) instead of just logging errors and returning defaults.
-from ..errors import DreamOSError # Import base error if creating specific ones
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +54,9 @@ def fetch_task_data(adapter: Any, context: ContextWindow) -> List[Dict]:
             # If no specific IDs, but time range exists, query by time
             # Requires adapter method like get_tasks_in_range(start, end)
             if hasattr(adapter, "get_tasks_in_range"):
-                logger.info(f"Fetching tasks between {start_time_iso} and {end_time_iso}")
+                logger.info(
+                    f"Fetching tasks between {start_time_iso} and {end_time_iso}"
+                )
                 tasks = adapter.get_tasks_in_range(start_time_iso, end_time_iso)
             else:
                 logger.warning(
@@ -289,7 +289,9 @@ def fetch_captain_logs(context: ContextWindow, report_dir: Path) -> str:
                         file_date = datetime.strptime(match.group(1), "%Y%m%d").date()
                         logger.debug(f"Parsed date {file_date} from {report_file.name}")
                     except ValueError:
-                        logger.warning(f"Could not parse date from filename: {report_file.name}")
+                        logger.warning(
+                            f"Could not parse date from filename: {report_file.name}"
+                        )
 
                 # Apply filtering logic
                 include_file = True
@@ -301,7 +303,9 @@ def fetch_captain_logs(context: ContextWindow, report_dir: Path) -> str:
                 elif start_date or end_date:
                     # If time filtering is active but we couldn't parse date, exclude?
                     # Or include? Current logic: include if no date parsed, unless filtering strict.
-                    logger.debug(f"Could not parse date from {report_file.name}, including based on context window.")
+                    logger.debug(
+                        f"Could not parse date from {report_file.name}, including based on context window."
+                    )
                     # To exclude if date parsing fails during filtering, set include_file = False here
 
                 if include_file:
@@ -309,9 +313,13 @@ def fetch_captain_logs(context: ContextWindow, report_dir: Path) -> str:
                     try:
                         log_texts.append(report_file.read_text(encoding="utf-8"))
                     except Exception as read_e:
-                        logger.error(f"Failed to read captain log {report_file}: {read_e}")
+                        logger.error(
+                            f"Failed to read captain log {report_file}: {read_e}"
+                        )
                 else:
-                     logger.debug(f"Skipping captain log outside date range: {report_file.name}")
+                    logger.debug(
+                        f"Skipping captain log outside date range: {report_file.name}"
+                    )
 
     except Exception as e:
         logger.error(f"Failed to fetch captain logs: {e}", exc_info=True)

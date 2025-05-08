@@ -30,14 +30,25 @@ import locale
 import logging
 import os
 import re
-import sys
 import time
 from pathlib import Path
-from typing import Any, Callable, Generator, Iterable, Iterator, Literal, Optional, Union
+from typing import (
+    Any,
+    Callable,
+    Literal,
+    Optional,
+    Union,
+)
 
-from filelock import FileLock, Timeout as LockTimeout
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import chardet
+from filelock import FileLock
+from filelock import Timeout as LockTimeout
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 try:
     import yaml  # type: ignore
@@ -158,7 +169,9 @@ def _read_once(
 
         elif mode == "lines":
             lines: list[str] = []
-            text_stream = io.TextIOWrapper(f, encoding=encoding or "utf-8", errors="replace")
+            text_stream = io.TextIOWrapper(
+                f, encoding=encoding or "utf-8", errors="replace"
+            )
             for idx, line in enumerate(text_stream):
                 if start is not None and idx < start:
                     continue
@@ -214,8 +227,8 @@ def read_file(
     path:
         File to read.
     mode:
-        ``"text"`` (default) – returns *str*  
-        ``"bytes"`` – returns *bytes*  
+        ``"text"`` (default) – returns *str*
+        ``"bytes"`` – returns *bytes*
         ``"lines"`` – returns *list[str]* (one line per element without ``\n``)
     start, end:
         Byte offsets for ``mode="bytes"`` *or* line numbers for ``mode="lines/text"``.
@@ -267,4 +280,4 @@ def read_yaml(path: PathLike, **kwargs) -> Any:
     if yaml is None:  # pragma: no cover
         raise ImportError("pyyaml is required for read_yaml")
     text = read_file(path, mode="text", **kwargs)
-    return yaml.safe_load(text) 
+    return yaml.safe_load(text)

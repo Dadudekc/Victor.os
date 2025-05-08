@@ -1,16 +1,18 @@
 import asyncio
-import logging # Required if ConcreteAgent from conftest logs through self.logger
+import logging  # Required if ConcreteAgent from conftest logs through self.logger
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from dreamos.core.coordination.base_agent import BaseAgent # For MinimalAgent
+from dreamos.core.coordination.base_agent import BaseAgent  # For MinimalAgent
 
 # Fixtures like test_agent, mock_agent_bus are automatically discovered from conftest.py
 
 
 def test_base_agent_init(
-    test_agent, mock_agent_bus, tmp_path # test_agent is ConcreteAgent instance
-): # Removed type hints to avoid importing ConcreteAgent here
+    test_agent,
+    mock_agent_bus,
+    tmp_path,  # test_agent is ConcreteAgent instance
+):  # Removed type hints to avoid importing ConcreteAgent here
     """Test basic initialization of the BaseAgent."""
     assert test_agent.agent_id == "test_agent_001"
     assert test_agent.agent_bus == mock_agent_bus
@@ -111,10 +113,10 @@ async def test_base_agent_stop_unsubscribes(mock_agent_bus, tmp_path):
     agent._command_handler_ref = command_handler
     # Mock the task processor task object as it's needed in stop()
     agent._task_processor_task = AsyncMock(spec=asyncio.Task)
-    agent._task_processor_task.cancel = MagicMock() # Ensure cancel can be called
+    agent._task_processor_task.cancel = MagicMock()  # Ensure cancel can be called
 
     # Call stop
     await agent.stop()
 
     # Assert unsubscribe was called correctly
-    mock_agent_bus.unsubscribe.assert_awaited_once_with(command_topic, command_handler) 
+    mock_agent_bus.unsubscribe.assert_awaited_once_with(command_topic, command_handler)

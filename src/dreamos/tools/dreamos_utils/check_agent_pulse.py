@@ -1,8 +1,8 @@
+import logging
 import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import logging
 
 import yaml
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        stream=sys.stderr, # Explicitly send to stderr to not mix with stdout report
+        stream=sys.stderr,  # Explicitly send to stderr to not mix with stdout report
     )
 
     # Now the import should work if the structure is correct

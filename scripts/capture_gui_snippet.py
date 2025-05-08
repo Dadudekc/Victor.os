@@ -7,10 +7,11 @@ Fixes:
 • Adds global FAILSAFE & hot‑key abort (Ctrl‑C still ends cleanly).
 • Sanitises custom names, prevents empty names.
 """
-import time
+
 import re
-from pathlib import Path
+import time
 from datetime import datetime
+from pathlib import Path
 
 import pyautogui
 

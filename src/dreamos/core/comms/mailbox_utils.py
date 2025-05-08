@@ -254,9 +254,9 @@ async def read_mailbox_message(
         util_logger.error(
             f"Failed to decode JSON from message file: {path}", exc_info=True
         )
-        return None # TODO (Masterpiece Review - Captain-Agent-8): Consider raising specific errors
-                    #      (e.g., MailboxReadError, MailboxFormatError) instead of returning None
-                    #      for consistency with write_mailbox_message.
+        return None  # TODO (Masterpiece Review - Captain-Agent-8): Consider raising specific errors
+        #      (e.g., MailboxReadError, MailboxFormatError) instead of returning None
+        #      for consistency with write_mailbox_message.
     except Timeout:
         util_logger.error(
             f"Could not acquire lock for message file {path} within {lock_timeout}s"
@@ -358,7 +358,9 @@ async def delete_message(filepath: Union[str, Path], lock_timeout: int = 5) -> b
     # This is a brief lock just for the delete operation itself.
     # If read_mailbox_message is robust, its own lock might make this redundant,
     # but it adds a layer of safety before unlinking.
-    message_access_lock = AsyncFileLock(lock_file_path) # Use the message's own lock path
+    message_access_lock = AsyncFileLock(
+        lock_file_path
+    )  # Use the message's own lock path
 
     try:
         async with message_access_lock.acquire(timeout=lock_timeout):
@@ -368,14 +370,20 @@ async def delete_message(filepath: Union[str, Path], lock_timeout: int = 5) -> b
                 util_logger.info(f"Deleted message file: {message_path}")
                 deleted_message = True
             else:
-                util_logger.warning(f"Message file not found for deletion: {message_path}")
-                deleted_message = True # Considered success if file already gone
+                util_logger.warning(
+                    f"Message file not found for deletion: {message_path}"
+                )
+                deleted_message = True  # Considered success if file already gone
 
     except Timeout:
-        util_logger.error(f"Timeout acquiring lock to delete message {message_path}. File not deleted.")
-        return False # Failed to acquire lock, do not proceed
+        util_logger.error(
+            f"Timeout acquiring lock to delete message {message_path}. File not deleted."
+        )
+        return False  # Failed to acquire lock, do not proceed
     except Exception as e:
-        util_logger.error(f"Error deleting message file {message_path}: {e}", exc_info=True)
+        util_logger.error(
+            f"Error deleting message file {message_path}: {e}", exc_info=True
+        )
         # deleted_message remains False
     finally:
         if message_access_lock.is_locked:
@@ -391,12 +399,14 @@ async def delete_message(filepath: Union[str, Path], lock_timeout: int = 5) -> b
             deleted_lock = True
         else:
             # If lock file didn't exist, that's fine for the lock deletion part.
-            deleted_lock = True 
+            deleted_lock = True
     except Exception as e:
-        util_logger.warning(f"Error deleting lock file {lock_file_path}: {e}", exc_info=True)
+        util_logger.warning(
+            f"Error deleting lock file {lock_file_path}: {e}", exc_info=True
+        )
         # deleted_lock remains False, but primary deletion might have succeeded.
 
-    return deleted_message # Success primarily depends on deleting the message itself
+    return deleted_message  # Success primarily depends on deleting the message itself
 
 
 # ... existing code ... (Keep other utils like format_agent_report, publish_supervisor_alert)  # noqa: E501

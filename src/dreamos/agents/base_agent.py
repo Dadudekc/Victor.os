@@ -1,14 +1,20 @@
 # src/dreamos/agents/base_agent.py
+import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
-import asyncio
 from pathlib import Path
+from typing import Optional
+
+from dreamos.core.comms.mailbox_utils import (
+    delete_message,
+    list_mailbox_messages,
+    read_message,
+    validate_mailbox_message_schema,
+)
 
 # Assuming these might be needed, import placeholders/actual implementations
 from dreamos.core.config import AppConfig
 from dreamos.core.coordination.agent_bus import AgentBus
-from dreamos.core.comms.mailbox_utils import validate_mailbox_message_schema, MailboxMessageType, list_mailbox_messages, read_message, delete_message
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +50,9 @@ class BaseAgent(ABC):
         # Basic status update, subclasses might override
         old_status = self._current_status
         self._current_status = status
-        self.logger.info(f"Agent {self.agent_id} status changed: {old_status} -> {status}")
+        self.logger.info(
+            f"Agent {self.agent_id} status changed: {old_status} -> {status}"
+        )
         # TODO: Implement event publishing (requires EventType, Payloads)
         # Example:
         # if self.agent_bus:
@@ -74,7 +82,9 @@ class BaseAgent(ABC):
         Args:
             specific_mailbox_path: The Path object pointing to the inbox to scan.
         """
-        self.logger.debug(f"[{self.agent_id}] Scanning mailbox: {specific_mailbox_path}")
+        self.logger.debug(
+            f"[{self.agent_id}] Scanning mailbox: {specific_mailbox_path}"
+        )
         try:
             if not await asyncio.to_thread(specific_mailbox_path.exists):
                 self.logger.warning(
@@ -84,7 +94,9 @@ class BaseAgent(ABC):
 
             messages = await list_mailbox_messages(specific_mailbox_path)
             if not messages:
-                self.logger.debug(f"[{self.agent_id}] Mailbox {specific_mailbox_path} empty.")
+                self.logger.debug(
+                    f"[{self.agent_id}] Mailbox {specific_mailbox_path} empty."
+                )
                 return
 
             self.logger.info(
@@ -119,7 +131,7 @@ class BaseAgent(ABC):
                         except Exception as del_err:
                             self.logger.error(
                                 f"[{self.agent_id}] Failed to delete message {msg_file_path.name} after successful processing: {del_err}",
-                                exc_info=True
+                                exc_info=True,
                             )
                     else:
                         self.logger.warning(
@@ -128,7 +140,8 @@ class BaseAgent(ABC):
 
         except Exception as scan_err:
             self.logger.error(
-                f"[{self.agent_id}] Error scanning mailbox {specific_mailbox_path}: {scan_err}", exc_info=True
+                f"[{self.agent_id}] Error scanning mailbox {specific_mailbox_path}: {scan_err}",
+                exc_info=True,
             )
 
     async def _process_message(self, message_content: dict) -> bool:
@@ -150,12 +163,14 @@ class BaseAgent(ABC):
                 f"Agent {self.agent_id}: Mailbox message ID '{message_id}' failed schema validation. Discarding."
             )
             # TODO: Consider moving to a malformed_messages folder instead of just logging and discarding.
-            return False # Indicate processing failure
-        
+            return False  # Indicate processing failure
+
         # Base class considers the message processed if schema validation passes.
         # Subclasses should override to implement specific logic and manage their own success/failure return.
-        self.logger.debug(f"Agent {self.agent_id}: Base processing for message ID '{message_id}' complete.")
-        return True 
+        self.logger.debug(
+            f"Agent {self.agent_id}: Base processing for message ID '{message_id}' complete."
+        )
+        return True
 
     async def initialize(self):
         """Optional asynchronous initialization steps for the agent."""

@@ -470,7 +470,7 @@ class ProjectBoardManager:
         raise TaskNotFoundError(
             f"Task ID '{task_id}' not found on any board checked ({board})."
         )
-        return None # This line is unreachable due to the raise, but kept for logical flow if raise is removed.
+        return None  # This line is unreachable due to the raise, but kept for logical flow if raise is removed.
 
     def list_backlog_tasks(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
         """Lists tasks on the backlog, optionally filtering by status."""
@@ -522,7 +522,7 @@ class ProjectBoardManager:
         # Validate the incoming task details first
         if not self._validate_task(task_details):
             # Validation error already logged by _validate_task
-            return False # Or re-raise the TaskValidationError
+            return False  # Or re-raise the TaskValidationError
 
         # Add standard metadata
         task_id = task_details.get("task_id", self._generate_task_id())
@@ -570,7 +570,7 @@ class ProjectBoardManager:
             logger.warning(
                 f"Task {task_id} failed validation *after* adding metadata. Aborting add."  # noqa: E501
             )
-            return False # Or re-raise
+            return False  # Or re-raise
 
         try:
             backlog = self._load_backlog()
@@ -639,7 +639,7 @@ class ProjectBoardManager:
                     f"Updated task {task_id} failed validation. Aborting update."
                 )
                 # Optionally rollback or log details of validation failure
-                return False # Or re-raise
+                return False  # Or re-raise
 
             # Update the list in place
             working_tasks[task_index] = updated_task
@@ -667,7 +667,7 @@ class ProjectBoardManager:
         self, task_id: str, agent_id: str, board: Literal["backlog", "ready", "working"]
     ) -> bool:
         """Deletes a task by ID from the specified board (backlog, ready, or working)."""  # noqa: E501
-        target_path = None # Unused, but kept for logical flow from original
+        target_path = None  # Unused, but kept for logical flow from original
         load_func = None
         save_func = None
         board_name = board
@@ -681,7 +681,7 @@ class ProjectBoardManager:
             load_func = self._load_ready_queue
             save_func = self._save_ready_queue
         elif board == "working":
-            target_path = self.working_tasks_path 
+            target_path = self.working_tasks_path
             load_func = self._load_working_tasks
             save_func = self._save_working_tasks
         else:
@@ -689,11 +689,11 @@ class ProjectBoardManager:
                 f"Invalid board specified for deletion: {board}. Must be 'backlog', 'ready', or 'working'."  # noqa: E501
             )
             # EDIT: Use imported central error
-            raise ValueError("Invalid board for deletion") # Or ProjectBoardError
+            raise ValueError("Invalid board for deletion")  # Or ProjectBoardError
 
         try:
             tasks = load_func()
-            original_length = len(tasks) 
+            original_length = len(tasks)
             task_index = self._find_task_index(tasks, task_id)
 
             if task_index is None:
@@ -703,9 +703,9 @@ class ProjectBoardManager:
                 # Return True as the task is already gone?
                 # Or False because the delete action wasn't performed?
                 # Let's return False to indicate the task wasn't found *to be* deleted.
-                return False # Or raise TaskNotFoundError
+                return False  # Or raise TaskNotFoundError
 
-            deleted_task = tasks.pop(task_index) 
+            deleted_task = tasks.pop(task_index)
             logger.info(
                 f"Task {task_id} removed from {board_name} board by {agent_id}."
             )
@@ -838,20 +838,27 @@ class ProjectBoardManager:
             raise ProjectBoardError(
                 f"Failed to move task {task_id} to completed: {e}"
             ) from e
-        finally: # Added finally block for deterministic lock release
+        finally:  # Added finally block for deterministic lock release
             if working_lock_acquired and working_lock and working_lock.is_locked:
                 try:
                     working_lock.release()
-                    logger.debug(f"Lock released for {self.working_tasks_path} (finally).")
-                except Exception as e_rl: # pragma: no cover
-                    logger.error(f"Failed to release lock {self.working_lock_path} (finally): {e_rl}")
+                    logger.debug(
+                        f"Lock released for {self.working_tasks_path} (finally)."
+                    )
+                except Exception as e_rl:  # pragma: no cover
+                    logger.error(
+                        f"Failed to release lock {self.working_lock_path} (finally): {e_rl}"
+                    )
             if completed_lock_acquired and completed_lock and completed_lock.is_locked:
                 try:
                     completed_lock.release()
-                    logger.debug(f"Lock released for {self.completed_tasks_path} (finally).")
-                except Exception as e_rl: # pragma: no cover
-                    logger.error(f"Failed to release lock {self.completed_lock_path} (finally): {e_rl}")
-
+                    logger.debug(
+                        f"Lock released for {self.completed_tasks_path} (finally)."
+                    )
+                except Exception as e_rl:  # pragma: no cover
+                    logger.error(
+                        f"Failed to release lock {self.completed_lock_path} (finally): {e_rl}"
+                    )
 
     # --- New Dual-Queue Methods ---
     def claim_ready_task(self, task_id: str, agent_id: str) -> bool:
@@ -863,7 +870,7 @@ class ProjectBoardManager:
         working_lock = self._get_lock(self.working_tasks_path)
         ready_lock_acquired = False
         working_lock_acquired = False
-        task_to_move = None # For potential rollback
+        task_to_move = None  # For potential rollback
 
         try:
             # Acquire locks (Ready Queue first, then Working)
@@ -968,26 +975,54 @@ class ProjectBoardManager:
             )
             return True
 
-        except (BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError) as e: # Added ProjectBoardError
+        except (
+            BoardLockError,
+            TaskNotFoundError,
+            TaskValidationError,
+            ProjectBoardError,
+        ) as e:  # Added ProjectBoardError
             logger.error(f"Failed to claim task {task_id} from ready queue: {e}")
             # EDIT START: Implement Rollback
-            if task_to_move is not None: # task_to_move is the one popped from ready_queue
-                logger.warning(f"Attempting rollback for task {task_id} during claim failure...")
+            if (
+                task_to_move is not None
+            ):  # task_to_move is the one popped from ready_queue
+                logger.warning(
+                    f"Attempting rollback for task {task_id} during claim failure..."
+                )
                 try:
-                    if ready_lock_acquired and ready_lock.is_locked: # Check if ready_lock is still held
+                    if (
+                        ready_lock_acquired and ready_lock.is_locked
+                    ):  # Check if ready_lock is still held
                         # Re-read ready_queue, add original_task_copy, save ready_queue
-                        current_ready_queue = self._read_board_file(self.ready_queue_path)
-                        if not any(t.get("task_id") == task_id for t in current_ready_queue):
-                            current_ready_queue.append(original_task_copy) # Use the state before modification
-                            logger.info(f"Rollback: Re-added task {task_id} (original state) to ready queue list.")
-                            self._atomic_write(self.ready_queue_path, current_ready_queue)
-                            logger.info(f"Rollback: Saved updated ready queue ({self.ready_queue_path.name}).")
+                        current_ready_queue = self._read_board_file(
+                            self.ready_queue_path
+                        )
+                        if not any(
+                            t.get("task_id") == task_id for t in current_ready_queue
+                        ):
+                            current_ready_queue.append(
+                                original_task_copy
+                            )  # Use the state before modification
+                            logger.info(
+                                f"Rollback: Re-added task {task_id} (original state) to ready queue list."
+                            )
+                            self._atomic_write(
+                                self.ready_queue_path, current_ready_queue
+                            )
+                            logger.info(
+                                f"Rollback: Saved updated ready queue ({self.ready_queue_path.name})."
+                            )
                         else:
-                            logger.warning(f"Rollback skipped: Task {task_id} already found in ready queue.")
-                    else: # pragma: no cover
+                            logger.warning(
+                                f"Rollback skipped: Task {task_id} already found in ready queue."
+                            )
+                    else:  # pragma: no cover
                         logger.error("Rollback failed: Ready queue lock not held.")
-                except Exception as rb_err: # pragma: no cover
-                    logger.error(f"Error during claim rollback for task {task_id}: {rb_err}", exc_info=True)
+                except Exception as rb_err:  # pragma: no cover
+                    logger.error(
+                        f"Error during claim rollback for task {task_id}: {rb_err}",
+                        exc_info=True,
+                    )
             # EDIT END
             raise e  # Re-raise original exception
 
@@ -997,24 +1032,36 @@ class ProjectBoardManager:
             )
             # EDIT START: Implement Rollback for unexpected errors
             if task_to_move is not None:
-                logger.warning(f"Attempting rollback for task {task_id} due to unexpected error...")
+                logger.warning(
+                    f"Attempting rollback for task {task_id} due to unexpected error..."
+                )
                 try:
                     if ready_lock_acquired and ready_lock.is_locked:
-                        current_ready_queue = self._read_board_file(self.ready_queue_path)
-                        if not any(t.get("task_id") == task_id for t in current_ready_queue):
+                        current_ready_queue = self._read_board_file(
+                            self.ready_queue_path
+                        )
+                        if not any(
+                            t.get("task_id") == task_id for t in current_ready_queue
+                        ):
                             current_ready_queue.append(original_task_copy)
-                            logger.info(f"Rollback: Re-added task {task_id} (original state) to ready queue (unexpected error path).")
-                            self._atomic_write(self.ready_queue_path, current_ready_queue)
-                            logger.info("Rollback: Saved updated ready queue (unexpected error path).")
-                        else: # pragma: no cover
+                            logger.info(
+                                f"Rollback: Re-added task {task_id} (original state) to ready queue (unexpected error path)."
+                            )
+                            self._atomic_write(
+                                self.ready_queue_path, current_ready_queue
+                            )
+                            logger.info(
+                                "Rollback: Saved updated ready queue (unexpected error path)."
+                            )
+                        else:  # pragma: no cover
                             logger.warning(
                                 f"Rollback skipped: Task {task_id} already found in ready queue (unexpected error path)."  # noqa: E501
                             )
-                    else: # pragma: no cover
+                    else:  # pragma: no cover
                         logger.error(
                             "Rollback failed: Ready queue lock not held (unexpected error path)."  # noqa: E501
                         )
-                except Exception as rb_err: # pragma: no cover
+                except Exception as rb_err:  # pragma: no cover
                     logger.error(
                         f"Error during claim rollback for task {task_id} (unexpected error path): {rb_err}",
                         exc_info=True,
@@ -1027,7 +1074,7 @@ class ProjectBoardManager:
                 try:
                     working_lock.release()
                     logger.debug(f"Lock released for {self.working_tasks_path}.")
-                except Exception as e_rl: # pragma: no cover
+                except Exception as e_rl:  # pragma: no cover
                     logger.error(
                         f"Failed to release lock {self.working_lock_path}: {e_rl}"
                     )
@@ -1035,7 +1082,7 @@ class ProjectBoardManager:
                 try:
                     ready_lock.release()
                     logger.debug(f"Lock released for {self.ready_queue_path}.")
-                except Exception as e_rl: # pragma: no cover
+                except Exception as e_rl:  # pragma: no cover
                     logger.error(
                         f"Failed to release lock {self.ready_queue_lock_path}: {e_rl}"
                     )
@@ -1049,8 +1096,8 @@ class ProjectBoardManager:
         ready_lock = self._get_lock(self.ready_queue_path)
         backlog_lock_acquired = False
         ready_lock_acquired = False
-        task_to_move = None # For potential rollback
-        original_task_copy = None # For rollback
+        task_to_move = None  # For potential rollback
+        original_task_copy = None  # For rollback
 
         try:
             # Acquire locks (Backlog first, then Ready Queue)
@@ -1159,18 +1206,22 @@ class ProjectBoardManager:
         ) as e:
             logger.error(f"Failed to promote task {task_id}: {e}")
             # EDIT START: Implement Rollback
-            if original_task_copy is not None: # Use original_task_copy for rollback
+            if original_task_copy is not None:  # Use original_task_copy for rollback
                 logger.warning(
                     f"Attempting rollback for task {task_id} during promotion failure..."  # noqa: E501
                 )
                 try:
                     # Ensure backlog lock is still held if possible (should be if we got here)  # noqa: E501
                     if backlog_lock_acquired and backlog_lock.is_locked:
-                        current_backlog = self._read_board_file( # Re-read current state
-                            self.backlog_path
-                        ) 
+                        current_backlog = (
+                            self._read_board_file(  # Re-read current state
+                                self.backlog_path
+                            )
+                        )
                         # Check if task was somehow already put back (unlikely but safe)
-                        if not any(t.get("task_id") == task_id for t in current_backlog):
+                        if not any(
+                            t.get("task_id") == task_id for t in current_backlog
+                        ):
                             # --- EDIT: Use the original copy for rollback ---
 
                             current_backlog.append(original_task_copy)
@@ -1184,13 +1235,13 @@ class ProjectBoardManager:
                             logger.info(
                                 f"Rollback: Saved updated backlog ({self.backlog_path.name})."  # noqa: E501
                             )
-                        else: # pragma: no cover
+                        else:  # pragma: no cover
                             logger.warning(
                                 f"Rollback skipped: Task {task_id} already found in backlog."  # noqa: E501
                             )
-                    else: # pragma: no cover
+                    else:  # pragma: no cover
                         logger.error("Rollback failed: Backlog lock not held.")
-                except Exception as rb_err: # pragma: no cover
+                except Exception as rb_err:  # pragma: no cover
                     logger.error(
                         f"Error during promotion rollback for task {task_id}: {rb_err}",
                         exc_info=True,
@@ -1209,7 +1260,9 @@ class ProjectBoardManager:
                 try:
                     if backlog_lock_acquired and backlog_lock.is_locked:
                         current_backlog = self._read_board_file(self.backlog_path)
-                        if not any(t.get("task_id") == task_id for t in current_backlog):
+                        if not any(
+                            t.get("task_id") == task_id for t in current_backlog
+                        ):
                             # --- EDIT: Use the original copy for rollback ---
 
                             current_backlog.append(original_task_copy)
@@ -1222,15 +1275,15 @@ class ProjectBoardManager:
                             logger.info(
                                 "Rollback: Saved updated backlog (unexpected error path)."  # noqa: E501
                             )
-                        else: # pragma: no cover
+                        else:  # pragma: no cover
                             logger.warning(
                                 f"Rollback skipped: Task {task_id} already found in backlog (unexpected error path)."  # noqa: E501
                             )
-                    else: # pragma: no cover
+                    else:  # pragma: no cover
                         logger.error(
                             "Rollback failed: Backlog lock not held (unexpected error path)."  # noqa: E501
                         )
-                except Exception as rb_err: # pragma: no cover
+                except Exception as rb_err:  # pragma: no cover
                     logger.error(
                         f"Error during promotion rollback for task {task_id} (unexpected error path): {rb_err}",  # noqa: E501
                         exc_info=True,
@@ -1246,7 +1299,7 @@ class ProjectBoardManager:
                 try:
                     ready_lock.release()
                     logger.debug(f"Lock released for {self.ready_queue_path}.")
-                except Exception as e_rl: # pragma: no cover
+                except Exception as e_rl:  # pragma: no cover
                     logger.error(
                         f"Failed to release lock {self.ready_queue_lock_path}: {e_rl}"
                     )
@@ -1254,7 +1307,7 @@ class ProjectBoardManager:
                 try:
                     backlog_lock.release()
                     logger.debug(f"Lock released for {self.backlog_path}.")
-                except Exception as e_rl: # pragma: no cover
+                except Exception as e_rl:  # pragma: no cover
                     logger.error(
                         f"Failed to release lock {self.backlog_lock_path}: {e_rl}"
                     )
@@ -1269,29 +1322,37 @@ class ProjectBoardManager:
             # This example assumes AppConfig() can be called and will load defaults
             # or from a known path if CLI doesn't specify one.
             # A more robust CLI might parse a --config-file argument.
-            app_config = AppConfig() # Instantiate AppConfig
+            app_config = AppConfig()  # Instantiate AppConfig
             logger.info("CLI: AppConfig instance created for ProjectBoardManager.")
             # Override board dir if provided via CLI? For now, use config's value.
             # boards_dir = args.boards_dir if args.boards_dir else config.paths.central_task_boards  # noqa: E501
-            return cls(config=app_config, lock_timeout=args.lock_timeout if hasattr(args, 'lock_timeout') else DEFAULT_LOCK_TIMEOUT)
-        except Exception as e: # pragma: no cover
+            return cls(
+                config=app_config,
+                lock_timeout=args.lock_timeout
+                if hasattr(args, "lock_timeout")
+                else DEFAULT_LOCK_TIMEOUT,
+            )
+        except Exception as e:  # pragma: no cover
             logger.error(
                 f"Failed to initialize ProjectBoardManager via AppConfig for CLI: {e}",
                 exc_info=True,
             )
-            print(f"Error: Could not initialize ProjectBoardManager for CLI due to AppConfig issue: {e}", file=sys.stderr)
+            print(
+                f"Error: Could not initialize ProjectBoardManager for CLI due to AppConfig issue: {e}",
+                file=sys.stderr,
+            )
             sys.exit(1)  # Exit if config fails for CLI
 
     # EDIT END
 
 
 # Note: The __main__ block itself needs modification to use _create_from_cli_args
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     # ... (Existing argparse setup)
     # --- Updated Argparse for full CLI functionality ---
     parser = argparse.ArgumentParser(
         description="Manage tasks on Project Boards.",
-        formatter_class=argparse.RawTextHelpFormatter # For better help text formatting
+        formatter_class=argparse.RawTextHelpFormatter,  # For better help text formatting
     )
     # Removed --boards-dir as it's now sourced from AppConfig via PBM init
     parser.add_argument(
@@ -1306,21 +1367,36 @@ if __name__ == "__main__": # pragma: no cover
     # Optional: Add --config-file if AppConfig loading should be flexible for CLI
     # parser.add_argument("--config-file", type=str, help="Path to a custom config YAML file.")
 
-
-    subparsers = parser.add_subparsers(dest="command", help="Available sub-commands", required=True)
+    subparsers = parser.add_subparsers(
+        dest="command", help="Available sub-commands", required=True
+    )
 
     # --- `add` command ---
     add_parser = subparsers.add_parser("add", help="Add a new task to the backlog.")
     add_parser.add_argument("description", help="Description of the task.")
-    add_parser.add_argument("--name", default="Untitled Task", help="Name/title of the task.")
-    add_parser.add_argument("--priority", default="MEDIUM", choices=["CRITICAL", "HIGH", "MEDIUM", "LOW"], help="Task priority.")
-    add_parser.add_argument("--agent_id", default="CLI_USER", help="Agent ID or user adding the task.")
-    add_parser.add_argument("--task_id", help="Optional: Specify a task ID (must be unique).")
-    add_parser.add_argument("--details_json", help="Optional: JSON string for additional task details.")
-
+    add_parser.add_argument(
+        "--name", default="Untitled Task", help="Name/title of the task."
+    )
+    add_parser.add_argument(
+        "--priority",
+        default="MEDIUM",
+        choices=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+        help="Task priority.",
+    )
+    add_parser.add_argument(
+        "--agent_id", default="CLI_USER", help="Agent ID or user adding the task."
+    )
+    add_parser.add_argument(
+        "--task_id", help="Optional: Specify a task ID (must be unique)."
+    )
+    add_parser.add_argument(
+        "--details_json", help="Optional: JSON string for additional task details."
+    )
 
     # --- `get` command ---
-    get_parser = subparsers.add_parser("get", help="Get a task by ID from any board or a specific board.")
+    get_parser = subparsers.add_parser(
+        "get", help="Get a task by ID from any board or a specific board."
+    )
     get_parser.add_argument("task_id", help="ID of the task to retrieve.")
     get_parser.add_argument(
         "--board",
@@ -1330,45 +1406,78 @@ if __name__ == "__main__": # pragma: no cover
     )
 
     # --- `list` command ---
-    list_parser = subparsers.add_parser("list", help="List tasks from a specified board.")
+    list_parser = subparsers.add_parser(
+        "list", help="List tasks from a specified board."
+    )
     list_parser.add_argument(
         "board",
         choices=["backlog", "ready", "working", "completed"],
         help="Board to list tasks from.",
     )
-    list_parser.add_argument("--status", help="Filter tasks by status (e.g., PENDING, WORKING). Case-insensitive.")
-    list_parser.add_argument("--agent_id", help="Filter working tasks by assigned/claimed agent_id.")
-
+    list_parser.add_argument(
+        "--status",
+        help="Filter tasks by status (e.g., PENDING, WORKING). Case-insensitive.",
+    )
+    list_parser.add_argument(
+        "--agent_id", help="Filter working tasks by assigned/claimed agent_id."
+    )
 
     # --- `update` command (for working tasks) ---
-    update_parser = subparsers.add_parser("update", help="Update a task on the working board.")
+    update_parser = subparsers.add_parser(
+        "update", help="Update a task on the working board."
+    )
     update_parser.add_argument("task_id", help="ID of the task to update.")
     update_parser.add_argument("json_updates", help="JSON string of updates.")
 
     # --- `claim` command ---
-    claim_parser = subparsers.add_parser("claim", help="Claim a task from the ready queue and move to working.")
+    claim_parser = subparsers.add_parser(
+        "claim", help="Claim a task from the ready queue and move to working."
+    )
     claim_parser.add_argument("task_id", help="ID of the task to claim.")
     claim_parser.add_argument("agent_id", help="Agent ID claiming the task.")
 
     # --- `complete` command ---
-    complete_parser = subparsers.add_parser("complete", help="Complete a task from the working board and move to completed.")
+    complete_parser = subparsers.add_parser(
+        "complete", help="Complete a task from the working board and move to completed."
+    )
     complete_parser.add_argument("task_id", help="ID of the task to complete.")
-    complete_parser.add_argument("agent_id", help="Agent ID or user completing the task.")
-    complete_parser.add_argument("--resolution_notes", default="Completed successfully via CLI.", help="Resolution notes for the task.")
-    complete_parser.add_argument("--final_status", default="COMPLETED", help="Final status for the task (e.g., COMPLETED, FAILED).")
-    complete_parser.add_argument("--extra_data_json", help="Optional: JSON string for additional final data.")
-
+    complete_parser.add_argument(
+        "agent_id", help="Agent ID or user completing the task."
+    )
+    complete_parser.add_argument(
+        "--resolution_notes",
+        default="Completed successfully via CLI.",
+        help="Resolution notes for the task.",
+    )
+    complete_parser.add_argument(
+        "--final_status",
+        default="COMPLETED",
+        help="Final status for the task (e.g., COMPLETED, FAILED).",
+    )
+    complete_parser.add_argument(
+        "--extra_data_json", help="Optional: JSON string for additional final data."
+    )
 
     # --- `promote` command ---
-    promote_parser = subparsers.add_parser("promote", help="Promote a task from backlog to ready queue.")
+    promote_parser = subparsers.add_parser(
+        "promote", help="Promote a task from backlog to ready queue."
+    )
     promote_parser.add_argument("task_id", help="ID of the task to promote.")
-    
-    # --- `delete` command ---
-    delete_parser = subparsers.add_parser("delete", help="Delete a task from a specified board (backlog, ready, or working).")
-    delete_parser.add_argument("task_id", help="ID of the task to delete.")
-    delete_parser.add_argument("agent_id", help="Agent ID or user performing the deletion.")
-    delete_parser.add_argument("board", choices=["backlog", "ready", "working"], help="Board to delete the task from.")
 
+    # --- `delete` command ---
+    delete_parser = subparsers.add_parser(
+        "delete",
+        help="Delete a task from a specified board (backlog, ready, or working).",
+    )
+    delete_parser.add_argument("task_id", help="ID of the task to delete.")
+    delete_parser.add_argument(
+        "agent_id", help="Agent ID or user performing the deletion."
+    )
+    delete_parser.add_argument(
+        "board",
+        choices=["backlog", "ready", "working"],
+        help="Board to delete the task from.",
+    )
 
     args = parser.parse_args()
 
@@ -1380,11 +1489,9 @@ if __name__ == "__main__": # pragma: no cover
     filelock_logger = logging.getLogger("filelock")
     filelock_logger.setLevel(logging.WARNING if not args.verbose else logging.DEBUG)
 
-
     # Create instance using AppConfig via helper
     # This now correctly passes args to _create_from_cli_args
     pbm = ProjectBoardManager._create_from_cli_args(args)
-
 
     # Execute command based on args.command
     try:
@@ -1394,25 +1501,33 @@ if __name__ == "__main__": # pragma: no cover
                 try:
                     details_dict = json.loads(args.details_json)
                 except json.JSONDecodeError as e:
-                    print(f"Error: Invalid JSON in --details_json: {e}", file=sys.stderr)
+                    print(
+                        f"Error: Invalid JSON in --details_json: {e}", file=sys.stderr
+                    )
                     sys.exit(1)
-            
+
             task_data_cli = {
-                "task_id": args.task_id, # Can be None, PBM will generate
+                "task_id": args.task_id,  # Can be None, PBM will generate
                 "name": args.name,
                 "description": args.description,
                 "priority": args.priority.upper(),
                 # status will be set by PBM or can be part of details_dict
-                **details_dict # Spread other details
+                **details_dict,  # Spread other details
             }
-            if pbm.add_task_to_backlog(task_data_cli, args.agent_id): # task_id will be in task_data_cli after this call
-                print(f"Task '{task_data_cli['task_id']}' added to backlog successfully.")
+            if pbm.add_task_to_backlog(
+                task_data_cli, args.agent_id
+            ):  # task_id will be in task_data_cli after this call
+                print(
+                    f"Task '{task_data_cli['task_id']}' added to backlog successfully."
+                )
             # PBM methods now raise exceptions on failure, so else branch is less likely unless PBM returns False without raising.
 
         elif args.command == "get":
-            task = pbm.get_task(args.task_id, board=args.board) # Raises TaskNotFoundError if not found
+            task = pbm.get_task(
+                args.task_id, board=args.board
+            )  # Raises TaskNotFoundError if not found
             print(json.dumps(task, indent=2))
-        
+
         elif args.command == "list":
             tasks_to_list = []
             if args.board == "backlog":
@@ -1421,16 +1536,22 @@ if __name__ == "__main__": # pragma: no cover
                 tasks_to_list = pbm.list_ready_queue_tasks(status=args.status)
             elif args.board == "working":
                 # Note: original code used args.agent, CLI arg is --agent_id
-                tasks_to_list = pbm.list_working_tasks(agent_id=args.agent_id) 
+                tasks_to_list = pbm.list_working_tasks(agent_id=args.agent_id)
             elif args.board == "completed":
                 # Add a public list_completed_tasks if this is desired for CLI
                 # For now, using internal _load_completed_tasks for CLI simplicity
-                completed_cli_list = pbm._load_completed_tasks() # Internal method access for CLI
+                completed_cli_list = (
+                    pbm._load_completed_tasks()
+                )  # Internal method access for CLI
                 if args.status:
-                    tasks_to_list = [t for t in completed_cli_list if t.get("status", "").upper() == args.status.upper()]
+                    tasks_to_list = [
+                        t
+                        for t in completed_cli_list
+                        if t.get("status", "").upper() == args.status.upper()
+                    ]
                 else:
                     tasks_to_list = completed_cli_list
-            
+
             if tasks_to_list:
                 print(json.dumps(tasks_to_list, indent=2))
             else:
@@ -1449,36 +1570,55 @@ if __name__ == "__main__": # pragma: no cover
         elif args.command == "claim":
             if pbm.claim_ready_task(args.task_id, args.agent_id):
                 print(f"Task '{args.task_id}' claimed by agent '{args.agent_id}'.")
-        
+
         elif args.command == "complete":
-            final_updates_dict = {"agent_id": args.agent_id} # Include completer agent_id
+            final_updates_dict = {
+                "agent_id": args.agent_id
+            }  # Include completer agent_id
             if args.extra_data_json:
                 try:
                     final_updates_dict.update(json.loads(args.extra_data_json))
                 except json.JSONDecodeError as e:
-                    print(f"Error: Invalid JSON in --extra_data_json: {e}", file=sys.stderr)
+                    print(
+                        f"Error: Invalid JSON in --extra_data_json: {e}",
+                        file=sys.stderr,
+                    )
                     sys.exit(1)
-            
+
             final_updates_dict["status"] = args.final_status.upper()
             final_updates_dict["resolution_notes"] = args.resolution_notes
-            
+
             if pbm.move_task_to_completed(args.task_id, final_updates_dict):
-                print(f"Task '{args.task_id}' marked as completed with status '{args.final_status}'.")
-        
+                print(
+                    f"Task '{args.task_id}' marked as completed with status '{args.final_status}'."
+                )
+
         elif args.command == "promote":
             if pbm.promote_task_to_ready(args.task_id):
                 print(f"Task '{args.task_id}' promoted to ready queue.")
-        
+
         elif args.command == "delete":
-            if pbm.delete_task(args.task_id, args.agent_id, args.board): # type: ignore[arg-type] # board Literal matches choices
+            if pbm.delete_task(args.task_id, args.agent_id, args.board):  # type: ignore[arg-type] # board Literal matches choices
                 print(f"Task '{args.task_id}' deleted from '{args.board}' board.")
-                
-    except (ProjectBoardError, BoardLockError, TaskNotFoundError, TaskValidationError) as e:
+
+    except (
+        ProjectBoardError,
+        BoardLockError,
+        TaskNotFoundError,
+        TaskValidationError,
+    ) as e:
         print(f"Board Operation Error: {e}", file=sys.stderr)
         sys.exit(1)
-    except Exception as e: # Catch-all for other unexpected errors from PBM or CLI logic
-        print(f"An unexpected CLI error occurred: {type(e).__name__} - {e}", file=sys.stderr)
-        logger.exception("Unexpected CLI error details:") # Log full traceback for debugging
+    except (
+        Exception
+    ) as e:  # Catch-all for other unexpected errors from PBM or CLI logic
+        print(
+            f"An unexpected CLI error occurred: {type(e).__name__} - {e}",
+            file=sys.stderr,
+        )
+        logger.exception(
+            "Unexpected CLI error details:"
+        )  # Log full traceback for debugging
         sys.exit(1)
 
-# EDIT END: Note changes needed in CLI __main__ block if used. 
+# EDIT END: Note changes needed in CLI __main__ block if used.

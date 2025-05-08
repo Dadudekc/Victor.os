@@ -4,19 +4,24 @@ This script provides a pure Python way to invoke vulture, avoiding shell
 complexities and parsing its output into a structured format.
 """
 
-import subprocess
-import json
 import argparse
-import sys
+import json
 import logging
+import subprocess
+import sys
 from pathlib import Path
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 DEFAULT_MIN_CONFIDENCE = 60
 
-def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFIDENCE) -> dict:
+
+def run_vulture(
+    target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFIDENCE
+) -> dict:
     """Executes vulture on the target path and returns a structured result.
 
     Args:
@@ -42,7 +47,7 @@ def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFI
         return results
 
     command = [
-        sys.executable, # Use the current Python executable
+        sys.executable,  # Use the current Python executable
         "-m",
         "vulture",
         str(target_path),
@@ -58,8 +63,8 @@ def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFI
             command,
             capture_output=True,
             text=True,
-            check=False, # Don't raise exception on non-zero exit code
-            encoding='utf-8' # Explicit encoding
+            check=False,  # Don't raise exception on non-zero exit code
+            encoding="utf-8",  # Explicit encoding
         )
 
         results["raw_output"] = process.stdout
@@ -72,25 +77,32 @@ def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFI
             # Parse findings from stdout
             # Vulture output format example:
             # path/to/file.py:10: unused function 'my_func' (60% confidence)
-            for line in process.stdout.strip().split('\n'):
+            for line in process.stdout.strip().split("\n"):
                 if not line:
                     continue
                 # Very basic parsing - assumes standard format
                 # TODO: Improve parsing robustness (regex?)
-                parts = line.split(':')
+                parts = line.split(":")
                 if len(parts) >= 3:
                     finding = {
                         "file": parts[0].strip(),
                         "line": int(parts[1].strip()),
-                        "message": ":".join(parts[2:]).strip()
+                        "message": ":".join(parts[2:]).strip(),
                     }
                     # Attempt to extract confidence
-                    if '(' in finding["message"] and '% confidence)' in finding["message"]:
+                    if (
+                        "(" in finding["message"]
+                        and "% confidence)" in finding["message"]
+                    ):
                         try:
-                            conf_str = finding["message"][finding["message"].rfind('(')+1:finding["message"].rfind('% confidence)')]
+                            conf_str = finding["message"][
+                                finding["message"].rfind("(") + 1 : finding[
+                                    "message"
+                                ].rfind("% confidence)")
+                            ]
                             finding["confidence"] = int(conf_str)
                         except ValueError:
-                            pass # Ignore if confidence parsing fails
+                            pass  # Ignore if confidence parsing fails
                     results["findings"].append(finding)
                 else:
                     logger.warning(f"Could not parse vulture output line: {line}")
@@ -102,7 +114,9 @@ def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFI
             logger.error(error_msg)
 
     except FileNotFoundError:
-        results["error"] = f"'vulture' command not found. Is vulture installed in the environment ({sys.executable})?"
+        results["error"] = (
+            f"'vulture' command not found. Is vulture installed in the environment ({sys.executable})?"
+        )
         logger.exception(results["error"])
     except Exception as e:
         results["error"] = f"An unexpected error occurred while running vulture: {e}"
@@ -110,16 +124,21 @@ def run_vulture(target_path: str | Path, min_confidence: int = DEFAULT_MIN_CONFI
 
     return results
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Run vulture dead code detection and output JSON.")
+    parser = argparse.ArgumentParser(
+        description="Run vulture dead code detection and output JSON."
+    )
     parser.add_argument("target_path", help="Directory or file path to scan.")
     parser.add_argument(
-        "-c", "--min-confidence", type=int, default=DEFAULT_MIN_CONFIDENCE,
-        help=f"Minimum confidence level for findings (0-100, default: {DEFAULT_MIN_CONFIDENCE})."
+        "-c",
+        "--min-confidence",
+        type=int,
+        default=DEFAULT_MIN_CONFIDENCE,
+        help=f"Minimum confidence level for findings (0-100, default: {DEFAULT_MIN_CONFIDENCE}).",
     )
     parser.add_argument(
-        "-o", "--output-file",
-        help="Optional path to save the JSON results."
+        "-o", "--output-file", help="Optional path to save the JSON results."
     )
 
     args = parser.parse_args()
@@ -130,7 +149,7 @@ def main():
 
     if args.output_file:
         try:
-            Path(args.output_file).write_text(json_output, encoding='utf-8')
+            Path(args.output_file).write_text(json_output, encoding="utf-8")
             logger.info(f"Results saved to {args.output_file}")
         except Exception as e:
             logger.exception(f"Failed to write results to {args.output_file}: {e}")
@@ -140,5 +159,6 @@ def main():
         # Print to stdout if no output file specified
         print(json_output)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

@@ -122,29 +122,31 @@ class FeedbackEngine:
                             self.memory_state[key].append(item)
                 else:
                     self.memory_state[key] = value
-            
+
             # Store context associated with this update batch (Option A)
             if chat_context:
-                 # Store context associated with this batch of updates
-                 # Decide which fields are most valuable (e.g., link, time, maybe title)
-                 context_to_store = {
-                     field: chat_context.get(field)
-                     for field in ["link", "last_active_time", "title"] 
-                     if chat_context.get(field) is not None
-                 }
-                 if context_to_store: # Only add if we have something valuable
-                    self.memory_state['_last_update_context'] = {
-                        'timestamp': datetime.now().isoformat(),
-                        'context': context_to_store
-                    } 
+                # Store context associated with this batch of updates
+                # Decide which fields are most valuable (e.g., link, time, maybe title)
+                context_to_store = {
+                    field: chat_context.get(field)
+                    for field in ["link", "last_active_time", "title"]
+                    if chat_context.get(field) is not None
+                }
+                if context_to_store:  # Only add if we have something valuable
+                    self.memory_state["_last_update_context"] = {
+                        "timestamp": datetime.now().isoformat(),
+                        "context": context_to_store,
+                    }
                     logger.info(f"Stored update context: {context_to_store}")
-                 else:
-                    logger.info("Chat context provided, but no key fields found to store.")
+                else:
+                    logger.info(
+                        "Chat context provided, but no key fields found to store."
+                    )
             else:
                 # Optional: Clear last context if none provided for this update?
                 # if '_last_update_context' in self.memory_state:
                 #    del self.memory_state['_last_update_context']
-                pass # No context provided
+                pass  # No context provided
 
             logger.info("✅ Memory state updated.")
         self.save_memory_async()

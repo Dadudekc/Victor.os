@@ -4,8 +4,8 @@
 in the centralized registry.
 """
 
-from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -87,19 +87,25 @@ class AgentCapability(BaseModel):
         True  # Allows temporarily disabling a capability without unregistering
     )
     registered_at_utc: Optional[datetime] = None  # Changed to datetime
-    last_updated_utc: Optional[datetime] = None   # Changed to datetime
+    last_updated_utc: Optional[datetime] = None  # Changed to datetime
     last_verified_utc: Optional[datetime] = (
         None  # Timestamp of last successful health check/verification - Changed to datetime
     )
 
-    @validator("registered_at_utc", "last_updated_utc", "last_verified_utc", pre=True, allow_reuse=True)
+    @validator(
+        "registered_at_utc",
+        "last_updated_utc",
+        "last_verified_utc",
+        pre=True,
+        allow_reuse=True,
+    )
     def ensure_datetime_utc(cls, v):
         if v is None:
             return None
         if isinstance(v, datetime):
             if v.tzinfo is None:
-                return v.replace(tzinfo=timezone.utc) # Assume UTC if naive
-            return v.astimezone(timezone.utc) # Convert to UTC
+                return v.replace(tzinfo=timezone.utc)  # Assume UTC if naive
+            return v.astimezone(timezone.utc)  # Convert to UTC
         if isinstance(v, str):
             try:
                 dt = datetime.fromisoformat(v.replace("Z", "+00:00"))

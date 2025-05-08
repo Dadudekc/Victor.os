@@ -1,8 +1,8 @@
 # src/dreamos/core/agents/capabilities/library/narrative_generate.py
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, TypedDict
-from datetime import datetime, timezone
 
 # EDIT: Use real LLM client
 from dreamos.core.llm.client import LlmApiError, get_llm_client

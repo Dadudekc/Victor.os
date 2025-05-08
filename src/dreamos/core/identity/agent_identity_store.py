@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from ..utils.file_locking import FileLock, LockAcquisitionError, LockDirectoryError
-from .agent_identity import AgentIdentity
 from ..utils.project_root import find_project_root
+from .agent_identity import AgentIdentity
 
 logger = logging.getLogger(__name__)
 

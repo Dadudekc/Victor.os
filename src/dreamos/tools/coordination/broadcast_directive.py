@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict
 
 # from dreamos.coordination.agent_bus import AgentBus # Old import
-from dreamos.core.coordination.agent_bus import AgentBus # Corrected import
+from dreamos.core.coordination.agent_bus import AgentBus  # Corrected import
 from dreamos.core.coordination.events import (
     CoordinationDirectiveData,
     CoordinationDirectiveEvent,

@@ -8,12 +8,12 @@ import sys
 import time
 from pathlib import Path
 
-# EDIT START: Import AppConfig
-from dreamos.core.config import load_app_config
 # EDIT END
-
 import portalocker  # Import portalocker for file locking
 import pyautogui
+
+# EDIT START: Import AppConfig
+from dreamos.core.config import load_app_config
 
 # EDIT START: Remove manual project_root calculation - use AppConfig
 # PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Calculate directly
@@ -160,7 +160,9 @@ def update_coords_file(
 def main():
     # EDIT START: Load config and define default path
     config = load_app_config()
-    default_coords_file_path = config.paths.runtime / "config" / "cursor_agent_coords.json"
+    default_coords_file_path = (
+        config.paths.runtime / "config" / "cursor_agent_coords.json"
+    )
     # EDIT END
 
     parser = argparse.ArgumentParser(

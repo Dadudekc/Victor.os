@@ -1,37 +1,50 @@
 # src/dreamos/core/tts/elevenlabs_tts.py
 import logging
 import os
-from typing import Optional, Any # Added Any
+from typing import Optional  # Added Any
+
 
 # Placeholder for config access
 # from dreamos.core.config import AppConfig
-class AppConfig: # Placeholder
+class AppConfig:  # Placeholder
     def __init__(self):
         # Attempt to get from env var first for flexibility
         self.elevenlabs_api_key = os.environ.get("ELEVENLABS_API_KEY", None)
         # In a real AppConfig, you'd load from a file or other source
         # and potentially override env vars based on config settings.
         if not self.elevenlabs_api_key:
-             logger.warning("ELEVENLABS_API_KEY not found in environment or config.")
+            logger.warning("ELEVENLABS_API_KEY not found in environment or config.")
+
 
 # from .tts_interface import TTSInterface
-class TTSInterface: # Placeholder
-    def synthesize(self, text: str, output_path: str) -> bool: pass
-    def is_available(self) -> bool: pass
+class TTSInterface:  # Placeholder
+    def synthesize(self, text: str, output_path: str) -> bool:
+        pass
+
+    def is_available(self) -> bool:
+        pass
+
 
 logger = logging.getLogger(__name__)
 
 # Requires: pip install elevenlabs
 try:
-    from elevenlabs.client import ElevenLabs
     from elevenlabs import save
+    from elevenlabs.client import ElevenLabs
+
     ELEVENLABS_AVAILABLE = True
 except ImportError:
     ELEVENLABS_AVAILABLE = False
-    logger.warning("ElevenLabs library not installed. ElevenLabsTTS will not be available.")
+    logger.warning(
+        "ElevenLabs library not installed. ElevenLabsTTS will not be available."
+    )
+
     # Define dummy classes if import fails to prevent NameErrors later
-    class ElevenLabs: pass
-    def save(*args, **kwargs): pass
+    class ElevenLabs:
+        pass
+
+    def save(*args, **kwargs):
+        pass
 
 
 class ElevenLabsTTS(TTSInterface):
@@ -42,8 +55,10 @@ class ElevenLabsTTS(TTSInterface):
         # Prioritize config object if provided
         if config and config.elevenlabs_api_key:
             self.api_key = config.elevenlabs_api_key
-        if not self.api_key: # Fallback to env var if not in config or config not provided
-             self.api_key = os.environ.get("ELEVENLABS_API_KEY")
+        if (
+            not self.api_key
+        ):  # Fallback to env var if not in config or config not provided
+            self.api_key = os.environ.get("ELEVENLABS_API_KEY")
 
         self.client = None
         if ELEVENLABS_AVAILABLE and self.api_key:
@@ -54,13 +69,19 @@ class ElevenLabsTTS(TTSInterface):
                 # logger.info(f"Found {len(voices.voices)} voices.")
                 logger.info("ElevenLabsTTS initialized successfully.")
             except Exception as e:
-                logger.error(f"Failed to initialize ElevenLabs client (check API key validity?): {e}", exc_info=True)
-                self.client = None # Ensure client is None if init fails
+                logger.error(
+                    f"Failed to initialize ElevenLabs client (check API key validity?): {e}",
+                    exc_info=True,
+                )
+                self.client = None  # Ensure client is None if init fails
         elif not ELEVENLABS_AVAILABLE:
-             logger.error("Cannot initialize ElevenLabsTTS: Library not installed ('pip install elevenlabs').")
-        else: # API Key missing
-             logger.error("Cannot initialize ElevenLabsTTS: API key missing (set ELEVENLABS_API_KEY env var or provide via config).")
-
+            logger.error(
+                "Cannot initialize ElevenLabsTTS: Library not installed ('pip install elevenlabs')."
+            )
+        else:  # API Key missing
+            logger.error(
+                "Cannot initialize ElevenLabsTTS: API key missing (set ELEVENLABS_API_KEY env var or provide via config)."
+            )
 
     def is_available(self) -> bool:
         """Check if library is installed, API key is provided, and client initialized."""
@@ -70,7 +91,9 @@ class ElevenLabsTTS(TTSInterface):
     def synthesize(self, text: str, output_path: str) -> bool:
         """Synthesizes text using ElevenLabs."""
         if not self.is_available():
-            logger.error("ElevenLabsTTS is not available (check API key, installation, and initialization logs).")
+            logger.error(
+                "ElevenLabsTTS is not available (check API key, installation, and initialization logs)."
+            )
             return False
         if not text:
             logger.error("Cannot synthesize empty text.")
@@ -81,8 +104,8 @@ class ElevenLabsTTS(TTSInterface):
             # Simple generation - enhance with specific voice, model, stability settings later
             audio = self.client.generate(
                 text=text,
-                voice="Rachel", # Example voice - make configurable
-                model="eleven_multilingual_v2" # Example model - make configurable
+                voice="Rachel",  # Example voice - make configurable
+                model="eleven_multilingual_v2",  # Example model - make configurable
             )
             # Ensure output directory exists
             output_dir = os.path.dirname(output_path)
@@ -96,12 +119,13 @@ class ElevenLabsTTS(TTSInterface):
             logger.error(f"ElevenLabs synthesis failed: {e}", exc_info=True)
             # Clean up potentially partially created file
             if os.path.exists(output_path):
-                 try:
-                     os.remove(output_path)
-                     logger.info(f"Cleaned up partial file: {output_path}")
-                 except OSError:
-                      pass
+                try:
+                    os.remove(output_path)
+                    logger.info(f"Cleaned up partial file: {output_path}")
+                except OSError:
+                    pass
             return False
+
 
 # Example usage
 # if __name__ == '__main__':
@@ -122,4 +146,4 @@ class ElevenLabsTTS(TTSInterface):
 #         else:
 #             print("Synthesis failed.")
 #     else:
-#         print("ElevenLabs is not available.") 
+#         print("ElevenLabs is not available.")

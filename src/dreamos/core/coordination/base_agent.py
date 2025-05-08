@@ -68,9 +68,7 @@ from .event_payloads import (
     AgentContractStatusPayload,
     ErrorEventPayload,  # EDIT: Replaces AgentErrorPayload, SystemAgentErrorPayload
     TaskCompletionPayload,
-    TaskEventPayload,
     TaskFailurePayload,
-    TaskProgressPayload,
     TaskValidationFailedPayload,
 )
 
@@ -247,7 +245,7 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
     # async def publish_task_started(self, task: TaskMessage):
     #     # ... (old code) ...
     # EDIT END
-    
+
     # EDIT START: Remove publish_task_progress - PBM should handle this
     # async def publish_task_progress(...):
     #     # ... (old code) ...
@@ -265,20 +263,22 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
             await self.pbm.update_task_status(
                 task_id=task.task_id,
                 new_status=TaskStatus.COMPLETED,
-                result_summary=result.get("summary", "Completed successfully.") if result else "Completed successfully.",
+                result_summary=result.get("summary", "Completed successfully.")
+                if result
+                else "Completed successfully.",
                 # TODO: Consider adding full result payload to PBM if schema supports it
             )
             self.logger.info(f"PBM updated for completed task {task.task_id}")
         except Exception as e:
             self.logger.error(
                 f"Failed to update PBM for completed task {task.task_id}: {e}",
-                exc_info=True
+                exc_info=True,
             )
             # Publish agent error if PBM update fails?
             await self.publish_agent_error(
-                 f"PBM update failed for completed task {task.task_id}",
-                 details={"pbm_error": str(e)},
-                 task_id=task.task_id
+                f"PBM update failed for completed task {task.task_id}",
+                details={"pbm_error": str(e)},
+                task_id=task.task_id,
             )
         # EDIT END
 
@@ -300,7 +300,7 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
         self,
         task: TaskMessage,
         error: str,
-        is_final: bool = False, # PBM handles finality via status
+        is_final: bool = False,  # PBM handles finality via status
         details: Optional[str] = None,
     ):
         """Marks a task as failed in the ProjectBoardManager.
@@ -313,22 +313,23 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
             # Assuming PBM uses TaskStatus enum directly
             await self.pbm.update_task_status(
                 task_id=task.task_id,
-                new_status=TaskStatus.FAILED, # Or potentially map is_final?
-                result_summary=f"Failed: {error}" + (f" Details: {details}" if details else ""),
+                new_status=TaskStatus.FAILED,  # Or potentially map is_final?
+                result_summary=f"Failed: {error}"
+                + (f" Details: {details}" if details else ""),
             )
             self.logger.info(f"PBM updated for failed task {task.task_id}")
         except Exception as e:
             self.logger.error(
                 f"Failed to update PBM for failed task {task.task_id}: {e}",
-                exc_info=True
+                exc_info=True,
             )
             await self.publish_agent_error(
-                 f"PBM update failed for failed task {task.task_id}",
-                 details={"pbm_error": str(e)}, 
-                 task_id=task.task_id
+                f"PBM update failed for failed task {task.task_id}",
+                details={"pbm_error": str(e)},
+                task_id=task.task_id,
             )
         # EDIT END
-        
+
         # Publish generic failure event
         payload = TaskFailurePayload(
             task_id=task.task_id,

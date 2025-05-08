@@ -7,13 +7,13 @@ that can be registered or used by agents.
 # This __init__.py can be used to expose specific capabilities or categories
 # from the modules within this library package.
 from .task_rewrite import (
-    task_rewrite_capability,
-    TASK_REWRITE_CAPABILITY_INFO,
     TASK_REWRITE_CAPABILITY_ID,
+    TASK_REWRITE_CAPABILITY_INFO,
+    task_rewrite_capability,
 )
 
 __all__ = [
     "task_rewrite_capability",
     "TASK_REWRITE_CAPABILITY_INFO",
     "TASK_REWRITE_CAPABILITY_ID",
-] 
+]

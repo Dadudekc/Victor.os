@@ -55,56 +55,72 @@ class ChatScraperService:
                 try:
                     # Example: Try to find a timestamp if it's a sibling div to the link's parent
                     # Or, if the link_el is inside a larger div for the chat item:
-                    parent_item_el = link_el.find_element("xpath", "./ancestor::div[contains(@class, 'chat-item-container') or contains(@class, 'relative')][1]") # Common pattern for item containers
-                    
+                    parent_item_el = link_el.find_element(
+                        "xpath",
+                        "./ancestor::div[contains(@class, 'chat-item-container') or contains(@class, 'relative')][1]",
+                    )  # Common pattern for item containers
+
                     # --- Try multiple selectors for timestamp ---
                     timestamp_selectors = [
-                        ".//span[contains(@class, 'time') or contains(@class, 'timestamp') or contains(@class, 'date') or contains(@data-testid, 'time') or contains(@data-testid, 'timestamp') or contains(@data-testid, 'date')]", # Common classes/testids
-                        ".//div[contains(@class, 'time') or contains(@class, 'timestamp') or contains(@class, 'date') or contains(@data-testid, 'time') or contains(@data-testid, 'timestamp') or contains(@data-testid, 'date')][not(self::a)]" # Also check divs, exclude links
+                        ".//span[contains(@class, 'time') or contains(@class, 'timestamp') or contains(@class, 'date') or contains(@data-testid, 'time') or contains(@data-testid, 'timestamp') or contains(@data-testid, 'date')]",  # Common classes/testids
+                        ".//div[contains(@class, 'time') or contains(@class, 'timestamp') or contains(@class, 'date') or contains(@data-testid, 'time') or contains(@data-testid, 'timestamp') or contains(@data-testid, 'date')][not(self::a)]",  # Also check divs, exclude links
                     ]
                     for idx, selector in enumerate(timestamp_selectors):
                         try:
                             time_el = parent_item_el.find_element("xpath", selector)
                             text = time_el.text.strip()
-                            if text: # Ensure element found and has text
+                            if text:  # Ensure element found and has text
                                 last_active_time = text
-                                logger.debug(f"Found last_active_time for '{title}' using selector #{idx+1}: {selector}")
-                                break # Stop after first success
+                                logger.debug(
+                                    f"Found last_active_time for '{title}' using selector #{idx+1}: {selector}"
+                                )
+                                break  # Stop after first success
                         except Exception:
-                            continue # Try next selector
+                            continue  # Try next selector
                     if not last_active_time:
-                        logger.debug(f"Could not find last_active_time for chat '{title}' using any defined selectors.")
+                        logger.debug(
+                            f"Could not find last_active_time for chat '{title}' using any defined selectors."
+                        )
 
                     # --- Try multiple selectors for snippet ---
                     snippet_selectors = [
-                        ".//div[contains(@class, 'snippet') or contains(@class, 'preview') or contains(@class, 'summary') or contains(@data-testid, 'snippet') or contains(@data-testid, 'preview') or contains(@data-testid, 'summary')]", # Common classes/testids
-                        ".//span[contains(@class, 'snippet') or contains(@class, 'preview') or contains(@class, 'summary') or contains(@data-testid, 'snippet') or contains(@data-testid, 'preview') or contains(@data-testid, 'summary')]" # Also check spans
+                        ".//div[contains(@class, 'snippet') or contains(@class, 'preview') or contains(@class, 'summary') or contains(@data-testid, 'snippet') or contains(@data-testid, 'preview') or contains(@data-testid, 'summary')]",  # Common classes/testids
+                        ".//span[contains(@class, 'snippet') or contains(@class, 'preview') or contains(@class, 'summary') or contains(@data-testid, 'snippet') or contains(@data-testid, 'preview') or contains(@data-testid, 'summary')]",  # Also check spans
                     ]
                     for idx, selector in enumerate(snippet_selectors):
                         try:
                             snippet_el = parent_item_el.find_element("xpath", selector)
                             text = snippet_el.text.strip()
-                            if text: # Ensure element found and has text
+                            if text:  # Ensure element found and has text
                                 snippet = text
-                                logger.debug(f"Found snippet for '{title}' using selector #{idx+1}: {selector}")
-                                break # Stop after first success
+                                logger.debug(
+                                    f"Found snippet for '{title}' using selector #{idx+1}: {selector}"
+                                )
+                                break  # Stop after first success
                         except Exception:
-                            continue # Try next selector
+                            continue  # Try next selector
                     if not snippet:
-                        logger.debug(f"Could not find snippet for chat '{title}' using any defined selectors.")
+                        logger.debug(
+                            f"Could not find snippet for chat '{title}' using any defined selectors."
+                        )
 
                 except Exception:
-                    logger.debug(f"Could not find common parent 'chat-item-container' for chat '{title}' to search for metadata.")
+                    logger.debug(
+                        f"Could not find common parent 'chat-item-container' for chat '{title}' to search for metadata."
+                    )
 
+                chats.append(
+                    {
+                        "title": title,
+                        "link": link,
+                        "last_active_time": last_active_time,
+                        "snippet": snippet,
+                    }
+                )
 
-                chats.append({
-                    "title": title,
-                    "link": link,
-                    "last_active_time": last_active_time,
-                    "snippet": snippet
-                })
-
-            logger.info(f"✅ Retrieved {len(chats)} chats from sidebar with attempted metadata.")
+            logger.info(
+                f"✅ Retrieved {len(chats)} chats from sidebar with attempted metadata."
+            )
             return chats
 
         except Exception as e:

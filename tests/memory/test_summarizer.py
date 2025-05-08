@@ -1,18 +1,9 @@
 import json
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch, call, ANY
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-from dreamos.core.config import AppConfig, SummarizationConfig
-from dreamos.memory.memory_manager import MemoryManager, UnifiedMemoryManager
-from dreamos.memory.summarization_utils import (
-    extract_keywords_bert,
-)
 from dreamos.memory.summarizer import (
-    Summarizer, 
-    SummarizationStrategy, 
-    SlidingWindowSummarization,
     _generate_placeholder_summary,
     summarize_memory_file,
 )

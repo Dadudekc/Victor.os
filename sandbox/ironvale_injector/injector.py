@@ -1,14 +1,15 @@
+import datetime
 import json
 import os
-import datetime
-import time
 import random
+import time
 
-INPUT_PAYLOAD_PATH = "command_payload.json" # Example input file
+INPUT_PAYLOAD_PATH = "command_payload.json"  # Example input file
 OUTPUT_REPORT_PATH = "report.json"
 
 # Simulate potential issues
-SIMULATE_FAILURE_RATE = 0.1 # 10% chance of simulated injection failure
+SIMULATE_FAILURE_RATE = 0.1  # 10% chance of simulated injection failure
+
 
 def simulate_cursor_injection(payload):
     """Simulates the process of injecting code/commands into Cursor."""
@@ -22,25 +23,35 @@ def simulate_cursor_injection(payload):
 
     if random.random() < SIMULATE_FAILURE_RATE:
         print("  SIMULATED FAILURE: Cursor window not found or injection hook failed.")
-        return {"status": "FAILED", "error": "Simulated failure: Cursor interaction failed.", "commands_relayed": 0}
+        return {
+            "status": "FAILED",
+            "error": "Simulated failure: Cursor interaction failed.",
+            "commands_relayed": 0,
+        }
     else:
         print("  SIMULATION: Injection successful.")
         return {"status": "COMPLETED", "error": None, "commands_relayed": 1}
+
 
 def generate_report(result):
     """Generates the JSON report for this module."""
     report = {
         "module_id": "module1_injector",
         "agent_id": "Agent 7 (Ironvale)",
-        "report_timestamp_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "report_timestamp_utc": datetime.datetime.now(
+            datetime.timezone.utc
+        ).isoformat(),
         "status": result["status"],
         "metrics": {
             "commands_relayed": result["commands_relayed"],
-            "errors": 1 if result["status"] == "FAILED" else 0
+            "errors": 1 if result["status"] == "FAILED" else 0,
         },
-        "notes": result["error"] if result["error"] else "Injector simulation completed."
+        "notes": result["error"]
+        if result["error"]
+        else "Injector simulation completed.",
     }
     return report
+
 
 if __name__ == "__main__":
     print("Ironvale Injector starting...")
@@ -49,8 +60,8 @@ if __name__ == "__main__":
         "payload": {
             "code": "print('Hello from simulated GPT!')",
             "language": "python",
-            "cursor_position": "current"
-        }
+            "cursor_position": "current",
+        },
     }
 
     # In a real scenario, this payload might come from AgentBus or a file
@@ -61,13 +72,15 @@ if __name__ == "__main__":
 
     # Ensure script runs from workspace root or adjust paths accordingly
     workspace_root = os.getcwd()
-    absolute_output_path = os.path.join(workspace_root, "sandbox/ironvale_injector", OUTPUT_REPORT_PATH)
+    absolute_output_path = os.path.join(
+        workspace_root, "sandbox/ironvale_injector", OUTPUT_REPORT_PATH
+    )
 
     print(f"Writing report to {absolute_output_path}...")
     try:
         os.makedirs(os.path.dirname(absolute_output_path), exist_ok=True)
-        with open(absolute_output_path, 'w') as f:
+        with open(absolute_output_path, "w") as f:
             json.dump(final_report, f, indent=2)
         print("Injector report generation complete.")
     except Exception as e:
-        print(f"ERROR: Failed to write injector report: {e}") 
+        print(f"ERROR: Failed to write injector report: {e}")

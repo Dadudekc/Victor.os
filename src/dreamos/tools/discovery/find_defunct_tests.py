@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
+
 from dreamos.core.config import load_app_config
 
 # Setup logging
@@ -105,7 +106,7 @@ def find_defunct_tests(
         ]
         logger.info(f"Using provided exclude_dirs: {resolved_excluded_dirs}")
     else:
-        resolved_excluded_dirs = DEFAULT_EXCLUDE_DIRS # Use module-level default
+        resolved_excluded_dirs = DEFAULT_EXCLUDE_DIRS  # Use module-level default
         logger.info(f"Using default exclude_dirs: {resolved_excluded_dirs}")
 
     original_count = len(test_files)

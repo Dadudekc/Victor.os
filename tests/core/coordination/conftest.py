@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,6 +9,7 @@ from dreamos.core.coordination.base_agent import (
     TaskPriority,
     TaskStatus,
 )
+
 # NOTE: Import ProjectBoardManager if it's used as a spec for mocks within fixtures in this file.
 # from dreamos.core.pbm.project_board_manager import ProjectBoardManager
 
@@ -46,6 +46,7 @@ class MockConcreteAgent(BaseAgent):
 
 # --- Fixtures ---
 
+
 @pytest.fixture
 def mock_agent_bus() -> MagicMock:
     bus = MagicMock()
@@ -79,7 +80,7 @@ def create_sample_task(
     command_type="TEST_CMD",
     params=None,
     status=TaskStatus.ACCEPTED,
-    priority=TaskPriority.MEDIUM, # Added default priority
+    priority=TaskPriority.MEDIUM,  # Added default priority
 ):
     return TaskMessage(
         task_id=task_id,
@@ -105,7 +106,9 @@ def mock_agent(mock_agent_bus: MagicMock, tmp_path: Path):
         patch.object(BaseAgent, "publish_task_started", new_callable=AsyncMock),
         patch.object(BaseAgent, "publish_task_completed", new_callable=AsyncMock),
         patch.object(BaseAgent, "publish_task_failed", new_callable=AsyncMock),
-        patch.object(BaseAgent, "publish_validation_failed", new_callable=AsyncMock), # Assuming this event helper exists
+        patch.object(
+            BaseAgent, "publish_validation_failed", new_callable=AsyncMock
+        ),  # Assuming this event helper exists
         patch.object(BaseAgent, "publish_agent_error", new_callable=AsyncMock),
     ):
         agent = MockConcreteAgent(
@@ -117,4 +120,4 @@ def mock_agent(mock_agent_bus: MagicMock, tmp_path: Path):
             "test_command", agent.handle_default_test_command
         )
         agent.persist_task_update = mock_persist  # Attach mock for easy access in tests
-        yield agent 
+        yield agent

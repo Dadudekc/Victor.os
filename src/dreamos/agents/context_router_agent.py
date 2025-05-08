@@ -6,17 +6,19 @@ to appropriate target agents based on contextual metadata and configurable rules
 It subscribes to task events, inspects their context, and if a routing rule
 matches, re-dispatches the event with a new target agent ID.
 """
-import asyncio
+
 import logging
 from typing import Any, Dict, Optional
 
 # REMOVE try/except block and dummy fallbacks
 # try:
 from ..coordination.event_payloads import BaseEvent
+
 # from ..coordination.project_board_manager import ProjectBoardManager # Not directly used here
 from ..core.config import AppConfig
-from ..core.coordination.agent_bus import AgentBus, EventType # Import EventType here
+from ..core.coordination.agent_bus import AgentBus, EventType  # Import EventType here
 from .base_agent import BaseAgent
+
 # AGENT_COMPONENTS_AVAILABLE = True
 # except ImportError as e:
 #     # ... (fallback logic removed) ...
@@ -34,7 +36,9 @@ class ContextRouterAgent(BaseAgent):
 
     def __init__(self, config: AppConfig, agent_bus: AgentBus, **kwargs):
         """Initializes the ContextRouterAgent."""
-        super().__init__(agent_id=self.AGENT_ID, config=config, agent_bus=agent_bus, **kwargs)
+        super().__init__(
+            agent_id=self.AGENT_ID, config=config, agent_bus=agent_bus, **kwargs
+        )
         self.logger.info(f"{self.AGENT_ID} initializing...")
         self.routing_rules = self._load_routing_rules()
         self.logger.info(
@@ -43,7 +47,7 @@ class ContextRouterAgent(BaseAgent):
 
     def _load_routing_rules(self) -> Dict:
         """Loads routing rules from the application configuration."""
-        if hasattr(self.config, 'context_router') and self.config.context_router:
+        if hasattr(self.config, "context_router") and self.config.context_router:
             router_config = self.config.context_router
             # TODO: Consider using Pydantic rule models directly in _determine_target_agent
             #       instead of converting to dicts here, to retain Pydantic benefits.

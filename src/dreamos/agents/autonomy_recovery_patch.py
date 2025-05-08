@@ -9,11 +9,11 @@ CRITICAL FIXME: The file I/O operations in this module were originally implement
                 an async context). They are being refactored to use `await asyncio.to_thread`
                 correctly, making the helper functions and their callers async.
 """
+
+import asyncio
 import json
 import logging
 import os
-import uuid
-import asyncio
 
 # import time # F401 Unused import
 from datetime import datetime, timedelta, timezone
@@ -28,7 +28,8 @@ MAX_STEPS_WITHOUT_COMMIT = 10  # Example threshold
 CAPTAIN_MAILBOX_ID = "Captain-Agent-5"  # Needs confirmation or dynamic lookup
 CAPTAIN_MAILBOX_PATH = f"runtime/agent_comms/agent_mailboxes/{CAPTAIN_MAILBOX_ID}/inbox"
 
-logger = logging.getLogger(__name__) # Define logger at module level
+logger = logging.getLogger(__name__)  # Define logger at module level
+
 
 class AgentStateError(Exception):
     """Custom exception for agent state issues."""
@@ -49,9 +50,11 @@ async def _read_json_file(file_path: str) -> dict | None:
     if not exists:
         return None
     try:
+
         def sync_read():
-             with open(file_path, "r") as f:
-                 return json.load(f)
+            with open(file_path, "r") as f:
+                return json.load(f)
+
         return await asyncio.to_thread(sync_read)
     except (json.JSONDecodeError, IOError) as e:
         logger.error(f"Error reading {file_path}: {e}")
@@ -61,9 +64,11 @@ async def _read_json_file(file_path: str) -> dict | None:
 async def _write_json_file(file_path: str, data: dict):
     """Safely writes data to a JSON file asynchronously."""
     try:
+
         def sync_write():
             with open(file_path, "w") as f:
                 json.dump(data, f, indent=2)
+
         await asyncio.to_thread(sync_write)
     except IOError as e:
         logger.error(f"Error writing to {file_path}: {e}")
@@ -77,13 +82,17 @@ async def get_active_task(agent_id: str) -> dict | None:
     return await _read_json_file(task_file)
 
 
-async def set_active_task(agent_id: str, task_id: str, task_details: dict | None = None):
+async def set_active_task(
+    agent_id: str, task_id: str, task_details: dict | None = None
+):
     """Sets the agent's currently active task asynchronously."""
     status_path = await _get_agent_status_path(agent_id)
     task_file = os.path.join(status_path, ACTIVE_TASK_FILE)
     data = {"task_id": task_id, "details": task_details or {}}
     await _write_json_file(task_file, data)
-    await update_last_action(agent_id, reset_steps=True)  # Reset steps when a new task is set
+    await update_last_action(
+        agent_id, reset_steps=True
+    )  # Reset steps when a new task is set
 
 
 async def clear_active_task(agent_id: str):
@@ -126,7 +135,9 @@ async def _send_halt_report_to_captain(agent_id: str, reason: str):
     """Sends an urgent HALT report to the Captain's inbox asynchronously."""
     message_id = f"halt_report_{agent_id}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"  # noqa: E501
     # Read last action data asynchronously before constructing the message
-    last_action_file_path = os.path.join(await _get_agent_status_path(agent_id), LAST_ACTION_FILE)
+    last_action_file_path = os.path.join(
+        await _get_agent_status_path(agent_id), LAST_ACTION_FILE
+    )
     last_action_content = await _read_json_file(last_action_file_path)
     message = {
         "message_id": message_id,
@@ -148,7 +159,9 @@ async def _send_halt_report_to_captain(agent_id: str, reason: str):
         await _write_json_file(captain_inbox_path, message)
         logger.info(f"Agent {agent_id} sent HALT report to Captain: {reason}")
     except Exception as e:
-        logger.critical(f"Agent {agent_id} failed to send HALT report to Captain! Reason: {e}")
+        logger.critical(
+            f"Agent {agent_id} failed to send HALT report to Captain! Reason: {e}"
+        )
 
 
 async def check_agent_staleness(agent_id: str) -> bool:
@@ -163,7 +176,9 @@ async def check_agent_staleness(agent_id: str) -> bool:
     last_action_data = await _read_json_file(action_file)
 
     if not last_action_data:
-        await update_last_action(agent_id, increment_step=False)  # Create initial record
+        await update_last_action(
+            agent_id, increment_step=False
+        )  # Create initial record
         return False
 
     # Check time staleness
@@ -176,7 +191,9 @@ async def check_agent_staleness(agent_id: str) -> bool:
             ):
                 return True  # Stale due to time
         except ValueError:
-            logger.error(f"Error parsing timestamp for agent {agent_id}: {last_action_time_str}")
+            logger.error(
+                f"Error parsing timestamp for agent {agent_id}: {last_action_time_str}"
+            )
             # Treat as potentially stale if timestamp is invalid? Needs policy.
 
     # Check step staleness
@@ -187,7 +204,9 @@ async def check_agent_staleness(agent_id: str) -> bool:
     return False
 
 
-async def maintain_loop_integrity(agent_id: str, current_task_id: str | None) -> str | None:
+async def maintain_loop_integrity(
+    agent_id: str, current_task_id: str | None
+) -> str | None:
     """
     Core async function to be injected into the agent loop.
     1. Checks for staleness and escalates if needed.
@@ -202,7 +221,9 @@ async def maintain_loop_integrity(agent_id: str, current_task_id: str | None) ->
     """
     if await check_agent_staleness(agent_id):
         # Read last action data asynchronously for the reason message
-        last_action_file_path = os.path.join(await _get_agent_status_path(agent_id), LAST_ACTION_FILE)
+        last_action_file_path = os.path.join(
+            await _get_agent_status_path(agent_id), LAST_ACTION_FILE
+        )
         last_action_content_for_reason = await _read_json_file(last_action_file_path)
         reason = f"Stale state detected (timeout or excessive steps). Last action data: {last_action_content_for_reason}"  # noqa: E501
         logger.error(f"HALTING Agent {agent_id}: {reason}")
