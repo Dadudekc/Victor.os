@@ -1,8 +1,18 @@
 # src/dreamos/core/utils/autonomy_governor.py
-import json
 import logging
-from datetime import datetime, timezone
+import asyncio
+import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+import py_compile
+import subprocess
+from pathlib import Path
+import json
+
+try:
+    from ..coordination.agent_bus import AgentBus, BaseEvent, EventType
+except ImportError:
+    logger.warning("AgentBus/BaseEvent/EventType not found. Compliance event dispatching disabled.")
+    AgentBus, BaseEvent, EventType = None, None, None
 
 # Type checking imports to avoid circular dependencies
 if TYPE_CHECKING:
@@ -35,15 +45,22 @@ class AgentAutonomyGovernor:
         config: "AppConfig",
         pbm: "ProjectBoardManager",
         mailbox_utils: "MailboxUtils",
+        agent_bus: Optional["AgentBus"] = None,
     ):
         """Initialize the governor with necessary dependencies."""
         self.config = config
         self.pbm = pbm
         self.mailbox_utils = mailbox_utils
+        self.agent_bus = agent_bus
         # TODO: Validate that injected dependencies are not None
         if not all([config, pbm, mailbox_utils]):
-            # In a real system, might raise an error or handle missing dependencies
-            logger.error("AutonomyGovernor initialized with missing dependencies!")
+            logger.error(
+                "AutonomyGovernor initialized with missing core dependencies (config, pbm, mailbox_utils)!"
+            )
+            # Optionally raise an error
+            # raise ValueError("AutonomyGovernor missing required dependencies")
+        if not agent_bus and EventType: # Only warn if bus was expected (EventType exists)
+             logger.warning("AutonomyGovernor initialized without AgentBus. Compliance event dispatching disabled.")
 
     def check_operational_status(self, agent_id: str) -> Tuple[str, Optional[str]]:
         """Checks agent status based on mailbox, central boards, and agent's own inbox (v2.1).
@@ -173,18 +190,36 @@ class AgentAutonomyGovernor:
         completion_notes: str,
         modified_files: Optional[List[str]] = None,
     ) -> bool:
-        """Performs basic self-validation: flake8 on modified Python files."""
+        """Performs basic self-validation: py_compile syntax check and flake8 on modified Python files."""
         logger.debug(f"Performing validation check for task {task_id}")
         files_ok = True
         if modified_files:
             python_files = [f for f in modified_files if f.endswith(".py")]
             if python_files:
-                try:
-                    import subprocess
+                logger.debug(f"Running py_compile validation on: {python_files}")
+                compile_failed = False
+                for py_file in python_files:
+                    try:
+                        py_compile.compile(py_file, doraise=True)
+                        logger.debug(f"py_compile PASSED for {py_file}")
+                    except py_compile.PyCompileError as e:
+                        logger.warning(f"py_compile FAILED for task {task_id}, file {py_file}: {e}")
+                        files_ok = False
+                        compile_failed = True # Stop further checks if compile fails
+                        break # Stop checking other files if one fails compilation
+                    except Exception as e:
+                        logger.error(f"Error during py_compile for {py_file}: {e}")
+                        files_ok = False
+                        compile_failed = True
+                        break
 
+                if compile_failed:
+                    return False # Return early if compilation failed
+
+                # --- Flake8 Check (only if compile passed) ---
+                try:
                     flake8_cmd = ["flake8"] + python_files
                     logger.debug(f"Running flake8 validation: {' '.join(flake8_cmd)}")
-                    # Timeout included for safety
                     result = subprocess.run(
                         flake8_cmd,
                         capture_output=True,
@@ -194,7 +229,7 @@ class AgentAutonomyGovernor:
                     )
                     if result.returncode != 0:
                         logger.warning(
-                            f"Flake8 validation failed for task {task_id}. Return code: {result.returncode}"  # noqa: E501
+                            f"Flake8 validation failed for task {task_id}. Return code: {result.returncode}"
                         )
                         logger.warning(f"Flake8 stdout:\n{result.stdout}")
                         logger.warning(f"Flake8 stderr:\n{result.stderr}")
@@ -205,7 +240,7 @@ class AgentAutonomyGovernor:
                     logger.error(
                         "Flake8 command not found. Cannot perform linting validation."
                     )
-                    files_ok = False  # Treat as failure if tool missing
+                    files_ok = False
                 except subprocess.TimeoutExpired:
                     logger.error(f"Flake8 validation timed out for task {task_id}.")
                     files_ok = False
@@ -214,34 +249,77 @@ class AgentAutonomyGovernor:
                         f"Error running flake8 validation for task {task_id}: {e}"
                     )
                     files_ok = False
+                # --- End Flake8 Check ---
+
+                # TODO: Add pytest execution based on task metadata
+                # Example placeholder:
+                # if self.config.run_tests_on_validate and files_ok:
+                #     logger.info(f"Attempting pytest execution for task {task_id}...")
+                #     # Logic to determine relevant tests and run pytest
+                #     pass
+
         else:
             logger.debug("No modified files provided, skipping file validation.")
 
         if files_ok:
             logger.info(f"Basic file validation passed for task {task_id}.")
+            self.log_compliance_event(
+                 task_id=task_id, # Pass task_id if relevant
+                 event_type="VALIDATION_PASSED",
+                 details={"modified_files": modified_files or []}
+            )
             return True
         else:
             logger.warning(f"Basic file validation failed for task {task_id}.")
+            self.log_compliance_event(
+                 task_id=task_id,
+                 event_type="VALIDATION_FAILED",
+                 details={"reason": "Static analysis failed (py_compile or flake8)", "modified_files": modified_files or []}
+            )
             return False
 
     # TODO: Consider dispatching compliance events to AgentBus
-    def log_compliance_event(
-        self, agent_id: str, event_type: str, details: Dict[str, Any]
+    async def log_compliance_event(
+        self,
+        event_type: str, # Use string for flexibility or Enum if defined
+        details: Dict[str, Any],
+        agent_id: Optional[str] = None, # Optional: agent performing action
+        task_id: Optional[str] = None, # Optional: associated task
     ):
-        """Logs key autonomy loop events for compliance/monitoring."""
-        try:
-            log_entry = {  # noqa: F841
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "agent_id": agent_id,
-                "event_type": event_type,  # e.g., TASK_COMPLETED_VALIDATED, IDLE_MODE_SCAN, BLOCKER_ESCALATED  # noqa: E501
-                "details": details,
-            }
-            # Log clearly, avoid complex objects if just logging info
-            logger.info(
-                f"COMPLIANCE_EVENT::{agent_id}::{event_type}::{json.dumps(details)}"
+        """Logs key autonomy loop events for compliance/monitoring, optionally dispatching to AgentBus."""
+        log_entry = {
+            "event_type": event_type,
+            "agent_id": agent_id,
+            "task_id": task_id,
+            "timestamp": time.time(), # Replace with timezone-aware timestamp
+            "details": details,
+        }
+        logger.info(f"Compliance Event: {event_type} - {details}")
+
+        if self.agent_bus and BaseEvent and EventType:
+            bus_event = BaseEvent(
+                event_type=EventType.GOVERNANCE_COMPLIANCE_LOGGED, # Assuming this event type exists
+                source_id=agent_id or "AutonomyGovernor",
+                data=log_entry,
             )
-        except Exception as e:
-            logger.error(f"Failed to log compliance event for {agent_id}: {e}")
+            try:
+                await self.agent_bus.publish(bus_event) # Assuming publish exists and is async
+                logger.debug(f"Dispatched compliance event to AgentBus: {event_type}")
+            except Exception as e:
+                logger.error(f"Failed to dispatch compliance event to AgentBus: {e}")
+
+    async def _trigger_supervisor_alert(self, reason: str, details: Dict[str, Any]):
+        """Placeholder: Sends an alert to a supervisor channel/agent."""
+        logger.warning(f"SUPERVISOR ALERT Triggered: {reason} - {details}")
+        # Integrate with actual alerting mechanism (e.g., AgentBus event)
+        pass
+
+    async def _ensure_valid_state_transition(self, current_state: str, next_state: str):
+        """Validates if a state transition is allowed (placeholder)."""
+        # Implement actual state machine logic here
+        logger.debug(f"Validating transition: {current_state} -> {next_state}")
+        await asyncio.sleep(0) # Placeholder for potential async checks
+        return True
 
 
 # # --- Example Usage --- COMMENTED OUT

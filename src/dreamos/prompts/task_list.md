@@ -34,4 +34,4 @@ Tasks related to managing, testing, and refining prompts used by LLM-integrated 
 ## VI. Finalization
 
 -   [ ] Commit refined prompts and any testing scripts.
--   [ ] Ensure prompts are well-organized, effective, and documented.
+-   [ ] Ensure prompts are well-organized, effective, and documented. 

@@ -5,6 +5,38 @@ logging:
   level: INFO # Keep default level for now
   log_file: dream_os.log # Enable logging to runtime/logs/dream_os.log
 
+# --- Updated Paths Configuration ---
+paths:
+  runtime: runtime
+  logs: runtime/logs
+  agent_comms: runtime/agent_comms # Added
+  central_task_boards: runtime/agent_comms/central_task_boards # Added
+  task_schema: src/dreamos/coordination/tasks/task-schema.json # Added
+  # Add other optional paths here if needed, e.g.:
+  # cursor_state_path: runtime/state/cursor_state.json
+  # scanner_cache_path: .scanner_cache.json
+
+# --- ADDED GUI Automation Configuration ---
+# Note: Removed assets and gui_snippets from paths:, ensure they are configured elsewhere if needed.
+gui_automation:
+  # Settings for copy_thea_reply (from gui_utils)
+  thea_anchor_image: "thea_reply_anchor.png" # Placeholder image name
+  thea_click_offset_x: 50 # Placeholder offset X
+  thea_click_offset_y: 10 # Placeholder offset Y
+  thea_copy_confidence: 0.9 # Confidence for finding the anchor
+
+  # Settings for inject_prompt_into_cursor (from cursor_bridge)
+  cursor_input_image: "cursor_input_field.png" # Placeholder image name
+  cursor_input_confidence: 0.8 # Confidence for finding input field image
+  # Fallback coordinates if image search fails
+  cursor_fallback_input_x: 150 # Placeholder X coordinate
+  cursor_fallback_input_y: 850 # Placeholder Y coordinate
+  # Note: cursor_bridge also uses pytesseract config if OCR is needed later
+  # tesseract:
+  #   cmd_path: null # Set full path if not in system PATH
+  #   language: 'eng'
+  #   config: '--psm 6'
+
 # Other sections can be added here as needed following AppConfig structure
 
 # {{ EDIT START: Add Swarm Configuration for Dynamic Agent Activation }}
@@ -41,3 +73,27 @@ swarm:
 # Note: ChatGPTWebAgent is started separately as a dedicated thread in SwarmController
 # and does not need to be listed in active_agents here.
 # {{ EDIT END }}
+
+# --- EDIT START: Add Agent Points System Configuration ---
+agent_points_system:
+  point_values:
+    task_completion: 10
+    task_failure: -5
+    unblock_major: 20
+    unblock_minor: 5
+    task_completion_chore: 2 # Default: 2, can be overridden
+    protocol_violation_major: -3 # Default: -3
+    protocol_violation_minor: -1 # Default: -1
+    improvement_award_small: 5    # Default: 5
+    improvement_award_medium: 15  # Default: 15
+    improvement_award_large: 30   # Default: 30
+    # Add any other custom keys or overrides here.
+    # Keys not present here but in DEFAULT_POINT_VALUES in code will use their defaults.
+    # Example override:
+    # task_completion: 12
+  
+  # --- Add captaincy check config ---
+  captaincy_check_interval_minutes: 15 # How often to run the check
+  captain_status_file: runtime/governance/current_captain.txt # Where to write the captain ID
+
+# --- EDIT END ---

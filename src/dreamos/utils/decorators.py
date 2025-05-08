@@ -2,32 +2,70 @@
 import functools
 import logging
 import time
+import asyncio
+from typing import Any, Callable, Coroutine, Type, Tuple
 
 logger = logging.getLogger(__name__)
 
 
-def retry_on_exception(max_attempts=3, exceptions=(Exception,), delay=1):
-    """Basic placeholder decorator for retry logic."""
+def retry_on_exception(max_attempts: int = 3, exceptions: Tuple[Type[Exception], ...] = (Exception,), delay: float = 1.0):
+    """Decorator to retry a **synchronous** function if specific exceptions occur."""
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             attempts = 0
+            last_exception = None
             while attempts < max_attempts:
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
+                    last_exception = e
                     attempts += 1
                     if attempts >= max_attempts:
                         logger.error(
-                            f"Function {func.__name__} failed after {max_attempts} attempts due to {e}.",  # noqa: E501
+                            f"Sync function {func.__qualname__} failed after {max_attempts} attempts due to {type(e).__name__}.",
                             exc_info=True,
                         )
                         raise
                     logger.warning(
-                        f"Attempt {attempts}/{max_attempts} failed for {func.__name__} due to {e}. Retrying in {delay}s..."  # noqa: E501
+                        f"Attempt {attempts}/{max_attempts} failed for {func.__qualname__} due to {type(e).__name__}: {e}. Retrying in {delay}s..."
                     )
                     time.sleep(delay)
+            if last_exception: raise last_exception
+            return None
+
+        return wrapper
+
+    return decorator
+
+
+def async_retry_on_exception(max_attempts: int = 3, exceptions: Tuple[Type[Exception], ...] = (Exception,), delay: float = 1.0):
+    """Decorator to retry an **asynchronous** function if specific exceptions occur."""
+
+    def decorator(func: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            attempts = 0
+            last_exception = None
+            while attempts < max_attempts:
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as e:
+                    last_exception = e
+                    attempts += 1
+                    if attempts >= max_attempts:
+                        logger.error(
+                            f"Async function {func.__qualname__} failed after {max_attempts} attempts due to {type(e).__name__}.",
+                            exc_info=True,
+                        )
+                        raise
+                    logger.warning(
+                        f"Attempt {attempts}/{max_attempts} failed for {func.__qualname__} due to {type(e).__name__}: {e}. Retrying in {delay}s..."
+                    )
+                    await asyncio.sleep(delay)
+            if last_exception: raise last_exception
+            return None
 
         return wrapper
 

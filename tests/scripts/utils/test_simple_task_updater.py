@@ -144,6 +144,35 @@ class TestSimpleTaskUpdaterScript:
         assert result.returncode != 0
         assert "invalid choice: 'delete'" in result.stderr
 
+    def test_board_file_argument(self, mock_board_manager: MagicMock, tmp_path: Path):
+        """Test that the --board_file argument is passed to ProjectBoardManager."""
+        dummy_board_path = tmp_path / "custom_board.json"
+        # Create a dummy file so the script doesn't error on file not found immediately
+        # The script logic might try to load it, but the PBM is mocked anyway.
+        dummy_board_path.touch()
+
+        task_id = "task_claim_boardfile"
+        agent_id = "AgentBoardFileTest"
+
+        # Run with the --board_file argument
+        result = run_script([
+            "claim", task_id, agent_id,
+            "--board_file", str(dummy_board_path)
+        ])
+
+        assert result.returncode == 0 # Expect success as PBM is mocked
+
+        # Assert that ProjectBoardManager was initialized with the custom path
+        # This requires inspecting how PBM is initialized in the script's patch context
+        init_call_args, init_call_kwargs = mock_board_manager._mock_parent.call_args
+        assert init_call_kwargs.get('board_file') == dummy_board_path
+        # Or if positional: assert init_call_args[0] == dummy_board_path (adjust index)
+
+        # Ensure the claim method was still called
+        mock_board_manager.claim_future_task.assert_called_once_with(
+            task_id=task_id, agent_id=agent_id
+        )
+
 
 # TODO: Add tests for --board_file argument if needed
 # TODO: Add tests for mailbox interactions if they are integrated here

@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GPT Command Payload Schema",
+  "description": "Defines the structure for commands sent from the GPT source to the Cursor Bridge Relay.",
+  "type": "object",
+  "properties": {
+    "commandId": {
+      "description": "Unique identifier for this command.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp when the command was generated.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "originSessionId": {
+        "description": "Identifier for the originating GPT interaction session.",
+        "type": "string"
+    },
+    "actionType": {
+      "description": "The type of action Cursor should perform.",
+      "type": "string",
+      "enum": [
+        "EDIT_FILE",
+        "RUN_COMMAND",
+        "READ_FILE",
+        "LIST_DIR",
+        "OTHER" 
+      ]
+    },
+    "target": {
+      "description": "The primary target of the action (e.g., file path, directory path).",
+      "type": "string"
+    },
+    "parameters": {
+      "description": "Action-specific parameters.",
+      "type": "object",
+      "properties": {
+        "code_edit": { "description": "Content for EDIT_FILE action.", "type": "string" },
+        "instructions": { "description": "Instructions for EDIT_FILE action.", "type": "string" },
+        "command": { "description": "Command string for RUN_COMMAND action.", "type": "string" },
+        "is_background": { "description": "Background flag for RUN_COMMAND action.", "type": "boolean", "default": false },
+        "start_line": { "description": "Start line for READ_FILE action.", "type": "integer" },
+        "end_line": { "description": "End line for READ_FILE action.", "type": "integer" },
+        "relative_path": { "description": "Path for LIST_DIR action.", "type": "string" },
+        "custom_params": { "description": "Parameters for OTHER action type.", "type": "object" }
+        
+      }
+      // Required parameters would depend on actionType, potentially needing 'oneOf' or 'if-then-else' logic
+      // for stricter validation, omitted here for simplicity in conceptual design.
+    }
+  },
+  "required": [
+    "commandId",
+    "timestamp",
+    "actionType",
+    "target",
+    "parameters"
+  ]
+} 

@@ -46,6 +46,7 @@ todo_report_categories/
 .vscode/
 .idea/
 .cursor-prompts/
+.cursor/
 
 # Build artifacts (if any)
 dist/
@@ -64,11 +65,21 @@ secrets/
 # MyPy cache
 .mypy_cache/
 
+# Ruff cache
+.ruff_cache/
+
+# Cursor editor specific
+.cursor/
+
+# DreamOS root cache
+.dreamos_cache/
+
 # DreamOS specific cache in reports
 reports/.dreamos_cache/
 
 # Coverage reports
 htmlcov/
+.coverage
 
 # Node.js dependencies
 node_modules/
@@ -80,3 +91,10 @@ r.py
 *.isorted
 *.tmp
 *.bak
+
+# Test output logs
+test_stdout.log
+test_stderr.log
+
+# Chrome Profile
+chrome_profile/

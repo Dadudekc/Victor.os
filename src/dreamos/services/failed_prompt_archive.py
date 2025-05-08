@@ -3,13 +3,15 @@ import logging
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from dreamos.core.config import AppConfig
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-def load_json_safe(file_path: str, default: Any = None) -> Any:
+def load_json_safe(file_path: Path, default: Any = None) -> Any:
     """Load JSON from path, return default if file doesn't exist or fails."""
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         return default
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -22,13 +24,11 @@ def load_json_safe(file_path: str, default: Any = None) -> Any:
         return default
 
 
-def write_json_safe(file_path: str, data: Any) -> None:
+def write_json_safe(file_path: Path, data: Any) -> None:
     """Write JSON data to path, ensuring directory exists and using atomic replace."""
     try:
-        dirpath = os.path.dirname(file_path)
-        if dirpath and not os.path.exists(dirpath):
-            os.makedirs(dirpath, exist_ok=True)
-        temp_path = f"{file_path}.tmp"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
         os.replace(temp_path, file_path)
@@ -39,12 +39,11 @@ def write_json_safe(file_path: str, data: Any) -> None:
 class FailedPromptArchiveService:
     """Service to archive failed prompts with full metadata."""
 
-    def __init__(self, archive_path: str = "memory/failed_prompt_archive.json"):
-        self.archive_path = archive_path
+    def __init__(self, config: AppConfig):
+        # Derive path from config, assuming memory_dir is defined
+        self.archive_path = config.paths.memory_dir / "failed_prompt_archive.json"
         # Ensure archive directory exists
-        dirpath = os.path.dirname(self.archive_path)
-        if dirpath and not os.path.exists(dirpath):
-            os.makedirs(dirpath, exist_ok=True)
+        self.archive_path.parent.mkdir(parents=True, exist_ok=True)
         # Load existing archive or start with empty list
         loaded = load_json_safe(self.archive_path, default=[])
         self.archive: List[Dict[str, Any]] = loaded if isinstance(loaded, list) else []

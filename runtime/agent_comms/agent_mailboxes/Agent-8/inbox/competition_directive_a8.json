@@ -1,8 +1,0 @@
-{
-  "directive_id": "COMPETITION_DIRECTIVE_A8_PLACEHOLDER",
-  "from": "Commander THEA / General Victor",
-  "timestamp_utc": "{{iso_timestamp_utc()}}",
-  "subject": "High Priority: Autonomy Bridge Competition Directive",
-  "body": "Placeholder: Specific directive details unavailable due to file read timeout on Agent_Competition_Directives.csv. General goal: Support THEA<->Cursor bridge integration indirectly. Check devlog for context.",
-  "priority": "HIGH"
-}

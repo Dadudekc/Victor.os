@@ -40,6 +40,8 @@ from dreamos.core.config import AppConfig, setup_logging
 # {{ EDIT START: Remove duplicate config import }}
 # from dreamos.config import AppConfig, setup_logging
 # {{ EDIT END }}
+# TODO (Masterpiece Review - Captain-Agent-8): Clean up commented-out imports
+#      (Agents, dashboard, thea_relay_agent, duplicate config) if no longer needed.
 
 # Initial basic logging config (will be overridden by setup_logging)
 logging.basicConfig(
@@ -54,6 +56,8 @@ sys.stdout.flush()  # Flush after initial basicConfig
 # from .config_cmds import config_app
 
 # Import the new state command group
+# TODO (Masterpiece Review - Captain-Agent-8): Clean up commented-out command group imports
+#      (agent_app, task_app, config_app).
 
 # --- Main App Initialization ---
 app = click.Group(help="DreamOS Command Line Interface")
@@ -68,6 +72,8 @@ app = click.Group(help="DreamOS Command Line Interface")
 # {{ EDIT START: Comment out problematic Typer integration }}
 # app.add_typer(state_app, name="state")
 # {{ EDIT END }}
+# TODO (Masterpiece Review - Captain-Agent-8): Resolve commented-out Typer integration
+#      for the 'state' command group. Either fix the integration or remove if unused.
 
 # --- Main Execution Guard --- #
 # (Keep the rest of the file as is)
@@ -173,6 +179,8 @@ def run(ctx):
 #     # The `cli()` function itself isn't async, but commands under it can be.
 #     # We might need `asyncio.run(cli(standalone_mode=False))` or similar depending on Click version  # noqa: E501
 #     pass # Click handles execution via the decorator typically
+# TODO (Masterpiece Review - Captain-Agent-8): Remove the commented-out `main_async` function
+#      if it's confirmed to be unnecessary with the Click implementation.
 
 if __name__ == "__main__":
     # Ensure the event loop is correctly managed, especially on Windows

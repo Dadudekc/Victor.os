@@ -1,0 +1,11 @@
+{
+  "commandId": "gpt-cmd-demo-001",
+  "timestamp": "{{ CURRENT_TIMESTAMP_ISO }}", 
+  "originSessionId": "gpt-session-demo-abc",
+  "actionType": "EDIT_FILE",
+  "target": "sandbox/demo_scenario_knurlshade/contact_form.html",
+  "parameters": {
+    "instructions": "Create a simple HTML contact form.",
+    "code_edit": "<!DOCTYPE html>\n<html>\n<head>\n<title>Contact Us</title>\n</head>\n<body>\n\n<h2>Contact Form</h2>\n\n<form action=\"/submit_contact\" method=\"post\">\n  <label for=\"name\">Name:</label><br>\n  <input type=\"text\" id=\"name\" name=\"name\" required><br>\n  <label for=\"email\">Email:</label><br>\n  <input type=\"email\" id=\"email\" name=\"email\" required><br>\n  <label for=\"message\">Message:</label><br>\n  <textarea id=\"message\" name=\"message\" rows=\"4\" cols=\"50\" required></textarea><br><br>\n  <input type=\"submit\" value=\"Submit\">\n</form> \n\n</body>\n</html>\n"
+  }
+} 

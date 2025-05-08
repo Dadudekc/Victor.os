@@ -1,44 +1,26 @@
 # src/dreamos/agents/context_router_agent.py
+"""
+Defines the ContextRouterAgent, responsible for dynamically routing task events
+to appropriate target agents based on contextual metadata and configurable rules.
+
+It subscribes to task events, inspects their context, and if a routing rule
+matches, re-dispatches the event with a new target agent ID.
+"""
 import asyncio
 import logging
 from typing import Any, Dict, Optional
 
-# Assuming BaseAgent and AgentBus are correctly located after potential refactors
-# Adjust imports as necessary based on Agent 1/2 work
-try:
-    from ..coordination.event_payloads import BaseEvent
-    from ..coordination.project_board_manager import ProjectBoardManager
-    from ..core.config import AppConfig
-    from ..core.coordination.agent_bus import AgentBus
-    from .base_agent import BaseAgent
-
-    # Import event types that this agent will listen to (adjust as needed)
-    # Example: Assume a new event type from Agent 5 for scraped data
-    # from dreamos.coordination.agent_bus import EventType # Already imported
-    AGENT_COMPONENTS_AVAILABLE = True
-except ImportError as e:
-    logging.basicConfig(level=logging.ERROR)
-    logging.error(
-        f"Failed to import core agent components: {e}. ContextRouterAgent cannot run."
-    )
-    BaseAgent = object  # Dummy class to prevent NameErrors later
-    AgentBus = None
-    BaseEvent = None
-
-    # Define potentially missing EventTypes if needed for structure
-    class EventType:
-        # REMOVE: ROUTING_REQUEST = "placeholder.routing.request" # Example placeholder
-        # ADD Actual EventTypes (assuming they exist in coordination.agent_bus)
-        TASK_ASSIGNED = "task.assigned"
-        TASK_DIRECT = "task.direct"  # Example: May also want to route direct tasks
-        CURSOR_INJECT_REQUEST = "placeholder.cursor.inject.request"
-
-    AGENT_COMPONENTS_AVAILABLE = False
-
-# EDIT START: Import AppConfig
-from dreamos.core.config import AppConfig
-
-# EDIT END
+# REMOVE try/except block and dummy fallbacks
+# try:
+from ..coordination.event_payloads import BaseEvent
+# from ..coordination.project_board_manager import ProjectBoardManager # Not directly used here
+from ..core.config import AppConfig
+from ..core.coordination.agent_bus import AgentBus, EventType # Import EventType here
+from .base_agent import BaseAgent
+# AGENT_COMPONENTS_AVAILABLE = True
+# except ImportError as e:
+#     # ... (fallback logic removed) ...
+#     AGENT_COMPONENTS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +32,9 @@ class ContextRouterAgent(BaseAgent):
 
     AGENT_ID = "context_router_agent"  # Define a unique ID for this agent type
 
-    def __init__(self, agent_bus: AgentBus, config: AppConfig, **kwargs):
+    def __init__(self, config: AppConfig, agent_bus: AgentBus, **kwargs):
         """Initializes the ContextRouterAgent."""
-        if not AGENT_COMPONENTS_AVAILABLE:
-            raise RuntimeError("Core agent components not available.")
-
-        super().__init__(agent_id=self.AGENT_ID, agent_bus=agent_bus, **kwargs)
-        self.config = config  # Store the app config
+        super().__init__(agent_id=self.AGENT_ID, config=config, agent_bus=agent_bus, **kwargs)
         self.logger.info(f"{self.AGENT_ID} initializing...")
         self.routing_rules = self._load_routing_rules()
         self.logger.info(
@@ -65,10 +43,10 @@ class ContextRouterAgent(BaseAgent):
 
     def _load_routing_rules(self) -> Dict:
         """Loads routing rules from the application configuration."""
-        # TODO: Load routing rules from config? -> REMOVED TODO
-        router_config = self.config.context_router
-        if router_config:
-            # Convert Pydantic models back to dict for existing logic (or adapt logic)
+        if hasattr(self.config, 'context_router') and self.config.context_router:
+            router_config = self.config.context_router
+            # TODO: Consider using Pydantic rule models directly in _determine_target_agent
+            #       instead of converting to dicts here, to retain Pydantic benefits.
             rules_dict = {
                 "rules": [rule.dict() for rule in router_config.rules],
                 "default_agent": router_config.default_agent,
@@ -81,7 +59,7 @@ class ContextRouterAgent(BaseAgent):
             )
             return {"rules": [], "default_agent": None}
 
-    async def _on_start(self):
+    async def initialize(self):
         """Subscribe to relevant task events when the agent starts."""
         # Subscribe to task events that might need routing
         # Example: Subscribe to TASK_ASSIGNED
@@ -97,6 +75,21 @@ class ContextRouterAgent(BaseAgent):
             # self.logger.info(f"Subscribed to {EventType.TASK_DIRECT.value} events.")
         except Exception as e:
             self.logger.exception(f"Failed to subscribe to task events: {e}")
+        await super().initialize()
+
+    async def shutdown(self):
+        """Unsubscribe from events on shutdown."""
+        self.logger.info(f"Shutting down {self.AGENT_ID}...")
+        task_event_type = EventType.TASK_ASSIGNED
+        try:
+            await self.agent_bus.unsubscribe(
+                task_event_type.value, self._handle_task_event
+            )
+            self.logger.info(f"Unsubscribed from {task_event_type.value} events.")
+            # Unsubscribe from others if needed
+        except Exception as e:
+            self.logger.exception(f"Failed to unsubscribe from task events: {e}")
+        await super().shutdown()
 
     # RENAMED and REFACTORED handler
     async def _handle_task_event(self, event: BaseEvent):
@@ -179,10 +172,13 @@ class ContextRouterAgent(BaseAgent):
                     f"Could not determine target agent for task {event.event_id} based on context: {context_metadata}. Task may be lost if {original_target_agent_id} isn't listening."  # noqa: E501
                 )
 
-    async def _determine_target_agent(
+    def _determine_target_agent(
         self, context_metadata: Dict[str, Any]
     ) -> Optional[str]:
         """Determines the target agent based on routing rules and context."""
+        # TODO: Current context matching is simple keyword search in stringified metadata.
+        #       Consider more structured matching (e.g., specific field checks, regex, DSL)
+        #       if more complex routing logic is required.
         context_str = str(context_metadata).lower()
 
         # Use the loaded rules
@@ -209,48 +205,3 @@ class ContextRouterAgent(BaseAgent):
 
         self.logger.warning("No routing rule matched and no default agent configured.")
         return None
-
-    async def _on_stop(self):
-        """Cleanup resources when the agent stops."""
-        self.logger.info(f"{self.AGENT_ID} stopping.")
-
-        # Unsubscribe from events subscribed to in _on_start
-        # Match the event type used in _on_start
-        event_type_subscribed = EventType.TASK_ASSIGNED
-        handler_subscribed = self._handle_task_event
-        try:
-            # Assuming agent_bus.unsubscribe exists and works with event_type.value and handler ref  # noqa: E501
-            await self.agent_bus.unsubscribe(
-                event_type_subscribed.value, handler_subscribed
-            )
-            self.logger.info(f"Unsubscribed from {event_type_subscribed.name} events.")
-        except AttributeError:
-            self.logger.error("AgentBus instance or unsubscribe method not available.")
-        except Exception as e:
-            # Log specific error but allow agent to continue stopping
-            self.logger.exception(
-                f"Failed to unsubscribe from {event_type_subscribed.name} events: {e}"
-            )
-
-        # Call BaseAgent stop logic (which handles command topic unsubscribe)
-        await super()._on_stop()
-
-
-# Example of how this agent might be instantiated and run (conceptual)
-async def run_router_agent():
-    if not AGENT_COMPONENTS_AVAILABLE:
-        print("Cannot run router agent: Core components missing.")
-        return
-
-    bus = AgentBus()  # Get singleton
-    router = ContextRouterAgent(agent_bus=bus)
-    await router.start()
-    try:
-        # Keep agent running (e.g., wait indefinitely or until external stop signal)
-        await asyncio.Event().wait()
-    finally:
-        await router.stop()
-
-
-# if __name__ == "__main__":
-#     asyncio.run(run_router_agent())

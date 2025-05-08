@@ -1,9 +1,11 @@
 """Utilities for performing searches, e.g., using Ripgrep."""
 
 import logging
+import re
 import shutil
 import subprocess
-from typing import List, Optional
+from pathlib import Path
+from typing import List, Optional, Dict, TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +90,60 @@ def run_ripgrep_search(
             f"Error running Ripgrep command '{command_str}': {e}", exc_info=True
         )
         raise Exception(f"Error running Ripgrep search: {e}") from e
+
+
+class RipgrepMatch(TypedDict):
+    file_path: str
+    line_number: int
+    match_text: str
+    # Could add context lines if rg -C option is used
+
+
+def parse_ripgrep_output(raw_output: str) -> List[RipgrepMatch]:
+    """Parses the raw stdout from Ripgrep into a list of structured matches.
+
+    Assumes standard Ripgrep output format: 'path/to/file:line_number:match_text'
+    Handles potential variations and logs lines that cannot be parsed.
+
+    Args:
+        raw_output: The raw string output from the Ripgrep command.
+
+    Returns:
+        A list of RipgrepMatch dictionaries.
+    """
+    matches: List[RipgrepMatch] = []
+    if not raw_output:
+        return matches
+
+    # Simple regex to capture file, line, and text. Handles potential variations
+    # like Windows paths and colons in the match text itself.
+    # It captures: (filepath):(line_number): (the rest of the line)
+    # Group 1: File path (non-greedy)
+    # Group 2: Line number (digits)
+    # Group 3: Matched text (the rest)
+    # Using re.MULTILINE to process each line
+    # Pattern needs careful escaping if file paths contain special regex chars
+    # Simplified pattern first:
+    pattern = re.compile(r"^([^:]+):(\d+):(.*)$", re.MULTILINE)
+
+    for line in raw_output.strip().splitlines():
+        match = pattern.match(line)
+        if match:
+            try:
+                file_path = match.group(1).strip()
+                line_number = int(match.group(2))
+                match_text = match.group(3).strip()
+
+                matches.append({
+                    "file_path": file_path,
+                    "line_number": line_number,
+                    "match_text": match_text,
+                })
+            except (ValueError, IndexError) as e:
+                logger.warning(f"Could not parse Ripgrep line '{line}': {e}")
+        else:
+            # Log lines that don't match the expected format, could be context lines or errors
+            logger.debug(f"Skipping non-standard Ripgrep output line: {line}")
+
+    logger.info(f"Parsed {len(matches)} matches from Ripgrep output.")
+    return matches

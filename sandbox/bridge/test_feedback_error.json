@@ -1,0 +1,5 @@
+{
+  "correlation_id": "test-invalid-cmd-00X",
+  "status": "error",
+  "message": "Unsupported command: invalid_command"
+} 

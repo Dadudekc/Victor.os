@@ -168,8 +168,9 @@ class ContentWriterAgent(BaseAgent):
             # Construct prompt
             prompt = self._build_writing_prompt(plan)
             logger.debug(
-                f"Task {task.task_id}: Sending writing prompt to LLM:\n{prompt}"
+                f"Task {task.task_id}: Sending writing prompt to LLM:\n{prompt[:500]}..." # Log prompt start
             )
+            await self.publish_task_progress(task, 0.3, "Calling LLM for draft...") # Update progress
 
             # Call LLM
             model = get_config(
@@ -183,15 +184,18 @@ class ContentWriterAgent(BaseAgent):
                 config_obj=self.config,
             )
 
+            # === Actual LLM Call ===
             llm_response = await self.openai_client.generate_text(
                 prompt=prompt,
                 model=model,
                 max_tokens=max_tokens,
                 temperature=0.7,  # Higher temperature for more creative writing
             )
+            # ========================
+
             logger.debug(
-                f"Task {task.task_id}: Received LLM response.\n{llm_response[:500]}..."
-            )  # Log start of response
+                f"Task {task.task_id}: Received LLM response.\n{llm_response[:500]}..." # Log response start
+            )
             await self.publish_task_progress(task, 0.7, "Parsing LLM response...")
 
             # Parse response

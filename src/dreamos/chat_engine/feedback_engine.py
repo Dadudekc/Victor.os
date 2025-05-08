@@ -77,12 +77,15 @@ class FeedbackEngine:
     # ---------------------------------------------------
     # MEMORY UPDATE HANDLER
     # ---------------------------------------------------
-    def parse_and_update_memory(self, ai_response: str):
+    def parse_and_update_memory(self, ai_response: str, chat_context: dict = None):
         """
         Parse MEMORY_UPDATE block from AI response and apply updates.
         Expects block in JSON format after a label like MEMORY_UPDATE.
+        Now accepts optional chat_context.
         """
         logger.info("🔍 Parsing AI response for MEMORY_UPDATE block...")
+        if chat_context:
+            logger.info(f"🗒️ Received chat context for memory update: {chat_context}")
 
         if "MEMORY_UPDATE" not in ai_response:
             logger.warning("⚠️ No MEMORY_UPDATE block found in response.")
@@ -97,15 +100,17 @@ class FeedbackEngine:
             updates = json.loads(json_block)  # noqa: F821
             logger.info(f"✅ Parsed MEMORY_UPDATE: {updates}")
 
-            self.apply_memory_updates(updates)
+            # Pass context along to apply_memory_updates
+            self.apply_memory_updates(updates, chat_context=chat_context)
 
         except Exception as e:
             logger.exception(f"❌ Failed to parse MEMORY_UPDATE block: {e}")
 
-    def apply_memory_updates(self, updates: dict):
+    def apply_memory_updates(self, updates: dict, chat_context: dict = None):
         """
         Apply structured updates to memory state.
         Supports list and scalar values.
+        If chat_context is provided, stores it under _last_update_context.
         """
         logger.info(f"🧬 Applying memory updates: {updates}")
         with self._lock:
@@ -117,6 +122,29 @@ class FeedbackEngine:
                             self.memory_state[key].append(item)
                 else:
                     self.memory_state[key] = value
+            
+            # Store context associated with this update batch (Option A)
+            if chat_context:
+                 # Store context associated with this batch of updates
+                 # Decide which fields are most valuable (e.g., link, time, maybe title)
+                 context_to_store = {
+                     field: chat_context.get(field)
+                     for field in ["link", "last_active_time", "title"] 
+                     if chat_context.get(field) is not None
+                 }
+                 if context_to_store: # Only add if we have something valuable
+                    self.memory_state['_last_update_context'] = {
+                        'timestamp': datetime.now().isoformat(),
+                        'context': context_to_store
+                    } 
+                    logger.info(f"Stored update context: {context_to_store}")
+                 else:
+                    logger.info("Chat context provided, but no key fields found to store.")
+            else:
+                # Optional: Clear last context if none provided for this update?
+                # if '_last_update_context' in self.memory_state:
+                #    del self.memory_state['_last_update_context']
+                pass # No context provided
 
             logger.info("✅ Memory state updated.")
         self.save_memory_async()

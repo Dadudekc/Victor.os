@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source": { "enum": ["GPT_Output", "Cursor_Input", "Bridge_Relay"] },
+    "status": { "enum": ["SUCCESS", "ERROR", "WARNING"] },
+    "payload": { "type": ["object", "string", "null"] }, // Original payload
+    "logLevel": { "enum": ["INFO", "WARN", "ERROR", "DEBUG"] },
+    "message": { "type": "string" }, // Descriptive log message
+    "errorDetails": {
+      "type": "object",
+      "properties": {
+        "errorCode": { "type": "string" }, // e.g., MALFORMED_PAYLOAD, TIMEOUT, STACK_EXHAUSTION, LOOP_DETECTED
+        "errorMessage": { "type": "string" },
+        "stackTrace": { "type": "string", "description": "Optional stack trace if available" }
+      },
+      "required": ["errorCode", "errorMessage"]
+    }
+  },
+  "required": ["eventId", "timestamp", "source", "status", "logLevel", "message"]
+} 

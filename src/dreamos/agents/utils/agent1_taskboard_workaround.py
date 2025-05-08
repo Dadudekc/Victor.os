@@ -1,4 +1,17 @@
 # src/dreamos/agents/utils/agent1_taskboard_workaround.py
+"""
+Agent 1 Taskboard Workaround Utility.
+
+This module provides functions for Agent 1 to directly read and update the
+`working_tasks.json` file using file locking. It is intended as a workaround
+and bypasses the standard ProjectBoardManager.
+
+FIXME: This module duplicates file I/O and locking logic found in
+       ProjectBoardManager. Using this workaround bypasses PBM's schema
+       validation, standardized methods, and potentially other features.
+       It should be reviewed for deprecation in favor of using ProjectBoardManager
+       exclusively for all task board interactions to ensure consistency and safety.
+"""
 import datetime  # Need datetime import
 import json
 import logging
@@ -244,6 +257,8 @@ def update_global_task_local(
 
                 if update_applied:
                     # Always update the timestamp when changes are made
+                    # FIXME: Standardize timestamp generation. Manually appending 'Z' might be problematic.
+                    #        Consider using a shared utility like common_utils.get_utc_iso_timestamp().
                     task["timestamp_updated"] = (
                         datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z"
                     )

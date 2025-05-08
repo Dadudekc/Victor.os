@@ -3,6 +3,7 @@
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
+import asyncio # Import asyncio if not already present for type hints potentially
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,8 @@ class BaseTool(ABC):
     parameters: List[ToolParameter] = []
 
     @abstractmethod
-    def execute(self, context: ToolContext) -> Any:
-        """Executes the tool's logic."""
+    async def execute(self, context: ToolContext) -> Any:
+        """Executes the tool's logic. Asynchronous."""
         pass
 
     def __init__(self):
@@ -54,18 +55,19 @@ class BaseTool(ABC):
 
 # Minimal Placeholder for BaseToolExecutor (needed for __init__.py)
 class BaseToolExecutor(ABC):  # Often might inherit from BaseTool or be separate
-    """Placeholder base class for a tool executor concept."""
+    """Placeholder base class for a tool executor concept. Now async."""
 
     def __init__(self):
-        logger.warning("Using placeholder BaseToolExecutor.")
+        logger.warning("Using placeholder BaseToolExecutor (async version).")
 
     @abstractmethod
-    def execute_tool(
+    async def execute_tool(
         self,
         tool_name: str,
         args: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
     ) -> Any:
+        """Executes a named tool with given arguments and context. Asynchronous."""
         pass
 
 

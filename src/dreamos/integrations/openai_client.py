@@ -5,7 +5,7 @@ import logging
 
 import openai
 import tenacity
-from dreamos.utils.config_utils import get_config  # Assuming this util exists
+from dreamos.core.config import get_config
 
 from . import APIError, IntegrationError
 
@@ -52,11 +52,11 @@ class OpenAIClient:
         wait=tenacity.wait_exponential(multiplier=1, min=2, max=10),
         retry=tenacity.retry_if_exception_type(
             (
-                openai.error.APIError,
-                openai.error.Timeout,
-                openai.error.RateLimitError,
-                openai.error.APIConnectionError,
-                openai.error.ServiceUnavailableError,
+                openai.APIError,
+                openai.APITimeoutError,
+                openai.RateLimitError,
+                openai.APIConnectionError,
+                openai.InternalServerError,
             )
         ),
         before_sleep=tenacity.before_sleep_log(logger, logging.WARNING),
@@ -91,28 +91,28 @@ class OpenAIClient:
             return completion
 
         # Specific OpenAI errors handled by tenacity or mapped below
-        except openai.error.AuthenticationError as e:
+        except openai.AuthenticationError as e:
             logger.error(f"OpenAI Authentication Error: {e}. Disabling client.")
             self._functional = False  # Disable client after auth error
             raise IntegrationError(
                 f"OpenAI Authentication Failed: {e}", original_exception=e
             )
-        except openai.error.PermissionError as e:
+        except openai.PermissionDeniedError as e:
             logger.error(f"OpenAI Permission Error: {e}")
             raise APIError(f"OpenAI Permission Denied: {e}", original_exception=e)
-        except openai.error.InvalidRequestError as e:
+        except openai.BadRequestError as e:
             logger.error(f"OpenAI Invalid Request Error: {e}")
             raise APIError(f"OpenAI Invalid Request: {e}", original_exception=e)
-        except openai.error.RateLimitError as e:
+        except openai.RateLimitError as e:
             logger.warning(
                 f"OpenAI Rate Limit Error encountered: {e}"
             )  # Log specifically
             raise  # Re-raise for tenacity retry
         except (
-            openai.error.APIError,
-            openai.error.Timeout,
-            openai.error.APIConnectionError,
-            openai.error.ServiceUnavailableError,
+            openai.APIError,
+            openai.APITimeoutError,
+            openai.APIConnectionError,
+            openai.InternalServerError,
         ) as e:
             logger.warning(f"OpenAI API/Connection Error: {e}")
             raise  # Re-raise for tenacity retry

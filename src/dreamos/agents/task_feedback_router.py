@@ -1,4 +1,24 @@
 # task_feedback_router.py
+"""
+Standalone Task Feedback Router Script.
+
+This script monitors 'inbox' directories for various agents, reads feedback
+messages (JSON format) from 'pending_responses.json' files within these inboxes.
+Based on the feedback signal ('APPROVED', 'REVISE', 'REJECTED'), it locates
+the original task markdown file and moves it to a corresponding state directory
+(archive, outbox, failed). For 'REVISE' signals, it prepends feedback details
+to the task file before moving.
+
+FIXME: This is a standalone script relying on a local file-based polling system.
+       - The directory structure (inbox, outbox, sent, archive, failed) is assumed
+         to be relative to this script and might conflict/overlap with other state
+         management (e.g., ProjectBoardManager, runtime/agent_comms mailboxes).
+       - The read/process/write cycle for 'pending_responses.json' is not atomic
+         and could lead to issues with concurrent access or script crashes.
+       - The `processed_timestamps` cache is in-memory and lost on restart.
+       - Consider integration with AgentBus for event-driven feedback handling if
+         this is intended to be part of the broader agent system.
+"""
 
 import json
 import logging
@@ -96,6 +116,9 @@ def route_feedback(agent_id: str, feedback: dict):
 # --- Agent Main Loop ---
 def run_loop(shutdown_event):
     logger.info("📬 Task Feedback Router started.")
+    # FIXME: processed_timestamps is an in-memory cache. If the script restarts,
+    #        it might reprocess feedback unless pending_responses.json is accurately
+    #        managed to only contain truly pending items.
     processed_timestamps = {}
 
     while not shutdown_event.is_set():
@@ -108,7 +131,10 @@ def run_loop(shutdown_event):
 
             if not inbox_file.exists():
                 continue
-
+            
+            # FIXME: The read-process-rewrite logic for inbox_file is not atomic.
+            #        Concurrent modifications or crashes could lead to data loss or
+            #         reprocessing. Consider file locking or a more robust queue.
             try:
                 with open(inbox_file, "r", encoding="utf-8") as f:
                     content = f.read()

@@ -1,7 +1,0 @@
-{
-  "log_id": "LOG_AGENT8_STANDBY_{{uuid}}",
-  "timestamp_utc": "{{timestamp}}",
-  "agent_id": "Agent-8",
-  "log_level": "INFO",
-  "message": "Entering standby mode. Inbox contains only non-actionable items (question for Cpt5, low-priority tasks, failed CRITICAL repair). Primary blocker is corrupted agent_bus.py requiring manual intervention (ALERT_AGENT8_AGENTBUS_CORRUPT). Awaiting guidance or file repair."
-}

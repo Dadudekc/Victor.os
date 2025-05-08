@@ -1,3 +1,14 @@
+"""
+Cursor Worker: A simulated worker that processes tasks by automating the
+Cursor IDE user interface using an OrchestratorBot.
+
+This worker pulls tasks from a (currently placeholder) TaskChannel, performs
+UI actions like typing, clicking image-based buttons, and clipboard operations,
+and then pushes results back to the channel.
+
+FIXME: The TaskChannel is a placeholder and needs to be replaced with a real
+       task queuing/communication mechanism (e.g., AgentBus, ProjectBoardManager).
+"""
 import logging
 import os
 import time
@@ -16,6 +27,8 @@ from ..core.config import AppConfig  # Added missing import
 # This needs to be defined or imported correctly
 # Example: from ..core.comms import TaskChannel
 # Placeholder:
+# FIXME: TaskChannel is a placeholder and needs to be replaced with a real
+#        task queuing/communication mechanism (e.g., AgentBus, ProjectBoardManager).
 class TaskChannel:
     def pull_tasks(self):
         # Placeholder implementation
@@ -35,6 +48,11 @@ logger = logging.getLogger("CursorWorker")
 
 # EDIT: Define missing constant (copied from gui_interaction.py)
 RESPONSE_CHECK_INTERVAL = 1  # Seconds between response checks
+# TODO: Consider making UI element identifiers (image names, window titles) 
+#       configurable via AppConfig instead of being hardcoded strings.
+#       Example: CURSOR_IDE_WINDOW_TITLE = "Cursor IDE"
+#                ACCEPT_BUTTON_IMAGE = "accept_button.png"
+#                SPINNER_IMAGE = "spinner.png"
 
 
 def run(config: AppConfig, worker_id="worker-001"):
@@ -104,6 +122,7 @@ def run(config: AppConfig, worker_id="worker-001"):
 
         # Focus the Cursor IDE window using the bot
         # EDIT: Use bot.activate_window
+        # FIXME: Hardcoded window title "Cursor IDE" should be configurable.
         if not bot.activate_window("Cursor IDE"):
             logger.error(f"[{worker_id}] Failed to activate Cursor IDE window via bot.")
             # Decide if this is a fatal error for the task
@@ -123,6 +142,7 @@ def run(config: AppConfig, worker_id="worker-001"):
             return {"id": task_id, "error": "typing_failed"}
 
         # Click the accept button using the bot helper
+        # FIXME: Hardcoded image name "accept_button.png" should be configurable.
         if not click_button(assets_dir, "accept_button.png"):
             logger.error(
                 f"[{worker_id}] Failed find/click accept_button.png for task {task_id}."
@@ -130,6 +150,7 @@ def run(config: AppConfig, worker_id="worker-001"):
             return {"id": task_id, "error": "accept_button_not_found"}
 
         # Wait for code generation to complete using the bot helper
+        # FIXME: Hardcoded image name "spinner.png" should be configurable.
         if not wait_for_idle(assets_dir, "spinner.png"):
             logger.warning(
                 f"[{worker_id}] Timeout waiting for generation to complete for task {task_id}."  # noqa: E501
@@ -171,6 +192,7 @@ def run(config: AppConfig, worker_id="worker-001"):
 
     while True:
         # EDIT: Use placeholder TaskChannel
+        # FIXME: Replace placeholder channel.pull_tasks() with actual task source.
         tasks = channel.pull_tasks()
         if not tasks:
             logger.debug(f"[{worker_id}] No tasks found in channel. Sleeping.")
@@ -182,6 +204,7 @@ def run(config: AppConfig, worker_id="worker-001"):
             ui_result = process_task_ui(task, worker_id)
 
             # EDIT: Use placeholder TaskChannel
+            # FIXME: Replace placeholder channel.push_result() with actual result sink.
             channel.push_result(ui_result)
             logger.info(
                 f"[{worker_id}] Pushed result for task {ui_result.get('id')}: Status {ui_result.get('status', 'unknown')}"  # noqa: E501

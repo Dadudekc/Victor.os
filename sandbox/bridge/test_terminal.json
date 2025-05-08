@@ -1,0 +1,8 @@
+{
+  "command": "run_terminal",
+  "parameters": {
+    "command": "ls -l sandbox/bridge",
+    "is_background": false
+  },
+  "correlation_id": "test-term-002"
+} 

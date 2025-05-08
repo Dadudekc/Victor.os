@@ -1,0 +1,17 @@
+{
+  "timestamp": "{{iso_timestamp_utc()}}",
+  "module": 5,
+  "bridge_status": "OPERATIONAL",
+  "module_states": {
+    "module_1_relay": "ACTIVE",
+    "module_2_feedback": "ACTIVE",
+    "module_3_logging": "ACTIVE",
+    "module_4_diagnostics": "ACTIVE",
+    "module_5_state_sync": "ACTIVE",
+    "module_6_demo_harness": "IDLE",
+    "module_7_summarizer": "IDLE",
+    "module_8_validator": "RUNNING_SIMULATION"
+  },
+  "active_task_id": "SAMPLE-BRIDGE-TASK-001",
+  "recent_errors": []
+} 

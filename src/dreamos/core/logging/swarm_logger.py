@@ -1,10 +1,18 @@
+"""
+Provides structured JSONL logging for swarm agent events.
+
+This module defines `log_agent_event` for recording agent activities
+to a configured log file (typically `agent_activity_log.jsonl`).
+It uses file locking to ensure safe concurrent writes from multiple agents
+or processes and relies on AppConfig for log path configuration.
+"""
 import json
 import logging
 from pathlib import Path
 from typing import Optional
 
 # Direct imports - assumes these core components are available
-from dreamos.config import AppConfig, ConfigError
+from dreamos.core.config import AppConfig, ConfigError
 from dreamos.utils.common_utils import get_utc_iso_timestamp
 from dreamos.utils.file_locking import FileLock, LockAcquisitionError
 

@@ -5,8 +5,9 @@ in the centralized registry.
 """
 
 from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 # Type alias for flexibility, could be replaced by a more specific JSON Schema type
 JsonSchema = Dict[str, Any]
@@ -85,8 +86,29 @@ class AgentCapability(BaseModel):
     is_active: bool = (
         True  # Allows temporarily disabling a capability without unregistering
     )
-    registered_at_utc: Optional[str] = None  # ISO Format timestamp
-    last_updated_utc: Optional[str] = None  # ISO Format timestamp
-    last_verified_utc: Optional[str] = (
-        None  # Timestamp of last successful health check/verification
+    registered_at_utc: Optional[datetime] = None  # Changed to datetime
+    last_updated_utc: Optional[datetime] = None   # Changed to datetime
+    last_verified_utc: Optional[datetime] = (
+        None  # Timestamp of last successful health check/verification - Changed to datetime
     )
+
+    @validator("registered_at_utc", "last_updated_utc", "last_verified_utc", pre=True, allow_reuse=True)
+    def ensure_datetime_utc(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, datetime):
+            if v.tzinfo is None:
+                return v.replace(tzinfo=timezone.utc) # Assume UTC if naive
+            return v.astimezone(timezone.utc) # Convert to UTC
+        if isinstance(v, str):
+            try:
+                dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    return dt.replace(tzinfo=timezone.utc)
+                return dt.astimezone(timezone.utc)
+            except ValueError:
+                # Consider logging a warning or raising an error
+                raise ValueError(f"Invalid ISO datetime format: {v}")
+        if isinstance(v, (int, float)):
+            return datetime.fromtimestamp(v, tz=timezone.utc)
+        raise ValueError(f"Invalid type for datetime field: {type(v)}")

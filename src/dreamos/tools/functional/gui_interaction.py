@@ -36,7 +36,7 @@ except Exception as e:
     logging.error(
         f"Failed to initialize OrchestratorBot: {e}. " "GUI actions will fail."
     )
-    bot = OrchestratorBot()  # Use dummy if init fails
+    raise RuntimeError(f"Failed to initialize OrchestratorBot: {e}. GUI actions cannot proceed.") from e
 
 # --- Core Interaction Function ---
 

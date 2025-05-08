@@ -43,56 +43,173 @@ class MessageValidationError(BusError):
 
 # {{ EDIT START: Uncomment and implement AgentBus using placeholder EventBus }}
 import logging
-from typing import Any, Callable, Coroutine, Dict
+import threading
+import time
+# from collections import defaultdict # Removed F401
+# from enum import Enum # Removed F401
+from typing import Any, Callable, Dict, List, Optional, Type
 
-# Import the placeholder EventBus and EventType
-# from dreamos._agent_coordination.tools.event_bus import EventBus as PlaceholderEventBus
-# from dreamos._agent_coordination.tools.event_type import EventType
+# Import necessary types/classes
+from dreamos.core.coordination.event_payloads import AgentRegistrationPayload, AgentStatusEventPayload # MOVED AgentStatusEventPayload here
+from dreamos.core.coordination.event_types import EventType
+# OMITTED: from dreamos.utils.core import Singleton
+
+from pydantic import BaseModel, ValidationError, Field
+
+# Import specific event types and enums needed by AgentBus
+from dreamos.core.coordination.enums import AgentStatus # Added AgentStatus
 
 logger = logging.getLogger(__name__)
 
+# --- Basic Event Bus Implementation ---
+# BaseEvent needs to be defined or imported if used by SimpleEventBus methods
+# Define a placeholder if it's not critical for current operation
+class BaseEvent(BaseModel): # Placeholder Definition
+    event_type: EventType
+    source_id: str
+    data: Dict[str, Any] = Field(default_factory=dict)
 
-class AgentBus:
-    """
-    An asynchronous event bus for inter-agent and system communication.
+class SimpleEventBus:
+    """A simple, thread-safe event bus implementation."""
+    def __init__(self):
+        self._subscribers: Dict[EventType, List[Callable[[BaseEvent], Any]]] = {}
+        self._lock = threading.Lock()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
-    Handles event subscription, publishing, and basic error handling.
-    Uses asyncio for non-blocking operations.
-    Wraps the placeholder EventBus for now.
+    def subscribe(self, event_type: EventType, handler: Callable[[BaseEvent], Any]):
+        with self._lock:
+            if event_type not in self._subscribers:
+                self._subscribers[event_type] = []
+            if handler not in self._subscribers[event_type]:
+                self._subscribers[event_type].append(handler)
+                self.logger.debug(f"Handler {handler.__name__} subscribed to {event_type}")
+            else:
+                self.logger.warning(f"Handler {handler.__name__} already subscribed to {event_type}")
 
-    Core Concepts:
-        - Topics: Hierarchical strings (e.g., "agent.status.online", "task.lifecycle.created").
-        - Events: Pydantic models inheriting from BaseEvent, containing data.
-        - Subscribers: Coroutine functions that handle specific event types on topics.
-    """
+    def unsubscribe(self, event_type: EventType, handler: Callable[[BaseEvent], Any]):
+        with self._lock:
+            if event_type in self._subscribers and handler in self._subscribers[event_type]:
+                self._subscribers[event_type].remove(handler)
+                self.logger.debug(f"Handler {handler.__name__} unsubscribed from {event_type}")
+            else:
+                 self.logger.warning(f"Handler {handler.__name__} not found for event {event_type}")
 
+    def dispatch_event(self, event: BaseEvent):
+        handlers_to_call: List[Callable[[BaseEvent], Any]] = []
+        with self._lock:
+            # Check if event_type exists and has subscribers before accessing
+            if event.event_type in self._subscribers and self._subscribers[event.event_type]:
+                handlers_to_call = list(self._subscribers[event.event_type]) # Copy list for safe iteration
+
+        if handlers_to_call:
+            self.logger.debug(f"Dispatching event {event.event_type} to {len(handlers_to_call)} handlers.")
+            for handler in handlers_to_call:
+                try:
+                    # Ensure handler is callable
+                    if callable(handler):
+                        handler(event)
+                    else:
+                        self.logger.error(f"Handler {handler} for event {event.event_type} is not callable.")
+                except Exception as e:
+                    self.logger.error(f"Error in handler {getattr(handler, '__name__', repr(handler))} for event {event.event_type}: {e}", exc_info=True)
+        else:
+             self.logger.debug(f"No subscribers for event {event.event_type}")
+
+
+# --- Main Agent Bus Facade (Singleton) ---
+# Removed metaclass=Singleton reference as it's implemented via __new__
+
+class AgentBus: # Removed Singleton metaclass
     _instance = None
+    _bus: SimpleEventBus # Correct type hint
+    _agent_registry: Dict[str, Dict[str, Any]]
+    _registry_lock: threading.Lock
+    # logger: logging.Logger # Logger is defined at module level now
+    _initialized: bool = False
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
+        # Standard Singleton implementation using __new__
         if cls._instance is None:
-            logger.info("Creating AgentBus instance (wrapping placeholder EventBus)")
             cls._instance = super(AgentBus, cls).__new__(cls)
-            # Use the placeholder EventBus singleton
-            # cls._instance.placeholder_bus = PlaceholderEventBus()
+            # Initialize instance attributes here ONLY if they MUST exist before __init__
+            # Note: Initialization moved to happen only once in __init__ below
         return cls._instance
 
-    async def subscribe(
-        self,
-        topic: str,  # Changed from event_type_value for semantic clarity
-        handler: Callable[
-            [Dict[str, Any]], Coroutine[Any, Any, None]
-        ],  # Adjusted signature
-    ):
-        """Subscribes a handler coroutine to a specific topic."""
-        # Map AgentBus topic to placeholder EventBus event_type_value concept
-        # await self.placeholder_bus.subscribe(event_type_value=topic, handler=handler)
+    def __init__(self):
+        # Ensure initialization happens only once
+        if not AgentBus._initialized:
+            self._bus = SimpleEventBus() # Initialize SimpleEventBus here
+            self._agent_registry = {}
+            self._registry_lock = threading.Lock()
+            AgentBus._initialized = True
+            logger.info("AgentBus initialized.")
+        # else: logger already initialized
 
-    async def publish(self, topic: str, data: Dict[str, Any]):
-        """Publishes an event payload to a specific topic."""
-        # Use placeholder bus publish method
-        # await self.placeholder_bus.publish(topic=topic, data=data)
+    def subscribe(self, event_type: EventType, handler: Callable[[BaseEvent], Any]):
+        self._bus.subscribe(event_type, handler)
 
-    # Add other methods from skeleton if needed, adapting to placeholder
+    def unsubscribe(self, event_type: EventType, handler: Callable[[BaseEvent], Any]):
+        self._bus.unsubscribe(event_type, handler)
 
+    def dispatch_event(self, event: BaseEvent):
+         # Basic validation before dispatch
+        if not isinstance(event, BaseEvent):
+             logger.error(f"Invalid event type passed to dispatch_event: {type(event)}. Must be BaseEvent.")
+             return
+        try:
+             # Pydantic validation happens implicitly if needed, or add explicit
+             # BaseEvent(**event.model_dump()) # Example explicit re-validation
+             self._bus.dispatch_event(event)
+        except Exception as e:
+            logger.error(f"Error during event dispatch preprocessing or call: {e}", exc_info=True)
+
+
+    def register_agent(self, agent_id: str, capabilities: List[str], status: str = "Initializing"):
+        with self._registry_lock:
+            if agent_id in self._agent_registry:
+                logger.warning(f"Agent {agent_id} already registered. Updating info.")
+            self._agent_registry[agent_id] = {
+                "capabilities": capabilities,
+                "status": status,
+                "last_seen": time.time(),
+            }
+            logger.info(f"Agent {agent_id} registered with status {status}.")
+        # Use the specific payload type
+        payload = AgentRegistrationPayload(agent_id=agent_id, capabilities=capabilities) # Status not part of this payload
+        # Use the placeholder BaseEvent for wrapping
+        reg_event = BaseEvent(event_type=EventType.SYSTEM_AGENT_REGISTERED, source_id="AgentBus", data=payload.model_dump())
+        self.dispatch_event(reg_event)
+
+    def unregister_agent(self, agent_id: str):
+        with self._registry_lock:
+            if agent_id in self._agent_registry:
+                del self._agent_registry[agent_id]
+                logger.info(f"Agent {agent_id} unregistered.")
+                payload = AgentRegistrationPayload(agent_id=agent_id) # No caps/status needed
+                unreg_event = BaseEvent(event_type=EventType.SYSTEM_AGENT_UNREGISTERED, source_id="AgentBus", data=payload.model_dump())
+                self.dispatch_event(unreg_event)
+            else:
+                logger.warning(f"Attempted to unregister non-existent agent: {agent_id}")
+
+    def get_agent_info(self, agent_id: str) -> Optional[Dict[str, Any]]:
+        with self._registry_lock:
+            return self._agent_registry.get(agent_id)
+
+    def update_agent_status(self, agent_id: str, status: AgentStatus): # Use Enum type hint
+        with self._registry_lock:
+            if agent_id in self._agent_registry:
+                self._agent_registry[agent_id]["status"] = status.value # Store enum value
+                self._agent_registry[agent_id]["last_seen"] = time.time()
+                # Use AgentStatusEventPayload here
+                status_payload = AgentStatusEventPayload(agent_id=agent_id, status=status)
+                status_event = BaseEvent(event_type=EventType.SYSTEM_AGENT_STATUS_CHANGED, source_id="AgentBus", data=status_payload.model_dump())
+                self.dispatch_event(status_event)
+            else:
+                logger.warning(f"Attempted to update status for unregistered agent: {agent_id}")
+
+
+def get_agent_bus() -> AgentBus:
+    """Provides access to the AgentBus singleton instance."""
+    return AgentBus()
 
 # {{ EDIT END }}

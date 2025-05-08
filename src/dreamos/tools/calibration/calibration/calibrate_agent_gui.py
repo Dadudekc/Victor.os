@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
+# EDIT START: Import AppConfig\nfrom dreamos.core.config import load_app_config\n# EDIT END
+
 try:
     import pyautogui
 except ImportError:
@@ -20,9 +22,8 @@ logging.basicConfig(
 )
 
 # --- Configuration ---
-# Assuming this script is in src/tools/calibration, project root is 3 levels up
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_COORDS_PATH = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
+# EDIT START: Remove manual project root calculation\n# PROJECT_ROOT = Path(__file__).resolve().parents[3]\n# EDIT END
+# EDIT START: Remove hardcoded default path - derive in main\n# DEFAULT_COORDS_PATH = PROJECT_ROOT / \"runtime\" / \"config\" / \"cursor_agent_coords.json\"\n# EDIT END
 
 # MODIFIED: Elements to calibrate
 ELEMENTS_TO_CALIBRATE = [
@@ -99,6 +100,8 @@ def calibrate_element(element_name: str, agent_id: str) -> Dict[str, int]:
 
 
 def main():
+    # EDIT START: Load config and define default path\n    config = load_app_config()\n    default_coords_path = config.paths.runtime / \"config\" / \"cursor_agent_coords.json\"\n    # EDIT END
+
     parser = argparse.ArgumentParser(
         description="Calibrate GUI coordinates for multiple Dream.OS agents."
     )
@@ -109,8 +112,8 @@ def main():
     )
     parser.add_argument(
         "--coords_file",
-        default=str(DEFAULT_COORDS_PATH),
-        help=f"Path to the coordinates JSON file (default: {DEFAULT_COORDS_PATH})",
+        # EDIT START: Use config path as default\n        default=str(default_coords_path),\n        help=f\"Path to the coordinates JSON file (default: {default_coords_path})\",
+        # EDIT END
     )
     args = parser.parse_args()
 

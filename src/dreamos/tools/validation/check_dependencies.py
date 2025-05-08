@@ -74,8 +74,8 @@ def main():
     if not found_all:
         print("\nWarning: Some dependencies were not found.")
         # Potentially exit with non-zero code if needed
-        # import sys
-        # sys.exit(1)
+        import sys
+        sys.exit(1)
     else:
         print("\nAll checked dependencies found.")
 

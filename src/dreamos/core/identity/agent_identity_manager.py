@@ -16,6 +16,12 @@ class AgentIdentityError(Exception):
     pass
 
 
+# TODO (Masterpiece Review - Captain-Agent-8): Review the singleton implementation.
+#      Mixing threading.Lock in __new__ and asyncio.Lock in initialize might be overly
+#      complex. If the application is purely asyncio, consider a simpler async-native
+#      singleton pattern (e.g., a module-level factory function `get_manager()` that uses
+#      an `asyncio.Lock` to control instantiation of a private manager class on first call,
+#      thus avoiding __new__ and threading.Lock entirely).
 class AgentIdentityManager:
     """Manages agent identities, including registration and updates.
 

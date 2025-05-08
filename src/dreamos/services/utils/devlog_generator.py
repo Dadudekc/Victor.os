@@ -14,14 +14,16 @@ from dreamos.utils.common_utils import get_utc_iso_timestamp
 # import markdown # Removed as per Vulture
 from jinja2 import Environment, FileSystemLoader
 
-from ..config import settings  # Using relative import consistently
+from dreamos.core.config import AppConfig # Use absolute path for clarity
+# from ..config import settings  # Using relative import consistently # REMOVE THIS IMPORT
 from ..core.strategies.linkedin_strategy import LinkedInStrategy
 
 # from utils.chatgpt_scraper import ChatGPTScraper # This causes circular import, remove if ChatGPTScraper doesn't need DevLogGenerator  # noqa: E501
 # from utils.strategies import TwitterStrategy, LinkedInStrategy # Incorrect import
 # Correct imports assuming strategies are in social/core/strategies/
 from ..core.strategies.twitter_strategy import TwitterStrategy
-from .logging_utils import get_logger  # Import get_logger
+# from .logging_utils import get_logger  # Import get_logger
+from dreamos.services.utils.logging_utils import get_logger # UPDATED IMPORT
 
 # Configure logging using the consolidated utility
 logger = get_logger(__name__)  # Use __name__ for module-level logger
@@ -55,44 +57,85 @@ class DevLogPost:
 class DevLogGenerator:
     """Transforms ChatGPT conversations into various content formats."""
 
-    def __init__(self, strategies: dict = {}):
+    def __init__(self, config: AppConfig, strategies: Optional[Dict[str, Any]] = None):
         """
         Initialize the generator.
 
         Args:
-            strategies: Dictionary of strategies for different platforms
+            config: The application configuration object.
+            strategies: Optional dictionary of strategies for different platforms.
+                        If None, strategies will be loaded from config.
         """
-        self.strategies = strategies
-        # Assuming template dir is relative to project root or configured elsewhere
+        self.config = config
         # TODO: Confirm template directory source (config or hardcoded relative to project root?)
-        # For now, using relative 'templates' as placeholder
-        self.template_dir = Path("templates")  # Use pathlib for consistency
+        # Using AppConfig for template path
+        if not config or not config.paths or not config.paths.templates:
+            raise ValueError("AppConfig with paths.templates must be provided.")
+
+        self.template_dir = config.paths.templates.resolve()
+
         if not self.template_dir.is_dir():
-            # Fallback assuming templates are relative to THIS file's parent dir if 'templates' isn't at root
-            alt_template_dir = Path(__file__).parent / "templates"
-            if alt_template_dir.is_dir():
-                self.template_dir = alt_template_dir
-            else:
-                # Last resort: Assume project root/templates
-                # This requires knowing the project root, which isn't directly available here.
-                # Logging a warning. Ideally, template path comes from config.
-                logger.warning(
-                    f"Template directory '{self.template_dir}' not found relative to cwd or script. Jinja loading might fail."
-                )
-                # Let's proceed assuming it might be found by Jinja's default search path or project root
-                # self.template_dir = Path("templates") # Keep placeholder
+             logger.error(
+                 f"Template directory specified in config does not exist or is not a directory: {self.template_dir}"
+             )
+             # Optionally raise an error or proceed with caution
+             # raise FileNotFoundError(f"Template directory not found: {self.template_dir}")
 
         # Ensure template_dir is passed as a string or Path object to FileSystemLoader
-        self.env = Environment(
-            loader=FileSystemLoader(str(self.template_dir)), autoescape=True
-        )  # Enable autoescape for security
-        # Add timestamp function to Jinja globals
-        self.env.globals["iso_timestamp_utc"] = get_utc_iso_timestamp
-        # self.scraper = ChatGPTScraper(headless=True) # Scraper should likely be passed in or obtained differently  # noqa: E501
-        logger.info("Initialized DevLog Generator")
-        logger.info(
-            f"Jinja Environment configured with template path: {self.template_dir}"
-        )
+        try:
+             self.env = Environment(
+                 loader=FileSystemLoader(str(self.template_dir)), autoescape=True
+             )  # Enable autoescape for security
+             # Add timestamp function to Jinja globals
+             self.env.globals["iso_timestamp_utc"] = get_utc_iso_timestamp
+             logger.info("Initialized DevLog Generator")
+             logger.info(
+                 f"Jinja Environment configured with template path: {self.template_dir}"
+             )
+        except Exception as e:
+             logger.error(f"Failed to initialize Jinja environment: {e}", exc_info=True)
+             # Raise or handle appropriately
+             raise RuntimeError("Failed to setup Jinja environment") from e
+        
+        if strategies is None:
+            self.strategies = self._load_strategies_from_config()
+        else:
+            self.strategies = strategies
+        logger.info(f"DevLogGenerator initialized with {len(self.strategies)} strategies.")
+
+    def _load_strategies_from_config(self) -> Dict[str, Any]:
+        """Loads publishing strategies from the AppConfig."""
+        loaded_strategies = {}
+        # Example: Assuming AppConfig has direct attributes like 'twitter_config', 'linkedin_config'
+        #          or a nested structure like 'config.strategy_settings.twitter'
+        #          Adjust the paths below based on the actual AppConfig structure.
+
+        # Twitter Strategy
+        # FIXME: Ensure AppConfig has these attributes (e.g., config.twitter_config)
+        #        and that they contain the necessary parameters for strategy instantiation.
+        #        The original 'settings.TWITTER_CONFIG.get("api_key")' implies a dict structure.
+        twitter_conf = getattr(self.config, "twitter_config", None)
+        if twitter_conf and isinstance(twitter_conf, dict) and twitter_conf.get("api_key"): # Check if configured
+            try:
+                loaded_strategies["twitter"] = TwitterStrategy(**twitter_conf)
+                logger.info("Initialized TwitterStrategy from config.")
+            except Exception as e:
+                logger.error(f"Failed to initialize TwitterStrategy from config: {e}")
+        
+        # LinkedIn Strategy
+        # FIXME: Ensure AppConfig has these attributes (e.g., config.linkedin_config)
+        linkedin_conf = getattr(self.config, "linkedin_config", None)
+        if linkedin_conf and isinstance(linkedin_conf, dict) and linkedin_conf.get("client_id"): # Check if configured
+            try:
+                loaded_strategies["linkedin"] = LinkedInStrategy(**linkedin_conf)
+                logger.info("Initialized LinkedInStrategy from config.")
+            except Exception as e:
+                logger.error(f"Failed to initialize LinkedInStrategy from config: {e}")
+        
+        # Add other strategies similarly
+        if not loaded_strategies:
+            logger.warning("No publishing strategies were loaded from the configuration.")
+        return loaded_strategies
 
     def process_conversation(self, chat_data: Dict[str, Any]) -> DevLogPost:
         """
@@ -438,46 +481,32 @@ class DevLogGenerator:
 
 
 # --- Main Execution Example ---
-def initialize_strategies():
-    strategies = {}
-    # Use settings from config.settings
-    if settings.TWITTER_CONFIG.get("api_key"):  # Check if configured
-        strategies["twitter"] = TwitterStrategy(**settings.TWITTER_CONFIG)
-    if settings.LINKEDIN_CONFIG.get("client_id"):  # Check if configured
-        strategies["linkedin"] = LinkedInStrategy(**settings.LINKEDIN_CONFIG)
-    # Add other strategies similarly
-    return strategies
+# DELETE THIS FUNCTION
+# def initialize_strategies():
+#     strategies = {}
+#     # Use settings from config.settings
+#     if settings.TWITTER_CONFIG.get("api_key"):  # Check if configured
+#         strategies["twitter"] = TwitterStrategy(**settings.TWITTER_CONFIG)
+#     if settings.LINKEDIN_CONFIG.get("client_id"):  # Check if configured
+#         strategies["linkedin"] = LinkedInStrategy(**settings.LINKEDIN_CONFIG)
+#     # Add other strategies similarly
+#     return strategies
 
 
-def main_example():
-    """Main entry point example for the DevLog Generator."""
-    try:
-        # Initialize components
-        strategies = initialize_strategies()
-        generator = DevLogGenerator(strategies)
-
-        # Load example conversation data (replace with actual scraper call)
-        example_data_path = (
-            Path(__file__).parent
-            / "../../../../examples/chatgpt_conversation_example.json"
-        )
-        if not example_data_path.exists():
-            logger.error(f"Example data not found at: {example_data_path}")
-            return
-
-        with open(example_data_path, "r") as f:
-            chat_data = json.load(f)  # Assuming example data is a single chat
-
-        # Auto-generate content (publishing handled separately)
-        if generator.auto_publish(chat_data):
-            logger.info("Successfully generated content files.")
-        else:
-            logger.error("Failed to generate content files.")
-
-    except Exception as e:
-        logger.error(f"Error in main_example: {str(e)}", exc_info=True)
-
-
-if __name__ == "__main__":
-    # Logging is configured via get_logger at module level
-    main_example()
+# {{ EDIT START: Update main_example to show config requirement (still commented out) }}
+# def main_example():
+#     logger.info("Running DevLog Generator Example")
+#
+#     # --- Requires proper AppConfig setup --- #
+#     # try:
+#     #     app_config = AppConfig.load() # Or load from a specific path
+#     # except Exception as e:
+#     #     logger.error(f"Failed to load AppConfig: {e}. Cannot run example.")
+#     #     return
+#     # --- End AppConfig Setup --- #
+#
+#     # Strategies are now loaded internally by DevLogGenerator if not provided
+#     # generator = DevLogGenerator(config=app_config) 
+#
+#     # ... (rest of example assumes generator is created and might need mock chat_data)
+# {{ EDIT END }}

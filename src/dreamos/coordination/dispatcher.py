@@ -1,4 +1,13 @@
+"""
+Provides stub implementations for Event and EventDispatcher classes.
+
+FIXME: This file contains minimal stubs likely for import resolution.
+Review for obsolescence. The functionality might be covered by AgentBus
+or other core coordination mechanisms.
+"""
+
 class Event:
+    """Minimal Event class stub, likely for import compatibility."""
     # Minimal Event class stub for imports
     def __init__(self, type, data, source_id):
         self.type = type
@@ -7,6 +16,7 @@ class Event:
 
 
 class EventDispatcher:
+    """Minimal EventDispatcher stub, likely for import compatibility."""
     # Minimal EventDispatcher stub for imports
     def __init__(self, bus):
         pass

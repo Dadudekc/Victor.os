@@ -8,17 +8,46 @@ import json
 import logging
 import time
 from pathlib import Path
-from queue import Queue
+from queue import Queue, Empty
 from threading import Thread
 from typing import Dict, List, Optional
 from unittest.mock import MagicMock
+from datetime import datetime, timedelta
 
 from dreamos.core.config import AppConfig, LinkedInConfig, TwitterConfig
-from utils.logging_utils import get_logger
+from dreamos.services.utils.logging_utils import get_logger
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
 
-# Configure logging using the consolidated utility
-logger = get_logger(__name__)
+# Attempt to import strategies (assuming similar paths as DevLogGenerator)
+# FIXME: If these strategies are not found, the dispatcher will not function.
+try:
+    from dreamos.core.strategies.twitter_strategy import TwitterStrategy
+    TWITTER_STRATEGY_AVAILABLE = True
+except ImportError:
+    TwitterStrategy = None # type: ignore
+    TWITTER_STRATEGY_AVAILABLE = False
+    logger.error("TwitterStrategy not found. Twitter dispatching will be disabled.")
+
+try:
+    from dreamos.core.strategies.linkedin_strategy import LinkedInStrategy
+    LINKEDIN_STRATEGY_AVAILABLE = True
+except ImportError:
+    LinkedInStrategy = None # type: ignore
+    LINKEDIN_STRATEGY_AVAILABLE = False
+    logger.error("LinkedInStrategy not found. LinkedIn dispatching will be disabled.")
+
+# Import DevLogAnalyzer
+# FIXME: Ensure DevLogAnalyzer is correctly located and its dependencies (like pandas) are managed.
+try:
+    from dreamos.services.utils.devlog_analyzer import DevLogAnalyzer
+    ANALYZER_AVAILABLE = True
+except ImportError:
+    DevLogAnalyzer = None # type: ignore
+    ANALYZER_AVAILABLE = False
+    logger.error("DevLogAnalyzer not found. Analytics features will be disabled.")
 
 
 class ContentHandler(FileSystemEventHandler):
@@ -30,12 +59,22 @@ class ContentHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.is_directory:
             return
+        
+        # Put a dictionary or a simple tuple/object identifying type and path
+        item = None
         if event.src_path.endswith(".md"):
-            logger.info(f"New blog post detected: {event.src_path}")
-            self.dispatcher.handle_new_blog_post(event.src_path)
+            logger.info(f"New blog post detected by handler: {event.src_path}")
+            item = {"type": "blog", "path": event.src_path}
         elif event.src_path.endswith("-posts.json"):
-            logger.info(f"New social content detected: {event.src_path}")
-            self.dispatcher.handle_new_social_content(event.src_path)
+            logger.info(f"New social content detected by handler: {event.src_path}")
+            item = {"type": "social", "path": event.src_path}
+        
+        if item:
+            try:
+                self.dispatcher.content_queue.put(item)
+                logger.debug(f"Queued item for processing: {item}")
+            except Exception as e:
+                logger.error(f"Failed to queue item {item}: {e}", exc_info=True)
 
 
 class DevLogDispatcher:
@@ -54,13 +93,47 @@ class DevLogDispatcher:
         """
         self.config = config
         self.content_queue = content_queue
-        self.strategies = self._initialize_strategies()
         self.running = False
         self.thread: Optional[Thread] = None
+        self.worker_thread: Optional[Thread] = None
+
+        # Initialize paths from config (FIXME: ensure these paths exist in AppConfig.paths)
+        self.posts_dir = config.paths.content_output_dir / "posts"
+        self.social_dir = config.paths.content_output_dir / "social"
+        # self.content_dir is not clearly defined, posts_dir and social_dir cover specifics
+
+        # Ensure directories exist
+        self.posts_dir.mkdir(parents=True, exist_ok=True)
+        self.social_dir.mkdir(parents=True, exist_ok=True)
+
+        self.strategies = self._initialize_strategies()
+        
+        if ANALYZER_AVAILABLE and DevLogAnalyzer is not None:
+            self.analyzer = DevLogAnalyzer(config=config)
+        else:
+            self.analyzer = None # type: ignore
+            logger.warning("DevLogAnalyzer not available, analytics will be limited.")
+
+        self.published: Dict[str, set] = {
+            "blog": set(),
+            "twitter": set(),
+            "linkedin": set(),
+            # Add other platforms if strategies are added
+        }
+
+        # Initialize Watchdog observer and handler
+        self.observer = Observer()
+        self.handler = ContentHandler(self)
+
+        # Initialize APScheduler
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.start()
 
         logger.info(
-            f"Initialized DevLog Dispatcher with strategies for: {list(self.strategies.keys())}"  # noqa: E501
+            f"Initialized DevLog Dispatcher with strategies for: {list(self.strategies.keys())}"
         )
+        logger.info(f"Watching for blog posts in: {self.posts_dir}")
+        logger.info(f"Watching for social content in: {self.social_dir}")
 
     def _initialize_strategies(self) -> Dict[str, object]:
         """Initialize strategy instances based on configuration."""
@@ -68,67 +141,113 @@ class DevLogDispatcher:
         twitter_conf: Optional[TwitterConfig] = getattr(
             self.config.integrations, "twitter", None
         )
-        if twitter_conf and twitter_conf.api_key and twitter_conf.api_secret_key:
+        if TWITTER_STRATEGY_AVAILABLE and TwitterStrategy is not None and twitter_conf and twitter_conf.api_key and twitter_conf.api_secret_key:
             try:
-                logger.info(
-                    "TwitterStrategy WOULD BE initialized (Class missing). Config found."  # noqa: E501
-                )
-                strategies["twitter"] = MagicMock(name="MockTwitterStrategy")
-            except NameError:
-                logger.error("TwitterStrategy class not found. Cannot initialize.")
+                strategies["twitter"] = TwitterStrategy(**twitter_conf.dict())
+                logger.info("TwitterStrategy initialized.")
             except Exception as e:
                 logger.error(
                     f"Failed to initialize TwitterStrategy: {e}", exc_info=True
                 )
         else:
             logger.warning(
-                "Twitter configuration missing or incomplete in AppConfig. Skipping TwitterStrategy."  # noqa: E501
+                "Twitter configuration missing, incomplete, or TwitterStrategy class not available. Skipping TwitterStrategy."
             )
 
         linkedin_conf: Optional[LinkedInConfig] = getattr(
             self.config.integrations, "linkedin", None
         )
-        if linkedin_conf and linkedin_conf.client_id and linkedin_conf.client_secret:
+        if LINKEDIN_STRATEGY_AVAILABLE and LinkedInStrategy is not None and linkedin_conf and linkedin_conf.client_id and linkedin_conf.client_secret:
             try:
-                logger.info(
-                    "LinkedInStrategy WOULD BE initialized (Class missing). Config found."  # noqa: E501
-                )
-                strategies["linkedin"] = MagicMock(name="MockLinkedInStrategy")
-            except NameError:
-                logger.error("LinkedInStrategy class not found. Cannot initialize.")
+                strategies["linkedin"] = LinkedInStrategy(**linkedin_conf.dict())
+                logger.info("LinkedInStrategy initialized.")
             except Exception as e:
                 logger.error(
                     f"Failed to initialize LinkedInStrategy: {e}", exc_info=True
                 )
         else:
             logger.warning(
-                "LinkedIn configuration missing or incomplete in AppConfig. Skipping LinkedInStrategy."  # noqa: E501
+                "LinkedIn configuration missing, incomplete, or LinkedInStrategy class not available. Skipping LinkedInStrategy."
             )
 
         if not strategies:
             logger.warning(
-                "No social media strategies were configured or initialized successfully."  # noqa: E501
+                "No social media strategies were configured or initialized successfully."
             )
 
         return strategies
 
     def start(self):
-        """Start watching for new content."""
-        # Watch posts directory
+        """Start watching for new content and processing the queue."""
+        if self.running:
+            logger.warning("DevLogDispatcher already running.")
+            return
+        self.running = True
+
+        # Watchdog setup
         self.observer.schedule(self.handler, str(self.posts_dir), recursive=False)
-        # Watch social content directories
         self.observer.schedule(self.handler, str(self.social_dir), recursive=True)
-
         self.observer.start()
-        logger.info(f"Started watching {self.content_dir} for new content")
+        logger.info(f"Started watching for new content in {self.posts_dir} and {self.social_dir}")
 
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
+        # Start the content queue worker thread
+        self.worker_thread = Thread(target=self._process_content_queue, daemon=True)
+        self.worker_thread.start()
+        logger.info("Started content queue worker thread.")
+
+    def stop(self):
+        """Stops the dispatcher, observer, and scheduler."""
+        if not self.running:
+            logger.warning("DevLogDispatcher not running or already stopped.")
+            return
+        self.running = False
+        logger.info("Stopping DevLog Dispatcher...")
+
+        if self.observer.is_alive():
             self.observer.stop()
-            self.scheduler.shutdown()
             self.observer.join()
+            logger.info("Watchdog observer stopped.")
+        
+        if self.scheduler.running:
+            try:
+                self.scheduler.shutdown()
+                logger.info("APScheduler stopped.")
+            except Exception as e:
+                logger.error(f"Error shutting down APScheduler: {e}")
+
+        if self.worker_thread and self.worker_thread.is_alive():
+            logger.info("Stopping content queue worker thread... (will process remaining items if queue is not empty)")
+            self.content_queue.put(None)
+            self.worker_thread.join(timeout=10)
+        
+        logger.info("DevLog Dispatcher stopped.")
+
+    def _process_content_queue(self):
+        """Worker method to process items from the content_queue."""
+        logger.info("Content queue worker started.")
+        while self.running:
+            try:
+                item = self.content_queue.get(timeout=1)
+                if item is None:
+                    logger.info("Content queue worker received stop signal.")
+                    break
+                
+                content_type = item.get("type")
+                content_path = item.get("path")
+
+                if content_type == "blog":
+                    self.handle_new_blog_post(content_path)
+                elif content_type == "social":
+                    self.handle_new_social_content(content_path)
+                else:
+                    logger.warning(f"Unknown content type in queue: {content_type}")
+                
+                self.content_queue.task_done()
+            except Empty:
+                continue
+            except Exception as e:
+                logger.error(f"Error processing item from content queue: {e}", exc_info=True)
+        logger.info("Content queue worker finished.")
 
     def handle_new_blog_post(self, post_path: str):
         """
@@ -220,7 +339,8 @@ class DevLogDispatcher:
                 )
 
                 # Add 15 minutes for the next post if it's a thread
-                publish_time = publish_time + timedelta(minutes=15)  # noqa: F821
+                if publish_time:
+                    publish_time = publish_time + timedelta(minutes=15)
 
             # Mark as published
             self.published[platform].add(content_path)
@@ -236,7 +356,7 @@ class DevLogDispatcher:
         post_type: str,
         content: str,
         post_id: str,
-        publish_time: datetime,  # noqa: F821
+        publish_time: datetime,
     ):
         """
         Schedule a post for future publishing.
@@ -277,7 +397,7 @@ class DevLogDispatcher:
             # Schedule the job
             self.scheduler.add_job(
                 publish_job,
-                trigger=DateTrigger(run_date=publish_time),  # noqa: F821
+                trigger=DateTrigger(run_date=publish_time),
                 id=post_id,
                 name=f"Publish {platform} {post_type}",
             )
@@ -289,7 +409,7 @@ class DevLogDispatcher:
 
     def _generate_post_id(self, file_path: str, content: str = "") -> str:
         """Generate a unique post ID."""
-        hash_input = f"{file_path}:{content}:{datetime.now().isoformat()}"  # noqa: F821
+        hash_input = f"{file_path}:{content}:{datetime.now().isoformat()}"
         return hashlib.md5(hash_input.encode()).hexdigest()
 
     def _extract_tags(self, content: str) -> List[str]:
@@ -297,9 +417,9 @@ class DevLogDispatcher:
         words = content.split()
         return [word[1:] for word in words if word.startswith("#")]
 
-    def _get_next_optimal_time(self, best_times: Dict[str, List[str]]) -> datetime:  # noqa: F821
+    def _get_next_optimal_time(self, best_times: Dict[str, List[str]]) -> datetime:
         """Get the next optimal posting time."""
-        now = datetime.now()  # noqa: F821
+        now = datetime.now()
         current_day = now.strftime("%A")
 
         # Get best hours for current day
@@ -307,7 +427,7 @@ class DevLogDispatcher:
 
         if not best_hours:
             # If no optimal times, schedule for next hour
-            next_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(  # noqa: F821
+            next_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(
                 hours=1
             )
         else:
@@ -322,7 +442,7 @@ class DevLogDispatcher:
 
             if next_hour is None:
                 # No more optimal times today, use first optimal time tomorrow
-                tomorrow = now + timedelta(days=1)  # noqa: F821
+                tomorrow = now + timedelta(days=1)
                 next_time = tomorrow.replace(
                     hour=int(best_hours[0]), minute=0, second=0, microsecond=0
                 )
@@ -348,12 +468,12 @@ def main():
             raise ValueError("Failed to load AppConfig.")
     except (ImportError, ValueError) as e:
         logger.error(
-            f"Cannot run DevLogDispatcher main: Failed to load AppConfig ({e}). Exiting."  # noqa: E501
+            f"Cannot run DevLogDispatcher main: Failed to load AppConfig ({e}). Exiting."
         )
         return
 
     dummy_queue = Queue()
-    dispatcher = DevLogDispatcher(config=app_config, content_queue=dummy_queue)  # noqa: F841
+    dispatcher = DevLogDispatcher(config=app_config, content_queue=dummy_queue)
 
     try:
         logger.info("Starting DevLogDispatcher via main()...")

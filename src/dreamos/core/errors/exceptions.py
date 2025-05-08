@@ -69,4 +69,39 @@ class BoardLockError(ProjectBoardError):
     pass
 
 
+# --- Errors moved from core/errors.py during consolidation --- #
+
+class CommunicationError(DreamOSError):
+    """Indicates an error in inter-agent or system communication mechanisms."""
+    pass
+
+class MemoryError(DreamOSError):
+    """Indicates an error related to an agent's memory component operations."""
+    pass
+
+# Note: BoardLockError above covers generic lock errors related to boards.
+# If more general locking is needed, LockError/LockTimeoutError could be reinstated.
+# class LockError(DreamOSError):
+#     """Base class for errors related to file or resource locking mechanisms."""
+#     pass
+#
+# class LockTimeoutError(LockError):
+#     """Raised specifically when acquiring a resource lock times out."""
+#     pass
+
+class ValidationError(DreamOSError):
+    """Indicates that data failed a validation check (general purpose)."""
+    pass
+
+class CursorOrchestratorError(DreamOSError):
+    """Represents an error reported by the Cursor Orchestrator component."""
+    pass
+
+class ArchivingError(DreamOSError):
+    """Indicates an error during archiving or unarchiving operations."""
+    pass
+
+# --- End moved errors --- #
+
+
 # Add other common base exceptions as needed

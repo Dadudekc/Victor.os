@@ -42,4 +42,4 @@
 
 ---
 
-🧹 **REMINDER:** This project reflects our collective discipline. Uphold the highest standards. Find work, fix issues, improve the system. **Operate like the professional senior developer you are.** Keep our house clean.
+🧹 **REMINDER:** This project reflects our collective discipline. Uphold the highest standards. Find work, fix issues, improve the system. **Operate like the professional senior developer you are.** Keep our house clean. 

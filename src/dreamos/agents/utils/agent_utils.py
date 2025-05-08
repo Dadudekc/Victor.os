@@ -6,7 +6,7 @@ import traceback
 from functools import wraps
 from typing import Any, Callable, Dict, Optional
 
-from dreamos.coordination.agent_bus import AgentBus  # CORRECTED PATH
+from dreamos.core.coordination.agent_bus import AgentBus
 from dreamos.core.coordination.event_payloads import (  # Import the payload
     SupervisorAlertPayload,
 )
@@ -128,7 +128,7 @@ async def publish_task_update(
         "sender_id": agent_id,
         "correlation_id": task.correlation_id,  # Use correlation ID from task
         "timestamp_utc": get_utc_iso_timestamp(),
-        "data": task.to_dict(),  # Send full task data
+        "data": task.model_dump(),  # Send full task data
     }
 
     try:
@@ -159,7 +159,10 @@ async def publish_error(
     error_data = {
         "error": error_message,
         "source_agent": agent_id,
-        "traceback": traceback.format_exc(),  # Consider omitting traceback from bus? Logged locally.  # noqa: E501
+        # TODO: Consider if full tracebacks should be sent over the bus.
+        #       Local logging of traceback might be sufficient, with bus event
+        #       carrying a summary or error ID.
+        "traceback": traceback.format_exc(), 
         **(details or {}),  # Merge additional details
     }
     error_message_payload = {
@@ -249,21 +252,20 @@ async def handle_task_cancellation(
             "status": "success",
             "message": f"Cancellation requested for task {task_id}.",
         }
-        if response_topic:
+        if response_topic and bus: # Ensure bus is available for publishing
             try:
-                # Publish to a dynamic topic based on correlation ID
                 await bus.publish(response_topic, response_payload)
                 util_logger.debug(
-                    f"Published cancellation confirmation to {response_topic}"
+                    f"Published cancellation response for {task_id} to {response_topic}"
                 )
             except Exception as e:
                 util_logger.error(
-                    f"Failed to publish cancellation confirmation to {response_topic}: {e}",  # noqa: E501
+                    f"Failed to publish cancellation response for {task_id} to {response_topic}: {e}",
                     exc_info=True,
                 )
         else:
             util_logger.warning(
-                f"Cannot send cancellation confirmation for task {task_id}: No correlation ID."  # noqa: E501
+                f"Cannot send cancellation confirmation for task {task_id}: No correlation ID or bus."  # noqa: E501
             )
 
         # Note: The actual task status (CANCELLED) should be set and published
@@ -278,15 +280,39 @@ async def handle_task_cancellation(
         # ))
     else:
         # Task not found or already done
-        error_msg = f"Task {task_id} not found or already completed/cancelled."
+        error_msg = f"Task {task_id} not found in active tasks or already done."
         util_logger.warning(error_msg)
-        await publish_error(bus, error_msg, agent_id, correlation_id)
+        response_payload["data"] = {
+            "status": "error",
+            "message": f"Task {task_id} not found or already completed, cannot cancel.",
+        }
+
+        if response_topic and bus: # Ensure bus is available for publishing
+            try:
+                await bus.publish(response_topic, response_payload)
+                util_logger.debug(
+                    f"Published cancellation response for {task_id} to {response_topic}"
+                )
+            except Exception as e:
+                util_logger.error(
+                    f"Failed to publish cancellation response for {task_id} to {response_topic}: {e}",
+                    exc_info=True,
+                )
 
 
 def log_task_performance(
     task: TaskMessage, agent_id: str, perf_logger: PerformanceLogger
 ) -> None:
-    """Log task performance metrics using PerformanceLogger."""
+    """Logs task performance metrics using the provided PerformanceLogger.
+
+    Extracts relevant details from the TaskMessage and records the outcome.
+    Includes error handling for the logging process itself.
+
+    Args:
+        task: The TaskMessage object containing task details and results.
+        agent_id: The ID of the agent that processed the task.
+        perf_logger: The PerformanceLogger instance to use for logging.
+    """
     # Ensure necessary timestamps are available
     start_time_iso = task.created_at.isoformat() if task.created_at else None
     end_time_iso = (
@@ -324,18 +350,19 @@ def log_task_performance(
 def format_agent_report(
     agent_id: str, task: str, status: str, action: str, agent_name: Optional[str] = None
 ) -> str:
-    """Formats the standard agent report header and body.
+    """Formats a standard agent report string in Markdown.
 
     Args:
-        agent_id: The reporting agent's ID (e.g., "Agent2", "Agent-8").
-        task: A brief description of the current or completed task.
-        status: The current status (e.g., "🟡 Executing", "✅ Complete", "🔴 Blocked").
-        action: A short statement of the action just taken, the next step,
-                or the reason for being blocked/standby.
-        agent_name: The optional operational name of the agent (e.g., "Nexus").
+        agent_id: The reporting agent's unique identifier.
+        task: A brief description of the current or most recent task.
+        status: The current operational status of the agent or task 
+                (e.g., "🟡 Executing", "✅ Complete", "🔴 Blocked").
+        action: A short statement describing the action just taken, the next step,
+                or the reason for being blocked or on standby.
+        agent_name: Optional human-readable name of the agent.
 
     Returns:
-        A formatted markdown string for the agent's report.
+        A formatted markdown string suitable for agent status reporting.
     """
     # Use name if available, otherwise fall back to Agent ID
     header_name = agent_name if agent_name else f"Agent {agent_id}"
@@ -351,17 +378,23 @@ async def publish_supervisor_alert(
     blocking_task_id: Optional[str] = None,
     details_reference: Optional[str] = None,
 ) -> str:
-    """Constructs and publishes a supervisor alert event.
+    """Constructs and publishes a SUPERVISOR_ALERT event to the AgentBus.
+
+    Used by agents to signal critical blockers or issues requiring attention
+    from a supervisor or monitoring system.
 
     Args:
-        bus: The AgentBus instance.
+        bus: The AgentBus instance for publishing the event.
         source_agent_id: The ID of the agent raising the alert.
         blocker_summary: A concise summary of the critical blocker.
-        blocking_task_id: Optional ID of the task being blocked.
-        details_reference: Optional path to a file with more details.
+        blocking_task_id: Optional ID of the task primarily affected by the blocker.
+        details_reference: Optional reference (e.g., path or URL) to more detailed logs or information.
 
     Returns:
         The alert_id of the published alert.
+    
+    Raises:
+        Exception: If publishing the event to the bus fails.
     """
     payload = SupervisorAlertPayload(
         source_agent_id=source_agent_id,
@@ -374,11 +407,15 @@ async def publish_supervisor_alert(
     alert_event = BaseDreamEvent(
         event_type=EventType.SUPERVISOR_ALERT,
         source_id=source_agent_id,
-        data=payload.__dict__,  # Convert payload dataclass to dict for BaseEvent
+        # FIXME: Verify if SupervisorAlertPayload uses .model_dump() (Pydantic v2+)
+        #        or .__dict__ / .dict() (Pydantic v1 or custom). Assuming .model_dump().
+        data=payload.model_dump(),  # Convert payload dataclass to dict for BaseEvent
         # correlation_id is not typically needed for alerts
     )
 
     try:
+        # FIXME: Ensure AgentBus.dispatch_event(BaseEvent) is the consistent way to publish
+        #        events, or align with AgentBus.publish(topic, payload) used elsewhere.
         await bus.dispatch_event(
             alert_event
         )  # Use dispatch_event which takes BaseEvent
@@ -395,9 +432,28 @@ async def publish_supervisor_alert(
 
 
 def example_agent_util_function(*args, **kwargs):
-    """Placeholder for a utility function agents might need."""
+    """A placeholder example of a utility function that agents might need.
+    
+    Currently logs a warning when called.
+    """
     logger.warning("Placeholder agent utility function called.")
     return None
 
 
-logger.warning("Loaded placeholder: dreamos.agents.utils.agent_utils")
+# logger.warning("Loaded placeholder: dreamos.agents.utils.agent_utils") # Removed confusing log
+
+
+async def safe_create_task(coro, *, name=None, logger_instance=None):
+    """Safely create an asyncio task and log errors if it raises an exception."""
+    current_logger = logger_instance or util_logger
+    def _task_done_callback(task: asyncio.Task):
+        try:
+            task.result()  # Raise exception if task failed
+        except asyncio.CancelledError:
+            current_logger.debug(f"Task {task.get_name()} was cancelled.")
+        except Exception:
+            current_logger.error(f"Task {task.get_name()} raised an exception:", exc_info=True)
+
+    task = asyncio.create_task(coro, name=name)
+    task.add_done_callback(_task_done_callback)
+    return task

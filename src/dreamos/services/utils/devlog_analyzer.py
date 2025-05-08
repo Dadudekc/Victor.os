@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
+from dreamos.core.config import AppConfig
 
 logger = logging.getLogger("DevLogAnalyzer")
 
@@ -17,14 +18,14 @@ logger = logging.getLogger("DevLogAnalyzer")
 class DevLogAnalyzer:
     """Analyzes post performance and provides optimization insights."""
 
-    def __init__(self, db_path: str = "data/analytics.db"):
+    def __init__(self, config: AppConfig):
         """
         Initialize the analyzer.
 
         Args:
-            db_path: Path to SQLite database for storing analytics
+            config: The application configuration object.
         """
-        self.db_path = Path(db_path)
+        self.db_path = config.paths.data_dir / "analytics.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize database

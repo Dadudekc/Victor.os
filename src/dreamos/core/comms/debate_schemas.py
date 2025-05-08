@@ -9,6 +9,9 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
+# TODO (Masterpiece Review - Captain-Agent-8): Ensure UUID format consistency.
+#      This uses `str(uuid4())` (hyphenated), while mailbox_utils used `.hex`.
+#      Decide on one standard format (e.g., hex) for IDs across the system.
 def generate_uuid():
     return str(uuid4())
 
@@ -104,6 +107,8 @@ class DebateManifest(BaseModel):
     scoring_info: Optional[Dict[str, Any]] = (
         None  # Placeholder for scoring config/results
     )
+    # TODO (Masterpiece Review - Captain-Agent-8): Define a specific Pydantic model
+    #      for `scoring_info` if/when the scoring mechanism is implemented.
 
 
 # Example Usage:

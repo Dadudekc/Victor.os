@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tier-2 Drift Message Schema",
+  "description": "Schema for validating Agent-6 (RIFTREAPER) Tier-2 drift mutation payloads.",
+  "type": "object",
+  "properties": {
+    "drift_vector": {
+      "description": "Simulated spatial drift vector [x, y, z]",
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "angular_velocity": {
+      "description": "Simulated rotational drift in degrees per second",
+      "type": "number"
+    },
+    "origin_zone": {
+      "description": "Designated operational zone of origin",
+      "type": "string",
+      "enum": ["Alpha", "Beta", "Gamma", "Delta", "Omega"] 
+    },
+    "anomaly_flag": {
+      "description": "Boolean flag indicating detected anomaly",
+      "type": "boolean"
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp of the measurement",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "drift_vector",
+    "angular_velocity",
+    "origin_zone",
+    "anomaly_flag",
+    "timestamp"
+  ],
+  "additionalProperties": false
+} 

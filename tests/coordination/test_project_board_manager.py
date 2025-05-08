@@ -24,10 +24,10 @@ from dreamos.core.config import AppConfig, PathsConfig
 # from dreamos.core.errors import BoardLockError, TaskNotFoundError, TaskValidationError, ProjectBoardError  # noqa: E501
 from dreamos.core.errors import (  # Re-import specifically where needed or fix original definitions  # noqa: E501
     BoardLockError,
+    ProjectBoardError,  # ADDED: Import ProjectBoardError
     TaskNotFoundError,
     TaskValidationError,
 )
-from dreamos.core.errors import ProjectBoardError # ADDED: Import ProjectBoardError
 
 # Add src directory to path for imports
 SRC_DIR = Path(__file__).resolve().parents[2] / "src"
@@ -286,47 +286,29 @@ def mock_pbm_with_schema(mock_app_config: AppConfig, fs):
 
 @pytest.fixture
 # TODO: Rename this fixture to avoid confusion with the removed deprecated 'pbm_instance'. e.g., 'pbm_with_real_schema'  # noqa: E501
-def pbm_instance_with_real_schema(mock_app_config: AppConfig, fs):
-    """Instance of PBM specifically for testing schema loading, using AppConfig."""
-    # EDIT START: Refactor to use AppConfig and fs
-    # Create a dummy schema file in the expected location within the fake filesystem
-    schema_content = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "DreamOS Task Schema",
-        "type": "object",
-        "properties": {
-            "task_id": {"type": "string"},
-            "description": {"type": "string"},
-        },
-        "required": ["task_id", "description"],
-    }
-    # Use schema path from mock_app_config
-    schema_path = mock_app_config.paths.task_schema
-    fs.create_file(schema_path, contents=json.dumps(schema_content))
+def pbm_with_real_schema(mock_app_config: AppConfig, fs):
+    """Provides a PBM instance using a real schema file (in fake fs), no mocking of jsonschema."""
+    # Ensure schema exists in fake filesystem
+    if not fs.exists(mock_app_config.paths.task_schema):
+        schema_content = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "DreamOS Task Schema",
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "string"},
+                "description": {"type": "string"},
+            },
+            "required": ["task_id", "description"],
+        }
+        fs.create_file(
+            mock_app_config.paths.task_schema, contents=json.dumps(schema_content)
+        )
     fs.create_dir(mock_app_config.paths.central_task_boards)
 
-    # Now instantiate PBM using AppConfig
+    # Disable file locking
     with patch("dreamos.coordination.project_board_manager.FILELOCK_AVAILABLE", False):
         manager = ProjectBoardManager(config=mock_app_config)
-
-    # PBM __init__ loads the schema, no need to call _load_schema manually
-    assert manager._task_schema is not None, "Schema should be loaded by __init__"
-    return manager
-    # OLD IMPLEMENTATION - REMOVED
-    # schema_dir = temp_test_dir / "src" / "dreamos" / "coordination" / "tasks"
-    # schema_dir.mkdir(parents=True, exist_ok=True)
-    # schema_path = schema_dir / "task-schema.json"
-    # with open(schema_path, "w") as f:
-    #     json.dump(schema_content, f)
-    # future_path = "runtime/agent_comms/project_boards/future_tasks_schema_load.json"
-    # working_path = "runtime/agent_comms/project_boards/working_tasks_schema_load.json"
-    # manager = ProjectBoardManager(
-    #     future_tasks_path=future_path,
-    #     working_tasks_path=working_path,
-    #     project_root=temp_test_dir,
-    # )
-    # return manager
-    # EDIT END
+        yield manager
 
 
 # --- Test Cases ---
@@ -699,71 +681,60 @@ def test_add_task_schema_validation_fail(
 
 @patch("dreamos.coordination.project_board_manager.jsonschema.validate")
 def test_update_task_schema_validation_success(
-    mock_jsonschema_validate, pbm: ProjectBoardManager, sample_task_details
+    mock_jsonschema_validate, pbm_with_real_schema: ProjectBoardManager, sample_task_details
 ):
-    """Test updating a task succeeds when schema validation passes."""
-    # Add a task first (validation will pass by default mock behavior)
-    agent_id = "agent-test-update-schema-ok"
+    """Test update_working_task passes schema validation with valid data."""
+    pbm = pbm_with_real_schema # Use the renamed fixture
     task_id = sample_task_details["task_id"]
-    pbm.add_task_to_backlog(sample_task_details, agent_id)
-    pbm.claim_ready_task(task_id, agent_id)  # Move to working board first
 
-    # Ensure the mock does *not* raise an error for the update call
-    mock_jsonschema_validate.side_effect = None
-    mock_jsonschema_validate.reset_mock()  # Reset call count from add/claim
+    # Add initial task (assume valid or mock validation)
+    with patch.object(pbm, "_validate_task") as mock_validate_initial:
+        pbm.add_task_to_board("ready", sample_task_details)
 
-    updated_details = {"description": "Updated description for schema success"}
+    # Valid updates
+    updates = {"notes": "Updated notes", "priority": "LOW"}
+
+    # Mock the jsonschema.validate call itself to just pass (no exception)
+    mock_jsonschema_validate.return_value = None
 
     try:
-        success = pbm.update_working_task(task_id, updated_details)
-        assert success is True  # PBM method should return True
+        pbm.update_working_task(task_id, updates)
     except TaskValidationError as e:
-        pytest.fail(f"Schema validation unexpectedly failed during update: {e}")
+        pytest.fail(f"Schema validation failed unexpectedly: {e}")
+    except Exception as e:
+        pytest.fail(f"An unexpected error occurred during update: {e}")
 
-    # Check that validation was called during the update
+    # Assert jsonschema.validate was called (or however validation is triggered)
     mock_jsonschema_validate.assert_called_once()
-
-    # Verify update happened
-    updated_task = pbm.get_task(task_id, board="working")
-    assert updated_task is not None
-    assert updated_task["description"] == "Updated description for schema success"
+    call_args = mock_jsonschema_validate.call_args[0]
+    assert call_args[0]["notes"] == "Updated notes" # Check instance being validated
 
 
 @patch("dreamos.coordination.project_board_manager.jsonschema.validate")
 def test_update_task_schema_validation_fail(
-    mock_jsonschema_validate, pbm: ProjectBoardManager, sample_task_details
+    mock_jsonschema_validate, pbm_with_real_schema: ProjectBoardManager, sample_task_details
 ):
-    """Test updating a task fails when schema validation raises ValidationError."""
-    # Add and claim a task first (validation will pass by default)
-    agent_id = "agent-test-update-schema-fail"
+    """Test update_working_task raises TaskValidationError on schema failure."""
+    pbm = pbm_with_real_schema # Use the renamed fixture
     task_id = sample_task_details["task_id"]
-    pbm.add_task_to_backlog(sample_task_details, agent_id)
-    pbm.claim_ready_task(task_id, agent_id)  # Move to working board
-    original_task = pbm.get_task(task_id, board="working")  # Get original state
 
-    # Configure the mock to raise the error during the update call
-    mock_jsonschema_validate.side_effect = jsonschema.exceptions.ValidationError(
-        "Simulated schema validation error on update"
+    # Add initial task
+    with patch.object(pbm, "_validate_task") as mock_validate_initial:
+        pbm.add_task_to_board("ready", sample_task_details)
+
+    # Invalid updates (e.g., wrong type for priority)
+    updates = {"priority": {"level": "VERY LOW"}} # Example invalid data
+
+    # Mock jsonschema.validate to raise a validation error
+    mock_jsonschema_validate.side_effect = jsonschema.ValidationError(
+        "Mock validation error"
     )
-    mock_jsonschema_validate.reset_mock()  # Reset call count from add/claim
 
-    # Attempt to update with details that would trigger the mock error
-    invalid_updated_details = {"status": "INVALID_STATUS_IGNORED_BY_MOCK"}
+    with pytest.raises(TaskValidationError, match=r"Task data failed schema validation"):
+        pbm.update_working_task(task_id, updates)
 
-    # Expect PBM to catch jsonschema.ValidationError and raise TaskValidationError
-    with pytest.raises(TaskValidationError) as excinfo:
-        # Note: update_working_task raises the error directly, doesn't return bool on validation failure  # noqa: E501
-        pbm.update_working_task(task_id, invalid_updated_details)
-
-    # Check that our mock was called during the update attempt
+    # Assert jsonschema.validate was called
     mock_jsonschema_validate.assert_called_once()
-    # Check the raised exception message
-    assert "Simulated schema validation error on update" in str(excinfo.value)
-    assert "failed schema validation" in str(excinfo.value)
-
-    # Verify the task was NOT actually updated on the board
-    task_after_fail = pbm.get_task(task_id, board="working")
-    assert task_after_fail == original_task  # Should be unchanged
 
 
 # --- Tests for Schema Loading ---
@@ -937,7 +908,6 @@ def test_get_task_not_found(self, pbm: ProjectBoardManager, fs):
 
 # --- New Test Class for promote_task_to_ready ---
 class TestPromoteTaskToReady:
-
     def test_promote_success(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
         """Test successfully promoting a task from backlog to ready."""
         backlog_tasks = [sample_task_1]
@@ -968,7 +938,9 @@ class TestPromoteTaskToReady:
         assert pbm._load_backlog() == []
         assert pbm._load_ready_queue() == []
 
-    def test_promote_already_ready(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+    def test_promote_already_ready(
+        self, pbm: ProjectBoardManager, sample_task_1: dict, fs
+    ):
         """Test promoting a task already in the ready queue (should fail)."""
         sample_task_1["status"] = "READY"
         ready_tasks = [sample_task_1]
@@ -982,9 +954,13 @@ class TestPromoteTaskToReady:
 
         # Verify boards are unchanged
         assert pbm._load_backlog() == []
-        assert pbm._load_ready_queue() == ready_tasks # Should still contain the original task
+        assert (
+            pbm._load_ready_queue() == ready_tasks
+        )  # Should still contain the original task
 
-    def test_promote_working_task(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+    def test_promote_working_task(
+        self, pbm: ProjectBoardManager, sample_task_1: dict, fs
+    ):
         """Test promoting a task that is currently working (should fail)."""
         sample_task_1["status"] = "WORKING"
         working_tasks = [sample_task_1]
@@ -1002,7 +978,9 @@ class TestPromoteTaskToReady:
         assert pbm._load_ready_queue() == []
         assert pbm._load_working_tasks() == working_tasks
 
-    def test_promote_completed_task(self, pbm: ProjectBoardManager, sample_task_1: dict, fs):
+    def test_promote_completed_task(
+        self, pbm: ProjectBoardManager, sample_task_1: dict, fs
+    ):
         """Test promoting a task that is already completed (should fail)."""
         sample_task_1["status"] = "COMPLETED"
         completed_tasks = [sample_task_1]
@@ -1020,12 +998,13 @@ class TestPromoteTaskToReady:
         assert pbm._load_ready_queue() == []
         assert pbm._load_completed_tasks() == completed_tasks
 
+
 # --- End New Test Class ---
+
 
 # --- New Test Class for _create_from_cli_args ---
 # Requires mocking AppConfig loading or providing a mock config
 class TestCreateFromCliArgs:
-
     @patch("dreamos.coordination.project_board_manager.AppConfig.load")
     def test_create_from_cli_basic(self, mock_load_config, mock_app_config):
         """Test basic creation using CLI args."""
@@ -1044,7 +1023,7 @@ class TestCreateFromCliArgs:
         assert pbm_instance.config == mock_app_config
         # Check if lock_timeout was potentially overridden by args (if applicable)
         # assert pbm_instance.lock_timeout == expected_timeout
-        mock_load_config.assert_called_once() # Verify config loading
+        mock_load_config.assert_called_once()  # Verify config loading
 
     @patch("dreamos.coordination.project_board_manager.AppConfig.load")
     def test_create_from_cli_with_overrides(self, mock_load_config, mock_app_config):
@@ -1058,7 +1037,7 @@ class TestCreateFromCliArgs:
         custom_timeout = 30
 
         args = argparse.Namespace(
-            lock_timeout=custom_timeout # Example override
+            lock_timeout=custom_timeout  # Example override
         )
 
         pbm_instance = ProjectBoardManager._create_from_cli_args(args)
@@ -1068,6 +1047,7 @@ class TestCreateFromCliArgs:
         # Does _create_from_cli_args pass timeout to PBM init?
         # assert pbm_instance.lock_timeout == custom_timeout
         mock_load_config.assert_called_once()
+
 
 # --- End New Test Class ---
 

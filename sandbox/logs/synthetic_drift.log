@@ -1,0 +1,12 @@
+Generating 10 synthetic log entries with inconsistent timestamps...
+EventID=1000,Timestamp=1746451611,Source=Node4,Severity=INFO,Message=Synthetic event 1 using format 'unix_timestamp_secs'
+EventID=1001,Timestamp=2025-05-05 13:26:05.09,Source=Node5,Severity=INFO,Message=Synthetic event 2 using format 'malformed_iso_no_T_no_Z'
+EventID=1002,Timestamp=2025-05-05T13:26:00.325Z,Source=Node1,Severity=INFO,Message=Synthetic event 3 using format 'iso_utc_Z'
+EventID=1003,Timestamp=05/05/2025 09:26:11 AM,Source=Node1,Severity=INFO,Message=Synthetic event 4 using format 'human_readable'
+EventID=1004,Timestamp=2025-05-05T13:26:57.629Z,Source=Node2,Severity=INFO,Message=Synthetic event 5 using format 'iso_utc_Z'
+EventID=1005,Timestamp=2025-05-05T13:25:50.400Z,Source=Node4,Severity=INFO,Message=Synthetic event 6 using format 'rfc_3339'
+EventID=1006,Timestamp=2025-05-05T09:26:49.815-04:00,Source=Node3,Severity=INFO,Message=Synthetic event 7 using format 'iso_offset'
+EventID=1007,Timestamp=1746451576797,Source=Node4,Severity=INFO,Message=Synthetic event 8 using format 'unix_timestamp_ms'
+EventID=1008,Timestamp=1746451570,Source=Node1,Severity=INFO,Message=Synthetic event 9 using format 'unix_timestamp_secs'
+EventID=1009,Timestamp=2025-05-05T13:26:42.448Z,Source=Node1,Severity=INFO,Message=Synthetic event 10 using format 'iso_utc_Z'
+Log generation complete.

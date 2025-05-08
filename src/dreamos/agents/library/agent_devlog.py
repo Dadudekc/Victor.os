@@ -1,9 +1,10 @@
 # src/dreamos/agents/library/agent_devlog.py
 import asyncio
 import logging
+import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional, Set, List, Dict, Any
 
 from dreamos.core.agents.base_agent import BaseAgent
 from dreamos.core.config import AppConfig
@@ -221,3 +222,33 @@ class AgentDevlog(BaseAgent):
         """Clean up resources."""
         await super().teardown()
         logger.info(f"Agent {self.agent_id} tearing down.")
+
+    def _append_entry(self, entry: Dict[str, Any]):
+        """Appends a single entry to the devlog file, handling locking."""
+        lock_path = self.log_directory.with_suffix(".lock")
+        lock = FileLock(lock_path, timeout=10) # 10 second timeout
+        try:
+            with lock:
+                # Read existing content
+                if self.log_directory.exists():
+                    with open(self.log_directory, "r") as f:
+                        try:
+                            data = json.load(f)
+                            if not isinstance(data, list):
+                                data = [] # Overwrite if not a list
+                        except json.JSONDecodeError:
+                            data = [] # Overwrite if corrupt
+                else:
+                    data = []
+
+                # Append new entry
+                data.append(entry)
+
+                # Write back
+                with open(self.log_directory, "w") as f:
+                    json.dump(data, f, indent=2) # Use imported json
+
+        except Timeout:
+            logger.error(f"Timeout acquiring lock for {self.log_directory}. Devlog entry lost.")
+        except Exception as e:
+            logger.error(f"Error writing to devlog {self.log_directory}: {e}", exc_info=True)

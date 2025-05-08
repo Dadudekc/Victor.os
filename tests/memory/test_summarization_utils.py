@@ -4,7 +4,7 @@ import zlib  # Needed for checking compressed data
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from dreamos.core.config import SummarizationPolicyConfig  # Updated import
+from dreamos.core.config import SummarizationConfig
 from dreamos.core.utils.summarizer import BaseSummarizer  # For mocking
 
 # Adjust the import path based on your project structure
@@ -34,9 +34,8 @@ def mock_summarizer_instance():
 @pytest.fixture
 def sample_policy():
     """Provides a default summarization policy for tests."""
-    return SummarizationPolicyConfig(
+    return SummarizationConfig(
         enabled=True,
-        type="default",
         max_entries_before_summarize=5,  # Low threshold for testing
         summarization_chunk_size=3,
     )

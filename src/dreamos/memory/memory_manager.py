@@ -46,10 +46,10 @@ logger.setLevel(logging.INFO)
 # MEMORY_DIR = RUNTIME_DIR / "memory" # REMOVED - Use AppConfig
 # MEMORY_DIR.mkdir(parents=True, exist_ok=True) # Initialization should use AppConfig
 
-# Load config to get paths
-_config = AppConfig.load()
-_memory_base_path = _config.paths.memory
-_memory_base_path.mkdir(parents=True, exist_ok=True)  # Ensure path exists
+# Load config to get paths - MODIFIED: Load lazily or pass config in __init__
+# _config = AppConfig.load() # COMMENTED OUT: Causes issues during test import
+# _memory_base_path = _config.paths.memory # COMMENTED OUT
+# _memory_base_path.mkdir(parents=True, exist_ok=True)  # COMMENTED OUT: Ensure path exists in __init__
 
 ###########################################################################
 # Default Compaction Config
@@ -73,72 +73,145 @@ DEFAULT_COMPACTION_CONFIG = {
 class MemoryManager:
     """
     Lightweight dict-of-dicts persisted to a single JSON file.
-    Good for small, human-inspectable fragments.
+    Good for small, human-inspectable fragments. Now async-friendly.
     """
 
-    def __init__(self, file_path: Path | None = None) -> None:
-        # Use path from config by default
-        self.file_path: Path = file_path or (_memory_base_path / "core_fragments.json")
+    def __init__(self, file_path: Optional[Path] = None, config: Optional[AppConfig] = None) -> None:
+        self._lock = asyncio.Lock() # Add an asyncio.Lock for operations
+
+        # Determine memory base path
+        if config:
+            memory_base_path = config.paths.memory
+        else:
+            # FIXME: AppConfig.load() fallback is problematic. Config should be explicitly passed.
+            # This can lead to issues in testing or when default config path is not appropriate.
+            logger.warning("MemoryManager initialized without explicit AppConfig. Attempting fallback load.")
+            try:
+                fallback_config = AppConfig.load() # Load with default path
+                memory_base_path = fallback_config.paths.memory
+            except Exception as e:
+                logger.error(f"Failed to load fallback config for MemoryManager path: {e}. Using default 'runtime/memory'.")
+                # Last resort fallback path
+                memory_base_path = Path("runtime/memory")
+
+        # Ensure the determined base path exists (synchronous part of init is fine for mkdir)
+        try:
+            memory_base_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create memory base directory {memory_base_path}: {e}")
+
+        self.file_path: Path = file_path or (memory_base_path / "core_fragments.json")
         self.memory: Dict[str, Dict[str, Any]] = {}
-        self._ensure_store()
-        self.load_memory()
+        # _ensure_store and load_memory are now async, cannot be called directly from sync __init__
+        # They should be called by an explicit async initialization method if needed upon creation,
+        # or the first operation will handle it. For simplicity, let's assume they are called as needed.
+        # Consider adding an async factory or an explicit async_init() method.
+        # For now, ensure store on first write, and load lazily or via explicit call.
 
     # ────────────────────────────────────────────────────────────────── #
     # Internals
     # ────────────────────────────────────────────────────────────────── #
-    def _ensure_store(self) -> None:
-        self.file_path.parent.mkdir(parents=True, exist_ok=True)
-        if not self.file_path.exists():
-            self.file_path.write_text("{}")
-            logger.info("Created fragment store → %s", self.file_path)
+    async def _ensure_store(self) -> None:
+        async with self._lock: # Protect directory and file creation
+            target_dir = self.file_path.parent
+            if not await asyncio.to_thread(target_dir.exists):
+                await asyncio.to_thread(target_dir.mkdir, parents=True, exist_ok=True)
+            if not await asyncio.to_thread(self.file_path.exists):
+                await asyncio.to_thread(self.file_path.write_text, "{}")
+                logger.info("Created fragment store → %s", self.file_path)
 
     # ────────────────────────────────────────────────────────────────── #
     # Public API
     # ────────────────────────────────────────────────────────────────── #
-    def load_memory(self) -> bool:
-        """Load fragments from JSON file; ensure stored memory is a dict."""
-        # Reset memory first
-        self.memory = {}
-        try:
-            raw = self.file_path.read_text()
-            parsed = json.loads(raw) if raw.strip() else {}
-            if not isinstance(parsed, dict):
-                raise ValueError("fragment JSON must be an object")
-            # Valid memory loaded
-            self.memory = parsed
-            logger.info("Loaded %d fragments", len(self.memory))
-            return True
-        except Exception as exc:
-            logger.error("Fragment load failed – resetting (%s)", exc, exc_info=True)
-            return False
+    async def load_memory(self) -> bool:
+        """Load fragments from JSON file; ensure stored memory is a dict. Async."""
+        await self._ensure_store() # Ensure file exists before reading
+        async with self._lock:
+            self.memory = {} # Reset memory first
+            try:
+                raw = await asyncio.to_thread(self.file_path.read_text)
+                parsed = json.loads(raw) if raw.strip() else {}
+                if not isinstance(parsed, dict):
+                    logger.error("Fragment JSON must be an object, found %s", type(parsed))
+                    # Optionally, reset to empty or raise more specific error
+                    await asyncio.to_thread(self.file_path.write_text, "{}") # Attempt to fix by resetting
+                    return False
+                self.memory = parsed
+                logger.info("Loaded %d fragments from %s", len(self.memory), self.file_path)
+                return True
+            except FileNotFoundError:
+                logger.warning("Fragment store not found at %s during load. Will be created on next save.", self.file_path)
+                # This is fine, _ensure_store should have created it, but if it vanished...
+                self.memory = {} # Ensure memory is empty
+                return True # Considered successful if file not found, starts empty
+            except json.JSONDecodeError as exc:
+                logger.error("Fragment load failed – JSON decode error from %s (%s). Store might be corrupted.", self.file_path, exc)
+                # Attempt to reset the corrupted file
+                try:
+                    await asyncio.to_thread(self.file_path.write_text, "{}")
+                    logger.info("Corrupted fragment store %s reset to empty.", self.file_path)
+                except Exception as reset_exc:
+                    logger.error("Failed to reset corrupted fragment store %s: %s", self.file_path, reset_exc)
+                self.memory = {} # Reset in-memory
+                return False
+            except Exception as exc:
+                logger.error("Fragment load failed from %s (%s)", self.file_path, exc, exc_info=True)
+                self.memory = {} # Reset in-memory
+                return False
 
-    def save_memory(self) -> bool:
-        try:
-            self.file_path.write_text(json.dumps(self.memory, indent=2))
-            logger.info("Saved %d fragments", len(self.memory))
-            return True
-        except Exception as exc:
-            logger.error("Fragment save failed (%s)", exc, exc_info=True)
-            return False
+    async def save_memory(self) -> bool:
+        """Saves the current memory state to the JSON file. Async."""
+        await self._ensure_store() # Ensure directory and file exist
+        async with self._lock:
+            try:
+                # Create a defensive copy for serialization
+                memory_to_save = dict(self.memory)
+                await asyncio.to_thread(self.file_path.write_text, json.dumps(memory_to_save, indent=2))
+                logger.info("Saved %d fragments to %s", len(self.memory), self.file_path)
+                return True
+            except Exception as exc:
+                logger.error("Fragment save failed to %s (%s)", self.file_path, exc, exc_info=True)
+                return False
 
     # CRUD helpers
-    def save_fragment(self, fragment_id: str, data: Dict[str, Any]) -> bool:
+    async def save_fragment(self, fragment_id: str, data: Dict[str, Any]) -> bool:
+        """Saves a fragment. Async."""
         if not fragment_id or not isinstance(data, dict):
-            logger.error("save_fragment: invalid id or data")
+            logger.error("save_fragment: invalid id or data type (%s)", type(data))
             return False
-        self.memory[fragment_id] = data
-        return self.save_memory()
+        # Ensure memory is loaded before modifying, if not already
+        if not self.memory:
+            await self.load_memory() # load_memory handles its own lock
+        # No separate lock needed for read if self.memory is up-to-date
+        async with self._lock: # Lock for modifying self.memory then saving
+            self.memory[fragment_id] = data
+        return await self.save_memory() # save_memory handles its own lock for file write
 
-    def load_fragment(self, fragment_id: str) -> Optional[Dict[str, Any]]:
+    async def load_fragment(self, fragment_id: str) -> Optional[Dict[str, Any]]:
+        """Loads a fragment. Async."""
+        # Ensure memory is loaded if it hasn't been
+        if not self.memory: # Simple check, could be more robust
+            await self.load_memory() # load_memory handles its own lock
+        # No separate lock needed for read if self.memory is up-to-date
         return self.memory.get(fragment_id)
 
-    def delete_fragment(self, fragment_id: str) -> bool:
+    async def delete_fragment(self, fragment_id: str) -> bool:
+        """Deletes a fragment. Async."""
+        if not self.memory:
+            await self.load_memory() # load_memory handles its own lock
+        # No separate lock needed for read if self.memory is up-to-date
         if fragment_id in self.memory:
-            del self.memory[fragment_id]
-            return self.save_memory()
-        return False
+            async with self._lock: # Lock for modifying self.memory then saving
+                del self.memory[fragment_id]
+                # save_memory will be called next, which handles its own lock for file write
+        else: # Fragment not in memory
+            return False
+        return await self.save_memory()
 
-    def list_fragment_ids(self) -> List[str]:
+    async def list_fragment_ids(self) -> List[str]:
+        """Lists fragment IDs. Async."""
+        if not self.memory:
+            await self.load_memory()
         return list(self.memory.keys())
 
 
@@ -158,14 +231,34 @@ class DatabaseManager:
     # Requires an async-compatible SQLite library (like aiosqlite) for true non-blocking DB ops.
     # Current implementation uses asyncio.to_thread for sync DB calls.
 
-    def __init__(self, db_path: Path | None = None) -> None:
+    def __init__(self, db_path: Optional[Path] = None, config: Optional[AppConfig] = None) -> None:
         # REMOVED threading.Lock parameter
         self.lock = asyncio.Lock()  # Use asyncio.Lock
-        self.db_path = db_path or (_memory_base_path / "engagement_memory.db")
+
+        # Determine memory base path (similar logic as MemoryManager)
+        if config:
+            memory_base_path = config.paths.memory
+        else:
+            # FIXME: AppConfig.load() fallback is problematic. Config should be explicitly passed.
+            # This can lead to issues in testing or when default config path is not appropriate.
+            logger.warning("DatabaseManager initialized without explicit AppConfig. Attempting fallback load.")
+            try:
+                fallback_config = AppConfig.load()
+                memory_base_path = fallback_config.paths.memory
+            except Exception as e:
+                logger.error(f"Failed to load fallback config for DatabaseManager path: {e}. Using default 'runtime/memory'.")
+                memory_base_path = Path("runtime/memory")
+
+        try:
+            memory_base_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create memory base directory {memory_base_path}: {e}")
+
+        self.db_path = db_path or (memory_base_path / "engagement_memory.db")
+
         # Initial connection can be sync, operations will be async
         try:
             # Ensure directory exists
-            self.db_path.parent.mkdir(parents=True, exist_ok=True)
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self._init_schema()  # Initial schema setup can be sync
         except Exception as e:
@@ -246,7 +339,7 @@ class DatabaseManager:
     ) -> None:
         def _sync_init():
             # This function runs in a separate thread via asyncio.to_thread
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = sqlite3.connect(self.conn, check_same_thread=False)
             try:
                 ts = (
                     datetime.now(timezone.utc)
@@ -272,7 +365,7 @@ class DatabaseManager:
     async def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
         def _sync_fetch():
             # This function runs in a separate thread via asyncio.to_thread
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = sqlite3.connect(self.conn, check_same_thread=False)
             try:
                 cur = conn.cursor()
                 cur.row_factory = sqlite3.Row  # Return rows as dict-like objects
@@ -326,22 +419,68 @@ class UnifiedMemoryManager:
     def __init__(
         self,
         cache_size: int = 500,
-        segment_dir: Path | None = None,
-        db_path: Path | None = None,
-        template_dir: Path | None = None,
+        segment_dir: Optional[Path] = None,
+        db_path: Optional[Path] = None,
+        template_dir: Optional[Path] = None,
         compression_level: int = 6,
+        config: Optional[AppConfig] = None,
     ) -> None:
-        self.segment_dir: Path = segment_dir or (_memory_base_path / "segments")
-        self.segment_dir.mkdir(parents=True, exist_ok=True)
-        self.template_dir: Path = template_dir or (_memory_base_path / "templates")
-        self.db_manager = DatabaseManager(db_path=db_path)
-        self.cache: Dict[str, LRUCache] = {
-            seg: LRUCache(maxsize=cache_size) for seg in self.SEGMENTS
-        }
-        self.compression = compression_level
+        self.compression_level = compression_level
+        self._internal_lock = asyncio.Lock()
+
+        if config:
+            memory_base_path = config.paths.memory
+            # Ensure project_root is available for default_template_dir path construction
+            project_root_for_templates = config.paths.project_root if hasattr(config.paths, 'project_root') else Path('.') # Fallback if not on paths
+            default_template_dir = project_root_for_templates / "src/dreamos/memory/templates"
+        else:
+            # FIXME: AppConfig.load() fallback is problematic. Config should be explicitly passed.
+            logger.warning("UnifiedMemoryManager initialized without explicit AppConfig. Attempting fallback load.")
+            try:
+                fallback_config = AppConfig.load()
+                memory_base_path = fallback_config.paths.memory
+                project_root_for_templates = fallback_config.paths.project_root if hasattr(fallback_config.paths, 'project_root') else Path('.')
+                default_template_dir = project_root_for_templates / "src/dreamos/memory/templates"
+            except Exception as e:
+                logger.error(f"Failed to load fallback config for UnifiedMemoryManager paths: {e}. Using defaults.")
+                memory_base_path = Path("runtime/memory")
+                default_template_dir = Path("src/dreamos/memory/templates") # Potentially relative to CWD
+
+        try:
+            memory_base_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create memory base directory {memory_base_path}: {e}")
+
+        self.segment_dir = segment_dir or (memory_base_path / "segments")
+        # Ensure segment_dir exists (can be sync in __init__)
+        try:
+            self.segment_dir.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create segment directory {self.segment_dir}: {e}")
+            
+        db_path_resolved = db_path or (memory_base_path / "engagement_memory.db")
+        self.template_dir = template_dir or default_template_dir
+
+        self.db = DatabaseManager(db_path=db_path_resolved, config=config)
+        self._cache = {seg: LRUCache(maxsize=cache_size) for seg in self.SEGMENTS}
         self.env = Environment(loader=FileSystemLoader(self.template_dir))
-        self._internal_lock = asyncio.Lock()  # Use asyncio.Lock
-        self._load_segments()  # Make this async?
+        
+        # NOTE: _load_segments() is async and should not be called directly from sync __init__.
+        # Consider an async factory or an explicit async_init() method that awaits _load_segments().
+        # For now, segments will be loaded lazily by operations like get/set if cache is empty,
+        # or an explicit async_init() should be called by the user of this class.
+        # self._load_segments() # REMOVED: Cannot await async method in sync __init__
+        self._segments_loaded = False # Flag to indicate if initial load has occurred
+
+    def _segment_file(self, seg_name: str) -> Path:
+        """Helper to get the file path for a given memory segment."""
+        return self.segment_dir / f"{seg_name}_memory.json.zlib"
+
+    async def _ensure_segments_loaded(self):
+        """Ensures segments are loaded if not already."""
+        if not self._segments_loaded:
+            await self._load_segments()
+            self._segments_loaded = True
 
     async def _load_segments(self) -> None:
         # Needs to be async to use lock and async file ops
@@ -359,7 +498,7 @@ class UnifiedMemoryManager:
                         data = json.loads(
                             zlib.decompress(compressed_data).decode("utf-8")
                         )
-                        self.cache[seg].update(data)  # Populate cache
+                        self._cache[seg].update(data)  # Populate cache
                     else:
                         # Initialize segment if file doesn't exist
                         await self._save_segment(seg)  # Save empty segment
@@ -374,9 +513,9 @@ class UnifiedMemoryManager:
         async with self._internal_lock:
             try:
                 file_path = self._segment_file(seg)
-                data_to_save = dict(self.cache[seg])  # Get current cache state
+                data_to_save = dict(self._cache[seg])  # Get current cache state
                 encoded_data = json.dumps(data_to_save).encode("utf-8")
-                compressed_data = zlib.compress(encoded_data, self.compression)
+                compressed_data = zlib.compress(encoded_data, self.compression_level)
 
                 # Atomic write using temp file
                 temp_file_path = file_path.with_suffix(f".{os.getpid()}.tmp")
@@ -405,9 +544,11 @@ class UnifiedMemoryManager:
     ) -> None:
         if seg not in self.SEGMENTS:
             raise ValueError(f"Invalid segment: {seg}")
+        
+        await self._ensure_segments_loaded() # Ensure segments are loaded
 
         async with self._internal_lock:  # Lock for cache modification
-            self.cache[seg][key] = value
+            self._cache[seg][key] = value
             # Consider if save should happen immediately or be batched
             # Immediate save ensures persistence but can be slow.
             save_task = asyncio.create_task(self._save_segment(seg))
@@ -422,10 +563,12 @@ class UnifiedMemoryManager:
         if seg not in self.SEGMENTS:
             raise ValueError(f"Invalid segment: {seg}")
 
+        await self._ensure_segments_loaded() # Ensure segments are loaded
+
         # Cache check doesn't strictly need lock if LRUCache handles thread-safety
         # But locking ensures consistency if saves/loads modify cache structure.
         async with self._internal_lock:
-            value = self.cache[seg].get(key)
+            value = self._cache[seg].get(key)
 
         # Publish memory read event
         # self._publish_memory_event(EventType.MEMORY_READ, ...)
@@ -437,10 +580,12 @@ class UnifiedMemoryManager:
         if seg not in self.SEGMENTS:
             raise ValueError(f"Invalid segment: {seg}")
 
+        await self._ensure_segments_loaded() # Ensure segments are loaded
+
         deleted = False
         async with self._internal_lock:
-            if key in self.cache[seg]:
-                del self.cache[seg][key]
+            if key in self._cache[seg]:
+                del self._cache[seg][key]
                 deleted = True
                 # Schedule save after deletion
                 save_task = asyncio.create_task(self._save_segment(seg))
@@ -487,15 +632,15 @@ class UnifiedMemoryManager:
             conv.append(row)
             self.set(conv_key, conv, "interactions")
 
-        await self.db_manager.record_interaction(row)
+        await self.db.record_interaction(row)
 
     async def initialize_conversation(
         self, interaction_id: str, metadata: Dict[str, Any]
     ) -> None:
-        await self.db_manager.initialize_conversation(interaction_id, metadata)
+        await self.db.initialize_conversation(interaction_id, metadata)
 
     async def fetch_conversation(self, interaction_id: str) -> List[Dict[str, Any]]:
-        return await self.db_manager.fetch_conversation(interaction_id)
+        return await self.db.fetch_conversation(interaction_id)
 
     async def export_conversation_finetune(
         self, interaction_id: str, out_path: Path
@@ -504,25 +649,33 @@ class UnifiedMemoryManager:
         if not conv:
             return False
 
-        out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with out_path.open("w", encoding="utf-8") as fh:
-                for row in conv:
-                    fh.write(
-                        json.dumps(
-                            {
-                                "messages": [
-                                    {
-                                        "role": "user",
-                                        "content": f"Interaction on {row['timestamp']}",
-                                    },
-                                    {"role": "assistant", "content": row["response"]},
-                                ]
-                            }
+            # Ensure parent directory exists (async)
+            target_dir = out_path.parent
+            if not await asyncio.to_thread(target_dir.exists):
+                await asyncio.to_thread(target_dir.mkdir, parents=True, exist_ok=True)
+            
+            # Synchronous file writing part
+            def _sync_export():
+                with out_path.open("w", encoding="utf-8") as fh:
+                    for row in conv:
+                        fh.write(
+                            json.dumps(
+                                {
+                                    "messages": [
+                                        {
+                                            "role": "user",
+                                            "content": f"Interaction on {row['timestamp']}",
+                                        },
+                                        {"role": "assistant", "content": row["response"]},
+                                    ]
+                                }
+                            )
+                            + "\n"
                         )
-                        + "\n"
-                    )
-            return True
+                return True # Indicate success of write operation
+
+            return await asyncio.to_thread(_sync_export)
         except Exception as exc:
             logger.error("export %s failed (%s)", interaction_id, exc, exc_info=True)
             return False
@@ -543,6 +696,9 @@ class UnifiedMemoryManager:
     # ────────────────────────────────────────────────────────────────── #
     # Compaction methods
     # ────────────────────────────────────────────────────────────────── #
+    # FIXME: These compaction methods are synchronous and perform file I/O.
+    # If called from an async context where blocking is an issue,
+    # they need to be refactored to be async and use asyncio.to_thread for file operations.
     def _rewrite_memory_safely(self, segment_id: str, data: Any):
         """Writes data to the segment file atomically using a temporary file."""
         segment_path = self._segment_file(segment_id)
@@ -779,7 +935,7 @@ class UnifiedMemoryManager:
         # Ensure segments are saved before closing DB
         save_tasks = [self._save_segment(seg) for seg in self.SEGMENTS]
         await asyncio.gather(*save_tasks)
-        await self.db_manager.close()
+        await self.db.close()
 
     # Helper to publish memory events (needs AgentBus instance)
     # async def _publish_memory_event(self, event_type: EventType, key: str, seg: str, ...)

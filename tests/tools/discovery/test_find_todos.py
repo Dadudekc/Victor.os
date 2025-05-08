@@ -1,5 +1,7 @@
 import json
 from pathlib import Path
+from typing import Dict
+import pytest
 
 from dreamos.tools.discovery.find_todos import find_todos_in_file
 
@@ -132,3 +134,70 @@ def test_scan_directory(tmp_path: Path):
 
     assert found_todo
     assert found_fixme
+
+@pytest.mark.parametrize(
+    "file_contents, ignore_list, extensions, expected_count",
+    [
+        # Basic case: Find one TODO
+        ({"file1.py": "# TODO: Test this"}, [], [".py"], 1),
+        # No patterns found
+        ({"file1.py": "# Just a comment"}, [], [".py"], 0),
+        # File ignored by extension
+        ({"file1.txt": "# TODO: Ignore me"}, [], [".py"], 0),
+        # Directory ignored
+        ({"ignore_dir/file1.py": "# TODO: Ignore me"}, ["ignore_dir"], [".py"], 0),
+        # File ignored by name
+        ({"ignore_me.py": "# TODO: Ignore me"}, ["ignore_me.py"], [".py"], 0),
+        # Multiple files, mixed results
+        ({"file1.py": "# TODO: Find me", "file2.py": "# Just code", "sub/file3.py": "# FIXME: Find me too"}, [], [".py"], 2),
+        # Default ignore patterns (.venv)
+        ({".venv/lib/file.py": "# TODO: Should be ignored"}, [], [".py"], 0),
+        # Case-insensitive pattern matching
+        ({"file1.py": "# todo: lowercase"}, ["TODO"], [".py"], 1),
+        # Custom patterns
+        ({"file1.py": "# HACK: Nasty workaround"}, ["HACK"], [".py"], 1),
+    ]
+)
+def test_scan_directory(
+    tmp_path: Path,
+    file_contents: Dict[str, str],
+    ignore_list: list[str],
+    extensions: list[str],
+    expected_count: int,
+    patterns = ["TODO", "FIXME", "BUG", "HACK"] # Use combined patterns for testing
+):
+    """Tests scan_directory with various file structures and ignore rules."""
+    # Create directory structure
+    for rel_path, content in file_contents.items():
+        full_path = tmp_path / rel_path
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        full_path.write_text(content, encoding="utf-8")
+
+    # Create a dummy log file path within tmp_path
+    log_file = tmp_path / "test_feedback.jsonl"
+
+    # Run the scan
+    scan_directory(tmp_path, patterns, log_file, ignore_list, extensions)
+
+    # Check the log file content
+    found_count = 0
+    if log_file.exists():
+        with open(log_file, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    entry = json.loads(line)
+                    # Basic check that it looks like our finding structure
+                    assert "type" in entry
+                    assert "data" in entry
+                    assert "pattern" in entry["data"]
+                    found_count += 1
+                except json.JSONDecodeError:
+                    pytest.fail(f"Log file contains invalid JSON: {line.strip()}")
+                except AssertionError as e:
+                    pytest.fail(f"Log entry format unexpected: {e} - Entry: {line.strip()}")
+
+    assert found_count == expected_count
+
+
+if __name__ == "__main__":
+    pytest.main()

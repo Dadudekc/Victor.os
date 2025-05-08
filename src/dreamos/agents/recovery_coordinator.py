@@ -1,3 +1,10 @@
+"""
+Agent: Recovery Coordinator
+
+Monitors tasks managed by a PersistentTaskMemoryAPI, identifies failed or stuck (timed-out)
+tasks, and attempts recovery actions such as retrying tasks or marking them as
+permanently failed. Uses an AgentBus to re-dispatch tasks for retry.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -60,6 +67,10 @@ class RecoveryCoordinatorAgent(BaseAgent):
             poll_interval_seconds: How often to check for failed/running tasks.
             task_timeout_seconds: Maximum allowed runtime for a task before being marked as failed.
         """  # noqa: E501
+        # FIXME: BaseAgent.__init__ call here only passes agent_id and agent_bus.
+        #        Other agents (e.g., Agent9, Agent2) also pass `config` and some `pbm`.
+        #        Ensure this aligns with the intended BaseAgent constructor or that BaseAgent
+        #        handles optional config/pbm or uses **kwargs appropriately.
         super().__init__(agent_id, agent_bus)
         self.task_memory = task_memory
         self.max_retries = max_retries
@@ -236,6 +247,10 @@ class RecoveryCoordinatorAgent(BaseAgent):
         )
 
         # 1. Update task state in memory
+        # FIXME: `update_task_status` is called but not defined or imported in this file.
+        #        This needs to be resolved. It might be a method of BaseAgent (self.update_task_status),
+        #        PersistentTaskMemoryAPI (self.task_memory.update_task_status), or a utility.
+        #        For now, assuming it was intended to be a local helper or part of task_memory.
         task = update_task_status(  # noqa: F821
             task,
             TaskStatus.PENDING,
@@ -248,74 +263,85 @@ class RecoveryCoordinatorAgent(BaseAgent):
             logger.error(
                 f"Failed to update task {task.task_id} status to PENDING for retry."
             )
+            # If update fails, we shouldn't attempt to dispatch
+            # Log the event for failed reschedule due to memory update issue
             log_agent_event(
                 agent_id=self.agent_id,
                 action="reschedule_failed",
                 target=task.task_id,
                 outcome="failure",
-                details={"reason": "Task memory update failed"},
+                details={"reason": "Task memory update failed for retry state"},
                 escalation=True,
             )
-            return
-
-        # 2. Publish a standard TASK_COMMAND event
+            return 
+        
+        # Re-dispatch the task for execution
         try:
-            # Create the BaseEvent for the command
+            # FIXME: Ensure TaskMessage.model_dump() is correct for Pydantic version.
+            event_data = task.model_dump() 
+            # Ensure the target_agent_id is set to the original agent for re-dispatch
+            event_data['target_agent_id'] = original_agent_id
+            event_data['source_agent_id'] = self.agent_id # Recovery agent is re-issuing
+
             command_event = BaseEvent(
                 event_type=EventType.TASK_COMMAND,
-                source_id=self.agent_id,  # The recovery agent is issuing the command
-                data=task.to_dict(),  # Send the updated task data
-                # correlation_id=task.correlation_id # Propagate correlation ID if needed/applicable  # noqa: E501
+                source_id=self.agent_id, 
+                data=event_data,
+                correlation_id=task.correlation_id # Propagate original correlation_id if available
             )
-            # Dispatch the event using the agent bus
             await self.agent_bus.dispatch_event(command_event)
-
             logger.info(
-                f"Published event {EventType.TASK_COMMAND.name} for task retry {task.task_id} (Target: {original_agent_id})"  # noqa: E501
+                f"Published {EventType.TASK_COMMAND.name} event for task retry {task.task_id} (Target: {original_agent_id})"
             )
             log_agent_event(
                 agent_id=self.agent_id,
-                action="reschedule_success",
+                action="reschedule_dispatch_success",
                 target=task.task_id,
                 outcome="success",
                 details={
                     "retry_count": task.retry_count,
                     "published_event": EventType.TASK_COMMAND.name,
+                    "target_agent": original_agent_id
                 },
             )
         except Exception as e:
             logger.error(
-                f"Failed to publish retry event {EventType.TASK_COMMAND.name} for task {task.task_id}: {e}",  # noqa: E501
+                f"Failed to publish retry event {EventType.TASK_COMMAND.name} for task {task.task_id}: {e}",
                 exc_info=True,
             )
             log_agent_event(
                 agent_id=self.agent_id,
-                action="reschedule_failed",
+                action="reschedule_dispatch_failed",
                 target=task.task_id,
                 outcome="failure",
                 details={"reason": f"dispatch_event error: {e}"},
-                escalation=True,  # Updated reason
+                escalation=True,
             )
+            # Task is updated in memory but dispatch failed. It might be picked up by next poll.
 
     async def _mark_permanently_failed(
         self, task: TaskMessage, reason: Optional[str] = None
     ):
-        """Updates task status to PERMANENTLY_FAILED in memory and publishes event."""
+        """Updates task status to PERMANENTLY_FAILED in memory, logs, and publishes event."""
         # Use update_task_status utility
         failure_reason = f"Permanent failure after {task.retry_count} retries. " + (
             reason or task.error or "No specific reason provided."
         )
+        # FIXME: `update_task_status` is called but not defined or imported in this file.
         task = update_task_status(  # noqa: F821
             task, TaskStatus.PERMANENTLY_FAILED, error=failure_reason
         )
 
         # Log the event
+        # FIXME: Verify TaskMessage.model_dump() or .to_dict() based on Pydantic version.
+        log_details = task.model_dump() if hasattr(task, 'model_dump') else task.to_dict()
+        log_details["reason"] = reason # Ensure explicit reason is part of logged details
         log_agent_event(
             agent_id=self.agent_id,
             action="task_permanently_failed",
             target=task.task_id,
             outcome="failure",
-            details={**task.to_dict(), "reason": reason},
+            details=log_details,
             escalation=True,
         )
 
@@ -341,7 +367,7 @@ class RecoveryCoordinatorAgent(BaseAgent):
 
     # --- New Handler for Timed Out Tasks ---
     async def _handle_timed_out_task(self, task: TaskMessage):
-        """Marks a task that ran too long as FAILED (or TIMED_OUT)."""
+        """Marks a task that ran too long as FAILED, logs, and publishes failure event."""
         timeout_reason = f"Task exceeded timeout threshold of {self.task_timeout}."
 
         # Log the timeout event
@@ -374,12 +400,16 @@ class RecoveryCoordinatorAgent(BaseAgent):
             )
         else:
             logger.info(f"Timed-out task {task.task_id} marked as FAILED.")
-            # Publish the failure event via AgentBus (using standard task update mechanism)  # noqa: E501
-            # This ensures other systems see the task as failed and it can be potentially retried  # noqa: E501
+            # Publish the failure event via AgentBus (using standard task update mechanism)
+            # This ensures other systems see the task as failed and it can be potentially retried
+            # FIXME: Consider using self.publish_task_failed (from BaseAgent) for consistency
+            #        if its functionality matches the needs here.
+            # FIXME: Verify TaskMessage.model_dump() or .to_dict() based on Pydantic version.
+            event_data = task.model_dump() if hasattr(task, 'model_dump') else task.to_dict()
             event = BaseEvent(
                 event_type=EventType.TASK_FAILED,  # Use standard TASK_FAILED event
                 source_id=self.agent_id,
-                data=task.to_dict(),
+                data=event_data,
             )
             try:
                 await self.agent_bus.dispatch_event(event)

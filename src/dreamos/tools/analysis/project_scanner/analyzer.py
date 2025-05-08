@@ -1,9 +1,17 @@
 # Language analysis logic
 
+import asyncio
 import ast
 import logging
 from pathlib import Path
 from typing import Dict, Optional
+
+# FIXME: This entire LanguageAnalyzer class seems to be superseded by an inline
+# definition of LanguageAnalyzer within project_scanner.py (see F811 noqa there).
+# The version in project_scanner.py attempts to build tree-sitter grammars from source,
+# while this version expects pre-compiled .so files at hardcoded paths.
+# This conflict needs to be resolved. The following review assumes this file might
+# still be in use or needs to be understood for reconciliation.
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +22,7 @@ except ImportError:
     Language = None
     Parser = None
     logger.warning(
-        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
+        "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled (analyzer.py)."  # noqa: E501
     )
 
 
@@ -23,40 +31,53 @@ class LanguageAnalyzer:
 
     def __init__(self):
         """Initialize language analyzers and parsers."""
-        self.rust_parser = self._init_tree_sitter_language("rust")
-        self.js_parser = self._init_tree_sitter_language("javascript")
+        # FIXME: __init__ is synchronous. If _init_tree_sitter_language becomes fully async
+        # (e.g., for async Language() loading), this needs an async factory or explicit async_init call pattern.
+        self.rust_parser = self._init_tree_sitter_language_sync("rust")
+        self.js_parser = self._init_tree_sitter_language_sync("javascript")
 
-    def _init_tree_sitter_language(self, lang_name: str) -> Optional[Parser]:
+    # Renamed to _sync to indicate it remains mostly synchronous due to __init__ constraints
+    # and hardcoded paths for .so files which are problematic anyway.
+    def _init_tree_sitter_language_sync(self, lang_name: str) -> Optional[Parser]:
         """
         Initializes and returns a Parser for the given language name (rust, javascript).
         Adjust grammar_paths to point at your compiled .so files if using tree-sitter.
+        NOTE: Path().exists() is synchronous. For a truly async init, this and Language() load
+        would need to be in an async method using asyncio.to_thread.
         """
         if not Language or not Parser:
             logger.warning(
-                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
+                "⚠️ tree-sitter not installed (analyzer.py). Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
             )
             return None
 
+        # FIXME: Hardcoded paths for pre-compiled grammars are not portable or robust.
         grammar_paths = {
-            "rust": "path/to/tree-sitter-rust.so",  # <-- Adjust as needed
-            "javascript": "path/to/tree-sitter-javascript.so",  # <-- Adjust as needed
+            "rust": "path/to/tree-sitter-rust.so",
+            "javascript": "path/to/tree-sitter-javascript.so",
         }
         if lang_name not in grammar_paths:
-            logger.warning(f"⚠️ No grammar path for {lang_name}. Skipping.")
+            logger.warning(f"⚠️ No grammar path for {lang_name} in analyzer.py. Skipping.")
             return None
 
-        grammar_path = grammar_paths[lang_name]
-        if not Path(grammar_path).exists():
-            logger.warning(f"⚠️ {lang_name} grammar not found at {grammar_path}")
+        grammar_path_str = grammar_paths[lang_name]
+        grammar_p = Path(grammar_path_str)
+        
+        # Illustrative async check, though the overall method remains problematic if called from sync __init__
+        # if not await asyncio.to_thread(grammar_p.exists):
+        # For now, keeping it sync to match the __init__ context, with FIXMEs.
+        if not grammar_p.exists(): # Synchronous check
+            logger.warning(f"⚠️ {lang_name} grammar not found at {grammar_path_str} (analyzer.py)")
             return None
 
         try:
-            lang_lib = Language(grammar_path, lang_name)
+            # Language() itself might do I/O and block if used in async context without to_thread
+            lang_lib = Language(grammar_path_str, lang_name)
             parser = Parser()
             parser.set_language(lang_lib)
             return parser
         except Exception as e:
-            logger.error(f"⚠️ Failed to initialize tree-sitter {lang_name} parser: {e}")
+            logger.error(f"⚠️ Failed to initialize tree-sitter {lang_name} parser (analyzer.py): {e}")
             return None
 
     def analyze_file(self, file_path: Path, source_code: str) -> Dict:

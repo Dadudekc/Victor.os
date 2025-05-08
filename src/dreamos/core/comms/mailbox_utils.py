@@ -24,6 +24,9 @@ from ..events.base_event import BaseDreamEvent
 util_logger = logging.getLogger(__name__)
 
 # --- Type Definitions ---
+# TODO (Masterpiece Review - Captain-Agent-8): Consider defining mailbox message
+#      structure using Pydantic models for automatic validation and type safety,
+#      potentially replacing `validate_mailbox_message_schema`.
 MailboxMessageType = Literal[
     "TASK_COMMAND",
     "TASK_UPDATE",
@@ -157,11 +160,17 @@ async def write_mailbox_message(
     lock_timeout: int = 10,
 ) -> Path:
     """Writes a mailbox message dictionary to a JSON file in the recipient's inbox."""
+    # TODO (Masterpiece Review - Captain-Agent-8): Consider replacing asyncio.to_thread
+    #      with a dedicated async I/O library (e.g., aiofiles) for potentially
+    #      better performance, especially for `write_sync` and `read_sync`.
     if not validate_mailbox_message_schema(message_data):
         raise ValueError("Message data failed schema validation.")
 
     inbox_path = Path(recipient_inbox_path)
     lock_path = inbox_path / ".inbox.lock"
+    # TODO (Masterpiece Review - Captain-Agent-8): The inbox-wide lock prevents concurrent
+    #      writes to the *same* inbox. Evaluate if this is a bottleneck; if so,
+    #      explore alternative locking (e.g., temp file locking) or queueing.
 
     try:
         await asyncio.to_thread(inbox_path.mkdir, parents=True, exist_ok=True)
@@ -245,7 +254,9 @@ async def read_mailbox_message(
         util_logger.error(
             f"Failed to decode JSON from message file: {path}", exc_info=True
         )
-        return None
+        return None # TODO (Masterpiece Review - Captain-Agent-8): Consider raising specific errors
+                    #      (e.g., MailboxReadError, MailboxFormatError) instead of returning None
+                    #      for consistency with write_mailbox_message.
     except Timeout:
         util_logger.error(
             f"Could not acquire lock for message file {path} within {lock_timeout}s"
@@ -290,10 +301,15 @@ async def list_mailbox_messages(
 
 def get_agent_mailbox_path(agent_id: str, config: AppConfig) -> Path:
     """Constructs the standard inbox path for a given agent ID based on config."""
-    base_mailbox_dir = config.get("system.paths.mailboxes")
+    if not config.paths or not config.paths.agent_comms:
+        raise ConfigurationError(
+            "Agent communications base path (config.paths.agent_comms) not found in AppConfig."
+        )
+    base_mailbox_dir = config.paths.agent_comms
+
     if not base_mailbox_dir:
         raise ConfigurationError(
-            "Base mailbox directory ('system.paths.mailboxes') not found in configuration."  # noqa: E501
+            "Base mailbox directory (config.paths.agent_comms) resolved to None or empty."  # noqa: E501
         )
     safe_agent_id = agent_id.replace(" ", "_").replace("/", "-").replace("\\", "-")
     if safe_agent_id != agent_id:
@@ -306,10 +322,16 @@ def get_agent_mailbox_path(agent_id: str, config: AppConfig) -> Path:
 
 def validate_agent_mailbox_path(path: Path, config: AppConfig) -> bool:
     """Checks if a given path is a valid agent mailbox inbox path according to config."""  # noqa: E501
-    base_mailbox_dir = config.get("system.paths.mailboxes")
+    if not config.paths or not config.paths.agent_comms:
+        util_logger.error(
+            "Cannot validate mailbox path: Agent communications base path (config.paths.agent_comms) not configured."
+        )
+        return False
+    base_mailbox_dir = config.paths.agent_comms
+
     if not base_mailbox_dir:
         util_logger.error(
-            "Cannot validate mailbox path: Base directory not configured."
+            "Cannot validate mailbox path: Base directory (config.paths.agent_comms) resolved to None or empty."
         )
         return False
     base_path = Path(base_mailbox_dir).resolve()
@@ -323,6 +345,58 @@ def validate_agent_mailbox_path(path: Path, config: AppConfig) -> bool:
     except ValueError:
         pass
     return False
+
+
+async def delete_message(filepath: Union[str, Path], lock_timeout: int = 5) -> bool:
+    """Deletes a mailbox message file and its associated lock file if it exists."""
+    message_path = Path(filepath)
+    lock_file_path = message_path.with_suffix(message_path.suffix + ".lock")
+    deleted_message = False
+    deleted_lock = False
+
+    # Attempt to acquire lock for the main message file to ensure it's not being read
+    # This is a brief lock just for the delete operation itself.
+    # If read_mailbox_message is robust, its own lock might make this redundant,
+    # but it adds a layer of safety before unlinking.
+    message_access_lock = AsyncFileLock(lock_file_path) # Use the message's own lock path
+
+    try:
+        async with message_access_lock.acquire(timeout=lock_timeout):
+            util_logger.debug(f"Acquired lock for deleting message file {message_path}")
+            if await asyncio.to_thread(message_path.exists):
+                await asyncio.to_thread(message_path.unlink)
+                util_logger.info(f"Deleted message file: {message_path}")
+                deleted_message = True
+            else:
+                util_logger.warning(f"Message file not found for deletion: {message_path}")
+                deleted_message = True # Considered success if file already gone
+
+    except Timeout:
+        util_logger.error(f"Timeout acquiring lock to delete message {message_path}. File not deleted.")
+        return False # Failed to acquire lock, do not proceed
+    except Exception as e:
+        util_logger.error(f"Error deleting message file {message_path}: {e}", exc_info=True)
+        # deleted_message remains False
+    finally:
+        if message_access_lock.is_locked:
+            await message_access_lock.release()
+            util_logger.debug(f"Released lock for deleting message file {message_path}")
+
+    # Attempt to delete the .lock file separately (it might not always exist)
+    # No lock needed to delete the lock file itself, but check existence.
+    try:
+        if await asyncio.to_thread(lock_file_path.exists):
+            await asyncio.to_thread(lock_file_path.unlink)
+            util_logger.debug(f"Deleted lock file: {lock_file_path}")
+            deleted_lock = True
+        else:
+            # If lock file didn't exist, that's fine for the lock deletion part.
+            deleted_lock = True 
+    except Exception as e:
+        util_logger.warning(f"Error deleting lock file {lock_file_path}: {e}", exc_info=True)
+        # deleted_lock remains False, but primary deletion might have succeeded.
+
+    return deleted_message # Success primarily depends on deleting the message itself
 
 
 # ... existing code ... (Keep other utils like format_agent_report, publish_supervisor_alert)  # noqa: E501

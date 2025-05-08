@@ -1,0 +1,14 @@
+{
+  "validation_run_id": "PREFLIGHT_FAIL-1746478198",
+  "timestamp": "2025-05-05T20:49:58Z",
+  "mode": "INTEGRATION",
+  "status": "BLOCKED",
+  "summary": "Validation aborted due to unavailable essential modules.",
+  "unavailable_modules": [
+    "module1",
+    "module2",
+    "module3",
+    "module5",
+    "module7"
+  ]
+}

@@ -44,6 +44,58 @@ def mock_pbm():
         return pbm, mock_load, mock_dump, mock_filelock_class, mock_open, mock_replace
 
 
+@pytest.fixture
+def mock_multi_board_pbm(tmp_path):
+    """Fixture for PBM interacting with multiple mocked board files."""
+    boards_dir = tmp_path / "project_boards_multi"
+    boards_dir.mkdir()
+
+    mock_board_data = {
+        "future_tasks.jsonl": [],
+        "working_tasks.jsonl": [],
+        "completed_tasks.jsonl": []
+    }
+
+    # Create initial files
+    (boards_dir / "future_tasks.jsonl").write_text("[]", encoding="utf-8")
+    (boards_dir / "working_tasks.jsonl").write_text("[]", encoding="utf-8")
+    (boards_dir / "completed_tasks.jsonl").write_text("[]", encoding="utf-8")
+
+    # Mock _load_board to return specific data based on filename
+    def mock_load_board_func(self, filename):
+        # Nonlocal needed if we want to modify the outer dict directly
+        # but returning a copy based on filename is cleaner
+        if filename in mock_board_data:
+            # Return a copy to avoid side effects between tests if data is modified
+            return mock_board_data[filename][:]
+        return [] # Return empty list if file unknown
+
+    # Mock _atomic_write to update our in-memory dict
+    captured_writes = {}
+    def mock_atomic_write_func(self, filename, data):
+        captured_writes[filename] = data # Store what *would* be written
+        # Update the in-memory store too for subsequent loads in the same test
+        if filename in mock_board_data:
+            mock_board_data[filename] = data
+        print(f"Mock write to {filename}: {len(data)} tasks") # Debugging
+
+
+    with patch.object(ProjectBoardManager, "_load_board", mock_load_board_func), \
+         patch.object(ProjectBoardManager, "_atomic_write", mock_atomic_write_func), \
+         patch("dreamos.core.coordination.project_board_manager.FileLock") as mock_filelock_class:
+
+        mock_lock_instance = mock_filelock_class.return_value
+        mock_lock_instance.__enter__.return_value = mock_lock_instance
+        mock_lock_instance.__exit__.return_value = None
+
+        # Instantiate PBM - board_file_path might not be used directly now
+        pbm = ProjectBoardManager(boards_base_dir=boards_dir)
+        # Attach the mocked data and capture dict for assertions
+        pbm._mock_board_data = mock_board_data
+        pbm._captured_writes = captured_writes
+        yield pbm # Provide the configured PBM instance
+
+
 class TestProjectBoardManager:
     def test_initialization(self, mock_pbm):
         """Test that the ProjectBoardManager initializes correctly,
@@ -294,3 +346,49 @@ class TestProjectBoardManager:
 
     # TODO: Test error handling (ValidationError, Locking errors)
     # TODO: Test edge cases (empty board)
+
+    def test_claim_future_task_success_multi(self, mock_multi_board_pbm):
+        """Test claiming a task successfully moves it from future to working (multi-board mock)."""
+        pbm = mock_multi_board_pbm
+        task_id = "claim-multi-1"
+        agent_id = "MultiAgent"
+
+        # Setup: Put task in the mocked future board data
+        pbm._mock_board_data["future_tasks.jsonl"] = [{"task_id": task_id, "status": "PENDING"}]
+        pbm._mock_board_data["working_tasks.jsonl"] = []
+
+        # Act
+        result = pbm.claim_future_task(task_id, agent_id)
+
+        # Assert
+        assert result is True
+
+        # Check captured writes (what would have been saved)
+        assert "future_tasks.jsonl" in pbm._captured_writes
+        assert "working_tasks.jsonl" in pbm._captured_writes
+        assert len(pbm._captured_writes["future_tasks.jsonl"]) == 0
+        assert len(pbm._captured_writes["working_tasks.jsonl"]) == 1
+        working_task = pbm._captured_writes["working_tasks.jsonl"][0]
+        assert working_task["task_id"] == task_id
+        assert working_task["status"] == "WORKING"
+        assert working_task["assigned_agent"] == agent_id
+
+    def test_claim_future_task_not_found_multi(self, mock_multi_board_pbm):
+        """Test claiming a non-existent task fails (multi-board mock)."""
+        pbm = mock_multi_board_pbm
+        task_id = "claim-multi-missing"
+        agent_id = "MultiAgent"
+
+        # Setup: Ensure boards are empty
+        pbm._mock_board_data["future_tasks.jsonl"] = []
+        pbm._mock_board_data["working_tasks.jsonl"] = []
+        pbm._captured_writes.clear() # Clear previous writes
+
+        # Act & Assert
+        # Expect False return or TaskNotFoundError depending on implementation
+        # Assuming False based on previous tests
+        result = pbm.claim_future_task(task_id, agent_id)
+        assert result is False
+        # Assert no writes occurred
+        assert "future_tasks.jsonl" not in pbm._captured_writes
+        assert "working_tasks.jsonl" not in pbm._captured_writes

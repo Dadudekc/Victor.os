@@ -10,7 +10,19 @@ from dreamos.rendering.template_engine import TemplateEngine
 def find_project_root():
     # This function should be implemented to find the project root
     # For now, we'll use a hardcoded path
-    return Path("/path/to/your/project")
+    # return Path("/path/to/your/project") # Original placeholder
+    # Attempt to find the project root by looking for a .git folder or pyproject.toml
+    current_path = Path(__file__).resolve()
+    while current_path != current_path.parent:
+        if (current_path / ".git").exists() or (current_path / "pyproject.toml").exists():
+            return current_path
+        current_path = current_path.parent
+    # Fallback if no marker found - this might indicate script is not within project
+    # Or raise an error, or use AppConfig if available
+    # For now, return current_path.parent as a last resort, though less reliable.
+    # A better fallback would be to require --project-root if auto-detection fails.
+    print("Warning: Could not reliably auto-detect project root. Using script parent directory.", file=sys.stderr)
+    return Path(__file__).resolve().parent # Fallback, consider making --project-root mandatory if this is hit
 
 
 def main():

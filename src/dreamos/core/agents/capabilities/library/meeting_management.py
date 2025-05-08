@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, TypedDict
 from uuid import uuid4
+from pydantic import BaseModel, ValidationError
+from filelock import FileLock, Timeout
 
 # Import schemas
 from dreamos.core.comms.meeting_schemas import (
@@ -28,7 +30,11 @@ from dreamos.core.coordination.event_payloads import (
     NewMessageInMeetingPayload,
 )
 from dreamos.core.coordination.event_types import EventType
-from filelock import FileLock, Timeout
+
+# --- BEGIN EDIT: Import Mailbox Utils (Conceptual) ---
+# Assuming mailbox utils exist at this path
+from dreamos.core.comms.mailbox_utils import create_and_send_message # Assumed function
+# --- END EDIT: Import Mailbox Utils --- 
 
 logger = logging.getLogger(__name__)
 
@@ -105,10 +111,62 @@ class MeetingVoteOutput(TypedDict):
     error: Optional[str]
 
 
+# --- BEGIN EDIT: Add UpdateState Schemas ---
+class MeetingUpdateStateInput(TypedDict):
+    meeting_id: str
+    new_state: Literal["open", "discussion", "voting", "closed", "archived"]
+    reason: Optional[str]
+
+class MeetingUpdateStateOutput(TypedDict):
+    success: bool
+    old_state: Optional[str]
+    new_state: Optional[str]
+    error: Optional[str]
+# --- END EDIT: Add UpdateState Schemas ---
+
+# --- BEGIN EDIT: Add Discover Schemas ---
+class MeetingDiscoverInput(TypedDict, total=False):
+    # Optional filters
+    state: Optional[Literal["open", "discussion", "voting", "closed", "archived"]]
+    creator_agent_id: Optional[str]
+    # Could add participant filter later if needed
+
+class MeetingDiscoverOutput(TypedDict):
+    meetings: List[Dict[str, Any]] # List of meeting manifests
+    error: Optional[str]
+# --- END EDIT: Add Discover Schemas ---
+
 # Add other input/output schemas for other capabilities later...
 # class MeetingPostMessageInput(TypedDict): ...
 # class MeetingReadMessagesInput(TypedDict): ...
 # etc.
+
+# --- Pydantic Models for Meeting Structure ---
+
+class MeetingParticipant(BaseModel):
+    agent_id: str
+    role: str # e.g., 'initiator', 'participant', 'observer'
+
+class MeetingAgendaItem(BaseModel):
+    topic: str
+    proposer: str # agent_id
+    notes: Optional[str] = None
+
+class MeetingLogEntry(BaseModel):
+    timestamp: str
+    agent_id: str
+    message: str
+
+class MeetingSchema(BaseModel):
+    meeting_id: str
+    topic: str
+    created_at: str
+    status: str # e.g., 'scheduled', 'active', 'concluded', 'cancelled'
+    initiator: str # agent_id
+    participants: List[MeetingParticipant]
+    agenda: List[MeetingAgendaItem]
+    log: List[MeetingLogEntry]
+    summary: Optional[str] = None
 
 # --- Capability Implementations --- #
 
@@ -208,8 +266,47 @@ def meeting_create_capability(
             )
             # Continue with meeting creation, but log the dispatch failure
 
-        # TODO: Send invitations to initial_participants via agent mailboxes
-        # Requires mailbox access/functionality
+        # --- BEGIN EDIT: Send Mailbox Invitations --- #
+        logger.info(f"Sending invitations to {len(initial_participants)} participants...")
+        invitation_subject = f"Meeting Invitation: {manifest.topic}"
+        invitation_body = {
+            "meeting_id": meeting_id,
+            "topic": manifest.topic,
+            "goal": manifest.goal,
+            "creator": agent_id,
+            "message": f"You are invited to join meeting {meeting_id} on topic: {manifest.topic}. Use capability meeting.join."
+        }
+        invitation_type = "MEETING_INVITATION" # Standardize this type
+
+        successful_invites = 0
+        failed_invites = []
+        for participant_id in initial_participants:
+             if participant_id == agent_id: # Don't invite self
+                  continue
+             try:
+                 # Use the assumed mailbox utility function
+                 send_success = create_and_send_message(
+                     recipient_agent_id=participant_id,
+                     sender_agent_id=agent_id,
+                     subject=invitation_subject,
+                     body=invitation_body,
+                     msg_type=invitation_type,
+                     config=config # Assuming function needs config for paths
+                 )
+                 if send_success:
+                     successful_invites += 1
+                 else:
+                     failed_invites.append(participant_id)
+                     logger.warning(f"Failed to send invitation message to {participant_id} for meeting {meeting_id}. Function returned False.")
+             except Exception as mail_e:
+                 failed_invites.append(participant_id)
+                 logger.error(f"Error sending invitation message to {participant_id} for meeting {meeting_id}: {mail_e}", exc_info=True)
+        
+        logger.info(f"Sent {successful_invites} invitations successfully.")
+        if failed_invites:
+            logger.error(f"Failed to send invitations to {len(failed_invites)} agents: {', '.join(failed_invites)}")
+            # Note: Meeting is still created, but some agents weren't notified via mailbox.
+        # --- END EDIT: Send Mailbox Invitations --- #
 
         return {"meeting_id": meeting_id, "error": None}
 
@@ -706,6 +803,179 @@ def meeting_vote_capability(
         )
         return {"message_id": None, "error": f"Unexpected error during voting: {e}"}
 
+
+# --- BEGIN EDIT: Add update_state Capability --- #
+def meeting_update_state_capability(
+    input_data: MeetingUpdateStateInput,
+    agent_id: str, # Agent initiating the state change
+    config: AppConfig,
+    agent_bus: AgentBus,
+) -> MeetingUpdateStateOutput:
+    """Updates the state of a meeting manifest and logs the change."""
+    meeting_id = input_data.get("meeting_id")
+    new_state = input_data.get("new_state")
+    reason = input_data.get("reason")
+
+    if not meeting_id or not new_state:
+        return {
+            "success": False,
+            "old_state": None,
+            "new_state": None,
+            "error": "Missing meeting_id or new_state."
+        }
+
+    try:
+        meetings_base_dir = Path(config.paths.agent_comms) / "meetings"
+        meeting_dir = meetings_base_dir / meeting_id
+        manifest_path = meeting_dir / "manifest.json"
+        lock_path = manifest_path.with_suffix(".lock") # Lock file next to manifest
+
+        if not manifest_path.is_file():
+            return {
+                "success": False,
+                "old_state": None,
+                "new_state": None,
+                "error": f"Meeting manifest not found: {manifest_path}"
+            }
+
+        old_state = None
+        lock = FileLock(lock_path, timeout=5) # 5 second timeout
+
+        with lock:
+            # Read current manifest
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest_data = json.load(f)
+                old_state = manifest_data.get("current_state")
+
+            if old_state == new_state:
+                 logger.warning(f"Meeting {meeting_id} already in state '{new_state}'. No change made.")
+                 return {"success": True, "old_state": old_state, "new_state": new_state, "error": None}
+
+            # Update manifest data
+            manifest_data["current_state"] = new_state
+            manifest_data["last_updated_utc"] = datetime.now(timezone.utc).isoformat()
+
+            # Validate with Pydantic before writing (optional but recommended)
+            try:
+                MeetingManifest(**manifest_data)
+            except Exception as pydantic_e:
+                 logger.error(f"Updated manifest data failed validation for {meeting_id}: {pydantic_e}")
+                 return {
+                     "success": False,
+                     "old_state": old_state,
+                     "new_state": None,
+                     "error": f"Internal error: Updated manifest data invalid: {pydantic_e}"
+                 }
+
+            # Write updated manifest
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                json.dump(manifest_data, f, indent=2)
+
+        logger.info(f"Updated meeting {meeting_id} state from '{old_state}' to '{new_state}'.")
+
+        # Post a state change message
+        state_change_msg = MeetingStateChange(
+            meeting_id=meeting_id,
+            agent_id=agent_id,
+            old_state=old_state or "unknown",
+            new_state=new_state,
+            reason=reason
+        )
+        post_input = {
+            "meeting_id": meeting_id,
+            "message_type": "state_change",
+            "message_data": state_change_msg.model_dump(mode="json")
+        }
+        post_result = meeting_post_message_capability(post_input, agent_id, config, agent_bus)
+        if post_result.get("error"):
+            logger.error(f"Failed to post state change message for meeting {meeting_id}: {post_result['error']}")
+            # Continue even if message posting fails, but log it
+
+        # Dispatch MEETING_STATE_CHANGED event (Define payload if needed)
+        try:
+             # Example payload - adjust as needed
+             payload_dict = {
+                 "meeting_id": meeting_id,
+                 "changer_agent_id": agent_id,
+                 "old_state": old_state,
+                 "new_state": new_state,
+                 "reason": reason
+             }
+             event = BaseEvent(
+                 event_type=EventType.MEETING_STATE_CHANGED, # Assumes this exists
+                 source_id=agent_id,
+                 data=payload_dict,
+             )
+             asyncio.run(agent_bus.dispatch_event(event))
+             logger.info(f"Dispatched MEETING_STATE_CHANGED event for meeting {meeting_id}.")
+        except AttributeError:
+            logger.warning("EventType.MEETING_STATE_CHANGED not defined?")
+        except Exception as bus_e:
+             logger.error(f"Failed to dispatch MEETING_STATE_CHANGED event: {bus_e}", exc_info=True)
+
+        return {"success": True, "old_state": old_state, "new_state": new_state, "error": None}
+
+    except Timeout:
+        logger.error(f"Timeout acquiring lock for meeting manifest {manifest_path}")
+        return {"success": False, "old_state": None, "new_state": None, "error": "Failed to acquire lock."}
+    except Exception as e:
+        logger.error(f"Error updating meeting state for {meeting_id}: {e}", exc_info=True)
+        return {"success": False, "old_state": None, "new_state": None, "error": f"Error updating state: {e}"}
+# --- END EDIT: Add update_state Capability --- #
+
+# --- BEGIN EDIT: Add discover Capability --- #
+def meeting_discover_capability(
+    input_data: MeetingDiscoverInput,
+    # agent_id: str, # Requesting agent - not needed for discovery
+    config: AppConfig,
+) -> MeetingDiscoverOutput:
+    """Discovers meetings by scanning the meetings directory and reading manifests."""
+    discovered_meetings = []
+    filter_state = input_data.get("state")
+    filter_creator = input_data.get("creator_agent_id")
+
+    try:
+        meetings_base_dir = Path(config.paths.agent_comms) / "meetings"
+        if not meetings_base_dir.is_dir():
+            logger.warning(f"Meetings base directory not found: {meetings_base_dir}")
+            return {"meetings": [], "error": "Meetings directory not found."}
+
+        logger.info(f"Scanning for meetings in {meetings_base_dir}...")
+        for item in meetings_base_dir.iterdir():
+            if item.is_dir():
+                meeting_id = item.name
+                manifest_path = item / "manifest.json"
+                if manifest_path.is_file():
+                    try:
+                        with open(manifest_path, "r", encoding="utf-8") as f:
+                            manifest_data = json.load(f)
+                        
+                        # Apply filters
+                        if filter_state and manifest_data.get("current_state") != filter_state:
+                            continue
+                        if filter_creator and manifest_data.get("creator_agent_id") != filter_creator:
+                            continue
+
+                        # Optionally validate with Pydantic
+                        # MeetingManifest(**manifest_data) 
+                        discovered_meetings.append(manifest_data)
+                    except json.JSONDecodeError:
+                        logger.warning(f"Invalid JSON in manifest: {manifest_path}")
+                    except Exception as read_e:
+                        logger.warning(f"Error reading manifest {manifest_path}: {read_e}")
+                else:
+                    logger.debug(f"No manifest found in directory: {item}")
+        
+        logger.info(f"Discovered {len(discovered_meetings)} meetings.")
+        return {"meetings": discovered_meetings, "error": None}
+
+    except AttributeError:
+        logger.error("Config missing paths.agent_comms for meeting discovery.")
+        return {"meetings": [], "error": "Configuration path missing."}
+    except Exception as e:
+        logger.error(f"Error during meeting discovery: {e}", exc_info=True)
+        return {"meetings": [], "error": f"Error during discovery: {e}"}
+# --- END EDIT: Add discover Capability --- #
 
 # --- Capability Definitions (for registration) --- #
 

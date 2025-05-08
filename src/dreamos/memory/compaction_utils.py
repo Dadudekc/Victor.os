@@ -1,4 +1,5 @@
 # src/dreamos/memory/compaction_utils.py
+import asyncio
 import json
 import logging
 import os
@@ -116,9 +117,9 @@ def compact_segment_data(
         return data
 
 
-def _rewrite_memory_safely(
+async def _rewrite_memory_safely(
     file_path: Path, data: List[Dict[str, Any]], is_compressed: bool
-):
+) -> bool:
     """Atomically writes data to a file using a temporary file and os.replace.
 
     Handles JSON serialization, including datetime objects, and optional
@@ -134,7 +135,8 @@ def _rewrite_memory_safely(
         Errors during write or replace are logged.
     """
     temp_path = file_path.with_suffix(file_path.suffix + f".{os.getpid()}.tmp")
-    try:
+    
+    def _sync_rewrite():
         # Prepare data for JSON serialization (handle datetimes)
         def dt_serializer(obj):
             if isinstance(obj, datetime):
@@ -153,33 +155,31 @@ def _rewrite_memory_safely(
         else:
             with open(temp_path, "w", encoding="utf-8") as f:
                 f.write(json_data)
-
+        
         os.replace(temp_path, file_path)
+        # Removed temp_path.exists() check before os.remove as os.replace handles it.
+        # The finally block will catch if temp_path still exists due to an error before os.replace.
+
+    try:
+        await asyncio.to_thread(_sync_rewrite)
         logger.debug(f"Safely rewrote memory file: {file_path}")
         return True
     except Exception as e:
         logger.error(f"Failed to rewrite memory file {file_path}: {e}", exc_info=True)
         # Clean up temp file if save failed
-        if temp_path.exists():
+        if await asyncio.to_thread(temp_path.exists): # Check existence async
             try:
-                os.remove(temp_path)
+                await asyncio.to_thread(os.remove, temp_path) # Remove async
             except OSError:
                 logger.error(f"Failed to remove temporary save file: {temp_path}")
         return False
-    finally:
-        # Ensure temp file is removed even on unexpected exit within try block
-        # Though os.replace should handle the successful case.
-        if temp_path.exists():
-            try:
-                os.remove(temp_path)
-                logger.warning(
-                    f"Removed lingering temp file during cleanup: {temp_path}"
-                )
-            except OSError:
-                pass  # Already logged error above if needed
+    # The finally block from the original was a bit confusing with os.replace.
+    # If _sync_rewrite fails before os.replace, temp_path might exist.
+    # If os.replace succeeds, temp_path is gone.
+    # The except block above handles cleanup on failure.
 
 
-def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
+async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
     """Loads a memory segment file, applies compaction, and saves the result atomically.
 
     Reads a JSON segment file (plain or zlib compressed based on `.z` suffix),
@@ -201,14 +201,18 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         FileNotFoundError: If the input file does not exist.
     """
     logger.info(f"Starting compaction process for: {file_path}")
-    if not file_path.exists() or file_path.stat().st_size == 0:
+    
+    exists = await asyncio.to_thread(file_path.exists)
+    size = (await asyncio.to_thread(file_path.stat)).st_size if exists else 0
+
+    if not exists or size == 0:
         logger.warning(f"Compaction skipped: File not found or empty - {file_path}")
         return True  # Nothing to compact
 
     is_compressed = file_path.suffix == ".z"
     original_data: Optional[List[Dict[str, Any]]] = None
 
-    try:
+    def _sync_read_and_parse():
         if is_compressed:
             with open(file_path, "rb") as f:
                 compressed_data = f.read()
@@ -221,17 +225,22 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
             logger.warning(
                 f"Compaction skipped: File content is empty after potential decompression - {file_path}"  # noqa: E501
             )
-            return True  # Treat as success
+            return None # Special marker for empty content after read
 
-        original_data = json.loads(json_str)
-        if not isinstance(original_data, list):
+        loaded_data = json.loads(json_str)
+        if not isinstance(loaded_data, list):
             # EDIT START: Raise specific error
-            # logger.error(f"Compaction failed: Expected a list in file {file_path}, found {type(original_data)}")  # noqa: E501
+            # logger.error(f"Compaction failed: Expected a list in file {file_path}, found {type(loaded_data)}")  # noqa: E501
             # return False
             raise CompactionError(
-                f"Expected a list in file {file_path}, found {type(original_data)}"
+                f"Expected a list in file {file_path}, found {type(loaded_data)}"
             )
             # EDIT END
+
+    try:
+        original_data = await asyncio.to_thread(_sync_read_and_parse)
+        if original_data is None: # Marker for empty content after read
+            return True # Treat as success
 
     except json.JSONDecodeError as e:
         # EDIT START: Raise specific error
@@ -262,16 +271,17 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         # Save only if data changed
         if len(compacted_data) < len(original_data):
             logger.info(
-                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."  # noqa: E501
+                f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
-            if _rewrite_memory_safely(file_path, compacted_data, is_compressed):
-                return True
-            else:
+            # _rewrite_memory_safely is now async
+            rewrite_success = await _rewrite_memory_safely(file_path, compacted_data, is_compressed)
+            if not rewrite_success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")
                 # return False
-                raise CompactionError(f"Failed during atomic save for {file_path}")
+                raise CompactionError(f"Failed to rewrite compacted file {file_path}")
                 # EDIT END
+            return True
         else:
             logger.info(
                 f"No data removed by compaction policy for {file_path}. No save needed."
@@ -296,16 +306,17 @@ def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
         # Save only if data changed
         if len(compacted_data) < len(original_data):
             logger.info(
-                f"Data compacted for {file_path}. Saving {len(compacted_data)} entries (was {len(original_data)})..."  # noqa: E501
+                f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
-            if _rewrite_memory_safely(file_path, compacted_data, is_compressed):
-                return True
-            else:
+            # _rewrite_memory_safely is now async
+            rewrite_success = await _rewrite_memory_safely(file_path, compacted_data, is_compressed)
+            if not rewrite_success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")
                 # return False
-                raise CompactionError(f"Failed during atomic save for {file_path}")
+                raise CompactionError(f"Failed to rewrite compacted file {file_path}")
                 # EDIT END
+            return True
         else:
             logger.info(
                 f"No data removed by compaction policy for {file_path}. No save needed."

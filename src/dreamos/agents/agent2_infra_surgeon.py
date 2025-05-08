@@ -1,13 +1,23 @@
+"""
+Agent 2: Infrastructure Surgeon
+
+Responsible for executing infrastructure-related tasks, primarily by interacting
+with a GUI (e.g., Cursor) via an event-driven mechanism. It publishes requests
+(e.g., CURSOR_INJECT_REQUEST) and awaits corresponding success/failure responses.
+Tasks are managed through a ProjectBoardManager.
+"""
 import asyncio
 import logging
 import uuid
+import traceback
 from typing import Any, Dict, Optional, Tuple
 
 from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.core.comms.mailbox_utils import (
-    delete_message,
-    list_mailbox_messages,
-    read_message,
+    # delete_message, # No longer called directly by Agent2, BaseAgent handles it
+    # list_mailbox_messages, # No longer called directly by Agent2
+    # read_message, # No longer called directly by Agent2
+    get_agent_mailbox_path
 )
 from dreamos.core.coordination.message_patterns import TaskMessage
 from dreamos.core.eventing.publishers import publish_cursor_inject_event
@@ -18,18 +28,16 @@ from ..coordination.project_board_manager import (
     TaskStatus,
 )
 
-# EDIT START: Import PBM
-from ..core.config import AppConfig
-
 # --- Core DreamOS Imports ---
 from .base_agent import BaseAgent
 
-# EDIT END
+# Import AppConfig
+from dreamos.core.config import AppConfig
 
 # Configure basic logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# logging.basicConfig(
+#     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# ) # FIXME: Module-level basicConfig can interfere; configure logging at app entry point.
 logger = logging.getLogger("Agent2InfraSurgeon")
 
 AGENT_ID = "Agent-2"
@@ -58,7 +66,8 @@ class Agent2InfraSurgeon(BaseAgent):
             raise ValueError(
                 "ProjectBoardManager instance is required for Agent2InfraSurgeon"
             )
-
+        
+        # FIXME: Ensure BaseAgent.__init__ correctly handles/expects 'pbm' or uses **kwargs.
         super().__init__(agent_id=agent_id, config=config, pbm=pbm, agent_bus=agent_bus)
         logger.info(f"Agent {self.agent_id} (Infra Surgeon) initializing...")
 
@@ -249,37 +258,40 @@ class Agent2InfraSurgeon(BaseAgent):
             }
 
             # Update the stored tuple with the response data
-            self._pending_cursor_requests[correlation_id] = (
-                response_event,
-                response_data,
-            )
-
-            logger.info(
-                f"[{self.agent_id}] Matched response for CorrID: {correlation_id}. Signaling waiting task."  # noqa: E501
-            )
-            response_event.set()  # Signal the waiting _perform_task
+            self._pending_cursor_requests[correlation_id] = (response_event, response_data)
+            response_event.set()  # Signal that the response has been received
+            logger.debug(f"[{self.agent_id}] Processed response for CorrID: {correlation_id}, event set.")
         else:
             logger.warning(
-                f"[{self.agent_id}] Received cursor response event with unknown or missing CorrID: {correlation_id}. Event data: {event.data}"  # noqa: E501
+                f"[{self.agent_id}] Received cursor response for unknown/timed-out CorrID: {correlation_id}. Ignoring."
             )
 
     # --- Main Autonomous Loop ---
     async def run_autonomous_loop(self):
-        """Main operational loop following UNIVERSAL_AGENT_LOOP v2.1."""
+        """Main autonomous execution loop for Agent 2.
+        
+        Handles mailbox scanning by calling the BaseAgent's implementation,
+        checking for and claiming suitable GUI tasks from the ProjectBoardManager,
+        and processing them.
+        """
         self.logger.info(f"[{self.agent_id}] Starting autonomous loop...")
         self._running = True
+
+        # Determine this agent's specific inbox path once
+        my_inbox_path = get_agent_mailbox_path(self.agent_id, self.config)
 
         while self._running:
             try:
                 self.logger.debug(f"[{self.agent_id}] Starting new loop iteration.")
 
-                # 1. Mailbox Scan (Placeholder)
-                await self._scan_and_process_mailbox()
+                # 1. Mailbox Scan (using BaseAgent's implementation)
+                await self._scan_and_process_mailbox(my_inbox_path) # Call inherited method
 
                 # 2. Working Tasks (Check if BaseAgent handles this)
                 # BaseAgent._process_task_queue likely handles tasks added internally.
                 # We need to check if we *have* an active task from a previous claim.
-                # TODO: Check self._active_tasks or BaseAgent mechanism for ongoing task
+                # TODO: Implement more sophisticated active task checking if BaseAgent
+                #       doesn't handle this state adequately for Agent 2's needs.
                 has_active_task = False  # Placeholder
                 if has_active_task:
                     self.logger.debug(
@@ -309,7 +321,8 @@ class Agent2InfraSurgeon(BaseAgent):
                     continue
 
                 # Filter for suitable GUI tasks
-                # TODO: Define a clearer tag/field for GUI tasks
+                # TODO: Define a clearer tag/field in the task schema for GUI tasks
+                #       instead of relying on task_type string or name matching.
                 gui_tasks = [
                     t
                     for t in ready_tasks
@@ -327,7 +340,8 @@ class Agent2InfraSurgeon(BaseAgent):
                     continue
 
                 # Attempt to claim the highest priority suitable task (simple approach)
-                # TODO: Implement more sophisticated task selection if needed
+                # TODO: Implement more sophisticated task selection (e.g., priority-based)
+                #       if needed beyond taking the first suitable task.
                 task_to_claim = gui_tasks[0]  # Simplest: take the first one
                 task_id_to_claim = task_to_claim.get("task_id")
 
@@ -398,64 +412,14 @@ class Agent2InfraSurgeon(BaseAgent):
 
         self.logger.info(f"[{self.agent_id}] Autonomous loop finished.")
 
-    async def _scan_and_process_mailbox(self):
-        """Scan agent's inbox and process messages."""
-        self.logger.debug(f"[{self.agent_id}] Scanning mailbox...")
-        try:
-            mailbox_path = (
-                self.config.paths.get_agent_mailbox_path(self.agent_id) / "inbox"
-            )
-            if not await asyncio.to_thread(mailbox_path.exists):
-                self.logger.warning(
-                    f"[{self.agent_id}] Mailbox inbox directory not found: {mailbox_path}"  # noqa: E501
-                )
-                return
-
-            messages = await list_mailbox_messages(mailbox_path)
-            if not messages:
-                self.logger.debug(f"[{self.agent_id}] Mailbox empty.")
-                return
-
-            self.logger.info(
-                f"[{self.agent_id}] Found {len(messages)} messages in inbox."
-            )
-            for msg_file in messages:
-                msg_path = mailbox_path / msg_file
-                try:
-                    message_content = await read_message(msg_path)
-                    if message_content:
-                        self.logger.debug(
-                            f"[{self.agent_id}] Processing message: {msg_file}"
-                        )
-                        # Call BaseAgent's message processing logic
-                        await self._process_message(message_content)
-                        # Delete after successful processing
-                        await delete_message(msg_path)
-                        self.logger.info(
-                            f"[{self.agent_id}] Processed and deleted message: {msg_file}"  # noqa: E501
-                        )
-                    else:
-                        self.logger.warning(
-                            f"[{self.agent_id}] Failed to read message content from {msg_file}. Skipping."  # noqa: E501
-                        )
-                        # Optionally delete corrupted/unreadable messages?
-                        # await delete_message(msg_path)
-                except Exception as msg_proc_err:
-                    self.logger.error(
-                        f"[{self.agent_id}] Error processing message {msg_file}: {msg_proc_err}",  # noqa: E501
-                        exc_info=True,
-                    )
-                    # Decide whether to delete or leave the problematic message
-
-        except Exception as scan_err:
-            self.logger.error(
-                f"[{self.agent_id}] Error scanning mailbox: {scan_err}", exc_info=True
-            )
-
     async def _check_for_blockers(self):
-        """Placeholder for blocker checking logic. Agent 2 primarily focuses on executing claimed GUI tasks."""  # noqa: E501
+        """Placeholder for agent-specific blocker checking logic.
+
+        Agent 2 currently relies on other agents (e.g., Captains) for systemic
+        board health and blocker management. This can be expanded if Agent 2
+        needs to perform specific checks related to its GUI tasks or infra domain.
+        """
         # TODO: Implement scanning task boards for blockers/corruption if needed for Agent 2 specifically.  # noqa: E501
-        # For now, assume other agents (like Captains) handle systemic board health.
         self.logger.debug(
             f"[{self.agent_id}] Checking for blockers (Agent 2 - Placeholder/No specific checks implemented)."  # noqa: E501
         )
@@ -472,7 +436,20 @@ class Agent2InfraSurgeon(BaseAgent):
     async def _process_single_task(
         self, task: TaskMessage, correlation_id: Optional[str]
     ):
-        """Process a single task claimed by Agent 2 (GUI Infra Surgeon)."""
+        """Processes a single claimed task by orchestrating GUI interaction via _perform_task.
+
+        Overrides BaseAgent._process_single_task to integrate Agent 2's specific
+        GUI-based task execution. Converts TaskMessage to dict for _perform_task.
+        FIXME: The logic to finalize the task with ProjectBoardManager (e.g., 
+               updating status to COMPLETED/FAILED and storing results) is missing
+               at the end of this method. It should call something like 
+               `self.finalize_task_processing(task_id, status, result, completion_summary)`
+               which would then interact with PBM.
+
+        Args:
+            task: The TaskMessage object representing the task to process.
+            correlation_id: Optional correlation ID for tracing (currently unused here).
+        """
         task_id = task.task_id
         self.logger.info(f"[{self.agent_id}] Starting processing for task: {task_id}")
         # await self.publish_task_started(task)
@@ -511,6 +488,10 @@ class Agent2InfraSurgeon(BaseAgent):
                 validation_details = f"GUI task failed: {completion_summary}"
 
             # Update PBM (handle potential errors)
+            # FIXME: ProjectBoardManager.update_task_status might only store a summary.
+            #        Consider if a more comprehensive method (e.g., finalize_task that 
+            #        accepts the full 'result' dict) is needed in PBM to persist 
+            #        detailed output from _perform_task on the board itself.
             try:
                 await self.pbm.update_task_status(
                     task_id, status, self.agent_id, completion_summary
@@ -568,6 +549,22 @@ class Agent2InfraSurgeon(BaseAgent):
         finally:
             # TODO: Clean up active task tracking if BaseAgent doesn't do it automatically  # noqa: E501
             self.logger.debug(f"[{self.agent_id}] Finished processing task {task_id}.")
+
+    async def _configure(self, config: AppConfig):
+        """Performs agent-specific configuration using the provided AppConfig.
+
+        This method can be used to extract and set up specific configuration
+        parameters relevant to Agent 2's operation, such as infrastructure details.
+        Called during the agent's initialization lifecycle (if implemented in BaseAgent).
+
+        Args:
+            config: The application-wide AppConfig object.
+        """
+        # Example: Extract relevant config sections
+        self.infra_config = config.get("infrastructure")
+        if not self.infra_config:
+            logger.warning("No infrastructure configuration found for Agent-2.")
+        logger.info("Agent-2 Infrastructure Surgeon configured.")
 
 
 # --- Remove old standalone script logic ---

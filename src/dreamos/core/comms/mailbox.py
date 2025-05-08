@@ -72,6 +72,8 @@ class MailboxHandler:
         """Gets the inbox path for a target agent."""
         target_inbox = self.mailboxes_base_dir / target_agent_id / INBOX_DIR_NAME
         # Check if target mailbox exists? write_mailbox_message handles dir creation.
+        # TODO (Masterpiece Review - Captain-Agent-8): Consider getting base dir from AppConfig
+        #      instead of passing `mailboxes_base_dir` in __init__.
         return target_inbox
 
     async def send(
@@ -114,6 +116,8 @@ class MailboxHandler:
                 recipient_inbox_path=str(target_inbox),  # Utility expects string path
                 filename_prefix=filename_prefix,
             )
+            # TODO (Masterpiece Review - Captain-Agent-8): Check if mailbox_utils functions
+            #      can accept Path objects directly instead of strings for consistency.
             logger.info(
                 f"Sent message {Path(filepath).name} to agent {target_agent_id}'s inbox ({filepath})."  # noqa: E501
             )
@@ -143,6 +147,9 @@ class MailboxHandler:
             files = await list_mailbox_messages(self.inbox_path)
             # Sort files by modification time (synchronous os.path.getmtime)
             # Consider making sorting fully async if performance becomes an issue
+            # TODO (Masterpiece Review - Captain-Agent-8): Make file operations fully async?
+            #      Sorting by mtime and potentially archiving use sync calls.
+            #      Consider using asyncio compatible file libs (e.g., aiofiles) for consistency.
             files.sort(key=os.path.getmtime)
 
             count = 0
@@ -164,6 +171,8 @@ class MailboxHandler:
                         f"Skipping invalid or unreadable message file: {filepath.name}"
                     )
                     # TODO: Consider moving invalid files to a 'failed' directory?
+                    # TODO (Masterpiece Review - Captain-Agent-8): Implement moving invalid/unreadable
+                    #      messages to the FAILED_DIR_NAME for later inspection.
 
         except OSError as e:
             logger.error(f"Failed to list inbox directory {self.inbox_path}: {e}")
@@ -194,6 +203,8 @@ class MailboxHandler:
 
         target_archive_path = self.archive_path / message_filepath.name
         try:
+            # TODO (Masterpiece Review - Captain-Agent-8): Revisit sync `shutil.move` here.
+            #      If overall async performance is desired, use an async move operation.
             shutil.move(str(message_filepath), str(target_archive_path))
             logger.info(f"Archived message: {message_filepath.name}")
             return True

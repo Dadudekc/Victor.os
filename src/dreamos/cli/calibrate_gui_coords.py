@@ -9,12 +9,18 @@ import pyautogui
 
 # Assuming PROJECT_ROOT is defined appropriately elsewhere or determined dynamically
 # For simplicity, let's try to find it relative to this script
+# TODO (Masterpiece Review - Captain-Agent-8): PROJECT_ROOT calculation here is fragile.
+#      If integrated into the main click app, use PathsConfig from the loaded AppConfig.
+#      If kept standalone, this calculation is a necessary evil but less robust.
 try:
     PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Adjust depth as needed
 except NameError:
     # Fallback if __file__ is not defined (e.g., interactive execution)
     PROJECT_ROOT = Path(".").resolve()
 
+# TODO (Masterpiece Review - Captain-Agent-8): Coordinate file paths should be sourced
+#      from AppConfig (e.g., GuiAutomationConfig or PathsConfig) for consistency,
+#      rather than being hardcoded here, especially if integrated into the main CLI.
 COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_coords.json"
 COPY_COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_copy_coords.json"
 SESSION_START_COORDS_FILE = (
@@ -104,6 +110,9 @@ def calibrate_coordinates(coords_data: dict, file_name: str):
 
 
 def main():
+    # TODO (Masterpiece Review - Captain-Agent-8): This uses argparse, while main.py uses click.
+    #      Consolidate CLI framework usage (likely migrating this to be a click command
+    #      within the main cli app defined in main.py).
     parser = argparse.ArgumentParser(description="GUI Coordinate Calibration Utility")
     parser.add_argument(
         "--session-start-only",

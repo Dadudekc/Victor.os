@@ -1,4 +1,17 @@
 # cursor_dispatcher.py
+"""
+Standalone Cursor Dispatcher Script.
+
+This script loads tasks from a local JSON queue file (`task_queue.json`),
+renders them using a Jinja2 template, and injects the resulting prompts as
+keystrokes into a headlessly launched Cursor application. It uses a
+VirtualDesktopController for managing the Cursor instance and keystroke injection.
+
+FIXME: This is a standalone script and not integrated with the main DreamOS
+       AgentBus or ProjectBoardManager. Task sourcing and status tracking are local.
+       Consider integration if it needs to be part of the broader agent swarm.
+FIXME: Lacks a feedback mechanism for actual task success/failure within Cursor.
+"""
 
 import json
 import logging
@@ -12,16 +25,17 @@ from .virtual_desktop_runner import VirtualDesktopController
 
 # Logger Setup
 logger = logging.getLogger("CursorDispatcher")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
-)
+# FIXME: Module-level basicConfig can interfere; configure logging at app entry point.
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
+# )
 
 # File/Path Constants
 AGENT_DIR = Path(__file__).parent
 BASE_DIR = AGENT_DIR.parent
 QUEUE_FILE = BASE_DIR / "task_queue.json"
-TEMPLATE_DIR = BASE_DIR / "templates"
+TEMPLATE_DIR = BASE_DIR.parent.parent / "templates"
 
 # Initialize Prompt Renderer
 try:
@@ -42,6 +56,7 @@ def render_task_prompt(task: dict) -> str | None:
         logger.error("PromptRenderer not initialized. Cannot render task prompt.")
         return None
 
+    # FIXME: Hardcoded template name "chatgpt_task_prompt.j2". Consider making configurable.
     rendered = prompt_renderer.render("chatgpt_task_prompt.j2", {"task": task})
     if rendered is None:
         logger.error(
@@ -109,6 +124,8 @@ def run_loop(shutdown_event):
 
     logger.info("🚀 Cursor Dispatcher started.")
 
+    # FIXME: Cursor path detection relies on a list of common paths.
+    #        A configuration option for `cursor_path` would be more robust.
     if os.name == "nt":
         cursor_paths = [
             os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),

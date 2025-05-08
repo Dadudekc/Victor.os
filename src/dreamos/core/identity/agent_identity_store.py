@@ -8,13 +8,13 @@ from typing import Dict, List, Optional
 
 from ..utils.file_locking import FileLock, LockAcquisitionError, LockDirectoryError
 from .agent_identity import AgentIdentity
+from ..utils.project_root import find_project_root
 
 logger = logging.getLogger(__name__)
 
-# Determine runtime directory relative to this file's location
-# Assuming this file is in src/dreamos/core/identity/
-# runtime/ is expected at src/../runtime/
-RUNTIME_DIR = Path(__file__).resolve().parents[3] / "runtime"
+# Determine runtime directory using find_project_root
+PROJECT_ROOT = find_project_root()
+RUNTIME_DIR = PROJECT_ROOT / "runtime"
 IDENTITY_DIR = RUNTIME_DIR / "identity"
 DEFAULT_STORE_PATH = IDENTITY_DIR / "agents.json"
 

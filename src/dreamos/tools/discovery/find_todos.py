@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from dreamos.core.config import load_app_config
 
 # Configure logging
 logging.basicConfig(
@@ -14,8 +15,9 @@ logger = logging.getLogger("FindTodos")
 
 # Default patterns to search for
 DEFAULT_PATTERNS = ["TODO", "FIXME", "BUG"]
-# Output log file
-DEFAULT_LOG_FILE = Path("runtime/logs/feedback.jsonl")
+# EDIT START: Remove hardcoded log file path - will get from config
+# DEFAULT_LOG_FILE = Path("runtime/logs/feedback.jsonl")
+# EDIT END
 # Default file extensions to scan
 DEFAULT_EXTENSIONS = [".py", ".md", ".js", ".ts", ".rs", ".toml", ".yaml", ".yml"]
 # Default directories/files to ignore
@@ -143,6 +145,11 @@ def scan_directory(
 
 
 def main():
+    # EDIT START: Load AppConfig
+    config = load_app_config()
+    default_log_file_path = config.paths.logs_dir / "feedback.jsonl" # Construct path using config
+    # EDIT END
+
     parser = argparse.ArgumentParser(
         description="Scan directories for TODO/FIXME/BUG comments and log them."
     )
@@ -158,8 +165,10 @@ def main():
     parser.add_argument(
         "--log-file",
         type=Path,
-        default=DEFAULT_LOG_FILE,
-        help=f"Output JSON Lines log file. Default: {DEFAULT_LOG_FILE}",
+        # EDIT START: Use config path as default
+        default=default_log_file_path,
+        help=f"Output JSON Lines log file. Default: {default_log_file_path}", # Update help text
+        # EDIT END
     )
     parser.add_argument(
         "--ignore",

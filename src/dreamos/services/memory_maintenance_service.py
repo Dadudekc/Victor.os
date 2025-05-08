@@ -375,7 +375,10 @@ class MemoryMaintenanceService:
                             summarization_policy=summ_conf,
                         )
                         # Use augmented assignment directly
-                        (processed_count if success else error_count).__iadd__(1)
+                        if success:
+                            processed_count += 1
+                        else:
+                            error_count += 1
                     else:
                         # logger.debug(f"Skipping file {segment_file.name}: Applicable policies are disabled or summarizer missing.") # Too noisy  # noqa: E501
                         skipped_count += 1

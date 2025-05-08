@@ -4,10 +4,10 @@ version = "0.5.0"
 description = "Dream.OS - Agentic Development Environment"
 authors = ["DreamOS Contributors <maintainers@example.com>"]
 readme = "README.md"
-packages = [{ include = "dreamos", from = "src" }]
+packages = [{ include = "dreamos", from = "src" }, { include = "dreamscape", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.11,<3.13"
 
 # --- Core Libraries ---
 PyQt6 = ">=6.7.0"
@@ -52,11 +52,11 @@ pyautogui = ">=0.9.54"
 pyperclip = ">=1.8.2"
 Pillow = ">=10.3.0"
 pywinauto = ">=0.6.8"
-pytesseract = "*"
+pytesseract = ">=0.3.10"
 
 # Misc/Other Core
 python-dotenv = ">=0.21.0"
-# fastapi = "==0.95.2"
+fastapi = ">=0.100.0"
 uvicorn = "==0.23.2"
 lxml = ">=4.9.0"
 praw = ">=7.7.0"
@@ -70,6 +70,9 @@ gitpython = "==3.1.31"
 azure-storage-blob = ">=12.9.0"
 watchdog = ">=2.1.0"
 filelock = ">=3.12.0"
+discord-py = "^2.3.2"
+commonmark = ">=0.9.1"
+commonmarkextensions = ">=0.0.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.2.0"

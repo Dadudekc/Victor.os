@@ -7,9 +7,9 @@ import json
 import logging
 from pathlib import Path
 
-# EDIT START: Import ArchivingError
+# EDIT START: Import AppConfig and ArchivingError
+from dreamos.core.config import load_app_config
 from dreamos.core.errors import ArchivingError
-
 # EDIT END
 
 # Setup logging
@@ -19,9 +19,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Constants
-DEFAULT_INPUT_FILE = "runtime/logs/defunct_tests.jsonl"
-# Adjust archive root relative to the NEW location if necessary, but likely fine
-DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ = "_archive/tests"
+# EDIT START: Remove hardcoded defaults - derive from config
+# DEFAULT_INPUT_FILE = "runtime/logs/defunct_tests.jsonl"
+# DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ = "_archive/tests"
+# EDIT END
 ARCHIVE_HEADER = "# ARCHIVED: Defunct test, source module potentially missing.\n"
 
 
@@ -31,11 +32,12 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
     prepends an archive header, moves them to an archive directory,
     and deletes the originals.
     """
-    # Adjust project root calculation based on new file depth
-    # src/dreamos/tools/discovery/archive_defunct_tests.py -> 4 levels up?
-    project_root = Path(__file__).resolve().parents[4]  # EDIT: Corrected parent level?
+    # EDIT START: Use AppConfig for project root
+    config = load_app_config()
+    project_root = config.paths.project_root
     input_path = project_root / input_file
     archive_root_abs = project_root / archive_root_rel
+    # EDIT END
 
     logger.info(f"Project root detected as: {project_root}")
     logger.info(f"Reading defunct test list from: {input_path}")
@@ -145,18 +147,28 @@ def archive_defunct_tests(input_file: str, archive_root_rel: str):
 
 
 if __name__ == "__main__":
+    # EDIT START: Load config to get defaults
+    config = load_app_config()
+    default_input_file_rel = Path("runtime") / "logs" / "defunct_tests.jsonl"
+    default_archive_dir_rel = Path("_archive") / "tests"
+    # EDIT END
+
     parser = argparse.ArgumentParser(
         description="Archive potentially defunct test files identified by the discovery script."  # noqa: E501
     )
     parser.add_argument(
         "--input-file",
-        default=DEFAULT_INPUT_FILE,
-        help=f"Path to the JSONL file containing defunct test paths (default: {DEFAULT_INPUT_FILE})",  # noqa: E501
+        # EDIT START: Use relative default path
+        default=str(default_input_file_rel),
+        help=f"Path relative to project root for the JSONL file containing defunct test paths (default: {default_input_file_rel})",  # noqa: E501
+        # EDIT END
     )
     parser.add_argument(
         "--archive-dir",
-        default=DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ,
-        help=f"Relative path from project root to the directory for archived tests (default: {DEFAULT_ARCHIVE_ROOT_REL_FROM_PROJ})",  # noqa: E501
+        # EDIT START: Use relative default path
+        default=str(default_archive_dir_rel),
+        help=f"Path relative to project root for the directory for archived tests (default: {default_archive_dir_rel})",  # noqa: E501
+        # EDIT END
     )
 
     args = parser.parse_args()

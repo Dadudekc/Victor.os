@@ -6,9 +6,9 @@ import os
 import sys
 from typing import Dict, List
 
-# Add project root to sys.path to allow importing dreamos modules
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, project_root)
+# EDIT START: Import AppConfig
+from dreamos.core.config import load_app_config
+# EDIT END
 
 # Ensure log_validator exists and jsonschema is available (handled internally by validator)  # noqa: E501
 try:
@@ -58,10 +58,11 @@ DEFAULT_SCHEMA_MAP = {
     "cursor_activity_log.jsonl": "cursor_activity",
     "task_events.jsonl": "task_event",
 }
-SCHEMA_MAP_CONFIG_PATH = os.path.join(
-    project_root, "runtime", "config", "log_schema_map.json"
-)
-SCHEMA_MAP = load_schema_map(SCHEMA_MAP_CONFIG_PATH, DEFAULT_SCHEMA_MAP)
+# EDIT START: Remove hardcoded path construction - will be determined via AppConfig in main
+# SCHEMA_MAP_CONFIG_PATH = os.path.join(\
+#     project_root, "runtime", "config", "log_schema_map.json"\
+# )\
+# SCHEMA_MAP = load_schema_map(SCHEMA_MAP_CONFIG_PATH, DEFAULT_SCHEMA_MAP)\
 # EDIT END
 
 
@@ -80,12 +81,20 @@ def find_jsonl_files(log_dir: str, recursive: bool = False) -> List[str]:
 
 
 if __name__ == "__main__":
+    # EDIT START: Load AppConfig first
+    config = load_app_config()
+    default_log_dir = config.paths.logs_dir # Assuming logs_dir is defined in config paths
+    default_schema_map_config_path = config.paths.runtime / "config" / "log_schema_map.json"
+    # EDIT END
+
     parser = argparse.ArgumentParser(
         description="Validate JSONL log files in runtime/logs against predefined schemas."  # noqa: E501
     )
     parser.add_argument(
         "--log-dir",
-        default=os.path.join(project_root, "runtime", "logs"),
+        # EDIT START: Use config path as default
+        default=str(default_log_dir),
+        # EDIT END
         help="Directory containing the log files to validate.",
     )
     parser.add_argument(
@@ -96,14 +105,17 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--schema-map-config",
-        default=SCHEMA_MAP_CONFIG_PATH,
+        # EDIT START: Use config path as default
+        default=str(default_schema_map_config_path),
+        # EDIT END
         help="Path to the JSON config file mapping log filenames to schema IDs.",
     )
 
     args = parser.parse_args()
 
-    if args.schema_map_config != SCHEMA_MAP_CONFIG_PATH:
-        SCHEMA_MAP = load_schema_map(args.schema_map_config, DEFAULT_SCHEMA_MAP)
+    # EDIT START: Load schema map using the path from args (which defaults to config path)
+    SCHEMA_MAP = load_schema_map(args.schema_map_config, DEFAULT_SCHEMA_MAP)
+    # EDIT END
 
     log_directory = args.log_dir
     logger.info(

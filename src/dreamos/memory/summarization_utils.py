@@ -1,4 +1,5 @@
 # src/dreamos/memory/summarization_utils.py
+import asyncio
 import json
 import logging
 import zlib
@@ -28,7 +29,7 @@ class SummarizationError(CoreMemoryError):
 # EDIT END
 
 
-def summarize_segment_chunk(
+async def summarize_segment_chunk(
     chunk: List[Dict[str, Any]],
     policy: Dict[str, Any],
     summarizer: Optional[BaseSummarizer],
@@ -55,7 +56,7 @@ def summarize_segment_chunk(
     summary_text = f"[Placeholder summary for {count} entries from ~{start_time_str} to ~{end_time_str}]"  # noqa: E501
     if summarizer:
         try:
-            summary_text = summarizer.summarize_entries(chunk)
+            summary_text = await summarizer.summarize_entries(chunk)
             logger.info(
                 f"Generated actual summary for {count} entries using {type(summarizer).__name__}."  # noqa: E501
             )
@@ -81,7 +82,7 @@ def summarize_segment_chunk(
     return summary_entry
 
 
-def summarize_segment_file(
+async def summarize_segment_file(
     file_path: Path, policy: Dict[str, Any], summarizer: Optional[BaseSummarizer]
 ) -> bool:
     """Loads a memory segment file, summarizes a chunk if needed, and saves the result.
@@ -104,7 +105,11 @@ def summarize_segment_file(
         True if the process completed (including no summarization needed), False if an error occurred.
     """  # noqa: E501
     logger.info(f"Starting summarization process for: {file_path}")
-    if not file_path.exists() or file_path.stat().st_size == 0:
+
+    exists = await asyncio.to_thread(file_path.exists)
+    size = (await asyncio.to_thread(file_path.stat)).st_size if exists else 0
+
+    if not exists or size == 0:
         logger.warning(f"Summarization skipped: File not found or empty - {file_path}")
         return True  # Nothing to summarize
 
@@ -121,7 +126,7 @@ def summarize_segment_file(
     is_compressed = file_path.suffix == ".z"
     original_data: Optional[List[Dict[str, Any]]] = None
 
-    try:
+    def _sync_read_and_parse():
         if is_compressed:
             with open(file_path, "rb") as f:
                 compressed_data = f.read()
@@ -134,42 +139,37 @@ def summarize_segment_file(
             logger.warning(
                 f"Summarization skipped: File content is empty - {file_path}"
             )
+            return None
+
+        loaded_data = json.loads(json_str)
+        if not isinstance(loaded_data, list):
+            raise SummarizationError(
+                f"Expected a list in file {file_path}, found {type(loaded_data)}"
+            )
+        return loaded_data
+
+    try:
+        original_data = await asyncio.to_thread(_sync_read_and_parse)
+        if original_data is None:
             return True
 
-        original_data = json.loads(json_str)
-        if not isinstance(original_data, list):
-            # EDIT START: Raise specific error
-            # logger.error(f"Summarization failed: Expected a list in file {file_path}, found {type(original_data)}")  # noqa: E501
-            # return False
-            raise SummarizationError(
-                f"Expected a list in file {file_path}, found {type(original_data)}"
-            )
-            # EDIT END
-
     except json.JSONDecodeError as e:
-        # EDIT START: Raise specific error
         logger.error(
             f"Failed to parse segment file {file_path} for summarization: {e}",
             exc_info=True,
         )
-        # return False
         raise SummarizationError(f"Failed to parse JSON in {file_path}") from e
-        # EDIT END
     except Exception as e:
-        # EDIT START: Raise specific error
         logger.error(
             f"Failed to load segment file {file_path} for summarization: {e}",
             exc_info=True,
         )
-        # return False
         raise SummarizationError(f"Failed to load file {file_path}") from e
-        # EDIT END
 
     if original_data is None:
         return False
 
     try:
-        # Identify chunk to summarize
         if (
             len(original_data) >= summarize_threshold
             and len(original_data) >= summarize_chunk_size
@@ -180,48 +180,39 @@ def summarize_segment_file(
                 f"Identified chunk of {len(chunk_to_summarize)} entries for summarization in {file_path} (Total: {len(original_data)})"  # noqa: E501
             )
 
-            summary_entry = summarize_segment_chunk(
+            summary_entry = await summarize_segment_chunk(
                 chunk_to_summarize, policy, summarizer
             )
 
             if "summary_error" in summary_entry:
-                # EDIT START: Raise specific error
                 err_msg = f"Summarization failed for chunk in {file_path}: {summary_entry['summary_error']}"  # noqa: E501
                 logger.error(err_msg)
-                # return False
                 raise SummarizationError(err_msg)
-                # EDIT END
 
             new_data = [summary_entry] + remaining_data
 
             logger.info(
                 f"Saving summarized data to {file_path} ({len(new_data)} entries replacing {len(original_data)})..."  # noqa: E501
             )
-            if _rewrite_memory_safely(file_path, new_data, is_compressed):
-                return True
-            else:
-                # EDIT START: Raise specific error
+            rewrite_success = await _rewrite_memory_safely(file_path, new_data, is_compressed)
+            if not rewrite_success:
                 logger.error(f"Summarization failed during save for {file_path}")
-                # return False
                 raise SummarizationError(f"Failed during atomic save for {file_path}")
-                # EDIT END
+            return True
         else:
             logger.info(
                 f"No summarization needed for {file_path} based on current policy/size ({len(original_data)} entries)."  # noqa: E501
             )
-            return True  # No action needed is considered success
+            return True
+    except SummarizationError:
+        raise
     except Exception as e:
-        # Catch errors from summarize_segment_chunk (if it raises) or other unexpected issues  # noqa: E501
         logger.error(
             f"Error during summarization processing for {file_path}: {e}", exc_info=True
         )
-        # Don't mask original SummarizationError if raised above
-        if not isinstance(e, SummarizationError):
-            raise SummarizationError(
-                f"Error during summarization data processing for {file_path}"
-            ) from e
-        else:
-            raise  # Re-raise original SummarizationError
+        raise SummarizationError(
+            f"Error during summarization data processing for {file_path}"
+        ) from e
 
 
 async def summarize_conversations(

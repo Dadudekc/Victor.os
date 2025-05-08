@@ -1,0 +1,1 @@
+Explain the purpose and expected output format of the `scripts/mock_bridge_loop.py` script. 

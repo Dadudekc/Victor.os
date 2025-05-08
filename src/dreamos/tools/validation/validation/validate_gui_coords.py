@@ -7,14 +7,21 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
+# from dreamos.core.config import AppConfig # Removed F401
+# from dreamos.core.errors import CoordinateError # Removed F401
+
+# Try importing GUI libraries, warn if unavailable
 try:
     import pyautogui
     import pyperclip
+    import pygetwindow
+    GUI_AVAILABLE = True
 except ImportError:
-    print(
-        "ERROR: pyautogui and pyperclip are required. Install with `pip install pyautogui pyperclip`"  # noqa: E501
-    )
-    exit(1)
+    pyautogui = None
+    pyperclip = None
+    pygetwindow = None
+    GUI_AVAILABLE = False
+    logging.warning("PyAutoGUI or PyGetWindow not found. GUI validation checks disabled.")
 
 # EDIT START: Remove dummy OrchestratorBot fallback, require real import
 try:
@@ -31,11 +38,13 @@ logging.basicConfig(
 )
 
 # --- Configuration ---
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_COORDS_PATH = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
-DEFAULT_OUTPUT_PATH = (
-    PROJECT_ROOT / "runtime" / "validation" / "gui_coord_validation_results.json"
-)
+# EDIT START: Remove hardcoded paths, will be derived from AppConfig
+# PROJECT_ROOT = Path(__file__).resolve().parents[3]
+# DEFAULT_COORDS_PATH = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
+# DEFAULT_OUTPUT_PATH = (
+#     PROJECT_ROOT / "runtime" / "validation" / "gui_coord_validation_results.json"
+# )
+# EDIT END
 
 TEST_PROMPT = "Ping from Dream.OS Validator"
 RESPONSE_WAIT_SECONDS = 5  # Time to wait after injection before trying to copy response
@@ -221,7 +230,9 @@ def save_results(filepath: Path, results: Dict[str, Optional[str]]):
         logging.error(f"Failed to save validation results: {e}")
 
 
-def _validate_coordinates(coords_data: Dict[str, Any], results: Dict[str, Any]):
+# EDIT START: Add structure validation functions (renamed for clarity)
+def _validate_coord_structure(coords_data: Dict[str, Any], results: Dict[str, Any]):
+    """Validates the basic structure (dict with x, y) and types (int) of coordinates."""
     for name, data in coords_data.items():
         if not isinstance(data, dict) or "x" not in data or "y" not in data:
             results["errors"][name] = (
@@ -248,17 +259,21 @@ def _validate_coordinates(coords_data: Dict[str, Any], results: Dict[str, Any]):
             )
 
 
-def _check_coordinate_overlap(coords_data: Dict[str, Any], results: Dict[str, Any]):
-    for name1, coord1 in coords_data.items():
-        for name2, coord2 in coords_data.items():
-            if name1 >= name2:  # Avoid self-comparison and duplicates
-                continue
-            distance = math.sqrt(
-                (coord1["x"] - coord2["x"]) ** 2 + (coord1["y"] - coord2["y"]) ** 2
-            )
-            if distance < 10:
+def _check_coord_proximity(coords_data: Dict[str, Any], results: Dict[str, Any], min_distance: float):
+    """Checks if any coordinate pairs are too close together."""
+    coords_list = [
+        (name, data["x"], data["y"])
+        for name, data in coords_data.items()
+        if isinstance(data, dict) and "x" in data and "y" in data
+    ]
+    for i in range(len(coords_list)):
+        name1, x1, y1 = coords_list[i]
+        for j in range(i + 1, len(coords_list)):
+            name2, x2, y2 = coords_list[j]
+            distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+            if distance < min_distance:
                 results["warnings"].append(
-                    f"Coordinates '{name1}' ({coord1['x']},{coord1['y']}) and '{name2}' ({coord2['x']},{coord2['y']}) are very close (distance: {distance:.2f} < 10). Potential overlap?"  # noqa: E501
+                    f"Coordinates '{name1}' ({x1},{y1}) and '{name2}' ({x2},{y2}) are too close: {distance:.2f}px (min: {min_distance}px)."
                 )
 
 
@@ -296,16 +311,17 @@ def _check_for_duplicates(coords_data: Dict[str, Any], results: Dict[str, Any]):
             seen_coords[coord_tuple] = name
 
 
-def validate_gui_coordinates(coords_file: str, min_distance: float) -> Dict[str, Any]:
+def validate_gui_coordinates(coords_file: Path, min_distance: float) -> Dict[str, Any]:
+    """Performs static validation on GUI coordinate data."""
     results = {"errors": {}, "warnings": [], "info": []}
 
-    coords_data = load_coords(Path(coords_file))
+    coords_data = load_coords(coords_file)
     if coords_data is None:
-        results["errors"]["coordinates_file"] = "Failed to load coordinates file."
+        results["errors"]["loading"] = f"Failed to load or parse {coords_file}."
         return results
 
-    _validate_coordinates(coords_data, results)
-    _check_coordinate_overlap(coords_data, results)
+    _validate_coord_structure(coords_data, results)
+    _check_coord_proximity(coords_data, results, min_distance)
     _check_for_duplicates(coords_data, results)
     _check_accessibility(coords_data, results)  # Basic placeholder
 
@@ -313,90 +329,114 @@ def validate_gui_coordinates(coords_file: str, min_distance: float) -> Dict[str,
 
 
 def main():
+    # EDIT START: Load AppConfig and use its paths
+    # config = load_app_config() # Assumes standard loading works here
+    # default_coords_path = config.paths.runtime / "config" / "cursor_agent_coords.json"
+    # default_output_path = config.paths.runtime / "validation" / "gui_coord_validation_results.json"
+    # EDIT END
+
     parser = argparse.ArgumentParser(
-        description="Validate GUI coordinates by injecting a test prompt and retrieving the response."  # noqa: E501
+        description="Validate GUI coordinates for Dream.OS agents."
     )
     parser.add_argument(
-        "agent_ids",
-        help="Comma-separated list of agent IDs to validate (e.g., Agent-1,Agent-2).",
+        "--coords-file",
+        type=Path,
+        # EDIT START: Use config path as default
+        # default=default_coords_path,
+        # EDIT END
+        help="Path to the JSON file containing GUI coordinates.",
     )
     parser.add_argument(
-        "target_window_title",
-        help="Exact title of the target Cursor window(s). Used unless --force-unsafe-clicks is set.",  # noqa: E501
+        "--output-file",
+        type=Path,
+        # EDIT START: Use config path as default
+        # default=default_output_path,
+        # EDIT END
+        help="Path to save the validation results JSON file.",
     )
     parser.add_argument(
-        "--coords_file",
-        default=str(DEFAULT_COORDS_PATH),
-        help=f"Path to the coordinates JSON file (default: {DEFAULT_COORDS_PATH})",
+        "--window-title",
+        type=str,
+        # EDIT: Use config if available, otherwise keep default
+        # default=getattr(getattr(config, 'integrations', None), 'cursor', {}).get('window_title', "Cursor"),
+        help="Title of the target application window (e.g., 'Cursor').",
     )
     parser.add_argument(
-        "--output_file",
-        default=str(DEFAULT_OUTPUT_PATH),
-        help=f"Path to save the validation results JSON (default: {DEFAULT_OUTPUT_PATH})",  # noqa: E501
+        "--test-injection",
+        action="store_true",
+        help="Perform a live test by injecting a prompt and trying to copy the response.",
     )
     parser.add_argument(
-        "--wait",
-        type=int,
-        default=RESPONSE_WAIT_SECONDS,
-        help=f"Seconds to wait for response after injection (default: {RESPONSE_WAIT_SECONDS})",  # noqa: E501
+        "--agent-id",
+        type=str,
+        default="Agent-1", # Keep a default for testing
+        help="Agent ID whose coordinates should be used for live injection test.",
     )
     parser.add_argument(
         "--force-unsafe-clicks",
         action="store_true",
-        help="Bypass window title activation/check before clicking coordinates.",
+        help="Bypass window activation checks before performing clicks (use with caution).",
     )
     parser.add_argument(
-        "--min_distance",
+        "--min-distance",
         type=float,
-        default=10,
-        help="Minimum distance between coordinates to warn about potential overlap.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        default=str(DEFAULT_OUTPUT_PATH),
-        help=f"Path to save the validation results JSON file. Default: {DEFAULT_OUTPUT_PATH}",  # noqa: E501
+        default=10.0,
+        help="Minimum allowed pixel distance between distinct coordinate points.",
     )
 
     args = parser.parse_args()
 
-    agent_ids_list = [
-        agent_id.strip() for agent_id in args.agent_ids.split(",") if agent_id.strip()
-    ]
-    if not agent_ids_list:
-        print("ERROR: No valid agent IDs provided.")
-        exit(1)
+    # --- Static Validation ---
+    logging.info(f"Starting static validation of {args.coords_file}...")
+    validation_results = validate_gui_coordinates(args.coords_file, args.min_distance)
+    save_results(args.output_file, validation_results)
 
-    coords_filepath = Path(args.coords_file)
-    output_filepath = Path(args.output_file)
-    window_title = args.target_window_title
-    wait_seconds = args.wait
-    force_unsafe = args.force_unsafe_clicks
-    min_distance = args.min_distance
+    has_errors = bool(validation_results["errors"])
+    has_warnings = bool(validation_results["warnings"])
 
-    print("\n=== Dream.OS GUI Coordinate Validation Tool ===")
-    print(f"Validating Agents: {', '.join(agent_ids_list)}")
-    if force_unsafe:
-        print(
-            "WARNING: Running with --force-unsafe-clicks. Window activation checks bypassed!"  # noqa: E501
-        )
+    if has_errors:
+        logging.error("Static validation FAILED with errors.")
+    elif has_warnings:
+        logging.warning("Static validation PASSED with warnings.")
     else:
-        print(f"Target Window Title: '{window_title}'")
-    print(f"Using Coordinates: {coords_filepath}")
-    print(f"Saving Results To: {output_filepath}")
-    print(f"Waiting {wait_seconds}s for response after injection.")
+        logging.info("Static validation PASSED.")
 
-    all_coords = load_coords(coords_filepath)
-    if all_coords is None:
-        print("Exiting due to coordinate loading error.")
-        exit(1)
+    # --- Live Injection Test (Optional) ---
+    if args.test_injection:
+        if has_errors:
+            logging.warning(
+                "Skipping live injection test due to static validation errors."
+            )
+            return
 
-    validation_results = validate_gui_coordinates(coords_filepath, min_distance)
+        logging.info(
+            f"Starting live injection test for agent '{args.agent_id}' in window '{args.window_title}'..."
+        )
+        all_coords = load_coords(args.coords_file)
+        agent_coords = all_coords.get(args.agent_id)
 
-    # 4. Save Results
-    save_results(output_filepath, validation_results)
+        if not agent_coords:
+            logging.error(
+                f"Coordinates for agent '{args.agent_id}' not found in {args.coords_file}. Cannot run live test."
+            )
+            return
 
-    print("\n=== Validation Complete ===")
+        if inject_test_prompt(
+            args.agent_id, agent_coords, args.window_title, args.force_unsafe_clicks
+        ):
+            logging.info(
+                f"Waiting {RESPONSE_WAIT_SECONDS} seconds for response generation..."
+            )
+            time.sleep(RESPONSE_WAIT_SECONDS)
+            response = retrieve_response(
+                args.agent_id, agent_coords, args.window_title, args.force_unsafe_clicks
+            )
+            if response:
+                logging.info(f"Live injection test PASSED. Retrieved: '{response[:50]}...'")
+            else:
+                logging.error("Live injection test FAILED. Could not retrieve response.")
+        else:
+            logging.error("Live injection test FAILED during prompt injection.")
 
 
 if __name__ == "__main__":

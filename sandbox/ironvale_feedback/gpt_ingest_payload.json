@@ -1,0 +1,13 @@
+{
+  "task_id": "bridge_task_sim_001",
+  "status": "success",
+  "log": "STDOUT:\nProcessing item 1... OK\nProcessing item 2... OK\nFinalizing... Done.\n\nSTDERR:",
+  "artifacts": [
+    "sandbox/output/result.txt"
+  ],
+  "execution_metadata": {
+    "execution_id": "exec_1746459473",
+    "start_time": "2025-05-05T15:37:53.174551+00:00",
+    "end_time": "2025-05-05T15:37:55.175552+00:00"
+  }
+}

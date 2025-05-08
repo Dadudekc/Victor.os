@@ -1,0 +1,9 @@
+{
+  "command": "read_file",
+  "parameters": {
+    "target_file": "sandbox/bridge/gpt_cursor_relay.py",
+    "start_line": 1,
+    "end_line": 10
+  },
+  "correlation_id": "test-read-004"
+} 

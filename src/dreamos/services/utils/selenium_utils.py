@@ -8,7 +8,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from utils.logging_utils import log_event
+from dreamos.services.utils.logging_utils import log_event
 
 
 def wait_for_element(

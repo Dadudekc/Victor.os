@@ -5,8 +5,9 @@ from typing import Any, Dict, List, Optional
 # Import the adapter to pass to the registry
 from dreamos.core.db.sqlite_adapter import SQLiteAdapter
 
-# Import the *specific* registry class
+# Import the *specific* registry class and the Capability model
 from .capability_registry import CapabilityRegistry
+from dreamos.core.agents.capabilities.schema import AgentCapability
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class CapabilityHandler:
                 "CapabilityHandler initialized without a valid CapabilityRegistry. Operations will fail."
             )
 
-    async def register_capability(self, capability: Any) -> bool:
+    async def register_capability(self, capability: AgentCapability) -> bool:
         """Registers or updates a capability via the CapabilityRegistry."""
         if not self.registry:
             logger.error(
@@ -73,7 +74,7 @@ class CapabilityHandler:
             )
             return False
 
-    async def get_capability(self, agent_id: str, capability_id: str) -> Optional[Any]:
+    async def get_capability(self, agent_id: str, capability_id: str) -> Optional[AgentCapability]:
         """Retrieves a specific capability via the CapabilityRegistry."""
         if not self.registry:
             logger.error("CapabilityRegistry not available. Cannot get capability.")
@@ -88,7 +89,7 @@ class CapabilityHandler:
             )
             return None
 
-    async def get_agent_capabilities(self, agent_id: str) -> List[Any]:
+    async def get_agent_capabilities(self, agent_id: str) -> List[AgentCapability]:
         """Retrieves all capabilities for an agent via the CapabilityRegistry."""
         if not self.registry:
             logger.error(
@@ -106,7 +107,7 @@ class CapabilityHandler:
             )
             return []
 
-    async def find_capabilities(self, query: Dict[str, Any]) -> List[Any]:
+    async def find_capabilities(self, query: Dict[str, Any]) -> List[AgentCapability]:
         """Finds capabilities matching criteria via the CapabilityRegistry."""
         if not self.registry:
             logger.error("CapabilityRegistry not available. Cannot find capabilities.")

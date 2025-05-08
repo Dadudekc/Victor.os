@@ -1,0 +1,29 @@
+{
+  "agent_id": "Agent-9",
+  "revision_stamp": "initial_onboarding_20240519", // Replace with dynamic stamp if possible
+  "declared_capabilities": [
+    "mailbox_read_write",
+    "basic_message_processing",
+    "loop_state_management",
+    "idle_detection"
+  ],
+  "loop_parameters": {
+    "heartbeat_interval_seconds": 60,
+    "max_idle_intervals": 3,
+    "sleep_interval_seconds": 5
+  },
+  "fallback_behaviors": {
+    "mailbox_not_found": "initialize_new_mailbox",
+    "mailbox_corrupt": "log_error_reset_state",
+    "max_idle_reached": "log_warning_continue_loop"
+  },
+  "validation_suite_requirements": [
+    "tier1_log_ingestion",
+    "tier1_drift_detection",
+    "tier1_dummy_parsing"
+  ],
+  "dependencies": [
+    "scripts/agents/new_agent.py",
+    "runtime/agent_comms/agent_mailboxes/Agent-9.json"
+  ]
+} 

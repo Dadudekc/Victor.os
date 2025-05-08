@@ -1,0 +1,255 @@
+.
+├── [D] ai_docs/
+│   ├── [D] onboarding_training_protocols/
+│   ├── [D] project_specific_patterns/
+│   ├── [D] hidden_business_logic/
+│   ├── [D] architecture_design_docs/
+│   ├── [D] project_notes/
+│   ├── [D] codebase_overview/
+│   ├── [D] implementation_notes/
+│   ├── [D] onboarding/
+│   ├── [D] project_patterns/
+│   ├── [D] business_logic/
+│   ├── [D] best_practices/
+│   ├── [D] architecture_docs/
+│   ├── [D] architecture/
+│   ├── [D] api_docs_and_integrations/
+│   └── [D] agent_coordination/
+├── [D] specs/
+│   ├── [F] mission_updates.md
+│   ├── [F] PROJECT_PLAN.md
+│   ├── [F] current_tree.txt
+│   ├── [F] project_structure.txt
+│   ├── [F] README.md
+│   ├── [F] current_plan.md
+│   ├── [F] project_tree.txt
+│   └── [F] mission_status.md
+├── [D] runtime/
+│   ├── [D] logs/
+│   ├── [D] telemetry/
+│   ├── [D] validation/
+│   ├── [D] testlogs/
+│   ├── [D] plans/
+│   ├── [D] reports/
+│   ├── [D] events/
+│   ├── [D] modules/
+│   ├── [D] governance/
+│   ├── [D] corrupted/
+│   ├── [D] temp/
+│   ├── [F] agent_manifest_registry.json
+│   ├── [D] docs/
+│   ├── [D] agent_comms/
+│   ├── [D] schedule/
+│   ├── [D] config/
+│   ├── [D] analytics/
+│   ├── [D] tasks/
+│   ├── [D] inbox/
+│   ├── [D] temp_io_test/
+│   ├── [D] task_board/
+│   ├── [D] protocols/
+│   ├── [D] dreamscape/
+│   ├── [D] snapshots/
+│   ├── [D] temp_tasks/
+│   ├── [F] task_list.json
+│   ├── [F] .gitignore
+│   ├── [D] testing/
+│   ├── [F] todo_tracker.md
+│   ├── [F] task_ready_queue.json
+│   ├── [F] task_board.json
+│   ├── [D] specs/
+│   ├── [D] supervisor_outgoing/
+│   ├── [D] notes/
+│   ├── [D] manual_status_reports/
+│   ├── [D] devlog/
+│   ├── [D] agent_designs/
+│   ├── [D] agent_prototypes/
+│   ├── [D] bridge_analysis/
+│   ├── [D] agent_logs/
+│   ├── [D] assets/
+│   ├── [F] README.md
+│   ├── [D] thea_responses/
+│   ├── [F] human_directive.json
+│   ├── [D] supervisor_alerts/
+│   ├── [D] analysis_reports/
+│   ├── [D] operational_logs/
+│   ├── [D] state/
+│   ├── [D] queues/
+│   ├── [D] cursor/
+│   ├── [D] bus/
+│   ├── [D] cursor_processed/
+│   ├── [D] cursor_queue/
+│   ├── [D] memory/
+│   ├── [F] structured_events.jsonl
+│   ├── [D] council_user_data/
+│   └── [F] governance_memory.jsonl
+├── [D] sandbox/
+│   ├── [D] ironvale_stream_watcher/
+│   ├── [D] bridge/
+│   ├── [D] logs/
+│   ├── [D] bridge_validator/
+│   ├── [D] demo_scenario_knurlshade/
+│   ├── [D] ironvale_feedback/
+│   ├── [D] veindrill_envtelemetry/
+│   ├── [D] ironvale_injector/
+│   ├── [F] sample_task_input.txt
+│   ├── [D] ironvale_summarizer/
+│   ├── [D] module8_validator/
+│   ├── [D] module6_harness/
+│   ├── [D] module5_sync/
+│   ├── [D] module3_logging/
+│   ├── [D] module2_telemetry/
+│   ├── [D] module1_injector/
+│   ├── [D] reports/
+│   ├── [D] ironvale_recovery/
+│   ├── [D] utils/
+│   ├── [D] analysis/
+│   ├── [D] parser/
+│   ├── [D] tests/
+│   └── [D] scripts/
+├── [D] bridge/
+│   ├── [D] outgoing_feedback/
+│   ├── [F] feedback_module_report.json
+│   ├── [D] feedback/
+│   ├── [D] tests/
+│   ├── [D] docs/
+│   ├── [D] schemas/
+│   ├── [F] relay_module_report.json
+│   ├── [D] incoming_commands/
+│   └── [D] relay/
+├── [D] scripts/
+│   ├── [F] swarm_monitor.py
+│   ├── [F] gpt_cursor_relay.py
+│   ├── [F] test_file_integrity_recovery.py
+│   ├── [D] agents/
+│   ├── [F] bridge_mutation_impact_report.py
+│   ├── [F] mutation_test_bridge.py
+│   ├── [F] stress_test_bridge.py
+│   ├── [F] simulate_tool_timeout.py
+│   ├── [F] bridge_health_report.py
+│   ├── [F] analyze_latency_trends.py
+│   ├── [F] test_edit_file_failures.py
+│   ├── [F] test_thea_bridge_pipeline.py
+│   ├── [F] bridge_integrity_monitor.py
+│   ├── [F] thea_to_cursor_agent.py
+│   └── [F] monitor_bridge.py
+├── [F] gpt_command_schema.json
+├── [F] final_bridge_report.json
+├── [F] knurlshade_module3_completion_report.json
+├── [F] cursor_bridge_output_schema.json
+├── [D] analytics/
+│   ├── [F] temporal_ledger_auditor.py
+│   ├── [F] chrono_sentinel.py
+│   ├── [D] scripts/
+│   ├── [F] analytics_standards.json
+│   └── [D] docs/
+├── [F] drift_schema_v2.json
+├── [D] tests/
+│   ├── [D] unit/
+│   ├── [D] utils/
+│   ├── [D] tools/
+│   ├── [D] supervisor_tools/
+│   ├── [D] coordination/
+│   ├── [F] conftest.py
+│   ├── [F] __init__.py
+│   ├── [D] __pycache__/
+│   ├── [D] services/
+│   ├── [D] rendering/
+│   ├── [D] memory/
+│   ├── [D] integrations/
+│   ├── [D] hooks/
+│   ├── [D] dashboard/
+│   ├── [D] core/
+│   ├── [D] cli/
+│   ├── [D] scripts/
+│   ├── [D] agents/
+│   ├── [D] dreamscape/
+│   ├── [D] monitoring/
+│   ├── [D] adapters/
+│   ├── [D] automation/
+│   ├── [D] _archive/
+│   ├── [D] task_nexus/
+│   ├── [D] gui/
+│   ├── [D] monitors/
+│   ├── [D] feedback/
+│   ├── [D] llm_bridge/
+│   ├── [D] social/
+│   ├── [D] ui/
+│   └── [D] dreamforge/
+├── [D] .git/
+├── [F] bridge_blockers.md
+├── [F] pyproject.toml
+├── [D] docs/
+│   ├── [D] utils/
+│   ├── [D] core/
+│   ├── [D] proposals/
+│   ├── [D] testing/
+│   ├── [D] standards/
+│   ├── [D] swarm/
+│   ├── [D] architecture/
+│   ├── [D] schemas/
+│   ├── [D] designs/
+│   ├── [F] USER_ONBOARDING.md
+│   ├── [D] protocols/
+│   ├── [D] governance/
+│   ├── [D] examples/
+│   ├── [D] analysis/
+│   ├── [D] planning/
+│   ├── [D] policies/
+│   ├── [D] 04_concepts/
+│   ├── [D] guides/
+│   ├── [D] archive/
+│   ├── [F] DEVELOPER_GUIDE.md
+│   ├── [F] README.md
+│   ├── [D] communication/
+│   ├── [D] tools/
+│   ├── [D] runtime_notes/
+│   ├── [D] meta_lore/
+│   └── [D] analysis_reports/
+├── [F] future_tasks.json
+├── [F] requirements.txt
+├── [F] system_prompt.md
+├── [D] .ruff_cache/
+├── [F] .pre-commit-config.yaml
+├── [D] archive/
+│   └── [D] legacy_automation/
+├── [F] setup.py
+├── [F] .gitignore
+├── [F] project_analysis.json
+├── [F] chatgpt_project_context.json
+├── [D] .dreamos_cache/
+├── [F] .flake8
+├── [D] .venv/
+├── [D] _archive/
+│   ├── [F] import-graph.json
+│   ├── [D] scripts/
+│   └── [D] tests/
+├── [F] working_tasks.json
+├── [D] src/
+│   ├── [D] dreamos/
+│   ├── [D] __pycache__/
+│   ├── [D] tools/
+│   ├── [F] __init__.py
+│   └── [D] dreamscape/
+├── [F] orphaned-files.json
+├── [F] .prettierrc.json
+├── [F] import-graph.json
+├── [D] reports/
+├── [D] assets/
+├── [F] TASKS.md
+├── [F] CONTRIBUTING.md
+├── [F] README.md
+├── [F] LICENSE
+├── [D] node_modules/
+├── [F] package-lock.json
+├── [F] package.json
+├── [D] audit/
+├── [D] templates/
+├── [D] prompts/
+├── [D] apps/
+├── [D] .mypy_cache/
+├── [D] .github/
+├── [D] __pycache__/
+├── [F] pytest.ini
+├── [D] .cursor/
+├── [D] htmlcov/
+└── [D] .pytest_cache/

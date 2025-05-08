@@ -127,9 +127,12 @@ class ChatCycleController:
         """  # noqa: E501
         chat_title = chat.get("title", "Untitled")
         chat_link = chat.get("link")
+        # Extract new metadata with defaults
+        chat_last_active = chat.get("last_active_time") 
+        chat_snippet = chat.get("snippet")
 
-        logger.info(f"--- Processing chat: {chat_title} ---")
-        self.append_output(f"\n--- Processing chat: {chat_title} ---")
+        logger.info(f"--- Processing chat: {chat_title} (Last Active: {chat_last_active}, Snippet: {chat_snippet}) ---")
+        self.append_output(f"\n--- Processing chat: {chat_title} (Last Active: {chat_last_active}, Snippet: {chat_snippet}) ---")
 
         if not chat_link:
             logger.warning(f"⚠️ Missing chat link for {chat_title}. Skipping.")
@@ -156,7 +159,14 @@ class ChatCycleController:
                 self.append_output(f"❌ Failed to load prompt '{prompt_name}': {e}")
                 continue
 
-            response = self.executor.send_prompt_and_wait(prompt_text)
+            # Prepare context for prompt execution service
+            scraper_chat_context = {
+                "title": chat_title,
+                "link": chat_link,
+                "last_active_time": chat_last_active,
+                "snippet": chat_snippet
+            }
+            response = self.executor.send_prompt_and_wait(prompt_text, chat_context=scraper_chat_context)
 
             if not response:
                 logger.warning(
@@ -201,6 +211,9 @@ class ChatCycleController:
             "timestamp": datetime.now().isoformat(),
             "execution_time": f"{round(cycle_end_time - cycle_start_time, 2)}s",
             "chat_title": chat_title,
+            "chat_link": chat_link, # Adding link for completeness in summary
+            "chat_last_active": chat_last_active, # Adding metadata to summary
+            "chat_snippet": chat_snippet, # Adding metadata to summary
             "model": self.model,
             "prompt_count": len(prompt_names),
         }
@@ -222,8 +235,21 @@ class ChatCycleController:
     def run_single_chat(self, chat_link, prompt_name):
         """
         Runs a prompt on a single chat.
+        Assumes chat_link is enough to fetch context if needed, or that ChatScraperService.load_chat would fetch it.
+        For simplicity in this focused update, direct metadata extraction for single runs is not added here,
+        but ChatScraperService could be enhanced to provide it upon loading a chat by link.
         """
         chat_title = chat_link.split("/")[-1] or "Untitled"
+        # For single chat runs, we don't have the pre-fetched list metadata easily.
+        # The scraper would need to be enhanced to provide this upon loading a chat by link.
+        # For now, pass None for context or a minimal version.
+        scraper_chat_context = {
+            "title": chat_title,
+            "link": chat_link,
+            "last_active_time": None, # Placeholder, would require scraper enhancement
+            "snippet": None # Placeholder, would require scraper enhancement
+        }
+
         logger.info(f"🔍 Running single prompt '{prompt_name}' on chat: {chat_title}")
         self.append_output(
             f"🔍 Running single prompt '{prompt_name}' on chat: {chat_title}"
@@ -239,7 +265,7 @@ class ChatCycleController:
             self.append_output(f"❌ Failed to load prompt '{prompt_name}': {e}")
             return
 
-        response = self.executor.send_prompt_and_wait(prompt_text)
+        response = self.executor.send_prompt_and_wait(prompt_text, chat_context=scraper_chat_context)
 
         if not response:
             logger.warning(f"⚠️ No response from chat '{chat_title}'")

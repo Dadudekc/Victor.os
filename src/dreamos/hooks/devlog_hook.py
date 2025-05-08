@@ -3,6 +3,7 @@ import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Dict
+from filelock import AsyncFileLock, Timeout
 
 from dreamos.core.config import AppConfig
 
@@ -10,18 +11,26 @@ from dreamos.core.config import AppConfig
 from dreamos.core.coordination.agent_bus import AgentBus
 from dreamos.core.coordination.event_types import EventType
 from dreamos.utils.common_utils import get_utc_iso_timestamp
-from filelock import AsyncFileLock
 
 logger = logging.getLogger(__name__)
 
 
 class DevlogHook:
-    """
-    Listens for specific events on the AgentBus and writes formatted
-    entries to the central devlog file.
+    """Listens for significant system events on the AgentBus and logs them.
+
+    This hook subscribes to various event types (task completion/failure,
+    agent errors, protocol violations) and appends formatted summaries to the
+    central devlog file (`runtime/devlog/devlog.md`). It uses file locking
+    to prevent concurrent write issues.
     """
 
     def __init__(self, agent_bus: AgentBus, config: AppConfig):
+        """Initializes the DevlogHook.
+
+        Args:
+            agent_bus: The application's AgentBus instance for subscribing to events.
+            config: The loaded application configuration (AppConfig) for accessing paths.
+        """
         self.agent_bus = agent_bus
         self.config = config
         try:
@@ -45,7 +54,11 @@ class DevlogHook:
             self.devlog_path = None
 
     async def setup_subscriptions(self):
-        """Subscribes event handlers to the AgentBus."""
+        """Subscribes the hook's event handlers to the AgentBus.
+
+        This method should be called after the asyncio event loop is running
+        and the AgentBus is available.
+        """
         if not self.agent_bus or not self.lock:
             logger.error(
                 "Cannot setup DevlogHook subscriptions: AgentBus or lock not initialized."
@@ -74,7 +87,15 @@ class DevlogHook:
                 )
 
     async def _handle_task_event(self, event_data: Dict[str, Any]):
-        """Handles TASK_COMPLETED, TASK_FAILED, TASK_PERMANENTLY_FAILED events."""
+        """Handles task lifecycle events (completion, failure).
+
+        Extracts relevant information from the event data and formats a log entry.
+
+        Args:
+            event_data: The dictionary payload received from the AgentBus.
+                        Expected to contain keys like 'task_id', 'agent_id',
+                        'status', 'result_summary'/'result.summary', 'error'.
+        """
         try:
             # Assuming payload adheres to TaskEventPayload structure (needs validation)
             task_id = event_data.get("task_id", "UnknownTask")
@@ -99,7 +120,15 @@ class DevlogHook:
             )
 
     async def _handle_error_event(self, event_data: Dict[str, Any]):
-        """Handles AGENT_ERROR, SYSTEM_ERROR events."""
+        """Handles agent and system error events.
+
+        Extracts error details from the event data and formats a log entry.
+
+        Args:
+            event_data: The dictionary payload received from the AgentBus.
+                        Expected to conform loosely to BaseEvent structure with
+                        an 'error_payload' key containing 'message' and 'details'.
+        """
         try:
             source_id = event_data.get(
                 "source_id", "UnknownSource"
@@ -119,7 +148,14 @@ class DevlogHook:
             )
 
     async def _handle_protocol_violation(self, event_data: Dict[str, Any]):
-        """Handles AGENT_PROTOCOL_VIOLATION events."""
+        """Handles agent protocol violation events.
+
+        Extracts violation details from the event data and formats a log entry.
+
+        Args:
+            event_data: The dictionary payload received from the AgentBus.
+                        Expected to contain keys like 'agent_id', 'protocol', 'details'.
+        """
         try:
             # Payload structure might vary, adapt as needed
             violator_agent_id = event_data.get("agent_id", "UnknownAgent")
@@ -154,7 +190,11 @@ class DevlogHook:
     #          logger.error(f"Error handling agent status change for devlog: {e}. Data: {event_data}", exc_info=True)
 
     async def _write_log_entry(self, entry: str):
-        """Appends a formatted entry to the devlog file with locking."""
+        """Appends a timestamped entry to the devlog file using an async file lock.
+
+        Args:
+            entry: The formatted string message to append to the log.
+        """
         if not self.lock or not self.devlog_path:
             logger.error(
                 f"Cannot write devlog entry, hook not initialized correctly. Entry: {entry}"

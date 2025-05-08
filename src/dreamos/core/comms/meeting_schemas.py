@@ -9,6 +9,9 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
+# TODO (Masterpiece Review - Captain-Agent-8): Ensure UUID format consistency.
+#      This uses `str(uuid4())` (hyphenated), while mailbox_utils used `.hex`.
+#      Decide on one standard format (e.g., hex) for IDs across the system.
 def generate_uuid():
     return str(uuid4())
 
@@ -116,6 +119,9 @@ class MeetingManifest(BaseModel):
     facilitator_agent_id: Optional[str] = None
     # Participants list might be better in participants.json for easier updates
     # initial_invitees: List[str] = Field(default_factory=list)
+    # TODO (Masterpiece Review - Captain-Agent-8): Consider moving participant list
+    #      (currently commented out/not present) to a separate participants.json
+    #      to avoid frequent writes to the main manifest file.
 
 
 # Union type for easy parsing of messages read from files

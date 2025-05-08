@@ -1,0 +1,305 @@
+[2025-05-05T20:47:25.120201+00:00] Ironvale Summary Stream Watcher starting.
+[2025-05-05T20:47:25.166244+00:00] Monitoring D:\Dream.os\runtime/logs/bridge/gpt_to_cursor.jsonl
+[2025-05-05T20:47:25.167245+00:00] Appending summaries to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_log.jsonl
+[2025-05-05T20:47:25.168244+00:00] Starting GPT log watch from line 1
+[2025-05-05T20:47:25.169245+00:00] Cycle 1/25
+[2025-05-05T20:47:25.169245+00:00] No new entries detected.
+[2025-05-05T20:47:25.170246+00:00] Sleeping for 1s...
+[2025-05-05T20:47:26.171158+00:00] Cycle 2/25
+[2025-05-05T20:47:26.172159+00:00] No new entries detected.
+[2025-05-05T20:47:26.172159+00:00] Sleeping for 1s...
+[2025-05-05T20:47:27.174071+00:00] Cycle 3/25
+[2025-05-05T20:47:27.175072+00:00] No new entries detected.
+[2025-05-05T20:47:27.175072+00:00] Sleeping for 1s...
+[2025-05-05T20:47:28.176985+00:00] Cycle 4/25
+[2025-05-05T20:47:28.177986+00:00] No new entries detected.
+[2025-05-05T20:47:28.177986+00:00] Sleeping for 1s...
+[2025-05-05T20:47:29.179897+00:00] Cycle 5/25
+[2025-05-05T20:47:29.180898+00:00] No new entries detected.
+[2025-05-05T20:47:29.181902+00:00] Sleeping for 1s...
+[2025-05-05T20:47:30.183812+00:00] Cycle 6/25
+[2025-05-05T20:47:30.184812+00:00] No new entries detected.
+[2025-05-05T20:47:30.185814+00:00] ALERT: Stream stalled for 6 cycles. Creating watchdog flag.
+[2025-05-05T20:47:30.186815+00:00] Sleeping for 1s...
+[2025-05-05T20:47:31.189728+00:00] Cycle 7/25
+[2025-05-05T20:47:31.191730+00:00] No new entries detected.
+[2025-05-05T20:47:31.192731+00:00] Stream stalled for 7 cycles. Watchdog flag already present.
+[2025-05-05T20:47:31.192731+00:00] Sleeping for 1s...
+[2025-05-05T20:47:32.194642+00:00] Cycle 8/25
+[2025-05-05T20:47:32.195644+00:00] No new entries detected.
+[2025-05-05T20:47:32.196645+00:00] Stream stalled for 8 cycles. Watchdog flag already present.
+[2025-05-05T20:47:32.197646+00:00] Sleeping for 1s...
+[2025-05-05T20:47:33.200561+00:00] Cycle 9/25
+[2025-05-05T20:47:33.209568+00:00] No new entries detected.
+[2025-05-05T20:47:33.214574+00:00] Stream stalled for 9 cycles. Watchdog flag already present.
+[2025-05-05T20:47:33.233590+00:00] Sleeping for 1s...
+[2025-05-05T20:47:34.245514+00:00] Cycle 10/25
+[2025-05-05T20:47:34.248514+00:00] No new entries detected.
+[2025-05-05T20:47:34.249515+00:00] Stream stalled for 10 cycles. Watchdog flag already present.
+[2025-05-05T20:47:34.250516+00:00] Sleeping for 1s...
+[2025-05-05T20:47:35.251424+00:00] Cycle 11/25
+[2025-05-05T20:47:35.252425+00:00] No new entries detected.
+[2025-05-05T20:47:35.252425+00:00] Stream stalled for 11 cycles. Watchdog flag already present.
+[2025-05-05T20:47:35.253427+00:00] Sleeping for 1s...
+[2025-05-05T20:47:36.256337+00:00] Cycle 12/25
+[2025-05-05T20:47:36.257338+00:00] No new entries detected.
+[2025-05-05T20:47:36.258339+00:00] Stream stalled for 12 cycles. Watchdog flag already present.
+[2025-05-05T20:47:36.258339+00:00] Sleeping for 1s...
+[2025-05-05T20:47:37.260252+00:00] Cycle 13/25
+[2025-05-05T20:47:37.261252+00:00] No new entries detected.
+[2025-05-05T20:47:37.262253+00:00] Stream stalled for 13 cycles. Watchdog flag already present.
+[2025-05-05T20:47:37.263254+00:00] Sleeping for 1s...
+[2025-05-05T20:47:38.281181+00:00] Cycle 14/25
+[2025-05-05T20:47:38.286186+00:00] No new entries detected.
+[2025-05-05T20:47:38.287187+00:00] Stream stalled for 14 cycles. Watchdog flag already present.
+[2025-05-05T20:47:38.288188+00:00] Sleeping for 1s...
+[2025-05-05T20:47:39.289617+00:00] Cycle 15/25
+[2025-05-05T20:47:39.290621+00:00] No new entries detected.
+[2025-05-05T20:47:39.290621+00:00] Stream stalled for 15 cycles. Watchdog flag already present.
+[2025-05-05T20:47:39.292623+00:00] Sleeping for 1s...
+[2025-05-05T20:47:40.294534+00:00] Cycle 16/25
+[2025-05-05T20:47:40.300540+00:00] No new entries detected.
+[2025-05-05T20:47:40.302541+00:00] Stream stalled for 16 cycles. Watchdog flag already present.
+[2025-05-05T20:47:40.303544+00:00] Sleeping for 1s...
+[2025-05-05T20:47:41.323471+00:00] Cycle 17/25
+[2025-05-05T20:47:41.370514+00:00] No new entries detected.
+[2025-05-05T20:47:41.374518+00:00] Stream stalled for 17 cycles. Watchdog flag already present.
+[2025-05-05T20:47:41.376519+00:00] Sleeping for 1s...
+[2025-05-05T20:47:42.388951+00:00] Cycle 18/25
+[2025-05-05T20:47:42.391955+00:00] No new entries detected.
+[2025-05-05T20:47:42.392954+00:00] Stream stalled for 18 cycles. Watchdog flag already present.
+[2025-05-05T20:47:42.393956+00:00] Sleeping for 1s...
+[2025-05-05T20:47:43.416887+00:00] Cycle 19/25
+[2025-05-05T20:47:43.418889+00:00] No new entries detected.
+[2025-05-05T20:47:43.421892+00:00] Stream stalled for 19 cycles. Watchdog flag already present.
+[2025-05-05T20:47:43.424895+00:00] Sleeping for 1s...
+[2025-05-05T20:47:44.426807+00:00] Cycle 20/25
+[2025-05-05T20:47:44.427808+00:00] No new entries detected.
+[2025-05-05T20:47:44.428809+00:00] Stream stalled for 20 cycles. Watchdog flag already present.
+[2025-05-05T20:47:44.429809+00:00] Sleeping for 1s...
+[2025-05-05T20:47:45.432724+00:00] Cycle 21/25
+[2025-05-05T20:47:45.433725+00:00] No new entries detected.
+[2025-05-05T20:47:45.434725+00:00] Stream stalled for 21 cycles. Watchdog flag already present.
+[2025-05-05T20:47:45.434725+00:00] Sleeping for 1s...
+[2025-05-05T20:47:46.436635+00:00] Cycle 22/25
+[2025-05-05T20:47:46.437637+00:00] No new entries detected.
+[2025-05-05T20:47:46.437637+00:00] Stream stalled for 22 cycles. Watchdog flag already present.
+[2025-05-05T20:47:46.438637+00:00] Sleeping for 1s...
+[2025-05-05T20:47:47.440546+00:00] Cycle 23/25
+[2025-05-05T20:47:47.441547+00:00] No new entries detected.
+[2025-05-05T20:47:47.441547+00:00] Stream stalled for 23 cycles. Watchdog flag already present.
+[2025-05-05T20:47:47.442548+00:00] Sleeping for 1s...
+[2025-05-05T20:47:48.443460+00:00] Cycle 24/25
+[2025-05-05T20:47:48.444461+00:00] No new entries detected.
+[2025-05-05T20:47:48.445461+00:00] Stream stalled for 24 cycles. Watchdog flag already present.
+[2025-05-05T20:47:48.446462+00:00] Sleeping for 1s...
+[2025-05-05T20:47:49.448375+00:00] Cycle 25/25
+[2025-05-05T20:47:49.449376+00:00] No new entries detected.
+[2025-05-05T20:47:49.449376+00:00] Stream stalled for 25 cycles. Watchdog flag already present.
+[2025-05-05T20:47:49.450377+00:00] Sleeping for 1s...
+[2025-05-05T20:47:50.451362+00:00] Completed 25 monitoring cycles. Exiting.
+[2025-05-05T21:12:26.968855+00:00] Ironvale Summary Stream Watcher starting (Enhanced with Hash Verification).
+[2025-05-05T21:12:26.970857+00:00] Monitoring D:\Dream.os\runtime/logs/bridge/gpt_to_cursor.jsonl
+[2025-05-05T21:12:26.972859+00:00] Verifying against D:\Dream.os\runtime/logs/bridge/scraper_log.jsonl
+[2025-05-05T21:12:26.974861+00:00] Appending summaries to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_log.jsonl
+[2025-05-05T21:12:26.978864+00:00] Logging integrity to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_integrity_report.jsonl
+[2025-05-05T21:12:26.980866+00:00] Starting GPT log watch from line 1
+[2025-05-05T21:12:26.980866+00:00] Cycle 1/25
+[2025-05-05T21:12:26.981868+00:00] No new entries detected.
+[2025-05-05T21:12:26.982868+00:00] Sleeping for 1s...
+[2025-05-05T21:12:27.984777+00:00] Cycle 2/25
+[2025-05-05T21:12:27.985778+00:00] No new entries detected.
+[2025-05-05T21:12:27.986780+00:00] Sleeping for 1s...
+[2025-05-05T21:12:28.987704+00:00] Cycle 3/25
+[2025-05-05T21:12:28.988689+00:00] No new entries detected.
+[2025-05-05T21:12:28.988689+00:00] Sleeping for 1s...
+[2025-05-05T21:12:29.990603+00:00] Cycle 4/25
+[2025-05-05T21:12:29.993603+00:00] No new entries detected.
+[2025-05-05T21:12:29.994604+00:00] Sleeping for 1s...
+[2025-05-05T21:12:30.996515+00:00] Cycle 5/25
+[2025-05-05T21:12:30.997517+00:00] No new entries detected.
+[2025-05-05T21:12:30.998517+00:00] Sleeping for 1s...
+[2025-05-05T21:12:32.000445+00:00] Cycle 6/25
+[2025-05-05T21:12:32.001431+00:00] No new entries detected.
+[2025-05-05T21:12:32.001431+00:00] Stream stalled for 6 cycles. Watchdog flag already present.
+[2025-05-05T21:12:32.002431+00:00] Sleeping for 1s...
+[2025-05-05T21:12:33.003340+00:00] Cycle 7/25
+[2025-05-05T21:12:33.004342+00:00] No new entries detected.
+[2025-05-05T21:12:33.005342+00:00] Stream stalled for 7 cycles. Watchdog flag already present.
+[2025-05-05T21:12:33.006343+00:00] Sleeping for 1s...
+[2025-05-05T21:12:34.008255+00:00] Cycle 8/25
+[2025-05-05T21:12:34.009255+00:00] No new entries detected.
+[2025-05-05T21:12:34.010256+00:00] Stream stalled for 8 cycles. Watchdog flag already present.
+[2025-05-05T21:12:34.010256+00:00] Sleeping for 1s...
+[2025-05-05T21:12:35.026179+00:00] Cycle 9/25
+[2025-05-05T21:12:35.030183+00:00] No new entries detected.
+[2025-05-05T21:12:35.043194+00:00] Stream stalled for 9 cycles. Watchdog flag already present.
+[2025-05-05T21:12:35.051202+00:00] Sleeping for 1s...
+[2025-05-05T21:12:36.059120+00:00] Cycle 10/25
+[2025-05-05T21:12:36.060121+00:00] No new entries detected.
+[2025-05-05T21:12:36.062123+00:00] Stream stalled for 10 cycles. Watchdog flag already present.
+[2025-05-05T21:12:36.063123+00:00] Sleeping for 1s...
+[2025-05-05T21:12:37.067040+00:00] Cycle 11/25
+[2025-05-05T21:12:37.070042+00:00] No new entries detected.
+[2025-05-05T21:12:37.071043+00:00] Stream stalled for 11 cycles. Watchdog flag already present.
+[2025-05-05T21:12:37.072044+00:00] Sleeping for 1s...
+[2025-05-05T21:12:38.073957+00:00] Cycle 12/25
+[2025-05-05T21:12:38.075957+00:00] No new entries detected.
+[2025-05-05T21:12:38.076959+00:00] Stream stalled for 12 cycles. Watchdog flag already present.
+[2025-05-05T21:12:38.077959+00:00] Sleeping for 1s...
+[2025-05-05T21:12:39.079871+00:00] Cycle 13/25
+[2025-05-05T21:12:39.080873+00:00] No new entries detected.
+[2025-05-05T21:12:39.080873+00:00] Stream stalled for 13 cycles. Watchdog flag already present.
+[2025-05-05T21:12:39.081873+00:00] Sleeping for 1s...
+[2025-05-05T21:12:40.087789+00:00] Cycle 14/25
+[2025-05-05T21:12:40.089791+00:00] No new entries detected.
+[2025-05-05T21:12:40.090792+00:00] Stream stalled for 14 cycles. Watchdog flag already present.
+[2025-05-05T21:12:40.092794+00:00] Sleeping for 1s...
+[2025-05-05T21:12:41.095708+00:00] Cycle 15/25
+[2025-05-05T21:12:41.096710+00:00] No new entries detected.
+[2025-05-05T21:12:41.097710+00:00] Stream stalled for 15 cycles. Watchdog flag already present.
+[2025-05-05T21:12:41.098710+00:00] Sleeping for 1s...
+[2025-05-05T21:12:42.100623+00:00] Cycle 16/25
+[2025-05-05T21:12:42.125646+00:00] No new entries detected.
+[2025-05-05T21:12:42.128648+00:00] Stream stalled for 16 cycles. Watchdog flag already present.
+[2025-05-05T21:12:42.131652+00:00] Sleeping for 1s...
+[2025-05-05T21:12:43.152581+00:00] Cycle 17/25
+[2025-05-05T21:12:43.158587+00:00] No new entries detected.
+[2025-05-05T21:12:43.164592+00:00] Stream stalled for 17 cycles. Watchdog flag already present.
+[2025-05-05T21:12:43.165595+00:00] Sleeping for 1s...
+[2025-05-05T21:12:44.167505+00:00] Cycle 18/25
+[2025-05-05T21:12:44.168506+00:00] No new entries detected.
+[2025-05-05T21:12:44.169507+00:00] Stream stalled for 18 cycles. Watchdog flag already present.
+[2025-05-05T21:12:44.169507+00:00] Sleeping for 1s...
+[2025-05-05T21:12:45.175423+00:00] Cycle 19/25
+[2025-05-05T21:12:45.179426+00:00] No new entries detected.
+[2025-05-05T21:12:45.187434+00:00] Stream stalled for 19 cycles. Watchdog flag already present.
+[2025-05-05T21:12:45.194441+00:00] Sleeping for 1s...
+[2025-05-05T21:12:46.202358+00:00] Cycle 20/25
+[2025-05-05T21:12:46.204361+00:00] No new entries detected.
+[2025-05-05T21:12:46.205362+00:00] Stream stalled for 20 cycles. Watchdog flag already present.
+[2025-05-05T21:12:46.206363+00:00] Sleeping for 1s...
+[2025-05-05T21:12:47.212281+00:00] Cycle 21/25
+[2025-05-05T21:12:47.216283+00:00] No new entries detected.
+[2025-05-05T21:12:47.217283+00:00] Stream stalled for 21 cycles. Watchdog flag already present.
+[2025-05-05T21:12:47.218285+00:00] Sleeping for 1s...
+[2025-05-05T21:12:48.220198+00:00] Cycle 22/25
+[2025-05-05T21:12:48.221198+00:00] No new entries detected.
+[2025-05-05T21:12:48.222199+00:00] Stream stalled for 22 cycles. Watchdog flag already present.
+[2025-05-05T21:12:48.223199+00:00] Sleeping for 1s...
+[2025-05-05T21:12:49.225112+00:00] Cycle 23/25
+[2025-05-05T21:12:49.226113+00:00] No new entries detected.
+[2025-05-05T21:12:49.230116+00:00] Stream stalled for 23 cycles. Watchdog flag already present.
+[2025-05-05T21:12:49.234121+00:00] Sleeping for 1s...
+[2025-05-05T21:12:50.237599+00:00] Cycle 24/25
+[2025-05-05T21:12:50.238600+00:00] No new entries detected.
+[2025-05-05T21:12:50.240602+00:00] Stream stalled for 24 cycles. Watchdog flag already present.
+[2025-05-05T21:12:50.240602+00:00] Sleeping for 1s...
+[2025-05-05T21:12:51.243514+00:00] Cycle 25/25
+[2025-05-05T21:12:51.244515+00:00] No new entries detected.
+[2025-05-05T21:12:51.245516+00:00] Stream stalled for 25 cycles. Watchdog flag already present.
+[2025-05-05T21:12:51.246518+00:00] Sleeping for 1s...
+[2025-05-05T21:12:52.248427+00:00] Completed 25 monitoring cycles. Exiting.
+[2025-05-05T21:14:41.447988+00:00] Ironvale Summary Stream Watcher starting (Enhanced with Trust Scoring).
+[2025-05-05T21:14:41.451992+00:00] Monitoring D:\Dream.os\runtime/logs/bridge/gpt_to_cursor.jsonl
+[2025-05-05T21:14:41.452993+00:00] Verifying against D:\Dream.os\runtime/logs/bridge/scraper_log.jsonl
+[2025-05-05T21:14:41.453994+00:00] Appending summaries to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_log.jsonl
+[2025-05-05T21:14:41.453994+00:00] Logging integrity to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_integrity_report.jsonl
+[2025-05-05T21:14:41.455995+00:00] Starting GPT log watch from line 1
+[2025-05-05T21:14:41.455995+00:00] Cycle 1/25
+[2025-05-05T21:14:41.457998+00:00] No new entries detected.
+[2025-05-05T21:14:41.459998+00:00] Sleeping for 1s...
+[2025-05-05T21:14:42.462914+00:00] Cycle 2/25
+[2025-05-05T21:14:42.464915+00:00] No new entries detected.
+[2025-05-05T21:14:42.465915+00:00] Sleeping for 1s...
+[2025-05-05T21:14:43.467829+00:00] Cycle 3/25
+[2025-05-05T21:14:43.468828+00:00] No new entries detected.
+[2025-05-05T21:14:43.469829+00:00] Sleeping for 1s...
+[2025-05-05T21:14:44.471248+00:00] Cycle 4/25
+[2025-05-05T21:14:44.472249+00:00] No new entries detected.
+[2025-05-05T21:14:44.473250+00:00] Sleeping for 1s...
+[2025-05-05T21:14:45.475669+00:00] Cycle 5/25
+[2025-05-05T21:14:45.480674+00:00] No new entries detected.
+[2025-05-05T21:14:45.482676+00:00] Sleeping for 1s...
+[2025-05-05T21:14:46.485589+00:00] Cycle 6/25
+[2025-05-05T21:14:46.486590+00:00] No new entries detected.
+[2025-05-05T21:14:46.486590+00:00] Stream stalled for 6 cycles. Watchdog flag already present.
+[2025-05-05T21:14:46.487591+00:00] Sleeping for 1s...
+[2025-05-05T21:14:47.489503+00:00] Cycle 7/25
+[2025-05-05T21:14:47.490504+00:00] No new entries detected.
+[2025-05-05T21:14:47.490504+00:00] Stream stalled for 7 cycles. Watchdog flag already present.
+[2025-05-05T21:14:47.491505+00:00] Sleeping for 1s...
+[2025-05-05T21:14:48.493418+00:00] Cycle 8/25
+[2025-05-05T21:14:48.494419+00:00] No new entries detected.
+[2025-05-05T21:14:48.495420+00:00] Stream stalled for 8 cycles. Watchdog flag already present.
+[2025-05-05T21:14:48.495420+00:00] Sleeping for 1s...
+[2025-05-05T21:14:49.497332+00:00] Cycle 9/25
+[2025-05-05T21:14:49.498333+00:00] No new entries detected.
+[2025-05-05T21:14:49.499336+00:00] Stream stalled for 9 cycles. Watchdog flag already present.
+[2025-05-05T21:14:49.501336+00:00] Sleeping for 1s...
+[2025-05-05T21:14:50.503789+00:00] Cycle 10/25
+[2025-05-05T21:14:50.504789+00:00] No new entries detected.
+[2025-05-05T21:14:50.505790+00:00] Stream stalled for 10 cycles. Watchdog flag already present.
+[2025-05-05T21:14:50.506791+00:00] Sleeping for 1s...
+[2025-05-05T21:14:51.509706+00:00] Cycle 11/25
+[2025-05-05T21:14:51.513708+00:00] No new entries detected.
+[2025-05-05T21:14:51.515710+00:00] Stream stalled for 11 cycles. Watchdog flag already present.
+[2025-05-05T21:14:51.516711+00:00] Sleeping for 1s...
+[2025-05-05T21:14:52.520626+00:00] Cycle 12/25
+[2025-05-05T21:14:52.524629+00:00] No new entries detected.
+[2025-05-05T21:14:52.525631+00:00] Stream stalled for 12 cycles. Watchdog flag already present.
+[2025-05-05T21:14:52.526631+00:00] Sleeping for 1s...
+[2025-05-05T21:14:53.527543+00:00] Cycle 13/25
+[2025-05-05T21:14:53.528544+00:00] No new entries detected.
+[2025-05-05T21:14:53.529544+00:00] Stream stalled for 13 cycles. Watchdog flag already present.
+[2025-05-05T21:14:53.530545+00:00] Sleeping for 1s...
+[2025-05-05T21:14:54.532457+00:00] Cycle 14/25
+[2025-05-05T21:14:54.533459+00:00] No new entries detected.
+[2025-05-05T21:14:54.533459+00:00] Stream stalled for 14 cycles. Watchdog flag already present.
+[2025-05-05T21:14:54.534459+00:00] Sleeping for 1s...
+[2025-05-05T21:14:55.535368+00:00] Cycle 15/25
+[2025-05-05T21:14:55.536369+00:00] No new entries detected.
+[2025-05-05T21:14:55.536369+00:00] Stream stalled for 15 cycles. Watchdog flag already present.
+[2025-05-05T21:14:55.537370+00:00] Sleeping for 1s...
+[2025-05-05T21:14:56.538279+00:00] Cycle 16/25
+[2025-05-05T21:14:56.539280+00:00] No new entries detected.
+[2025-05-05T21:14:56.541281+00:00] Stream stalled for 16 cycles. Watchdog flag already present.
+[2025-05-05T21:14:56.542283+00:00] Sleeping for 1s...
+[2025-05-05T21:14:57.547198+00:00] Cycle 17/25
+[2025-05-05T21:14:57.550201+00:00] No new entries detected.
+[2025-05-05T21:14:57.551202+00:00] Stream stalled for 17 cycles. Watchdog flag already present.
+[2025-05-05T21:14:57.552202+00:00] Sleeping for 1s...
+[2025-05-05T21:14:58.553111+00:00] Cycle 18/25
+[2025-05-05T21:14:58.554112+00:00] No new entries detected.
+[2025-05-05T21:14:58.554112+00:00] Stream stalled for 18 cycles. Watchdog flag already present.
+[2025-05-05T21:14:58.555113+00:00] Sleeping for 1s...
+[2025-05-05T21:14:59.556199+00:00] Cycle 19/25
+[2025-05-05T21:14:59.557023+00:00] No new entries detected.
+[2025-05-05T21:14:59.558024+00:00] Stream stalled for 19 cycles. Watchdog flag already present.
+[2025-05-05T21:14:59.558024+00:00] Sleeping for 1s...
+[2025-05-05T21:15:00.559944+00:00] Cycle 20/25
+[2025-05-05T21:15:00.561938+00:00] No new entries detected.
+[2025-05-05T21:15:00.561938+00:00] Stream stalled for 20 cycles. Watchdog flag already present.
+[2025-05-05T21:15:00.562938+00:00] Sleeping for 1s...
+[2025-05-05T21:15:01.564848+00:00] Cycle 21/25
+[2025-05-05T21:15:01.565850+00:00] No new entries detected.
+[2025-05-05T21:15:01.566851+00:00] Stream stalled for 21 cycles. Watchdog flag already present.
+[2025-05-05T21:15:01.567851+00:00] Sleeping for 1s...
+[2025-05-05T21:15:02.569772+00:00] Cycle 22/25
+[2025-05-05T21:15:02.570764+00:00] No new entries detected.
+[2025-05-05T21:15:02.571765+00:00] Stream stalled for 22 cycles. Watchdog flag already present.
+[2025-05-05T21:15:02.571765+00:00] Sleeping for 1s...
+[2025-05-05T21:15:03.573677+00:00] Cycle 23/25
+[2025-05-05T21:15:03.576680+00:00] No new entries detected.
+[2025-05-05T21:15:03.577682+00:00] Stream stalled for 23 cycles. Watchdog flag already present.
+[2025-05-05T21:15:03.577682+00:00] Sleeping for 1s...
+[2025-05-05T21:15:04.579593+00:00] Cycle 24/25
+[2025-05-05T21:15:04.580594+00:00] No new entries detected.
+[2025-05-05T21:15:04.581597+00:00] Stream stalled for 24 cycles. Watchdog flag already present.
+[2025-05-05T21:15:04.582597+00:00] Sleeping for 1s...
+[2025-05-05T21:15:05.584508+00:00] Cycle 25/25
+[2025-05-05T21:15:05.585509+00:00] No new entries detected.
+[2025-05-05T21:15:05.586511+00:00] Stream stalled for 25 cycles. Watchdog flag already present.
+[2025-05-05T21:15:05.586511+00:00] Sleeping for 1s...
+[2025-05-05T21:15:06.588423+00:00] Completed 25 monitoring cycles. Exiting.
+[2025-05-05T21:15:06.590425+00:00] Writing trust histogram to D:\Dream.os\sandbox/ironvale_stream_watcher\summary_trust_histogram.json

@@ -9,9 +9,14 @@ import json
 import os
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 # Default path for structured event logs
-DEFAULT_LOG_PATH = os.path.join(os.getcwd(), "runtime", "structured_events.jsonl")
+# FIXME: Determine project root more robustly if this service is used widely.
+#        For now, assumes script is run from a context where Path.cwd() is project root
+#        or that this path is correctly resolved by the application.
+PROJECT_ROOT_ASSUMED = Path.cwd() # Or use a marker file based approach
+DEFAULT_LOG_PATH = PROJECT_ROOT_ASSUMED / "runtime" / "structured_events.jsonl"
 
 
 def log_structured_event(
@@ -26,9 +31,9 @@ def log_structured_event(
         source: Origin of the event (e.g., 'DreamOSMainWindow').
         log_file: Optional override for the log file path.
     """
-    path = log_file or DEFAULT_LOG_PATH
+    path = Path(log_file or DEFAULT_LOG_PATH)
     # Ensure directory exists
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     record = {
         "id": uuid.uuid4().hex,
         "timestamp": datetime.utcnow().isoformat() + "Z",

@@ -82,12 +82,23 @@ def cli(ctx, config_path):
     """Manage DreamOS Task Boards via the ProjectBoardManager."""
     ctx.ensure_object(dict)
     try:
-        app_config = AppConfig.load(config_file=config_path)
+        # EDIT START: Provide default config path if None
+        if config_path is None:
+            # Determine the default path relative to the project root
+            default_config_file = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
+            click.echo(f"No --config-path provided, attempting default: {default_config_file}", err=True)
+            effective_config_path = default_config_file
+        else:
+            effective_config_path = config_path
+
+        # Pass the effective path (which might be the default)
+        app_config = AppConfig.load(config_file=effective_config_path)
+        # EDIT END
         ctx.obj = ProjectBoardManager(config=app_config)
-        click.echo(
-            f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",  # noqa: E501
-            err=True,
-        )
+        # click.echo(
+        #     f"ProjectBoardManager initialized using config: {app_config.paths.project_root / 'runtime/config/config.yaml'}",  # noqa: E501
+        #     err=True,
+        # )
         config_display_path = getattr(app_config, "config_file_path", None)
         if not config_display_path and config_path:
             config_display_path = config_path

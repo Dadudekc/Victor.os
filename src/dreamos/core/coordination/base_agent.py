@@ -55,11 +55,7 @@ from dreamos.core.utils.performance_logger import PerformanceLogger
 # EDIT START: Remove redundant EventType import comment
 # EDIT END
 # {{ EDIT END }}
-# EDIT START: Remove placeholder definitions/comments
-# REMOVED global constant comment
-# {{ EDIT START: Remove placeholder statuses/payloads/event types - defined elsewhere }}
-# {{ EDIT END }}
-# {{ EDIT START: Placeholder for new event payload for validation failure }}
+# EDIT START: Placeholder for new event payload for validation failure
 # {{ EDIT END }}
 # {{ EDIT START: Placeholder for new EventType - should move to enum }}
 # {{ EDIT END }}
@@ -242,93 +238,111 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
                 f"Failed to publish event {event_type.name}: {e}", exc_info=True
             )
 
-    async def publish_task_accepted(self, task: TaskMessage):
-        """Publishes a TASK_ACCEPTED event."""
-        # {{ EDIT START: Use TaskEventPayload }}
-        payload = TaskEventPayload(
-            task_id=task.task_id,
-            status=TaskStatus.ACCEPTED,  # Status is key part of this event
-            task_type=task.task_type,
-            agent_id=self.agent_id,
-        )
-        await self._publish_event(
-            EventType.TASK_ACCEPTED, payload.__dict__, task.correlation_id
-        )
-        # {{ EDIT END }}
+    # EDIT START: Remove publish_task_accepted - PBM handles this
+    # async def publish_task_accepted(self, task: TaskMessage):
+    #     # ... (old code) ...
+    # EDIT END
 
-    async def publish_task_started(self, task: TaskMessage):
-        """Publishes a TASK_STARTED event."""
-        # {{ EDIT START: Use TaskEventPayload }}
-        payload = TaskEventPayload(
-            task_id=task.task_id,
-            status=TaskStatus.RUNNING,  # Status is key part of this event
-            task_type=task.task_type,
-            agent_id=self.agent_id,
-        )
-        await self._publish_event(
-            EventType.TASK_STARTED, payload.__dict__, task.correlation_id
-        )
-        # {{ EDIT END }}
-
-    async def publish_task_progress(
-        self, task: TaskMessage, progress: float, details: Optional[str] = None
-    ):
-        """Publishes a TASK_PROGRESS event."""
-        # {{ EDIT START: Use TaskProgressPayload }}
-        # Note: TaskProgressPayload inherits from TaskEventPayload
-        payload = TaskProgressPayload(
-            task_id=task.task_id,
-            status=TaskStatus.RUNNING,  # Task is still running when progress occurs
-            task_type=task.task_type,
-            agent_id=self.agent_id,
-            progress=progress,
-            details=details,
-        )
-        await self._publish_event(
-            EventType.TASK_PROGRESS, payload.__dict__, task.correlation_id
-        )
-        # {{ EDIT END }}
+    # EDIT START: Remove publish_task_started - PBM handles this
+    # async def publish_task_started(self, task: TaskMessage):
+    #     # ... (old code) ...
+    # EDIT END
+    
+    # EDIT START: Remove publish_task_progress - PBM should handle this
+    # async def publish_task_progress(...):
+    #     # ... (old code) ...
+    # EDIT END
 
     async def publish_task_completed(
         self, task: TaskMessage, result: Optional[Dict[str, Any]] = None
     ):
-        """Publishes a TASK_COMPLETED event."""
-        # {{ EDIT START: Use TaskCompletionPayload }}
+        """Marks a task as completed in the ProjectBoardManager.
+        Also publishes a generic TASK_COMPLETED event (for listeners not using PBM).
+        """
+        # EDIT START: Update task status via PBM
+        self.logger.info(f"Task {task.task_id} completed. Updating PBM.")
+        try:
+            await self.pbm.update_task_status(
+                task_id=task.task_id,
+                new_status=TaskStatus.COMPLETED,
+                result_summary=result.get("summary", "Completed successfully.") if result else "Completed successfully.",
+                # TODO: Consider adding full result payload to PBM if schema supports it
+            )
+            self.logger.info(f"PBM updated for completed task {task.task_id}")
+        except Exception as e:
+            self.logger.error(
+                f"Failed to update PBM for completed task {task.task_id}: {e}",
+                exc_info=True
+            )
+            # Publish agent error if PBM update fails?
+            await self.publish_agent_error(
+                 f"PBM update failed for completed task {task.task_id}",
+                 details={"pbm_error": str(e)},
+                 task_id=task.task_id
+            )
+        # EDIT END
+
+        # Publish generic completion event for non-PBM listeners
         payload = TaskCompletionPayload(
             task_id=task.task_id,
-            status=TaskStatus.COMPLETED,
-            task_type=task.task_type,
             agent_id=self.agent_id,
-            result=result if result is not None else {},
-        )
+            status=TaskStatus.COMPLETED.value,
+            result=result or {},
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        ).to_dict()
         await self._publish_event(
-            EventType.TASK_COMPLETED, payload.__dict__, task.correlation_id
+            EventType.TASK_COMPLETED,
+            payload_data=payload,
+            correlation_id=task.correlation_id,
         )
-        # {{ EDIT END }}
 
     async def publish_task_failed(
         self,
         task: TaskMessage,
         error: str,
-        is_final: bool = False,
+        is_final: bool = False, # PBM handles finality via status
         details: Optional[str] = None,
     ):
-        """Publishes a TASK_FAILED or TASK_PERMANENTLY_FAILED event."""
-        # {{ EDIT START: Use TaskFailurePayload }}
+        """Marks a task as failed in the ProjectBoardManager.
+        Also publishes a generic TASK_FAILED event (for listeners not using PBM).
+        """
+        # EDIT START: Update task status via PBM
+        self.logger.error(f"Task {task.task_id} failed. Updating PBM. Error: {error}")
+        try:
+            # Determine appropriate PBM status - PBM likely has its own FAILED status
+            # Assuming PBM uses TaskStatus enum directly
+            await self.pbm.update_task_status(
+                task_id=task.task_id,
+                new_status=TaskStatus.FAILED, # Or potentially map is_final?
+                result_summary=f"Failed: {error}" + (f" Details: {details}" if details else ""),
+            )
+            self.logger.info(f"PBM updated for failed task {task.task_id}")
+        except Exception as e:
+            self.logger.error(
+                f"Failed to update PBM for failed task {task.task_id}: {e}",
+                exc_info=True
+            )
+            await self.publish_agent_error(
+                 f"PBM update failed for failed task {task.task_id}",
+                 details={"pbm_error": str(e)}, 
+                 task_id=task.task_id
+            )
+        # EDIT END
+        
+        # Publish generic failure event
         payload = TaskFailurePayload(
             task_id=task.task_id,
-            status=TaskStatus.FAILED,
-            task_type=task.task_type,
             agent_id=self.agent_id,
             error=error,
+            details=details or "",
             is_final=is_final,
-            details=details,  # Add optional details here if needed
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        ).to_dict()
+        await self._publish_event(
+            EventType.TASK_FAILED,
+            payload_data=payload,
+            correlation_id=task.correlation_id,
         )
-        event_type = (
-            EventType.TASK_PERMANENTLY_FAILED if is_final else EventType.TASK_FAILED
-        )
-        await self._publish_event(event_type, payload.__dict__, task.correlation_id)
-        # {{ EDIT END }}
 
     async def publish_agent_error(
         self,
@@ -589,8 +603,6 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
                 )
                 # Should we proceed if we can't update status?
                 # For now, log and continue, but publish failure later if needed.
-
-            await self.publish_task_started(task)
 
             # Execute the handler
             result = await handler(task)

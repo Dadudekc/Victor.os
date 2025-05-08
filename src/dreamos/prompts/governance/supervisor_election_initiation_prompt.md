@@ -39,5 +39,4 @@ Per my authority as Supervisor 1 [or "Per Commander THEA's directive"], the firs
 
 This process is vital for our collective growth. Engage seriously, analyze thoroughly, and present thoughtful platforms if you choose to run.
 
-**Supervisor 1**
-```
+**Supervisor 1** 

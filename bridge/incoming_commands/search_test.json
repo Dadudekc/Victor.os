@@ -1,0 +1,8 @@
+{
+  "request_id": "search-test-001",
+  "timestamp": "2023-10-27T11:02:00Z",
+  "command_type": "codebase_search",
+  "parameters": {
+    "query": "Find functions related to payload processing"
+  }
+} 

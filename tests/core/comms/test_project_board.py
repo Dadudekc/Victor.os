@@ -421,3 +421,121 @@ class TestValidationLogic:
 # TODO: Add tests for update_global_task
 # TODO: Add tests for project-specific methods (get/set state, artifacts) if needed
 # TODO: Add tests for error conditions (locking timeouts, write failures - may require mocking)  # noqa: E501
+
+# {{ EDIT START: Add more test cases for validation and edge cases }}
+
+class TestUpdateTaskEdgeCases:
+
+    def test_update_task_on_future_board(self, board_manager: ProjectBoardManager, future_tasks_file: Path, working_tasks_file: Path):
+        """Test updating a task that only exists on the future board fails."""
+        task_id = "task_on_future"
+        agent_id = "AgentTest"
+        _write_json(future_tasks_file, [{"task_id": task_id, "status": "PENDING"}])
+        _write_json(working_tasks_file, [])
+
+        updates = {"notes": "Should not apply"}
+        # Expect update_task to return False or raise TaskNotFoundError when task not in working board
+        # Current PBM returns False if not found in working list
+        result = board_manager.update_task(task_id, agent_id, updates)
+        assert result is False
+        # Ensure future tasks remain unchanged
+        assert len(_read_json(future_tasks_file)) == 1
+        assert len(_read_json(working_tasks_file)) == 0
+
+    def test_update_task_on_completed_board(self, board_manager: ProjectBoardManager, completed_tasks_file: Path, working_tasks_file: Path):
+        """Test updating a task that only exists on the completed board fails."""
+        task_id = "task_on_completed"
+        agent_id = "AgentTest"
+        _write_json(completed_tasks_file, [{"task_id": task_id, "status": "COMPLETED"}])
+        _write_json(working_tasks_file, [])
+
+        updates = {"notes": "Should not apply"}
+        result = board_manager.update_task(task_id, agent_id, updates)
+        assert result is False
+        assert len(_read_json(completed_tasks_file)) == 1
+        assert len(_read_json(working_tasks_file)) == 0
+
+    def test_update_task_with_invalid_update_data_type(self, board_manager: ProjectBoardManager, working_tasks_file: Path):
+        """Test update fails if 'updates' is not a dictionary (basic check)."""
+        task_id = "task_invalid_update_type"
+        agent_id = "AgentTest"
+        _write_json(working_tasks_file, [{"task_id": task_id, "status": "WORKING"}])
+
+        invalid_updates = "not_a_dict"
+        # Expect TypeError or similar validation error
+        with pytest.raises(TypeError):
+             board_manager.update_task(task_id, agent_id, invalid_updates)
+        # Check task was not modified
+        working_tasks = _read_json(working_tasks_file)
+        assert len(working_tasks) == 1
+        assert "not_a_dict" not in str(working_tasks[0])
+
+class TestInternalValidation:
+
+    def test_validate_task_data_missing_id(self, board_manager: ProjectBoardManager):
+        """Test internal validation rejects task data missing task_id."""
+        invalid_data = {"summary": "Missing ID", "status": "PENDING"}
+        # Assume _validate_task_data raises ProjectBoardError or ValueError
+        with pytest.raises((ProjectBoardError, ValueError)):
+            board_manager._validate_task_data(invalid_data, is_new=True)
+
+    def test_validate_task_data_valid(self, board_manager: ProjectBoardManager):
+        """Test internal validation accepts minimally valid task data."""
+        valid_data = {"task_id": "valid-123", "summary": "Valid task", "status": "PENDING"}
+        try:
+            board_manager._validate_task_data(valid_data, is_new=True)
+        except (ProjectBoardError, ValueError) as e:
+            pytest.fail(f"Validation failed unexpectedly: {e}")
+
+    def test_validate_task_data_completed_missing_modified_files(self, board_manager: ProjectBoardManager):
+        """Test internal validation rejects COMPLETED status without modified_files."""
+        invalid_data = {
+            "task_id": "comp-no-files",
+            "summary": "Completed task",
+            "status": "COMPLETED", # Status requires modified_files
+            # missing 'modified_files': []
+        }
+        # Assume validation raises ProjectBoardError or ValueError
+        with pytest.raises((ProjectBoardError, ValueError), match=r"modified_files.*required.*COMPLETED"):
+            board_manager._validate_task_data(invalid_data, is_new=False) # Check existing task update
+
+    def test_validate_task_data_completed_with_modified_files(self, board_manager: ProjectBoardManager):
+        """Test internal validation accepts COMPLETED status with modified_files."""
+        valid_data = {
+            "task_id": "comp-with-files",
+            "summary": "Completed task",
+            "status": "COMPLETED",
+            "modified_files": ["src/file1.py"]
+        }
+        try:
+            board_manager._validate_task_data(valid_data, is_new=False)
+        except (ProjectBoardError, ValueError) as e:
+            pytest.fail(f"Validation failed unexpectedly for completed task with files: {e}")
+
+    # {{ EDIT START: Add tests for schema validation errors }}
+    def test_validate_task_data_schema_wrong_type(self, board_manager: ProjectBoardManager):
+        """Test internal validation rejects task data with incorrect field type based on schema."""
+        # Assumes schema requires 'priority' to be a string, not integer
+        invalid_data = {
+            "task_id": "schema-wrong-type",
+            "summary": "Task with wrong type",
+            "status": "PENDING",
+            "priority": 1 # Incorrect type
+        }
+        # Assumes _validate_task_data raises TaskValidationError for schema issues
+        with pytest.raises(TaskValidationError, match=r"Schema validation failed"):
+            board_manager._validate_task_data(invalid_data, is_new=True)
+
+    def test_validate_task_data_schema_missing_required(self, board_manager: ProjectBoardManager):
+        """Test internal validation rejects task data missing a schema-required field."""
+        # Assumes schema requires 'summary' field
+        invalid_data = {
+            "task_id": "schema-missing-req",
+            # 'summary': "Missing summary",
+            "status": "PENDING",
+        }
+        with pytest.raises(TaskValidationError, match=r"Schema validation failed"):
+            board_manager._validate_task_data(invalid_data, is_new=True)
+    # {{ EDIT END }}
+
+# {{ EDIT END }}

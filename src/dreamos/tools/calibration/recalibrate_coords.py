@@ -8,29 +8,25 @@ import sys
 import time
 from pathlib import Path
 
+# EDIT START: Import AppConfig
+from dreamos.core.config import load_app_config
+# EDIT END
+
 import portalocker  # Import portalocker for file locking
 import pyautogui
 
-# EDIT START: Remove find_project_root import and calculate root directly
-# # Assume project root is 3 levels up from src/tools/calibration
-# # Use the utility if available, otherwise fallback
-# try:
-#     from dreamos.utils import find_project_root
-#     PROJECT_ROOT = find_project_root(__file__)
-# except ImportError:
-#     logger.warning(
-#         "Could not import find_project_root, using relative path calculation."
-#     )
-#     PROJECT_ROOT = Path(__file__).resolve().parents[3]
-PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Calculate directly
+# EDIT START: Remove manual project_root calculation - use AppConfig
+# PROJECT_ROOT = Path(__file__).resolve().parents[3]  # Calculate directly
 # EDIT END
 
 # NOTE: Assumes a potentially nested structure like { "agent_id": { "element_key": [X, Y] } }  # noqa: E501
 #       or a flat structure { "agent_id.element_key": [X, Y] }.
 #       Let's target the NESTED structure for better organization.
-DEFAULT_COORDS_FILE = (
-    PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
-)  # Generic name now
+# EDIT START: Remove hardcoded default - derive from config in main
+# DEFAULT_COORDS_FILE = (
+#     PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
+# )  # Generic name now
+# EDIT END
 CAPTURE_DELAY_SECONDS = 5  # Time user has to position the mouse
 
 # Configure logger
@@ -162,6 +158,11 @@ def update_coords_file(
 
 
 def main():
+    # EDIT START: Load config and define default path
+    config = load_app_config()
+    default_coords_file_path = config.paths.runtime / "config" / "cursor_agent_coords.json"
+    # EDIT END
+
     parser = argparse.ArgumentParser(
         description="Interactively recalibrate screen coordinates."
     )
@@ -172,8 +173,10 @@ def main():
     parser.add_argument(
         "--file",
         type=Path,
-        default=DEFAULT_COORDS_FILE,
-        help=f"Path to the coordinates JSON file. Defaults to: {DEFAULT_COORDS_FILE}",
+        # EDIT START: Use config path as default
+        default=default_coords_file_path,
+        # EDIT END
+        help=f"Path to the coordinates JSON file. Defaults to: {default_coords_file_path}",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
 

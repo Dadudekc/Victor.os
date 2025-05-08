@@ -556,6 +556,78 @@ async def test_execute_command_real_complex_args(command_supervisor, mock_agent_
     assert published_event.payload["error"] is None
 
 
+# Note: Real tests rely on shell environment and python availability.
+
+# {{ EDIT START: Add tests for large output and hangs }}
+
+@pytest.mark.asyncio
+async def test_execute_command_real_large_output(command_supervisor, mock_agent_bus):
+    """Test executing a command that produces a large amount of output."""
+    command_id = "cmd_exec_large"
+    # Command to print 1MB of 'X' characters
+    test_command = "python -c \"print('X' * 1024 * 1024)\""
+    requester_id = "agent_large"
+    correlation_id = "corr_large"
+
+    request_event = SupervisorEvent(
+        event_type=EventType.COMMAND_EXECUTION_REQUEST,
+        sender_id=requester_id,
+        payload={"command": test_command},
+        correlation_id=correlation_id,
+    )
+    command_supervisor.approval_status[command_id] = ApprovalStatus.APPROVED
+
+    # Increase timeout slightly for potentially slower large output generation/capture
+    await command_supervisor.execute_command(command_id, request_event, timeout=15.0)
+
+    mock_agent_bus.publish.assert_called_once()
+    published_event = mock_agent_bus.publish.call_args[0][0]
+
+    assert published_event.event_type == EventType.COMMAND_EXECUTION_RESULT
+    assert published_event.payload["status"] == "completed"
+    assert published_event.payload["exit_code"] == 0
+    assert published_event.payload["error"] is None
+    # Check if output starts with 'X' (supervisor might truncate)
+    assert published_event.payload["stdout"].startswith('X')
+    assert len(published_event.payload["stdout"]) > 0 # Ensure some output was captured
+
+@pytest.mark.asyncio
+async def test_execute_command_real_timeout(command_supervisor, mock_agent_bus):
+    """Test command execution timeout."""
+    command_id = "cmd_exec_timeout"
+    # Command that sleeps longer than the timeout
+    test_command = "python -c \"import time; time.sleep(5)\""
+    requester_id = "agent_timeout"
+    correlation_id = "corr_timeout"
+    timeout_seconds = 1.0
+
+    request_event = SupervisorEvent(
+        event_type=EventType.COMMAND_EXECUTION_REQUEST,
+        sender_id=requester_id,
+        payload={"command": test_command},
+        correlation_id=correlation_id,
+    )
+    command_supervisor.approval_status[command_id] = ApprovalStatus.APPROVED
+
+    await command_supervisor.execute_command(command_id, request_event, timeout=timeout_seconds)
+
+    mock_agent_bus.publish.assert_called_once()
+    published_event = mock_agent_bus.publish.call_args[0][0]
+
+    assert published_event.event_type == EventType.COMMAND_EXECUTION_RESULT
+    assert published_event.payload["command_id"] == command_id
+    assert published_event.payload["command"] == test_command
+    assert published_event.payload["status"] == "timeout"
+    assert "timed out after" in published_event.payload["error"]
+    assert published_event.payload["exit_code"] is None # No exit code on timeout
+    assert published_event.payload["stdout"] is None # Or potentially partial output
+    assert published_event.payload["stderr"] is None
+
+
+# {{ EDIT END }}
+
 # TODO: Add test for large output if necessary (might be slow/resource intensive)
 # TODO: Add test for potential hangs if process writes excessively to stdout/stderr
-#       without being read (communicate() should handle this, but good to verify under stress).  # noqa: E501
+
+if __name__ == "__main__":
+    pytest.main()

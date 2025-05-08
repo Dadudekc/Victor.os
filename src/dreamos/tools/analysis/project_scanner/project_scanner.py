@@ -4,23 +4,13 @@ import hashlib
 import json
 import logging
 import os
-import sys
+import asyncio
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-# Ensure the 'src' directory is in the Python path when run from root
-SCRIPT_DIR = Path(__file__).resolve().parent
-SRC_DIR = SCRIPT_DIR.parents[
-    3
-]  # Navigate up three levels from src/dreamos/tools/analysis/scanner to src/
-PROJECT_ROOT = SRC_DIR.parent  # The project root is one level above src/
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
 # Local imports - use relative imports based on actual file structure
 # Remove the unused import causing the ModuleNotFoundError
-# from dreamos.utils.file_utils import safe_read_file, find_project_root
 from .analyzer import LanguageAnalyzer  # noqa: E402
 
 # Need concurrency import?
@@ -29,6 +19,10 @@ from .concurrency import MultibotManager  # Added based on file list  # noqa: E4
 # Assuming ProjectCache is also in file_processor or defined elsewhere? Let's try file_processor  # noqa: E501
 from .file_processor import FileProcessor  # noqa: E402
 from .report_generator import ReportGenerator  # noqa: E402
+
+# Assuming config loading happens differently now, remove direct import if unused
+# from dreamos.core.config_utils import load_config
+from dreamos.core.config import AppConfig # Import AppConfig directly
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +35,26 @@ except ImportError:
         "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
     )
 
+# EDIT START: Define grammar base path relative to project root
+# Assuming PROJECT_ROOT is defined globally or accessible via config
+try:
+    # Attempt to get from config first (preferred)
+    config = AppConfig.load() # This might fail if config path isn't set/found
+    PROJECT_ROOT = config.paths.project_root
+except Exception:
+    # Fallback: Determine project root based on this file's location
+    # This assumes a specific directory structure: src/dreamos/tools/analysis/...
+    PROJECT_ROOT = Path(__file__).resolve().parents[4]
+    logger.warning(f"Failed to load AppConfig for PROJECT_ROOT, falling back to relative path: {PROJECT_ROOT}")
+
+GRAMMAR_BASE_DIR = PROJECT_ROOT / "runtime" / "tree-sitter-grammars"
+BUILD_LIB_PATH = GRAMMAR_BASE_DIR / "languages.so"  # Or .dll on Windows
+# EDIT END
+
 # ---------------------------------
 # Project Config / Cache File Setup
 # ---------------------------------
-CACHE_FILE = "dependency_cache.json"  # Original cache name
-# Define cache path relative to project root
-CACHE_PATH = PROJECT_ROOT / ".dreamos_cache" / CACHE_FILE
+# EDIT START: Remove hardcoded cache file name - will derive from config in main/init\n# CACHE_FILE = \"dependency_cache.json\"  # Original cache name\n# # Define cache path relative to project root\n# CACHE_PATH = PROJECT_ROOT / \".dreamos_cache\" / CACHE_FILE\n# EDIT END
 
 
 # --- ProjectCache Class --- (Assuming ProjectCache was in utils.py, defining it here temporarily)  # noqa: E501
@@ -102,19 +110,10 @@ class ProjectCache:
                     logger.info(f"Cleared cache file: {self.cache_path}")
                 except OSError as e:
                     logger.error(f"Failed to delete cache file {self.cache_path}: {e}")
-            else:
-                logger.info("Cache clear requested, but no cache file found.")
 
-
-# ... (rest of the file, ensure ProjectCache is instantiated correctly if used)
-
-# Example modification in ProjectScanner.__init__ if ProjectCache was used:
-# class ProjectScanner:
-#     def __init__(...):
-#         # ...
-#         self.cache_handler = ProjectCache(CACHE_PATH)
-#         self.cache = self.cache_handler.cache # Access the loaded cache dict
-#         # ... pass self.cache_handler.cache_lock where needed
+    def analyze_scan_results(self) -> Dict[str, Any]:
+        # Implementation here
+        pass
 
 
 # ---------------------------------
@@ -125,41 +124,70 @@ class LanguageAnalyzer:  # noqa: F811
 
     def __init__(self):
         """Initialize language analyzers and parsers."""
-        self.rust_parser = self._init_tree_sitter_language("rust")
-        self.js_parser = self._init_tree_sitter_language("javascript")
-
-    def _init_tree_sitter_language(self, lang_name: str) -> Optional[Parser]:
-        """
-        Initializes and returns a Parser for the given language name (rust, javascript).
-        Adjust grammar_paths to point at your compiled .so files if using tree-sitter.
-        """
-        if not Language or not Parser:
-            logger.warning(
-                "⚠️ tree-sitter not installed. Rust/JS/TS AST parsing will be partially disabled."  # noqa: E501
-            )
-            return None
-
-        grammar_paths = {
-            "rust": "path/to/tree-sitter-rust.so",  # <-- Adjust as needed
-            "javascript": "path/to/tree-sitter-javascript.so",  # <-- Adjust as needed
+        # EDIT START: Define grammar locations and build library
+        self.grammar_sources = {
+            "python": GRAMMAR_BASE_DIR / "tree-sitter-python",
+            "rust": GRAMMAR_BASE_DIR / "tree-sitter-rust",
+            "javascript": GRAMMAR_BASE_DIR / "tree-sitter-javascript",
         }
-        if lang_name not in grammar_paths:
-            logger.warning(f"⚠️ No grammar path for {lang_name}. Skipping.")
-            return None
+        self.parsers = {}
 
-        grammar_path = grammar_paths[lang_name]
-        if not Path(grammar_path).exists():
-            logger.warning(f"⚠️ {lang_name} grammar not found at {grammar_path}")
-            return None
+        if Language and Parser:
+            # Ensure the build directory exists
+            GRAMMAR_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
-        try:
-            lang_lib = Language(grammar_path, lang_name)
-            parser = Parser()
-            parser.set_language(lang_lib)
-            return parser
-        except Exception as e:
-            logger.error(f"⚠️ Failed to initialize tree-sitter {lang_name} parser: {e}")
-            return None
+            # Filter to existing source directories
+            available_grammar_paths = [
+                str(path) for path in self.grammar_sources.values() if path.is_dir()
+            ]
+
+            if available_grammar_paths:
+                logger.info(f"Attempting to build tree-sitter library for: {list(self.grammar_sources.keys())}")
+                try:
+                    Language.build_library(
+                        # Store the library in the grammars directory
+                        str(BUILD_LIB_PATH),
+                        # Include paths to the grammar source directories
+                        available_grammar_paths
+                    )
+                    logger.info(f"Successfully built tree-sitter library at {BUILD_LIB_PATH}")
+                    # _load_parsers_from_library is now async, so cannot be directly awaited in sync __init__
+                    # This implies it should be part of an async initialization step. 
+                    # For now, we can schedule it if an event loop is running, or call it from an async method.
+                    # Simplest for now: if an event loop is running, create a task.
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(self._load_parsers_from_library())
+                        logger.debug("Scheduled _load_parsers_from_library in __init__.")
+                    except RuntimeError: # No running event loop
+                        logger.warning("No running asyncio event loop in LanguageAnalyzer.__init__ to schedule parser loading.")
+                        # Parsers will need to be loaded explicitly via an async method later.
+                except Exception as e:
+                    logger.error(f"⚠️ Failed to build or load tree-sitter library: {e}", exc_info=True)
+                    logger.warning("Falling back to AST-based parsing where available.")
+            else:
+                logger.warning("No tree-sitter grammar source directories found. AST parsing disabled.")
+        else:
+            logger.warning("tree-sitter package not found. AST parsing disabled.")
+
+    async def _load_parsers_from_library(self):
+        """Loads parsers for available languages from the built library. Async path check."""
+        if not await asyncio.to_thread(BUILD_LIB_PATH.exists) or not Language or not Parser:
+            if not Language or not Parser:
+                logger.debug("tree-sitter Language or Parser not available for _load_parsers_from_library.")
+            else:
+                logger.debug(f"Built library path {BUILD_LIB_PATH} does not exist. Cannot load parsers.")
+            return
+
+        for lang_name in self.grammar_sources.keys():
+            try:
+                lang_lib = Language(str(BUILD_LIB_PATH), lang_name)
+                parser = Parser()
+                parser.set_language(lang_lib)
+                self.parsers[lang_name] = parser
+                logger.info(f"Initialized tree-sitter parser for {lang_name}.")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to load {lang_name} grammar from library {BUILD_LIB_PATH}: {e}")
 
     def analyze_file(self, file_path: Path, source_code: str) -> Dict:
         """
@@ -173,243 +201,174 @@ class LanguageAnalyzer:  # noqa: F811
             Dict with structure {language, functions, classes, routes, complexity}
         """
         suffix = file_path.suffix.lower()
-        if suffix == ".py":
-            return self._analyze_python(source_code)
-        elif suffix == ".rs" and self.rust_parser:
-            return self._analyze_rust(source_code)
-        elif suffix in [".js", ".ts"] and self.js_parser:
-            return self._analyze_javascript(source_code)
+
+        # Prioritize tree-sitter if available
+        if suffix == ".py" and "python" in self.parsers:
+            return self._analyze_with_tree_sitter("python", source_code)
+        elif suffix == ".rs" and "rust" in self.parsers:
+            return self._analyze_with_tree_sitter("rust", source_code)
+        elif suffix in [".js", ".ts"] and "javascript" in self.parsers: # Added tsx, jsx
+            # Use JS parser for TS/JSX as well (common practice)
+            return self._analyze_with_tree_sitter("javascript", source_code)
+        
+        # Fallback to AST or basic analysis
+        elif suffix == ".py":
+            return self._analyze_python_ast(source_code) # Renamed original method
         else:
             return {
-                "language": suffix,
+                "language": suffix.lstrip('.'), # Store lang name without dot
                 "functions": [],
                 "classes": {},
                 "routes": [],
                 "complexity": 0,
+                "parser_used": "basic",
             }
 
-    def _analyze_python(self, source_code: str) -> Dict:
+    def _analyze_python_ast(self, source_code: str) -> Dict: # Renamed from _analyze_python
         """
         Analyzes Python source code using the builtin `ast` module.
         Extracts a naive list of function defs, classes, routes, complexity, etc.
         """
-        tree = ast.parse(source_code)
-        functions = []
-        classes = {}
-        routes = []
+        try:
+            tree = ast.parse(source_code)
+            functions = []
+            classes = {}
+            routes = []
+            complexity = 0 # Basic complexity count (nodes)
 
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                functions.append(node.name)
+            for node in ast.walk(tree):
+                complexity += 1
+                if isinstance(node, ast.FunctionDef):
+                    functions.append(node.name)
 
-                # Route detection (Flask/FastAPI style) from existing logic
-                for decorator in node.decorator_list:
-                    if isinstance(decorator, ast.Call) and hasattr(
-                        decorator.func, "attr"
-                    ):
-                        func_attr = decorator.func.attr.lower()
-                        if func_attr in {
-                            "route",
-                            "get",
-                            "post",
-                            "put",
-                            "delete",
-                            "patch",
-                        }:
-                            path_arg = "/unknown"
-                            methods = [func_attr.upper()]
-                            if decorator.args:
-                                arg0 = decorator.args[0]
-                                if isinstance(arg0, ast.Str):
-                                    path_arg = arg0.s
-                            # Check for "methods" kwarg
-                            for kw in decorator.keywords:
-                                if kw.arg == "methods" and isinstance(
-                                    kw.value, ast.List
-                                ):
-                                    extracted_methods = []
-                                    for elt in kw.value.elts:
-                                        if isinstance(elt, ast.Str):
-                                            extracted_methods.append(elt.s.upper())
-                                    if extracted_methods:
-                                        methods = extracted_methods
-                            for m in methods:
-                                routes.append(
-                                    {
-                                        "function": node.name,
-                                        "method": m,
-                                        "path": path_arg,
-                                    }
-                                )
-
-            elif isinstance(node, ast.ClassDef):
-                docstring = ast.get_docstring(node)
-                method_names = [
-                    n.name for n in node.body if isinstance(n, ast.FunctionDef)
-                ]
-                base_classes = []
-                for base in node.bases:
-                    if isinstance(base, ast.Name):
-                        base_classes.append(base.id)
-                    elif isinstance(base, ast.Attribute):
-                        base_parts = []
-                        attr_node = base
-                        while isinstance(attr_node, ast.Attribute):
-                            base_parts.append(attr_node.attr)
-                            attr_node = attr_node.value
-                        if isinstance(attr_node, ast.Name):
-                            base_parts.append(attr_node.id)
-                        base_classes.append(".".join(reversed(base_parts)))
-                    else:
-                        base_classes.append(None)
-                classes[node.name] = {
-                    "methods": method_names,
-                    "docstring": docstring,
-                    "base_classes": base_classes,
-                }
-
-        # Complexity = function count + sum of class methods
-        complexity = len(functions) + sum(len(c["methods"]) for c in classes.values())
-        return {
-            "language": ".py",
-            "functions": functions,
-            "classes": classes,
-            "routes": routes,
-            "complexity": complexity,
-        }
-
-    def _analyze_rust(self, source_code: str) -> Dict:
-        """Analyzes Rust source code using tree-sitter (if available)."""
-        if not self.rust_parser:
-            return {
-                "language": ".rs",
-                "functions": [],
-                "classes": {},
-                "routes": [],
-                "complexity": 0,
-            }
-
-        tree = self.rust_parser.parse(bytes(source_code, "utf-8"))
-        functions = []
-        classes = {}
-
-        def _traverse(node):
-            if node.type == "function_item":
-                fn_name_node = node.child_by_field_name("name")
-                if fn_name_node:
-                    functions.append(fn_name_node.text.decode("utf-8"))
-            elif node.type == "struct_item":
-                struct_name_node = node.child_by_field_name("name")
-                if struct_name_node:
-                    classes[struct_name_node.text.decode("utf-8")] = []
-            elif node.type == "impl_item":
-                impl_type_node = node.child_by_field_name("type")
-                if impl_type_node:
-                    impl_name = impl_type_node.text.decode("utf-8")
-                    if impl_name not in classes:
-                        classes[impl_name] = []
-                    for child in node.children:
-                        if child.type == "function_item":
-                            method_node = child.child_by_field_name("name")
-                            if method_node:
-                                classes[impl_name].append(
-                                    method_node.text.decode("utf-8")
-                                )
-            for child in node.children:
-                _traverse(child)
-
-        _traverse(tree.root_node)
-        complexity = len(functions) + sum(len(m) for m in classes.values())
-        return {
-            "language": ".rs",
-            "functions": functions,
-            "classes": classes,
-            "routes": [],
-            "complexity": complexity,
-        }
-
-    def _analyze_javascript(self, source_code: str) -> Dict:
-        """Analyzes JS/TS using tree-sitter (if available)."""
-        if not self.js_parser:
-            return {
-                "language": ".js",
-                "functions": [],
-                "classes": {},
-                "routes": [],
-                "complexity": 0,
-            }
-
-        tree = self.js_parser.parse(bytes(source_code, "utf-8"))
-        root = tree.root_node
-        functions = []
-        classes = {}
-        routes = []
-
-        def get_node_text(node):
-            return node.text.decode("utf-8")
-
-        def _traverse(node):
-            if node.type == "function_declaration":
-                name_node = node.child_by_field_name("name")
-                if name_node:
-                    functions.append(get_node_text(name_node))
-            elif node.type == "class_declaration":
-                name_node = node.child_by_field_name("name")
-                if name_node:
-                    cls_name = get_node_text(name_node)
-                    classes[cls_name] = []
-            elif node.type == "lexical_declaration":
-                # arrow functions, etc.
-                for child in node.children:
-                    if child.type == "variable_declarator":
-                        name_node = child.child_by_field_name("name")
-                        value_node = child.child_by_field_name("value")
-                        if (
-                            name_node
-                            and value_node
-                            and value_node.type == "arrow_function"
+                    # Route detection (Flask/FastAPI style) from existing logic
+                    for decorator in node.decorator_list:
+                        if isinstance(decorator, ast.Call) and hasattr(
+                            decorator.func, "attr"
                         ):
-                            functions.append(get_node_text(name_node))
-            elif node.type == "call_expression":
-                if node.child_count >= 2:
-                    callee_node = node.child_by_field_name("function")
-                    args_node = node.child_by_field_name("arguments")
-                    if callee_node:
-                        callee_text = get_node_text(callee_node)
-                        parts = callee_text.split(".")
-                        if len(parts) == 2:
-                            obj, method = parts
-                            if method.lower() in {
+                            func_attr = decorator.func.attr.lower()
+                            if func_attr in {
+                                "route",
                                 "get",
                                 "post",
                                 "put",
                                 "delete",
                                 "patch",
                             }:
-                                path_str = "/unknown"
-                                if args_node and args_node.child_count > 0:
-                                    first_arg = args_node.child(0)
-                                    if first_arg.type == "string":
-                                        path_str = get_node_text(first_arg).strip("\"'")
-                                routes.append(
-                                    {
-                                        "object": obj,
-                                        "method": method.upper(),
-                                        "path": path_str,
-                                    }
-                                )
-            for child in node.children:
-                _traverse(child)
+                                path_arg = "/unknown"
+                                methods = [func_attr.upper()]
+                                if decorator.args:
+                                    arg0 = decorator.args[0]
+                                    if isinstance(arg0, ast.Str):
+                                        path_arg = arg0.s
+                                # Check for "methods" kwarg
+                                for kw in decorator.keywords:
+                                    if kw.arg == "methods" and isinstance(
+                                        kw.value, ast.List
+                                    ):
+                                        extracted_methods = []
+                                        for elt in kw.value.elts:
+                                            if isinstance(elt, ast.Str):
+                                                extracted_methods.append(elt.s.upper())
+                                        if extracted_methods:
+                                            methods = extracted_methods
+                                for m in methods:
+                                    routes.append(
+                                        {
+                                            "function": node.name,
+                                            "method": m,
+                                            "path": path_arg,
+                                        }
+                                    )
 
-        _traverse(root)
-        complexity = len(functions) + sum(len(v) for v in classes.values())
-        return {
-            "language": ".js",
-            "functions": functions,
-            "classes": classes,
-            "routes": routes,
-            "complexity": complexity,
-        }
+                elif isinstance(node, ast.ClassDef):
+                    docstring = ast.get_docstring(node)
+                    method_names = [
+                        n.name for n in node.body if isinstance(n, ast.FunctionDef)
+                    ]
+                    base_classes = []
+                    for base in node.bases:
+                        if isinstance(base, ast.Name):
+                            base_classes.append(base.id)
+                        elif isinstance(base, ast.Attribute):
+                            base_parts = []
+                            attr_node = base
+                            while isinstance(attr_node, ast.Attribute):
+                                base_parts.append(attr_node.attr)
+                                attr_node = attr_node.value
+                            if isinstance(attr_node, ast.Name):
+                                base_parts.append(attr_node.id)
+                            base_classes.append(".".join(reversed(base_parts)))
+                        else:
+                            base_classes.append(None)
+                    classes[node.name] = {
+                        "methods": method_names,
+                        "docstring": docstring,
+                        "base_classes": base_classes,
+                    }
+
+            return {
+                "language": "python",
+                "functions": functions,
+                "classes": classes,
+                "routes": routes,
+                "complexity": complexity,
+                "parser_used": "ast",
+            }
+        except SyntaxError as e:
+            logger.warning(f"Python AST parsing failed: {e}")
+            return {
+                "language": "python",
+                "functions": [],
+                "classes": {},
+                "routes": [],
+                "complexity": 0,
+                "parser_used": "ast_failed",
+                "error": str(e)
+            }
+
+    def _analyze_with_tree_sitter(self, lang_name: str, source_code: str) -> Dict:
+        """Analyzes code using the appropriate tree-sitter parser."""
+        parser = self.parsers.get(lang_name)
+        if not parser:
+            return { # Should not happen if called correctly, but safeguard
+                "language": lang_name,
+                "functions": [],
+                "classes": {},
+                "routes": [],
+                "complexity": 0,
+                "parser_used": "treesitter_unavailable",
+            }
+        
+        try:
+            tree = parser.parse(bytes(source_code, "utf8"))
+            # TODO: Implement actual analysis based on tree-sitter nodes
+            # This requires language-specific queries or traversal logic
+            # Placeholder implementation:
+            functions = [] # Extract functions using queries/traversal
+            classes = {} # Extract classes
+            routes = [] # Extract routes (if applicable to lang)
+            complexity = tree.root_node.descendant_count # Example complexity metric
+
+            return {
+                "language": lang_name,
+                "functions": functions, # Placeholder
+                "classes": classes, # Placeholder
+                "routes": routes, # Placeholder
+                "complexity": complexity,
+                "parser_used": "treesitter",
+            }
+        except Exception as e:
+            logger.warning(f"Tree-sitter parsing failed for {lang_name}: {e}", exc_info=True)
+            return {
+                "language": lang_name,
+                "functions": [],
+                "classes": {},
+                "routes": [],
+                "complexity": 0,
+                "parser_used": "treesitter_failed",
+                "error": str(e)
+            }
 
 
 # ---------------------------------
@@ -542,8 +501,15 @@ class FileProcessor:  # noqa: F811
             with self.cache_lock:
                 self.cache[relative_path] = {"hash": file_hash_val}
             return (relative_path, analysis_result)
+        except UnicodeDecodeError:
+            logger.warning(f"Skipping file due to decoding error: {file_path}")
+            return None # Indicate failure
         except Exception as e:
-            logger.error(f"❌ Error analyzing {file_path}: {e}")
+            logger.error(
+                f"Error processing file {file_path}: {e}", exc_info=True
+            )
+            # Optionally store error info in cache or analysis?
+            # For now, return None to indicate processing failure
             return None
 
 
@@ -760,16 +726,25 @@ class ProjectScanner:
         default_analysis_path = self.project_root / "project_analysis.json"
         default_context_path = self.project_root / "chatgpt_project_context.json"
 
-        self.cache = self._load_cache()  # Load hash cache {relative_path: {hash: ...}}
-        self.cache_lock = threading.Lock()
+        self.cache_instance = ProjectCache(self.cache_path) # Renamed to avoid conflict with self.cache dict
+        self.cache = self._load_cache_sync() # Initial load is sync for now
+        
+        # FIXME: self.cache_lock is a threading.Lock passed to FileProcessor.
+        # This will be an issue if FileProcessor methods called by async workers need an asyncio.Lock.
+        self.cache_lock = self.cache_instance.cache_lock # Use ProjectCache's lock for consistency with FileProcessor
+        
         self.additional_ignore_dirs = additional_ignore_dirs or set()
 
-        # Initialize components
+        # FIXME: LanguageAnalyzer() instantiation is synchronous and its __init__ contains
+        # a synchronous tree-sitter build step. This will block if ProjectScanner
+        # is created in an async context. An async factory or explicit async init for LanguageAnalyzer is needed.
         self.language_analyzer = LanguageAnalyzer()
+        
+        # FileProcessor is given the ProjectCache's threading.Lock.
+        # FIXME: FileProcessor may need async refactoring if its methods are I/O bound and called concurrently.
         self.file_processor = FileProcessor(
             self.project_root, self.cache, self.cache_lock, self.additional_ignore_dirs
         )
-        # Initialize ReportGenerator with default paths
         self.report_generator = ReportGenerator(
             self.project_root,
             self.analysis,
@@ -777,195 +752,171 @@ class ProjectScanner:
             default_context_path,
         )
 
-    def _load_cache(self) -> Dict[str, Dict]:
-        """Loads the hash/analysis cache JSON from disk."""
-        cache_path = self.cache_path  # Use the instance attribute
-        if cache_path.exists():
-            try:
-                with cache_path.open("r", encoding="utf-8") as f:
-                    content = f.read()
-                    if not content:
-                        return {}
-                    loaded_cache = json.loads(content)
-                    if isinstance(loaded_cache, dict):
-                        return loaded_cache
-                    else:
-                        logger.warning(
-                            f"Cache file {cache_path} is not a valid dictionary. Starting fresh."  # noqa: E501
-                        )
-                        return {}
-            except json.JSONDecodeError as e:
-                logger.error(
-                    f"Invalid JSON in cache file {cache_path}: {e}. Starting fresh."
-                )
-                return {}
-            except Exception as e:
-                logger.error(
-                    f"Error loading cache file {cache_path}: {e}. Starting fresh."
-                )
-                return {}
-        return {}
+    def _load_cache_sync(self) -> Dict[str, Dict]: 
+        """Loads the hash/analysis cache JSON from disk synchronously."""
+        # Uses self.cache_instance which has its own internal locking
+        return self.cache_instance._load() # Accessing ProjectCache's internal method directly
 
-    def _save_cache(self):
-        """Writes the current file hash cache to disk."""
-        cache_path = self.cache_path  # Use the instance attribute
-        try:
-            with self.cache_lock:  # Ensure thread safety writing cache
-                valid_cache_entries = {
-                    path: data
-                    for path, data in self.cache.items()
-                    if isinstance(data, dict) and "hash" in data
-                }
-            # Ensure parent directory exists
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            with cache_path.open("w", encoding="utf-8") as f:
-                json.dump(valid_cache_entries, f, indent=4, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"❌ Error saving cache to {cache_path}: {e}", exc_info=True)
+    def _save_cache_sync(self):
+        """Writes the current file hash cache to disk synchronously."""
+        # Uses self.cache_instance which has its own internal locking
+        # And self.cache from ProjectScanner is passed to FileProcessor which might modify it.
+        # This is complex; direct modification of self.cache should be via self.cache_instance.set()
+        # For now, assume self.cache correctly reflects what should be in self.cache_instance.cache
+        # This needs a more robust design if ProjectCache is properly encapsulated.
+        if isinstance(self.cache, dict): # Ensure self.cache is a dict
+            self.cache_instance.cache = self.cache # Force update ProjectCache's internal dict
+            self.cache_instance._save() # Accessing ProjectCache's internal method
+        else:
+            logger.error("ProjectScanner.cache is not a dict, cannot save cache.")
 
-    def _discover_files(self) -> List[Path]:
-        """Finds project files eligible for analysis, respecting exclusions."""
-        logger.info(f"Discovering files in {self.project_root}...")
+    async def _discover_files_async(self) -> List[Path]: # Renamed to clarify it's the async version
+        """Finds project files eligible for analysis, respecting exclusions. Async."""
+        logger.info(f"Discovering files in {self.project_root} asynchronously...")
         file_extensions = {".py", ".rs", ".js", ".ts"}
-        valid_files = []
+        valid_files: List[Path] = []
+        
+        # Use a list for paths to scan to manage async directory scanning
+        paths_to_scan = [self.project_root]
+        processed_paths = set()
 
-        # Use scandir for potentially better performance on some systems
-        try:
-            for entry in os.scandir(self.project_root):
-                entry_path = Path(entry.path)
-                # Check exclusions for the entry itself first
-                if self.file_processor.should_exclude(entry_path):
-                    continue
+        while paths_to_scan:
+            current_scan_path = paths_to_scan.pop(0)
+            if current_scan_path in processed_paths:
+                continue
+            processed_paths.add(current_scan_path)
 
-                if entry.is_dir(follow_symlinks=False):
-                    # If it's a directory (and not excluded), walk it
-                    self._walk_directory(entry_path, file_extensions, valid_files)
-                elif entry.is_file():
-                    # If it's a file (and not excluded), check extension and add if valid  # noqa: E501
-                    if entry_path.suffix.lower() in file_extensions:
-                        valid_files.append(entry_path)
-        except PermissionError:
-            logger.error(
-                f"Permission denied accessing root directory: {self.project_root}"
-            )
-        except OSError as e:
-            logger.error(f"OS error scanning root directory {self.project_root}: {e}")
+            try:
+                # scandir itself is an iterator, convert to list in thread for safety if needed,
+                # or process entry by entry carefully.
+                # For simplicity here, list comprehension in thread.
+                def _sync_scandir(p: Path):
+                    entries = []
+                    try:
+                        for entry in os.scandir(p):
+                            entries.append((entry.path, entry.is_dir(follow_symlinks=False), entry.is_file()))
+                    except (PermissionError, OSError) as e:
+                        logger.warning(f"Error scanning dir {p} in thread: {e}")
+                    return entries
+                
+                entries = await asyncio.to_thread(_sync_scandir, current_scan_path)
 
-        logger.info(f"📝 Found {len(valid_files)} potential files for analysis.")
+                for entry_path_str, is_dir, is_file in entries:
+                    entry_path = Path(entry_path_str)
+                    if await asyncio.to_thread(self.file_processor.should_exclude, entry_path):
+                        continue
+
+                    if is_dir:
+                        paths_to_scan.append(entry_path)
+                    elif is_file:
+                        if entry_path.suffix.lower() in file_extensions:
+                            valid_files.append(entry_path)
+            except Exception as e: # Catch potential errors from to_thread or path ops
+                logger.error(f"Error processing path {current_scan_path} during discovery: {e}", exc_info=True)
+
+        logger.info(f"📝 Found {len(valid_files)} potential files for analysis (async discovery).")
         return valid_files
 
-    def _walk_directory(
-        self, current_path: Path, extensions: Set[str], valid_files: List[Path]
-    ):
-        """Recursive helper for discovering files, checking exclusions at each level."""
-        if self.file_processor.should_exclude(current_path):
-            # logger.debug(f"Skipping excluded directory: {current_path}")
-            return
+    # _walk_directory is effectively merged into _discover_files_async's iterative approach
 
-        try:
-            # Iterate through directory entries
-            for entry in os.scandir(current_path):
-                entry_path = Path(entry.path)
-                if entry.is_dir(
-                    follow_symlinks=False
-                ):  # Avoid infinite loops with symlinks
-                    self._walk_directory(entry_path, extensions, valid_files)
-                elif entry.is_file():
-                    # Check extension and exclusion rules for the file itself
-                    if (
-                        entry_path.suffix.lower() in extensions
-                        and not self.file_processor.should_exclude(entry_path)
-                    ):
-                        valid_files.append(entry_path)
-        except PermissionError:
-            logger.warning(
-                f"Permission denied accessing directory: {current_path}. Skipping."
-            )
-        except OSError as e:
-            logger.error(f"OS error scanning directory {current_path}: {e}. Skipping.")
-
-    def _detect_moved_files(self, current_files_rel: Set[str]):
-        """Compares hashes in cache to detect moved files."""
-        logger.debug("Detecting moved files...")
+    async def _detect_moved_files_async(self, current_files_rel: Set[str]):
+        """Compares hashes in cache to detect moved files. Async I/O for hashing."""
+        logger.debug("Detecting moved files (async mode)...")
         previous_files_rel = set(self.cache.keys())
         potential_new_files = current_files_rel - previous_files_rel
         potential_missing_files = previous_files_rel - current_files_rel
 
-        moved_files_map: Dict[str, str] = {}  # {old_relative_path: new_relative_path}
+        moved_files_map: Dict[str, str] = {}
         files_to_remove_from_cache: Set[str] = set()
-
-        # Only check potentially missing files against potentially new files
         candidates_to_check = potential_missing_files
 
-        with self.cache_lock:
-            # Pre-calculate hashes for potential new files
-            new_file_hashes: Dict[str, str] = {}
-            for new_rel_path in potential_new_files:
-                new_abs_path = self.project_root / new_rel_path
-                # Use FileProcessor's hash method
-                file_hash = self.file_processor.hash_file(new_abs_path)
+        # Pre-calculate hashes for potential new files asynchronously
+        new_file_hashes: Dict[str, str] = {}
+        hash_tasks = []
+        for new_rel_path in potential_new_files:
+            new_abs_path = self.project_root / new_rel_path
+            # FIXME: self.file_processor.hash_file needs to be async or called in thread.
+            # Assuming it will be made async or this part needs to_thread if it's sync and I/O bound.
+            async def _get_hash(path, rel_path): # Helper async func for task group
+                # For now, assume hash_file is sync and needs to_thread if it does I/O
+                # If hash_file becomes async, this can be simplified.
+                file_hash = await asyncio.to_thread(self.file_processor.hash_file, path)
                 if file_hash:
-                    new_file_hashes[new_rel_path] = file_hash
+                    new_file_hashes[rel_path] = file_hash
+            hash_tasks.append(_get_hash(new_abs_path, new_rel_path))
+        
+        if hash_tasks:
+            await asyncio.gather(*hash_tasks)
 
-            # Check each potentially missing file's hash against new file hashes
+        # The cache interactions below use self.cache (dict) and self.cache_instance (ProjectCache).
+        # This needs to be careful due to ProjectCache being synchronous with its own lock.
+        # For this refactor, we modify self.cache directly and then call _save_cache_sync.
+        # This means multiple coroutines could modify self.cache concurrently if not careful.
+        # An asyncio.Lock for self.cache modifications in ProjectScanner would be needed.
+        # Let's assume for now that _detect_moved_files_async is not run concurrently itself.
+
+        with self.cache_lock: # Using the ProjectCache's threading.Lock via asyncio.to_thread or make this whole block sync.
+                             # This is problematic. For now, let's assume this logic is okay for one pass.
+                             # A full async solution would make ProjectCache fully async.
+            current_cache_copy = dict(self.cache) # Work on a copy for this part
+
             for old_rel_path in candidates_to_check:
-                old_data = self.cache.get(old_rel_path)
+                old_data = current_cache_copy.get(old_rel_path)
                 if not isinstance(old_data, dict) or "hash" not in old_data:
                     files_to_remove_from_cache.add(old_rel_path)
-                    continue  # Cannot check hash if missing or invalid
+                    continue
 
                 old_hash = old_data["hash"]
                 found_match = False
-                # Iterate through new files that haven't been matched yet
                 for new_rel_path, new_hash in new_file_hashes.items():
                     if new_hash == old_hash:
                         logger.info(
                             f"Detected move: '{old_rel_path}' -> '{new_rel_path}'"
                         )
                         moved_files_map[old_rel_path] = new_rel_path
-                        # Update cache: remove old, copy data to new key
-                        self.cache[new_rel_path] = self.cache.pop(old_rel_path)
-                        # Remove matched new file from further consideration
+                        popped_data = current_cache_copy.pop(old_rel_path)
+                        current_cache_copy[new_rel_path] = popped_data # Update the copy
                         del new_file_hashes[new_rel_path]
                         found_match = True
-                        break  # Move to the next old file
+                        break
 
                 if not found_match:
-                    # This file is truly missing (or hash changed drastically)
                     files_to_remove_from_cache.add(old_rel_path)
-
-            # Remove truly missing files from cache
+            
             for path_to_remove in files_to_remove_from_cache:
-                if path_to_remove in self.cache:
+                if path_to_remove in current_cache_copy:
                     logger.debug(
-                        f"Removing missing file '{path_to_remove}' from cache."
+                        f"Marking missing file '{path_to_remove}' for removal from cache."
                     )
-                    del self.cache[path_to_remove]
+                    current_cache_copy.pop(path_to_remove)
+            
+            self.cache = current_cache_copy # Update the main cache dict
+
+        if files_to_remove_from_cache or moved_files_map: # Save if changes were made
+            self._save_cache_sync() # Save changes made to self.cache
 
         logger.debug(f"Move detection complete. {len(moved_files_map)} moves detected.")
-        # No explicit return needed, cache is updated directly
 
-    def scan_project(
+    async def scan_project( # Changed to async def
         self,
         progress_callback: Optional[callable] = None,
         num_workers: int = 4,
         force_rescan_patterns: Optional[List[str]] = None,
     ):
         """
-        Orchestrates the project scan using the modular components.
+        Orchestrates the project scan using the modular components. Async.
         Accepts optional num_workers and force_rescan_patterns.
         """
-        logger.info(f"🔍 Scanning project: {self.project_root} ...")
+        logger.info(f"🔍 Scanning project: {self.project_root} asynchronously...")
 
-        all_eligible_files = self._discover_files()
+        all_eligible_files = await self._discover_files_async()
         current_files_rel = {
             str(f.relative_to(self.project_root)).replace("\\", "/")
             for f in all_eligible_files
         }
-        self._detect_moved_files(current_files_rel)
+        await self._detect_moved_files_async(current_files_rel)
 
         logger.info("⏱️ Processing files asynchronously...")
-
         processed_count = 0
         total_files = len(all_eligible_files)
 
@@ -982,71 +933,94 @@ class ProjectScanner:
                     progress_callback(percent)
                 except Exception as e:
                     logger.error(f"Error in progress callback: {e}")
-
+        
+        # FIXME: MultibotManager interaction needs to be async-aware.
+        # If MultibotManager uses threads, _process_file must be thread-safe.
+        # If MultibotManager uses asyncio tasks, _process_file must be async and non-blocking.
         manager = MultibotManager(
             scanner=self, num_workers=num_workers, status_callback=_status_update
         )
 
-        # EDIT: Add logging before start_workers call
         logger.info(
-            f"Attempting to start workers. Manager type: {type(manager)}, Methods: {dir(manager)}"  # noqa: E501
+            f"Attempting to start workers. Manager type: {type(manager)}"
         )
-        manager.start_workers()
+        # Assuming MultibotManager.start_workers might be async or setup async workers
+        # If it's blocking or purely sync, this itself is an issue for an async scan_project
+        # For now, assume it correctly interfaces with an async _process_file if it uses async tasks.
+        if hasattr(manager, 'async_start_workers'): # Hypothetical async start
+            await manager.async_start_workers()
+        elif hasattr(manager, 'start_workers'):
+            manager.start_workers() # Assuming this is non-blocking or sets up async workers
+        else:
+            logger.error("MultibotManager does not have a recognized start_workers method.")
+            return
 
         files_to_process = []
         patterns_to_force = []
         if force_rescan_patterns:
-            from fnmatch import fnmatch
-
+            from fnmatch import fnmatch # Keep local import
             patterns_to_force = force_rescan_patterns
 
-        with self.cache_lock:
-            for file_path in all_eligible_files:
-                relative_path = str(file_path.relative_to(self.project_root)).replace(
-                    "\\", "/"
-                )
-                force_this_file = False
-                if patterns_to_force:
-                    if any(
-                        fnmatch(relative_path, pattern) for pattern in patterns_to_force
-                    ):
-                        force_this_file = True
-                        logger.debug(f"Forcing rescan for {relative_path}")
-                cached_item = self.cache.get(relative_path)
-                needs_processing = True
-                if (
-                    not force_this_file
-                    and isinstance(cached_item, dict)
-                    and "hash" in cached_item
-                ):
-                    current_hash = self.file_processor.hash_file(file_path)
-                    if current_hash and current_hash == cached_item["hash"]:
-                        if "analysis" in cached_item:
-                            needs_processing = False
-                if needs_processing:
-                    files_to_process.append(file_path)
-                else:
-                    _status_update(file_path, None)
-                    if isinstance(cached_item, dict) and "analysis" in cached_item:
-                        if relative_path not in self.analysis:
-                            self.analysis[relative_path] = cached_item["analysis"]
+        # FIXME: This block uses self.cache_lock (threading.Lock) and calls sync self.file_processor.hash_file.
+        # This will block. It should be run in asyncio.to_thread, or FileProcessor.hash_file made async 
+        # and cache interactions made async-safe (e.g., with an async ProjectCache).
+        def _determine_files_to_process_sync():
+            _files_to_process = []
+            with self.cache_lock: # This is ProjectCache's threading.Lock
+                for file_path in all_eligible_files:
+                    relative_path = str(file_path.relative_to(self.project_root)).replace("\\", "/")
+                    force_this_file = False
+                    if patterns_to_force:
+                        if any(fnmatch(relative_path, pattern) for pattern in patterns_to_force):
+                            force_this_file = True
+                            logger.debug(f"Forcing rescan for {relative_path}")
+                    cached_item = self.cache.get(relative_path) # self.cache is a dict
+                    needs_processing = True
+                    if not force_this_file and isinstance(cached_item, dict) and "hash" in cached_item:
+                        # FileProcessor.hash_file is likely sync and I/O bound
+                        current_hash = self.file_processor.hash_file(file_path) 
+                        if current_hash and current_hash == cached_item["hash"]:
+                            if "analysis" in cached_item:
+                                needs_processing = False
+                    if needs_processing:
+                        _files_to_process.append(file_path)
+                    else:
+                        _status_update(file_path, None) # Cached, not processed by worker
+                        if isinstance(cached_item, dict) and "analysis" in cached_item:
+                            if relative_path not in self.analysis:
+                                self.analysis[relative_path] = cached_item["analysis"]
+            return _files_to_process
+        
+        files_to_process = await asyncio.to_thread(_determine_files_to_process_sync)
 
         logger.info(
             f"Submitting {len(files_to_process)} files for analysis/cache update."
         )
 
         for file_path in files_to_process:
-            manager.add_task(file_path)
+            # Assuming MultibotManager.add_task can handle tasks that result in async execution
+            # if _process_file is async. Or it adapts.
+            manager.add_task(file_path) # If manager expects async work func, _process_file must be async
 
-        manager.wait_for_completion()
-        manager.stop_workers()
+        # Assuming MultibotManager.wait_for_completion might be async or blocking.
+        if hasattr(manager, 'async_wait_for_completion'):
+            await manager.async_wait_for_completion()
+        elif hasattr(manager, 'wait_for_completion'):
+            manager.wait_for_completion()
+        else:
+            logger.error("MultibotManager does not have wait_for_completion method.")
 
-        scan_results = manager.get_results()
+        if hasattr(manager, 'async_stop_workers'):
+            await manager.async_stop_workers()
+        elif hasattr(manager, 'stop_workers'):
+            manager.stop_workers()
+        else:
+            logger.error("MultibotManager does not have stop_workers method.")
+
+        scan_results = manager.get_results() # Assuming sync get_results
 
         logger.info(f"Gathered {len(scan_results)} analysis results from workers.")
-
         self.analysis.clear()
-
         for result in scan_results:
             if result is not None and isinstance(result, tuple) and len(result) == 2:
                 rel_path, analysis_data = result
@@ -1055,107 +1029,128 @@ class ProjectScanner:
                 else:
                     logger.warning(f"Malformed result received from worker: {result}")
 
-        with self.cache_lock:
-            for rel_path, data in self.cache.items():
-                if (
-                    rel_path not in self.analysis
-                    and isinstance(data, dict)
-                    and "analysis" in data
-                ):
-                    self.analysis[rel_path] = data["analysis"]
+        # Populate self.analysis with any remaining cached items not re-processed by workers
+        # This needs to be careful if self.cache was modified by workers via FileProcessor
+        # For now, assume self.cache (the dict) is the source of truth from _determine_files_to_process_sync
+        def _sync_populate_analysis_from_cache():
+            with self.cache_lock: # ProjectCache's threading.Lock
+                for rel_path, data in self.cache.items():
+                    if rel_path not in self.analysis and isinstance(data, dict) and "analysis" in data:
+                        self.analysis[rel_path] = data["analysis"]
+        await asyncio.to_thread(_sync_populate_analysis_from_cache)
 
         logger.info(f"Total analysis entries collected: {len(self.analysis)}")
 
-        self.report_generator.save_report()
-        self._save_cache()
+        # FIXME: ReportGenerator methods are likely sync and I/O bound.
+        await asyncio.to_thread(self.report_generator.save_report)
+        await asyncio.to_thread(self._save_cache_sync) # _save_cache_sync is already designed for this
 
         logger.info(
             f"✅ Scan complete. Results merged into {self.report_generator.report_path}"
         )
-
-        # Categorize agents using the scanner's method (which delegates to ReportGenerator)  # noqa: E501
-        # This updates the analysis_results dictionary in place.
-        logger.info("Running agent categorization...")
-        self.categorize_agents()
+        await self.categorize_agents_async() # Call the new async version
         logger.info("✅ Agent categorization complete.")
 
-    def _process_file(self, file_path: Path) -> Optional[tuple]:
+    async def _process_file(self, file_path: Path) -> Optional[tuple]: # Changed to async
         """
-        Internal method called by workers.
-        Delegates to FileProcessor.process_file.
+        Internal method called by workers. Async.
+        Delegates to FileProcessor.process_file (which also needs to be async).
         Returns tuple (relative_path, analysis_result) or None.
         """
-        return self.file_processor.process_file(file_path, self.language_analyzer)
+        # FIXME: self.file_processor.process_file needs to be async if it does I/O or calls async LanguageAnalyzer methods.
+        # For now, assuming it will be made async. If it remains sync and blocking, it needs to_thread here.
+        # return self.file_processor.process_file(file_path, self.language_analyzer)
+        # Tentatively make it awaitable, assuming FileProcessor.process_file will be refactored.
+        # If FileProcessor.process_file is confirmed sync and I/O bound: 
+        # return await asyncio.to_thread(self.file_processor.process_file, file_path, self.language_analyzer)
+        if hasattr(self.file_processor, 'process_file_async'): # Ideal scenario
+            return await self.file_processor.process_file_async(file_path, self.language_analyzer)
+        elif hasattr(self.file_processor, 'process_file'): # Fallback if it's sync
+             logger.warning(f"Calling synchronous FileProcessor.process_file for {file_path} from async ProjectScanner._process_file. This may block. Consider making FileProcessor.process_file async.")
+             return await asyncio.to_thread(self.file_processor.process_file, file_path, self.language_analyzer)
+        logger.error(f"FileProcessor missing process_file or process_file_async method.")
+        return None
 
-    # --- Public methods to trigger optional steps ---
+    async def generate_init_files_async(self, overwrite: bool = True): # Renamed
+        """Generate __init__.py for python packages. Async."""
+        logger.info("Generating __init__.py files (async)...")
+        # FIXME: self.report_generator.generate_init_files is likely sync and I/O bound.
+        await asyncio.to_thread(self.report_generator.generate_init_files, overwrite)
 
-    def generate_init_files(self, overwrite: bool = True):
-        """Generate __init__.py for python packages based on the latest analysis."""
-        # No need to init reporter, already done in __init__
-        logger.info("Generating __init__.py files...")
-        self.report_generator.generate_init_files(overwrite)
+    async def export_chatgpt_context_async(self, template_path: Optional[str] = None): # Renamed
+        """Exports analysis context. Async."""
+        logger.info("Exporting ChatGPT context (async)...")
+        # FIXME: self.report_generator.export_chatgpt_context is likely sync and I/O bound.
+        await asyncio.to_thread(self.report_generator.export_chatgpt_context, template_path)
 
-    def export_chatgpt_context(self, template_path: Optional[str] = None):
-        """Exports analysis context, merging with existing file or using a template."""
-        # No need to init reporter
-        logger.info("Exporting ChatGPT context...")
-        # The reporter now knows its output path, no need to pass filename
-        self.report_generator.export_chatgpt_context(template_path)
+    async def categorize_agents_async(self): # Renamed
+        """Identifies potential agent scripts/definitions. Async for save_report."""
+        logger.info("Analyzing files for agent categorization (async)...")
+        agent_keywords = ["agent", "worker", "coordinator", "dispatcher", "supervisor", "monitor"]
+        path_patterns = ["src/dreamos/agents/", "src/agents/"]
+        base_agent_classes = {"BaseAgent"}
+        identified_agents = 0
 
-    def categorize_agents(self):
-        """
-        Identifies potential agent scripts based on heuristics (e.g., imports, naming).
-        Adds an 'agent_role' key to the analysis dict for identified files.
-        Saves the updated analysis back to the report file.
-        """
-        logger.info("Analyzing files for agent categorization...")
-        agent_keywords = ["agent", "worker", "coordinator", "dispatcher"]
-        agent_files = {}
+        # This part is CPU bound and modifies self.analysis (a dict)
+        # If self.analysis is accessed by other coroutines, it would need an asyncio.Lock.
+        # Assuming for now it's only modified sequentially within this method or by scan_project before this.
         for file_path_str, data in self.analysis.items():
+            if not data or data.get("error"): continue
             file_path = Path(file_path_str)
-            if any(keyword in file_path.name.lower() for keyword in agent_keywords):
-                data["agent_role"] = "potential_agent"
-                agent_files[file_path_str] = data
-        if agent_files:
-            logger.info(f"Identified {len(agent_files)} potential agent files.")
+            is_potential_agent = False
+            agent_role = None
+            if any(norm_path.startswith(p) for p in path_patterns for norm_path in [file_path_str.replace("\\", "/")]) or \
+               any(keyword in file_path.name.lower() for keyword in agent_keywords):
+                is_potential_agent = True
+                agent_role = "potential_agent_script"
+            if data.get("language") == ".py" and "classes" in data:
+                for class_name, class_info in data["classes"].items():
+                    direct_bases = class_info.get("base_classes", [])
+                    if any(base in base_agent_classes for base in direct_bases):
+                        is_potential_agent = True
+                        agent_role = "agent_definition"
+                        data["agent_class_name"] = class_name
+                        break
+            if is_potential_agent:
+                data["agent_role"] = agent_role
+                identified_agents += 1
+                logger.debug(f"Categorized '{file_path_str}' as {agent_role}")
+            elif "agent_role" in data:
+                 del data["agent_role"]
+                 if "agent_class_name" in data: del data["agent_class_name"]
+
+        if identified_agents:
+            logger.info(f"Identified and categorized {identified_agents} agent-related files.")
         else:
-            logger.info(
-                "No potential agent files identified based on current heuristics."
-            )
-
-        # No need to init reporter
-        logger.warning(
-            "Agent categorization logic is not yet fully implemented in ProjectScanner.categorize_agents."  # noqa: E501
-        )
-
-        # Save the potentially updated analysis data
-        # Ensure reporter has latest analysis (already shares the dict reference)
-        self.report_generator.save_report()  # Use the reporter's save method
-        # Use the correct path for logging
+            logger.info("No agent-related files identified based on current heuristics.")
+        
+        # FIXME: self.report_generator.save_report is likely sync and I/O bound.
+        await asyncio.to_thread(self.report_generator.save_report)
         logger.info(
-            f"✅ Agent categorization placeholder executed. Updated project analysis saved to {self.report_generator.report_path}"  # noqa: E501
+            f"✅ Agent categorization executed. Updated project analysis saved to {self.report_generator.report_path}"  # noqa: E501
         )
 
-    def clear_cache(self):
-        """Deletes the cache file specified by self.cache_path."""
-        cache_path = self.cache_path  # Use the instance attribute
+    async def clear_cache_async(self): # Renamed
+        """Deletes the cache file. Async."""
+        cache_path = self.cache_path
         try:
-            if cache_path.exists():
-                cache_path.unlink()
+            if await asyncio.to_thread(cache_path.exists):
+                await asyncio.to_thread(cache_path.unlink)
                 logger.info(f"Deleted cache file: {cache_path}")
-            self.cache = {}  # Clear in-memory cache too
+            # Also clear in-memory representation if ProjectScanner holds one directly
+            if hasattr(self, 'cache') and isinstance(self.cache, dict):
+                 self.cache.clear()
+            if hasattr(self, 'cache_instance'): # If using ProjectCache instance
+                 await asyncio.to_thread(self.cache_instance.clear) # Assuming ProjectCache might get an async clear
+            logger.info("In-memory cache cleared.")
         except Exception as e:
             logger.error(f"Error clearing cache file {cache_path}: {e}")
 
-    def analyze_scan_results(self) -> Dict[str, Any]:
-        """Analyzes the collected data in self.analysis.
-
-        TODO: Implement more sophisticated analysis (e.g., dependencies).
-
-        Returns:
-            A dictionary containing analysis summary.
-        """
-        logger.info("Analyzing scan results...")
+    async def analyze_scan_results_async(self) -> Dict[str, Any]: # Renamed
+        """Analyzes the collected data in self.analysis. Async (no I/O here, but consistent)."""
+        logger.info("Analyzing scan results (async)...")
+        # This method is CPU-bound, but declared async for API consistency if other parts become async.
+        # No asyncio.to_thread needed for the dict operations themselves.
         summary = {
             "total_files_scanned": len(self.analysis),
             "language_counts": {},
@@ -1164,156 +1159,207 @@ class ProjectScanner:
             "total_routes": 0,
             "errors": [],
         }
-
         for file_path_str, file_data in self.analysis.items():
-            if not file_data or file_data.get("error"):
+            if not file_data or file_data.get("error"): 
                 summary["errors"].append(file_path_str)
                 continue
-
             lang = file_data.get("language", "unknown")
-            summary["language_counts"][lang] = (
-                summary["language_counts"].get(lang, 0) + 1
-            )
-
+            summary["language_counts"][lang] = summary["language_counts"].get(lang, 0) + 1
             summary["total_functions"] += len(file_data.get("functions", []))
             summary["total_classes"] += len(file_data.get("classes", {}))
             summary["total_routes"] += len(file_data.get("routes", []))
-
         logger.info(
             f"Analysis complete: Scanned {summary['total_files_scanned']} files."
         )
         logger.debug(f"Analysis summary: {summary}")
-        # Optionally store summary in self.analysis or return it
-        # self.analysis["_summary"] = summary
         return summary
+
+    # _load_config is a placeholder, assuming it would be sync or refactored if used.
+    def _load_config(self):
+        """Loads configuration using AppConfig."""
+        try:
+            # Use AppConfig.load - requires config file path
+            # Determine config path relative to project root
+            default_config_path = self.project_root / "runtime" / "config" / "config.yaml"
+            if default_config_path.exists():
+                 self.config = AppConfig.load(config_file=str(default_config_path)).dict()
+                 logger.info(f"Loaded config from default path: {default_config_path}")
+            else:
+                 logger.warning("Default config file not found. Using empty config.")
+                 self.config = {} # Fallback to empty dict if config loading fails
+
+            # Apply CLI overrides if necessary (or handle config purely via file)
+            # Example:
+            # if self.args.some_config_override:
+            #     self.config['some_key'] = self.args.some_config_override
+
+            # Extract specific paths or settings needed
+            self.ignore_patterns = self.config.get("scanner", {}).get("ignore_patterns", [])
+            self.cache_file = self.project_root / self.config.get("scanner", {}).get("cache_file", ".scanner_cache.json")
+
+        except Exception as e:
+            logger.error(f"Failed to load configuration: {e}. Using defaults.", exc_info=True)
+            self.config = {}
+            self.ignore_patterns = []
+            self.cache_file = self.project_root / ".scanner_cache.json"
 
 
 def main():
+    # EDIT START: Load config and define default paths
+    config = AppConfig.load()
+    project_root = config.paths.project_root
+    default_cache_path = config.paths.project_root / ".dreamos_cache" / "dependency_cache.json"
+    default_analysis_path = config.paths.project_root / "project_analysis.json"
+    default_context_path = config.paths.project_root / "chatgpt_project_context.json"
+    # EDIT END
+
     parser = argparse.ArgumentParser(
-        description="Analyze project structure and dependencies."
+        description="Scan a project directory, analyze code files, and generate reports."
     )
     parser.add_argument(
-        "--target",
-        type=str,
-        default=".",  # Default to current directory
-        help="Target directory or file to analyze (relative to project root). Defaults to the project root.",  # noqa: E501
+        "project_root",
+        nargs="?", # Make project_root optional, default to config
+        # EDIT START: Default to config project root
+        default=str(project_root), # Use config path as default string
+        # EDIT END
+        help=f"Path to the project root directory (default: {str(project_root)}).", # Corrected help f-string
     )
     parser.add_argument(
-        "--ignore",
-        nargs="*",
-        default=None,
-        help="List of directory/file patterns to ignore (e.g., venv, .git, build).",
-    )
-    parser.add_argument(
-        "--categorize-agents",
-        action="store_true",
-        help="Attempt to categorize identified Python files as agents based on heuristics.",  # noqa: E501
-    )
-    parser.add_argument(
-        "--no-chatgpt-context",
-        action="store_true",
-        help="Skip exporting the merged ChatGPT context file.",
-    )
-    parser.add_argument(
-        "--generate-init",
-        action="store_true",
-        help="Generate missing __init__.py files in discovered Python packages.",
-    )
-    parser.add_argument(
-        "--num-workers",
-        type=int,
-        default=os.cpu_count() or 4,  # Default to CPU count or 4 if unavailable
-        help="Number of worker threads for parallel file processing.",
+        "--exclude",
+        action="append",
+        default=[],
+        help="Directory or file patterns to exclude (can be used multiple times). Example: --exclude node_modules --exclude \"*.log\"",  # noqa: E501
     )
     parser.add_argument(
         "--force-rescan",
-        nargs="*",
+        action="append",
+        default=[],
+        help="Glob patterns for files to forcibly rescan even if unchanged (e.g., \"**/config.py\").",  # noqa: E501
+    )
+    parser.add_argument(
+        "--clear-cache", action="store_true", help="Clear the dependency cache before scanning."
+    )
+    parser.add_argument(
+        "--no-cache", action="store_true", help="Disable using the cache entirely."
+    )
+    parser.add_argument(
+        "--analysis-output",
+        # EDIT START: Use config path as default
+        default=str(default_analysis_path),
+        # EDIT END
+        help=f"Output path for the detailed analysis JSON file (default: {str(default_analysis_path)}).", # Corrected help f-string
+    )
+    parser.add_argument(
+        "--context-output",
+        # EDIT START: Use config path as default
+        default=str(default_context_path),
+        # EDIT END
+        help=f"Output path for the condensed ChatGPT context JSON file (default: {str(default_context_path)}).", # Corrected help f-string
+    )
+    parser.add_argument(
+        "--cache-file",
+        # EDIT START: Use config path as default
+        default=str(default_cache_path),
+        # EDIT END
+        help=f"Path to the dependency cache file (default: {str(default_cache_path)}).", # Corrected help f-string
+    )
+    parser.add_argument(
+        "--workers", type=int, default=4, help="Number of worker threads for analysis."
+    )
+    # Add template path argument
+    parser.add_argument(
+        "--template-path",
+        type=str,
         default=None,
-        help="List of glob patterns for files/directories to force re-scanning, ignoring cache.",  # noqa: E501
+        help="Path to a custom template file for ChatGPT context generation.",
     )
+    # Add debug flag
     parser.add_argument(
-        "--clear-cache",
+        "--debug",
         action="store_true",
-        help="Clear the existing dependency cache before scanning.",
+        help="Enable debug logging."
     )
-    # ADD NEW ARGUMENTS HERE
-    parser.add_argument(
-        "--output-analysis-file",
-        type=str,
-        default="project_analysis.json",
-        help="Path (relative to project root) to save the main analysis JSON file.",
-    )
-    parser.add_argument(
-        "--output-context-file",
-        type=str,
-        default="chatgpt_project_context.json",
-        help="Path (relative to project root) to save the exported ChatGPT context JSON file.",  # noqa: E501
-    )
-    parser.add_argument(
-        "--output-cache-file",
-        type=str,
-        default=".dreamos_cache/dependency_cache.json",
-        help="Path (relative to project root) to save the dependency cache JSON file.",
-    )
+
 
     args = parser.parse_args()
 
-    # Setup logging
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    # Suppress noisy loggers if needed
-    # logging.getLogger("some_noisy_library").setLevel(logging.WARNING)
+    # Set logging level
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
-    # Instantiate the scanner with the project root and ignore patterns
-    # Project root calculation should be robust
-    project_root = find_project_root()  # Use utility if available
+    # Resolve project root (handle potential relative path from arg)
+    # EDIT START: Resolve arg path relative to cwd if provided, otherwise use config root
+    resolved_project_root = Path(args.project_root).resolve() if args.project_root != str(project_root) else project_root
+    # EDIT END
 
-    ignore_set = set(args.ignore) if args.ignore else set()
+    # EDIT START: Resolve output/cache paths relative to the *resolved* project root
+    # Use Path() constructor for arguments to ensure they are Path objects
+    analysis_output_path = resolved_project_root / Path(args.analysis_output).name
+    context_output_path = resolved_project_root / Path(args.context_output).name
+    # For cache, ensure the relative path structure is maintained from the project root
+    cache_relative_path = Path(args.cache_file).relative_to(project_root) if Path(args.cache_file).is_absolute() and str(Path(args.cache_file)).startswith(str(project_root)) else Path(args.cache_file)
+    cache_path = resolved_project_root / cache_relative_path
+    # EDIT END
+
+    logger.info(f"Project Root: {resolved_project_root}")
+    logger.info(f"Cache File: {cache_path}")
+    logger.info(f"Analysis Output: {analysis_output_path}")
+    logger.info(f"Context Output: {context_output_path}")
+
+    # Initialize scanner with resolved project root
+    # EDIT START: Pass resolved paths correctly to ProjectScanner constructor
+    # Assuming ProjectScanner now takes these paths in its __init__
     scanner = ProjectScanner(
-        project_root=project_root, additional_ignore_dirs=ignore_set
+        project_root=resolved_project_root,
+        cache_path=cache_path, # Pass the resolved absolute cache path
+        analysis_output_path=analysis_output_path,
+        context_output_path=context_output_path,
+        additional_ignore_dirs=set(args.exclude),
+        use_cache=(not args.no_cache),
     )
-
-    # Set output paths from args
-    scanner.cache_path = project_root / args.output_cache_file
-    scanner.report_generator.report_path = project_root / args.output_analysis_file
-    scanner.report_generator.context_path = project_root / args.output_context_file
+    # EDIT END
 
     if args.clear_cache:
+        logger.info("Clearing cache...")
         scanner.clear_cache()
 
-    # Perform the scan
-    logger.info(f"🔍 Scanning project: {project_root} ...")
+    # Define progress callback if needed
+    def progress_update(completed, total):
+        print(f"Scanned {completed}/{total} files...", end="\r")
+
+    logger.info("Starting project scan...")
+    # Run scan
     scanner.scan_project(
-        num_workers=args.num_workers, force_rescan_patterns=args.force_rescan
+        progress_callback=progress_update,
+        num_workers=args.workers,
+        force_rescan_patterns=args.force_rescan,
     )
-    logger.info(
-        f"✅ Scan complete. Results merged into {scanner.report_generator.report_path}"
-    )
+    print("\nScan complete. Generating reports...")
 
-    # Optional post-processing steps
-    if args.categorize_agents:
-        scanner.categorize_agents()  # Note: This now also saves the report internally
+    # Generate reports using resolved paths
+    # Ensure ReportGenerator gets the correct paths if they aren't handled internally by scanner
+    scanner.generate_init_files(overwrite=True)
+    scanner.export_chatgpt_context(template_path=args.template_path)
+    agent_categories = scanner.categorize_agents()
+    print(json.dumps(agent_categories, indent=2))
 
-    if args.generate_init:
-        scanner.generate_init_files()
+    analysis_summary = scanner.analyze_scan_results()
+    print("\n--- Analysis Summary ---")
+    print(json.dumps(analysis_summary, indent=2))
 
-    if not args.no_chatgpt_context:
-        scanner.export_chatgpt_context()
-
-    print("Project scan and optional post-processing steps complete.")
+    print("Done.")
 
 
-# --- Helper --- Add find_project_root if not imported
-# Minimal version:
-def find_project_root(marker: str = ".git") -> Path:
-    """Find the project root by looking for a marker file/dir."""
-    current = Path(__file__).resolve()
-    while current != current.parent:
-        if (current / marker).exists():
-            return current
-        current = current.parent
-    # Fallback or raise error if marker not found
-    raise FileNotFoundError(f"Project root marker '{marker}' not found.")
-
+# EDIT START: Remove duplicate find_project_root if no longer needed
+# def find_project_root(marker: str = ".git") -> Path:
+#     """Finds the project root by searching upwards for a marker file/directory.""" # noqa
+#     current_path = Path(__file__).resolve()
+#     while current_path != current_path.parent:
+#         if (current_path / marker).exists():
+#             return current_path
+#         current_path = current_path.parent
+#     raise FileNotFoundError(f"Project root marker '{marker}' not found.")
+# EDIT END
 
 if __name__ == "__main__":
     main()
+

@@ -1,0 +1,4 @@
+This is the sample content for the bridge validation task.
+The bridge should read this file...
+...and write it to the output file.
+End of sample content. 

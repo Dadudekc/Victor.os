@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import logging
 
 import yaml
 
@@ -197,6 +198,13 @@ if __name__ == "__main__":
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
         print(f"Added {src_path} to sys.path for imports")
+
+    # Configure logging for script execution
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        stream=sys.stderr, # Explicitly send to stderr to not mix with stdout report
+    )
 
     # Now the import should work if the structure is correct
     # This allows the 'from dreamos.utils.common_utils import ...' at the top level

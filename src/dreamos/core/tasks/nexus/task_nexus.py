@@ -7,7 +7,7 @@ import json
 import logging
 import threading
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -16,10 +16,12 @@ from pydantic import BaseModel, Field, ValidationError
 # Assuming PROJECT_ROOT is defined elsewhere or calculated reliably
 # For simplicity, calculate relative to this file if needed, but prefer central config
 try:
-    from dreamos.core.config import PROJECT_ROOT
+    # Try to use the centrally defined project root if available
+    from dreamos.utils.project_root import find_project_root
+    PROJECT_ROOT = find_project_root()
 except ImportError:
     logging.warning(
-        "Could not import PROJECT_ROOT from core config, calculating relatively."
+        "Could not import find_project_root from dreamos.utils.project_root, calculating PROJECT_ROOT relatively. This might be less robust."
     )
     PROJECT_ROOT = Path(__file__).resolve().parents[4]  # Adjust depth if needed
 
@@ -36,8 +38,8 @@ class Task(BaseModel):
     description: str
     status: str = "pending"  # Default status
     priority: str = "medium"
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     claimed_by: Optional[str] = None
     result: Optional[Any] = None
     tags: List[str] = Field(default_factory=list)
@@ -110,7 +112,7 @@ class TaskNexus:
 
                     task.status = "claimed"
                     task.claimed_by = agent_id if agent_id else "unknown_agent"
-                    task.updated_at = datetime.utcnow().isoformat()
+                    task.updated_at = datetime.now(timezone.utc).isoformat()
                     self._save()  # Save immediately after claiming
                     logger.info(f"Task {task.task_id} claimed by {task.claimed_by}")
                     return task
@@ -129,8 +131,8 @@ class TaskNexus:
 
                 # Set defaults if not present
                 task_dict.setdefault("status", "pending")
-                task_dict.setdefault("created_at", datetime.utcnow().isoformat())
-                task_dict.setdefault("updated_at", datetime.utcnow().isoformat())
+                task_dict.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+                task_dict.setdefault("updated_at", datetime.now(timezone.utc).isoformat())
 
                 new_task = Task(**task_dict)
                 self.tasks.append(new_task)
@@ -152,7 +154,7 @@ class TaskNexus:
             for task in self.tasks:
                 if task.task_id == task_id:
                     task.status = status
-                    task.updated_at = datetime.utcnow().isoformat()
+                    task.updated_at = datetime.now(timezone.utc).isoformat()
                     if result is not None:
                         task.result = result
                     # Unclaim if completed or failed?

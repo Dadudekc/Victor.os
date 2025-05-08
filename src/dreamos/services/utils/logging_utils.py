@@ -7,6 +7,8 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from dreamos.utils.common_utils import get_utc_iso_timestamp
+
 # EDIT START: Remove direct basicConfig call. Configuration should be handled centrally.
 # # Configure root logger
 # logging.basicConfig(
@@ -34,7 +36,7 @@ def log_event(
     event_data = {
         "type": event_type,
         "message": message,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": get_utc_iso_timestamp(),
         **(metadata or {}),
     }
 

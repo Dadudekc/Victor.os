@@ -1,0 +1,671 @@
+2025-05-05 15:47:27,019 - INFO - --- Bridge Loop Sentinel Initializing ---
+2025-05-05 15:47:27,019 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:27,019 - INFO - Input file unchanged. Cycles since last change: 1
+2025-05-05 15:47:27,020 - INFO - Found new prompt: ID cursor-prompt-001
+2025-05-05 15:47:27,020 - INFO - Relaying prompt_id: cursor-prompt-001
+2025-05-05 15:47:27,020 - INFO - Simulating GPT call for prompt: 'Hello GPT, this is a test from Cursor....'
+2025-05-05 15:47:27,020 - INFO - Simulated GPT response generated.
+2025-05-05 15:47:27,022 - INFO - Successfully wrote response for prompt cursor-prompt-001 to src/dreamos/bridge/gpt_to_cursor.jsonl
+2025-05-05 15:47:27,022 - INFO - Found new prompt: ID cursor-prompt-002
+2025-05-05 15:47:27,023 - INFO - Relaying prompt_id: cursor-prompt-002
+2025-05-05 15:47:27,023 - INFO - Simulating GPT call for prompt: 'Can you reverse the string 'general'?...'
+2025-05-05 15:47:27,023 - INFO - Simulated GPT response generated.
+2025-05-05 15:47:27,029 - INFO - Successfully wrote response for prompt cursor-prompt-002 to src/dreamos/bridge/gpt_to_cursor.jsonl
+2025-05-05 15:47:27,029 - INFO - Found new prompt: ID cursor-prompt-003
+2025-05-05 15:47:27,029 - INFO - Relaying prompt_id: cursor-prompt-003
+2025-05-05 15:47:27,030 - INFO - Simulating GPT call for prompt: 'What is Knurlshade?...'
+2025-05-05 15:47:27,030 - INFO - Simulated GPT response generated.
+2025-05-05 15:47:27,035 - INFO - Successfully wrote response for prompt cursor-prompt-003 to src/dreamos/bridge/gpt_to_cursor.jsonl
+2025-05-05 15:47:27,035 - INFO - --- Poll Cycle End. Duration: 0.02s. Sleeping for 4.98s ---
+2025-05-05 15:47:32,021 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:32,021 - INFO - Input file unchanged. Cycles since last change: 2
+2025-05-05 15:47:32,022 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:32,022 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:47:37,022 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:37,025 - INFO - Input file unchanged. Cycles since last change: 3
+2025-05-05 15:47:37,025 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:37,026 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:47:42,023 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:42,023 - INFO - Input file unchanged. Cycles since last change: 4
+2025-05-05 15:47:42,023 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:42,023 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:47:47,024 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:47,024 - INFO - Input file unchanged. Cycles since last change: 5
+2025-05-05 15:47:47,024 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 5 cycles. Creating alert flag.
+2025-05-05 15:47:47,025 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:47,025 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:47:52,025 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:52,025 - INFO - Input file unchanged. Cycles since last change: 6
+2025-05-05 15:47:52,025 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 6 cycles. Creating alert flag.
+2025-05-05 15:47:52,026 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:52,026 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:47:57,027 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:47:57,027 - INFO - Input file unchanged. Cycles since last change: 7
+2025-05-05 15:47:57,027 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 7 cycles. Creating alert flag.
+2025-05-05 15:47:57,029 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:47:57,029 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:02,035 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:02,043 - INFO - Input file unchanged. Cycles since last change: 8
+2025-05-05 15:48:02,044 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 8 cycles. Creating alert flag.
+2025-05-05 15:48:02,054 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:02,055 - INFO - --- Poll Cycle End. Duration: 0.02s. Sleeping for 4.98s ---
+2025-05-05 15:48:07,035 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:07,035 - INFO - Input file unchanged. Cycles since last change: 9
+2025-05-05 15:48:07,035 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 9 cycles. Creating alert flag.
+2025-05-05 15:48:07,038 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:07,038 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:12,037 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:12,037 - INFO - Input file unchanged. Cycles since last change: 10
+2025-05-05 15:48:12,037 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 10 cycles. Creating alert flag.
+2025-05-05 15:48:12,038 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:12,038 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:17,039 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:17,041 - INFO - Input file unchanged. Cycles since last change: 11
+2025-05-05 15:48:17,041 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 11 cycles. Creating alert flag.
+2025-05-05 15:48:17,044 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:17,044 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:48:22,040 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:22,040 - INFO - Input file unchanged. Cycles since last change: 12
+2025-05-05 15:48:22,040 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 12 cycles. Creating alert flag.
+2025-05-05 15:48:22,042 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:22,042 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:27,041 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:27,041 - INFO - Input file unchanged. Cycles since last change: 13
+2025-05-05 15:48:27,041 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 13 cycles. Creating alert flag.
+2025-05-05 15:48:27,045 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:27,045 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:32,041 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:32,041 - INFO - Input file unchanged. Cycles since last change: 14
+2025-05-05 15:48:32,041 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 14 cycles. Creating alert flag.
+2025-05-05 15:48:32,043 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:32,044 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:37,042 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:37,042 - INFO - Input file unchanged. Cycles since last change: 15
+2025-05-05 15:48:37,042 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 15 cycles. Creating alert flag.
+2025-05-05 15:48:37,043 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:37,043 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:42,051 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:42,051 - INFO - Input file unchanged. Cycles since last change: 16
+2025-05-05 15:48:42,052 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 16 cycles. Creating alert flag.
+2025-05-05 15:48:42,056 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:42,056 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:48:47,047 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:47,047 - INFO - Input file unchanged. Cycles since last change: 17
+2025-05-05 15:48:47,047 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 17 cycles. Creating alert flag.
+2025-05-05 15:48:47,049 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:47,049 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:52,049 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:52,049 - INFO - Input file unchanged. Cycles since last change: 18
+2025-05-05 15:48:52,049 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 18 cycles. Creating alert flag.
+2025-05-05 15:48:52,051 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:52,051 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:48:57,050 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:48:57,050 - INFO - Input file unchanged. Cycles since last change: 19
+2025-05-05 15:48:57,050 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 19 cycles. Creating alert flag.
+2025-05-05 15:48:57,055 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:48:57,055 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:49:02,051 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:02,051 - INFO - Input file unchanged. Cycles since last change: 20
+2025-05-05 15:49:02,051 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 20 cycles. Creating alert flag.
+2025-05-05 15:49:02,052 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:02,053 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:07,052 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:07,052 - INFO - Input file unchanged. Cycles since last change: 21
+2025-05-05 15:49:07,052 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 21 cycles. Creating alert flag.
+2025-05-05 15:49:07,054 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:07,054 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:12,053 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:12,053 - INFO - Input file unchanged. Cycles since last change: 22
+2025-05-05 15:49:12,053 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 22 cycles. Creating alert flag.
+2025-05-05 15:49:12,056 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:12,056 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:17,054 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:17,054 - INFO - Input file unchanged. Cycles since last change: 23
+2025-05-05 15:49:17,054 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 23 cycles. Creating alert flag.
+2025-05-05 15:49:17,055 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:17,055 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:22,055 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:22,055 - INFO - Input file unchanged. Cycles since last change: 24
+2025-05-05 15:49:22,055 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 24 cycles. Creating alert flag.
+2025-05-05 15:49:22,057 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:22,057 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:27,056 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:27,056 - INFO - Input file unchanged. Cycles since last change: 25
+2025-05-05 15:49:27,056 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 25 cycles. Creating alert flag.
+2025-05-05 15:49:27,057 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:27,057 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:32,057 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:32,057 - INFO - Input file unchanged. Cycles since last change: 26
+2025-05-05 15:49:32,057 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 26 cycles. Creating alert flag.
+2025-05-05 15:49:32,058 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:32,058 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:37,059 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:37,059 - INFO - Input file unchanged. Cycles since last change: 27
+2025-05-05 15:49:37,059 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 27 cycles. Creating alert flag.
+2025-05-05 15:49:37,060 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:37,060 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:42,060 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:42,060 - INFO - Input file unchanged. Cycles since last change: 28
+2025-05-05 15:49:42,061 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 28 cycles. Creating alert flag.
+2025-05-05 15:49:42,063 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:42,063 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:47,061 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:47,061 - INFO - Input file unchanged. Cycles since last change: 29
+2025-05-05 15:49:47,061 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 29 cycles. Creating alert flag.
+2025-05-05 15:49:47,062 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:47,062 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:52,062 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:52,062 - INFO - Input file unchanged. Cycles since last change: 30
+2025-05-05 15:49:52,062 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 30 cycles. Creating alert flag.
+2025-05-05 15:49:52,063 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:52,063 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:49:57,064 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:49:57,064 - INFO - Input file unchanged. Cycles since last change: 31
+2025-05-05 15:49:57,064 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 31 cycles. Creating alert flag.
+2025-05-05 15:49:57,066 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:49:57,066 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:02,064 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:02,064 - INFO - Input file unchanged. Cycles since last change: 32
+2025-05-05 15:50:02,064 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 32 cycles. Creating alert flag.
+2025-05-05 15:50:02,065 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:02,065 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:07,065 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:07,065 - INFO - Input file unchanged. Cycles since last change: 33
+2025-05-05 15:50:07,065 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 33 cycles. Creating alert flag.
+2025-05-05 15:50:07,066 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:07,066 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:12,069 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:12,069 - INFO - Input file unchanged. Cycles since last change: 34
+2025-05-05 15:50:12,069 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 34 cycles. Creating alert flag.
+2025-05-05 15:50:12,072 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:12,072 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:17,070 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:17,070 - INFO - Input file unchanged. Cycles since last change: 35
+2025-05-05 15:50:17,070 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 35 cycles. Creating alert flag.
+2025-05-05 15:50:17,072 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:17,072 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:22,071 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:22,071 - INFO - Input file unchanged. Cycles since last change: 36
+2025-05-05 15:50:22,071 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 36 cycles. Creating alert flag.
+2025-05-05 15:50:22,072 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:22,073 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:27,072 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:27,072 - INFO - Input file unchanged. Cycles since last change: 37
+2025-05-05 15:50:27,072 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 37 cycles. Creating alert flag.
+2025-05-05 15:50:27,073 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:27,073 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:32,073 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:32,073 - INFO - Input file unchanged. Cycles since last change: 38
+2025-05-05 15:50:32,073 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 38 cycles. Creating alert flag.
+2025-05-05 15:50:32,074 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:32,075 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:37,074 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:37,074 - INFO - Input file unchanged. Cycles since last change: 39
+2025-05-05 15:50:37,074 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 39 cycles. Creating alert flag.
+2025-05-05 15:50:37,075 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:37,075 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:42,075 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:42,075 - INFO - Input file unchanged. Cycles since last change: 40
+2025-05-05 15:50:42,075 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 40 cycles. Creating alert flag.
+2025-05-05 15:50:42,078 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:42,078 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:47,076 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:47,076 - INFO - Input file unchanged. Cycles since last change: 41
+2025-05-05 15:50:47,076 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 41 cycles. Creating alert flag.
+2025-05-05 15:50:47,077 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:47,078 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:52,077 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:52,077 - INFO - Input file unchanged. Cycles since last change: 42
+2025-05-05 15:50:52,077 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 42 cycles. Creating alert flag.
+2025-05-05 15:50:52,078 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:52,078 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:50:57,079 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:50:57,079 - INFO - Input file unchanged. Cycles since last change: 43
+2025-05-05 15:50:57,079 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 43 cycles. Creating alert flag.
+2025-05-05 15:50:57,081 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:50:57,081 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:02,081 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:02,081 - INFO - Input file unchanged. Cycles since last change: 44
+2025-05-05 15:51:02,081 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 44 cycles. Creating alert flag.
+2025-05-05 15:51:02,083 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:02,083 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:07,082 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:07,082 - INFO - Input file unchanged. Cycles since last change: 45
+2025-05-05 15:51:07,082 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 45 cycles. Creating alert flag.
+2025-05-05 15:51:07,083 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:07,083 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:12,084 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:12,084 - INFO - Input file unchanged. Cycles since last change: 46
+2025-05-05 15:51:12,084 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 46 cycles. Creating alert flag.
+2025-05-05 15:51:12,085 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:12,086 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:17,085 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:17,085 - INFO - Input file unchanged. Cycles since last change: 47
+2025-05-05 15:51:17,085 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 47 cycles. Creating alert flag.
+2025-05-05 15:51:17,087 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:17,087 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:22,086 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:22,086 - INFO - Input file unchanged. Cycles since last change: 48
+2025-05-05 15:51:22,086 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 48 cycles. Creating alert flag.
+2025-05-05 15:51:22,087 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:22,087 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:27,087 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:27,087 - INFO - Input file unchanged. Cycles since last change: 49
+2025-05-05 15:51:27,087 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 49 cycles. Creating alert flag.
+2025-05-05 15:51:27,088 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:27,088 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:32,088 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:32,088 - INFO - Input file unchanged. Cycles since last change: 50
+2025-05-05 15:51:32,088 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 50 cycles. Creating alert flag.
+2025-05-05 15:51:32,089 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:32,089 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:37,089 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:37,089 - INFO - Input file unchanged. Cycles since last change: 51
+2025-05-05 15:51:37,089 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 51 cycles. Creating alert flag.
+2025-05-05 15:51:37,090 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:37,090 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:42,103 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:42,104 - INFO - Input file unchanged. Cycles since last change: 52
+2025-05-05 15:51:42,104 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 52 cycles. Creating alert flag.
+2025-05-05 15:51:42,116 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:42,116 - INFO - --- Poll Cycle End. Duration: 0.02s. Sleeping for 4.98s ---
+2025-05-05 15:51:47,098 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:47,098 - INFO - Input file unchanged. Cycles since last change: 53
+2025-05-05 15:51:47,098 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 53 cycles. Creating alert flag.
+2025-05-05 15:51:47,099 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:47,099 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:52,100 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:52,100 - INFO - Input file unchanged. Cycles since last change: 54
+2025-05-05 15:51:52,100 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 54 cycles. Creating alert flag.
+2025-05-05 15:51:52,101 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:52,101 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:51:57,102 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:51:57,102 - INFO - Input file unchanged. Cycles since last change: 55
+2025-05-05 15:51:57,102 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 55 cycles. Creating alert flag.
+2025-05-05 15:51:57,104 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:51:57,104 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:02,103 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:02,103 - INFO - Input file unchanged. Cycles since last change: 56
+2025-05-05 15:52:02,103 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 56 cycles. Creating alert flag.
+2025-05-05 15:52:02,104 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:02,104 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:07,105 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:07,105 - INFO - Input file unchanged. Cycles since last change: 57
+2025-05-05 15:52:07,105 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 57 cycles. Creating alert flag.
+2025-05-05 15:52:07,106 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:07,106 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:12,106 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:12,106 - INFO - Input file unchanged. Cycles since last change: 58
+2025-05-05 15:52:12,106 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 58 cycles. Creating alert flag.
+2025-05-05 15:52:12,107 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:12,108 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:17,107 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:17,108 - INFO - Input file unchanged. Cycles since last change: 59
+2025-05-05 15:52:17,108 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 59 cycles. Creating alert flag.
+2025-05-05 15:52:17,110 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:17,110 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:22,108 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:22,108 - INFO - Input file unchanged. Cycles since last change: 60
+2025-05-05 15:52:22,108 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 60 cycles. Creating alert flag.
+2025-05-05 15:52:22,109 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:22,109 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:27,109 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:27,109 - INFO - Input file unchanged. Cycles since last change: 61
+2025-05-05 15:52:27,109 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 61 cycles. Creating alert flag.
+2025-05-05 15:52:27,111 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:27,111 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:32,110 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:32,110 - INFO - Input file unchanged. Cycles since last change: 62
+2025-05-05 15:52:32,110 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 62 cycles. Creating alert flag.
+2025-05-05 15:52:32,112 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:32,112 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:37,111 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:37,111 - INFO - Input file unchanged. Cycles since last change: 63
+2025-05-05 15:52:37,111 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 63 cycles. Creating alert flag.
+2025-05-05 15:52:37,113 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:37,114 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:42,112 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:42,112 - INFO - Input file unchanged. Cycles since last change: 64
+2025-05-05 15:52:42,112 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 64 cycles. Creating alert flag.
+2025-05-05 15:52:42,123 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:42,124 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:52:47,112 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:47,112 - INFO - Input file unchanged. Cycles since last change: 65
+2025-05-05 15:52:47,112 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 65 cycles. Creating alert flag.
+2025-05-05 15:52:47,113 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:47,113 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:52,114 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:52,114 - INFO - Input file unchanged. Cycles since last change: 66
+2025-05-05 15:52:52,114 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 66 cycles. Creating alert flag.
+2025-05-05 15:52:52,116 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:52,116 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:52:57,114 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:52:57,114 - INFO - Input file unchanged. Cycles since last change: 67
+2025-05-05 15:52:57,114 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 67 cycles. Creating alert flag.
+2025-05-05 15:52:57,116 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:52:57,116 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:02,116 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:02,116 - INFO - Input file unchanged. Cycles since last change: 68
+2025-05-05 15:53:02,116 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 68 cycles. Creating alert flag.
+2025-05-05 15:53:02,117 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:02,117 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:07,117 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:07,117 - INFO - Input file unchanged. Cycles since last change: 69
+2025-05-05 15:53:07,117 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 69 cycles. Creating alert flag.
+2025-05-05 15:53:07,118 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:07,118 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:12,119 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:12,119 - INFO - Input file unchanged. Cycles since last change: 70
+2025-05-05 15:53:12,119 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 70 cycles. Creating alert flag.
+2025-05-05 15:53:12,121 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:12,121 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:17,123 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:17,125 - INFO - Input file unchanged. Cycles since last change: 71
+2025-05-05 15:53:17,125 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 71 cycles. Creating alert flag.
+2025-05-05 15:53:17,127 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:17,127 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:22,125 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:22,125 - INFO - Input file unchanged. Cycles since last change: 72
+2025-05-05 15:53:22,125 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 72 cycles. Creating alert flag.
+2025-05-05 15:53:22,128 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:22,128 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:27,125 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:27,125 - INFO - Input file unchanged. Cycles since last change: 73
+2025-05-05 15:53:27,125 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 73 cycles. Creating alert flag.
+2025-05-05 15:53:27,368 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:27,368 - INFO - --- Poll Cycle End. Duration: 0.24s. Sleeping for 4.76s ---
+2025-05-05 15:53:32,126 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:32,126 - INFO - Input file unchanged. Cycles since last change: 74
+2025-05-05 15:53:32,126 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 74 cycles. Creating alert flag.
+2025-05-05 15:53:32,127 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:32,127 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:37,128 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:37,128 - INFO - Input file unchanged. Cycles since last change: 75
+2025-05-05 15:53:37,128 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 75 cycles. Creating alert flag.
+2025-05-05 15:53:37,129 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:37,129 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:42,129 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:42,129 - INFO - Input file unchanged. Cycles since last change: 76
+2025-05-05 15:53:42,129 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 76 cycles. Creating alert flag.
+2025-05-05 15:53:42,131 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:42,131 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:47,131 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:47,131 - INFO - Input file unchanged. Cycles since last change: 77
+2025-05-05 15:53:47,131 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 77 cycles. Creating alert flag.
+2025-05-05 15:53:47,133 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:47,133 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:52,132 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:52,132 - INFO - Input file unchanged. Cycles since last change: 78
+2025-05-05 15:53:52,132 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 78 cycles. Creating alert flag.
+2025-05-05 15:53:52,133 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:52,133 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:53:57,133 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:53:57,133 - INFO - Input file unchanged. Cycles since last change: 79
+2025-05-05 15:53:57,133 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 79 cycles. Creating alert flag.
+2025-05-05 15:53:57,134 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:53:57,134 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:02,134 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:02,134 - INFO - Input file unchanged. Cycles since last change: 80
+2025-05-05 15:54:02,134 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 80 cycles. Creating alert flag.
+2025-05-05 15:54:02,135 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:02,136 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:07,135 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:07,135 - INFO - Input file unchanged. Cycles since last change: 81
+2025-05-05 15:54:07,135 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 81 cycles. Creating alert flag.
+2025-05-05 15:54:07,137 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:07,137 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:12,135 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:12,135 - INFO - Input file unchanged. Cycles since last change: 82
+2025-05-05 15:54:12,135 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 82 cycles. Creating alert flag.
+2025-05-05 15:54:12,136 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:12,136 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:17,137 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:17,137 - INFO - Input file unchanged. Cycles since last change: 83
+2025-05-05 15:54:17,137 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 83 cycles. Creating alert flag.
+2025-05-05 15:54:17,138 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:17,139 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:22,138 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:22,138 - INFO - Input file unchanged. Cycles since last change: 84
+2025-05-05 15:54:22,138 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 84 cycles. Creating alert flag.
+2025-05-05 15:54:22,139 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:22,139 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:27,139 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:27,139 - INFO - Input file unchanged. Cycles since last change: 85
+2025-05-05 15:54:27,139 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 85 cycles. Creating alert flag.
+2025-05-05 15:54:27,140 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:27,140 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:32,141 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:32,141 - INFO - Input file unchanged. Cycles since last change: 86
+2025-05-05 15:54:32,141 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 86 cycles. Creating alert flag.
+2025-05-05 15:54:32,142 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:32,142 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:37,142 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:37,142 - INFO - Input file unchanged. Cycles since last change: 87
+2025-05-05 15:54:37,142 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 87 cycles. Creating alert flag.
+2025-05-05 15:54:37,143 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:37,144 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:42,144 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:42,144 - INFO - Input file unchanged. Cycles since last change: 88
+2025-05-05 15:54:42,144 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 88 cycles. Creating alert flag.
+2025-05-05 15:54:42,145 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:42,146 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:47,145 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:47,145 - INFO - Input file unchanged. Cycles since last change: 89
+2025-05-05 15:54:47,145 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 89 cycles. Creating alert flag.
+2025-05-05 15:54:47,146 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:47,147 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:52,146 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:52,146 - INFO - Input file unchanged. Cycles since last change: 90
+2025-05-05 15:54:52,146 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 90 cycles. Creating alert flag.
+2025-05-05 15:54:52,148 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:52,148 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:54:57,148 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:54:57,148 - INFO - Input file unchanged. Cycles since last change: 91
+2025-05-05 15:54:57,148 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 91 cycles. Creating alert flag.
+2025-05-05 15:54:57,149 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:54:57,149 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:02,149 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:02,149 - INFO - Input file unchanged. Cycles since last change: 92
+2025-05-05 15:55:02,149 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 92 cycles. Creating alert flag.
+2025-05-05 15:55:02,150 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:02,151 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:07,151 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:07,151 - INFO - Input file unchanged. Cycles since last change: 93
+2025-05-05 15:55:07,151 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 93 cycles. Creating alert flag.
+2025-05-05 15:55:07,152 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:07,152 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:12,153 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:12,153 - INFO - Input file unchanged. Cycles since last change: 94
+2025-05-05 15:55:12,153 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 94 cycles. Creating alert flag.
+2025-05-05 15:55:12,154 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:12,154 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:17,154 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:17,154 - INFO - Input file unchanged. Cycles since last change: 95
+2025-05-05 15:55:17,154 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 95 cycles. Creating alert flag.
+2025-05-05 15:55:17,155 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:17,155 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:22,156 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:22,156 - INFO - Input file unchanged. Cycles since last change: 96
+2025-05-05 15:55:22,156 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 96 cycles. Creating alert flag.
+2025-05-05 15:55:22,157 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:22,158 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:27,157 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:27,157 - INFO - Input file unchanged. Cycles since last change: 97
+2025-05-05 15:55:27,157 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 97 cycles. Creating alert flag.
+2025-05-05 15:55:27,272 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:27,272 - INFO - --- Poll Cycle End. Duration: 0.12s. Sleeping for 4.88s ---
+2025-05-05 15:55:32,159 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:32,159 - INFO - Input file unchanged. Cycles since last change: 98
+2025-05-05 15:55:32,159 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 98 cycles. Creating alert flag.
+2025-05-05 15:55:32,161 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:32,161 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:37,159 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:37,159 - INFO - Input file unchanged. Cycles since last change: 99
+2025-05-05 15:55:37,159 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 99 cycles. Creating alert flag.
+2025-05-05 15:55:37,161 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:37,161 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:42,160 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:42,160 - INFO - Input file unchanged. Cycles since last change: 100
+2025-05-05 15:55:42,160 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 100 cycles. Creating alert flag.
+2025-05-05 15:55:42,161 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:42,162 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:47,160 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:47,160 - INFO - Input file unchanged. Cycles since last change: 101
+2025-05-05 15:55:47,160 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 101 cycles. Creating alert flag.
+2025-05-05 15:55:47,161 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:47,162 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:52,161 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:52,161 - INFO - Input file unchanged. Cycles since last change: 102
+2025-05-05 15:55:52,161 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 102 cycles. Creating alert flag.
+2025-05-05 15:55:52,163 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:52,163 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:55:57,162 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:55:57,162 - INFO - Input file unchanged. Cycles since last change: 103
+2025-05-05 15:55:57,162 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 103 cycles. Creating alert flag.
+2025-05-05 15:55:57,163 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:55:57,163 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:02,163 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:02,163 - INFO - Input file unchanged. Cycles since last change: 104
+2025-05-05 15:56:02,163 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 104 cycles. Creating alert flag.
+2025-05-05 15:56:02,164 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:02,164 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:07,164 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:07,164 - INFO - Input file unchanged. Cycles since last change: 105
+2025-05-05 15:56:07,164 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 105 cycles. Creating alert flag.
+2025-05-05 15:56:07,165 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:07,166 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:12,165 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:12,165 - INFO - Input file unchanged. Cycles since last change: 106
+2025-05-05 15:56:12,165 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 106 cycles. Creating alert flag.
+2025-05-05 15:56:12,167 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:12,167 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:17,165 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:17,165 - INFO - Input file unchanged. Cycles since last change: 107
+2025-05-05 15:56:17,165 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 107 cycles. Creating alert flag.
+2025-05-05 15:56:17,166 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:17,166 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:22,167 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:22,167 - INFO - Input file unchanged. Cycles since last change: 108
+2025-05-05 15:56:22,167 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 108 cycles. Creating alert flag.
+2025-05-05 15:56:22,168 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:22,168 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:27,168 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:27,168 - INFO - Input file unchanged. Cycles since last change: 109
+2025-05-05 15:56:27,168 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 109 cycles. Creating alert flag.
+2025-05-05 15:56:27,169 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:27,170 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:32,170 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:32,170 - INFO - Input file unchanged. Cycles since last change: 110
+2025-05-05 15:56:32,170 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 110 cycles. Creating alert flag.
+2025-05-05 15:56:32,171 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:32,172 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:37,170 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:37,170 - INFO - Input file unchanged. Cycles since last change: 111
+2025-05-05 15:56:37,170 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 111 cycles. Creating alert flag.
+2025-05-05 15:56:37,172 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:37,173 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:42,181 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:42,184 - INFO - Input file unchanged. Cycles since last change: 112
+2025-05-05 15:56:42,184 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 112 cycles. Creating alert flag.
+2025-05-05 15:56:42,188 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:42,188 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:56:47,177 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:47,177 - INFO - Input file unchanged. Cycles since last change: 113
+2025-05-05 15:56:47,177 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 113 cycles. Creating alert flag.
+2025-05-05 15:56:47,178 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:47,178 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:52,178 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:52,178 - INFO - Input file unchanged. Cycles since last change: 114
+2025-05-05 15:56:52,178 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 114 cycles. Creating alert flag.
+2025-05-05 15:56:52,180 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:52,180 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:56:57,178 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:56:57,178 - INFO - Input file unchanged. Cycles since last change: 115
+2025-05-05 15:56:57,178 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 115 cycles. Creating alert flag.
+2025-05-05 15:56:57,180 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:56:57,180 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:02,179 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:02,179 - INFO - Input file unchanged. Cycles since last change: 116
+2025-05-05 15:57:02,179 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 116 cycles. Creating alert flag.
+2025-05-05 15:57:02,182 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:02,182 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:07,181 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:07,181 - INFO - Input file unchanged. Cycles since last change: 117
+2025-05-05 15:57:07,181 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 117 cycles. Creating alert flag.
+2025-05-05 15:57:07,182 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:07,183 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:12,181 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:12,181 - INFO - Input file unchanged. Cycles since last change: 118
+2025-05-05 15:57:12,181 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 118 cycles. Creating alert flag.
+2025-05-05 15:57:12,182 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:12,182 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:17,183 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:17,183 - INFO - Input file unchanged. Cycles since last change: 119
+2025-05-05 15:57:17,183 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 119 cycles. Creating alert flag.
+2025-05-05 15:57:17,185 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:17,185 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:22,184 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:22,184 - INFO - Input file unchanged. Cycles since last change: 120
+2025-05-05 15:57:22,184 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 120 cycles. Creating alert flag.
+2025-05-05 15:57:22,186 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:22,186 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:27,186 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:27,186 - INFO - Input file unchanged. Cycles since last change: 121
+2025-05-05 15:57:27,186 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 121 cycles. Creating alert flag.
+2025-05-05 15:57:27,187 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:27,187 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:32,188 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:32,188 - INFO - Input file unchanged. Cycles since last change: 122
+2025-05-05 15:57:32,188 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 122 cycles. Creating alert flag.
+2025-05-05 15:57:32,189 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:32,189 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:37,189 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:37,189 - INFO - Input file unchanged. Cycles since last change: 123
+2025-05-05 15:57:37,189 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 123 cycles. Creating alert flag.
+2025-05-05 15:57:37,190 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:37,191 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:42,190 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:42,190 - INFO - Input file unchanged. Cycles since last change: 124
+2025-05-05 15:57:42,190 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 124 cycles. Creating alert flag.
+2025-05-05 15:57:42,192 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:42,192 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:47,191 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:47,191 - INFO - Input file unchanged. Cycles since last change: 125
+2025-05-05 15:57:47,191 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 125 cycles. Creating alert flag.
+2025-05-05 15:57:47,193 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:47,193 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:52,193 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:52,193 - INFO - Input file unchanged. Cycles since last change: 126
+2025-05-05 15:57:52,193 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 126 cycles. Creating alert flag.
+2025-05-05 15:57:52,194 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:52,194 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:57:57,194 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:57:57,194 - INFO - Input file unchanged. Cycles since last change: 127
+2025-05-05 15:57:57,194 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 127 cycles. Creating alert flag.
+2025-05-05 15:57:57,195 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:57:57,195 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:58:02,195 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:58:02,195 - INFO - Input file unchanged. Cycles since last change: 128
+2025-05-05 15:58:02,195 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 128 cycles. Creating alert flag.
+2025-05-05 15:58:02,197 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:58:02,197 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:58:07,198 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:58:07,199 - INFO - Input file unchanged. Cycles since last change: 129
+2025-05-05 15:58:07,199 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 129 cycles. Creating alert flag.
+2025-05-05 15:58:07,203 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:58:07,203 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:58:12,199 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:58:12,203 - INFO - Input file unchanged. Cycles since last change: 130
+2025-05-05 15:58:12,203 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 130 cycles. Creating alert flag.
+2025-05-05 15:58:12,208 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:58:12,209 - INFO - --- Poll Cycle End. Duration: 0.01s. Sleeping for 4.99s ---
+2025-05-05 15:58:17,200 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:58:17,200 - INFO - Input file unchanged. Cycles since last change: 131
+2025-05-05 15:58:17,200 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 131 cycles. Creating alert flag.
+2025-05-05 15:58:17,202 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:58:17,202 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---
+2025-05-05 15:58:22,200 - INFO - --- Starting Poll Cycle --- Suspended: False
+2025-05-05 15:58:22,200 - INFO - Input file unchanged. Cycles since last change: 132
+2025-05-05 15:58:22,200 - WARNING - Input file (src/dreamos/bridge/cursor_to_gpt.jsonl) stalled for 132 cycles. Creating alert flag.
+2025-05-05 15:58:22,203 - INFO - No new, unprocessed prompts found in this cycle.
+2025-05-05 15:58:22,203 - INFO - --- Poll Cycle End. Duration: 0.00s. Sleeping for 5.00s ---

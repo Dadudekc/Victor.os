@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import threading
+# import threading # No longer needed
 import time
 import traceback
 from dataclasses import dataclass, field
@@ -8,15 +8,15 @@ from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from ..core.agent_bus import AgentBus
-from ..core.bus_utils import EventType
+from ..core.agent_bus import AgentBus # Assuming AgentBus can be directly imported and used
+from ..core.bus_utils import EventType # Assuming EventType can be directly imported
 from ..utils.log_exception import log_exception
 from ..utils.singleton import Singleton
 
-# Setup basic logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Setup basic logging - REMOVED basicConfig
+# logging.basicConfig(
+#     level=logging.INFO, format=\"%(asctime)s - %(name)s - %(levelname)s - %(message)s\"
+# )
 logger = logging.getLogger(__name__)
 
 
@@ -67,117 +67,112 @@ class CommandSupervisor(Singleton):
     _instance = None
     _initialized = False
 
+    # FIXME: AgentBus ideally should be passed consistently, not fetched via AgentBus() default call.
+    # This assumes AgentBus() reliably provides the correct singleton if None is passed.
     def __init__(self, agent_bus: Optional[AgentBus] = None):
-        """Initializes the CommandSupervisor singleton."""
+        """Initializes the CommandSupervisor singleton. Now fully async."""
         if self._initialized:
             return
-        self.agent_bus = agent_bus or AgentBus()  # Get the singleton instance
+        # self.agent_bus = agent_bus or AgentBus() # Ensure AgentBus is properly managed/injected
+        if agent_bus is None:
+            logger.warning("CommandSupervisor initialized without an explicit AgentBus. Attempting to get default.")
+            self.agent_bus = AgentBus() # This should provide the singleton instance
+        else:
+            self.agent_bus = agent_bus
+            
         self.pending_approvals: Dict[str, SupervisorEvent] = {}
         self.approval_status: Dict[str, ApprovalStatus] = {}
-        self.lock = threading.Lock()  # Protects shared state
-        self._stop_event = threading.Event()
-        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.lock = asyncio.Lock()  # Use asyncio.Lock
+        # self._stop_event = threading.Event() # REMOVED
+        # self.thread = threading.Thread(target=self._run, daemon=True) # REMOVED
         self._initialized = True
-        logger.info("CommandSupervisor initialized.")
+        self._is_listening = False # Flag to track if listeners are active
+        logger.info("CommandSupervisor initialized (async mode).")
 
-    def start(self):
-        """Starts the CommandSupervisor's background thread for event handling."""
-        if not self.thread.is_alive():
-            self._stop_event.clear()
-            self.thread = threading.Thread(target=self._run, daemon=True)
-            self.thread.start()
-            logger.info("CommandSupervisor started.")
+    async def start_listeners(self):
+        """Subscribes to necessary AgentBus events. Idempotent."""
+        if self._is_listening:
+            logger.debug("CommandSupervisor listeners already active.")
+            return
 
-    def stop(self):
-        """Signals the CommandSupervisor's background thread to stop gracefully."""
-        self._stop_event.set()
-        if self.thread.is_alive():
-            self.thread.join()
-        logger.info("CommandSupervisor stopped.")
-
-    def _run(self):
-        """The main loop running in a background thread.
-
-        Subscribes to necessary AgentBus events and waits for stop signal.
-        """
-        logger.info("CommandSupervisor thread running.")
-        # Subscribe to relevant events if not already done by AgentBus initialization
-        # This ensures the supervisor listens even if started after the bus is active.
-        if not self.agent_bus.is_subscriber(
-            self.handle_command_request, EventType.COMMAND_EXECUTION_REQUEST
-        ):
-            self.agent_bus.subscribe(
-                EventType.COMMAND_EXECUTION_REQUEST, self.handle_command_request
-            )
-        if not self.agent_bus.is_subscriber(
-            self.handle_approval_response, EventType.COMMAND_APPROVAL_RESPONSE
-        ):
-            self.agent_bus.subscribe(
-                EventType.COMMAND_APPROVAL_RESPONSE, self.handle_approval_response
-            )
-
-        while not self._stop_event.is_set():
-            # The supervisor primarily reacts to events, so the main loop can be simple.
-            # We might add periodic checks or cleanup tasks here if needed.
-            time.sleep(1)  # Prevent busy-waiting
-
-        logger.info("CommandSupervisor thread stopped.")
-        # Unsubscribe from events on stop
-        self.agent_bus.unsubscribe(
+        logger.info("CommandSupervisor starting listeners...")
+        # Subscribe to relevant events
+        # Check if already subscribed can be tricky with some bus implementations;
+        # assuming bus handles duplicate subscriptions gracefully or provides query methods.
+        # For simplicity, we just subscribe. If bus errors on dupes, add checks.
+        await self.agent_bus.subscribe(
             EventType.COMMAND_EXECUTION_REQUEST, self.handle_command_request
         )
-        self.agent_bus.unsubscribe(
+        await self.agent_bus.subscribe(
             EventType.COMMAND_APPROVAL_RESPONSE, self.handle_approval_response
         )
+        self._is_listening = True
+        logger.info("CommandSupervisor listeners started and subscribed to events.")
 
-    async def handle_command_request(self, event: SupervisorEvent):
-        """Handles incoming `COMMAND_EXECUTION_REQUEST` events.
+    async def stop_listeners(self):
+        """Unsubscribes from AgentBus events gracefully. Idempotent."""
+        if not self._is_listening:
+            logger.debug("CommandSupervisor listeners already inactive.")
+            return
+            
+        logger.info("CommandSupervisor stopping listeners...")
+        try:
+            await self.agent_bus.unsubscribe(
+                EventType.COMMAND_EXECUTION_REQUEST, self.handle_command_request
+            )
+            await self.agent_bus.unsubscribe(
+                EventType.COMMAND_APPROVAL_RESPONSE, self.handle_approval_response
+            )
+            self._is_listening = False
+            logger.info("CommandSupervisor listeners stopped and unsubscribed.")
+        except Exception as e:
+            logger.error(f"Error unsubscribing CommandSupervisor listeners: {e}", exc_info=True)
 
-        Assigns a command ID and forwards the request for human approval.
-        """
+    # _run method REMOVED as supervisor is now event-driven within asyncio loop
+
+    async def handle_command_request(self, event: SupervisorEvent): # event type hint might need to match AgentBus's event type
+        """Handles incoming `COMMAND_EXECUTION_REQUEST` events."""
+        # TODO: Ensure SupervisorEvent matches the actual event type from AgentBus if it's more specific.
         logger.info(f"Received command request: {event.payload} from {event.sender_id}")
         command_id = str(uuid4())
         request_payload = event.payload
-        request_payload["command_id"] = command_id  # Add unique ID to the payload
+        request_payload["command_id"] = command_id
 
-        with self.lock:
+        async with self.lock: # Use asyncio.Lock
             self.pending_approvals[command_id] = event
             self.approval_status[command_id] = ApprovalStatus.PENDING
 
-        # Request human approval
         approval_request_payload = {
             "command_id": command_id,
             "command": request_payload.get("command"),
             "requesting_agent_id": event.sender_id,
             "details": request_payload.get("details", "No details provided."),
         }
-        approval_event = SupervisorEvent(
+        # Create and publish event. Ensure SupervisorEvent is compatible or adapt.
+        approval_event_data = SupervisorEvent(
             event_type=EventType.COMMAND_APPROVAL_REQUEST,
-            sender_id="CommandSupervisor",
+            sender_id="CommandSupervisor", # Should be a proper Agent ID if supervisor is an agent
             payload=approval_request_payload,
             correlation_id=event.correlation_id,
         )
         logger.info(
             f"Requesting approval for command ID {command_id}: {request_payload.get('command')}"  # noqa: E501
         )
-        await self.agent_bus.publish(approval_event)
+        # Assuming agent_bus.publish is an async method
+        await self.agent_bus.publish(approval_event_data) 
 
-    async def handle_approval_response(self, event: SupervisorEvent):
-        """Handles incoming `COMMAND_APPROVAL_RESPONSE` events.
-
-        Processes the approval/rejection and triggers command execution or
-        notifies the requester accordingly.
-        """
+    async def handle_approval_response(self, event: SupervisorEvent): # event type hint
+        """Handles incoming `COMMAND_APPROVAL_RESPONSE` events."""
         response_payload = event.payload
         command_id = response_payload.get("command_id")
         approved = response_payload.get("approved", False)
-        original_request_event = None
+        original_request_event: Optional[SupervisorEvent] = None
 
         logger.info(
             f"Received approval response for command ID {command_id}: Approved={approved}"  # noqa: E501
         )
 
-        with self.lock:
+        async with self.lock: # Use asyncio.Lock
             if command_id in self.pending_approvals:
                 original_request_event = self.pending_approvals.pop(command_id)
                 if approved:
@@ -188,20 +183,18 @@ class CommandSupervisor(Singleton):
                 logger.warning(
                     f"Received approval response for unknown or already processed command ID: {command_id}"  # noqa: E501
                 )
-                return  # Ignore if command ID is not pending
+                return
 
         if original_request_event:
             if approved:
                 logger.info(
                     f"Command {command_id} approved. Proceeding with execution."
                 )
-                # Use asyncio.create_task to run the execution concurrently
                 asyncio.create_task(
                     self.execute_command(command_id, original_request_event)
                 )
             else:
                 logger.info(f"Command {command_id} rejected.")
-                # Notify the original sender about the rejection
                 rejection_payload = {
                     "command_id": command_id,
                     "command": original_request_event.payload.get("command"),
@@ -210,15 +203,14 @@ class CommandSupervisor(Singleton):
                     "output": None,
                     "error": None,
                 }
-                result_event = SupervisorEvent(
+                result_event_data = SupervisorEvent(
                     event_type=EventType.COMMAND_EXECUTION_RESULT,
                     sender_id="CommandSupervisor",
                     payload=rejection_payload,
                     correlation_id=original_request_event.correlation_id,
                 )
-                await self.agent_bus.publish(result_event)
-                # Clean up status tracking
-                with self.lock:
+                await self.agent_bus.publish(result_event_data)
+                async with self.lock: # Use asyncio.Lock
                     if command_id in self.approval_status:
                         del self.approval_status[command_id]
 

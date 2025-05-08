@@ -18,9 +18,13 @@
       ]
     },
     "priority": 1,
-    "status": "PENDING",
+    "status": "COMPLETED",
     "injected_at": "{{NOW}}",
-    "injected_by": "general_victor"
+    "injected_by": "general_victor",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "timestamp_completed_utc": "{{NOW_UTC_ISO}}",
+    "completion_summary": "Completed stability improvements: Added input validation checks, structured logging for schema load failures, and best-effort rollback logic for task moves (claim_ready_task, move_task_to_completed)."
   },
   {
     "task_id": "VALIDATE-AND-SANITIZE-TASK-SCHEMA-001",
@@ -36,9 +40,13 @@
       "on_failure": "fail_loudly"
     },
     "priority": 2,
-    "status": "PENDING",
+    "status": "COMPLETED",
     "injected_at": "{{NOW}}",
-    "injected_by": "general_victor"
+    "injected_by": "general_victor",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "timestamp_completed_utc": "{{NOW_UTC_ISO}}",
+    "completion_summary": "Validated task-schema.json: Passes strict JSON parse, no comments found, no trailing commas found. No repair needed."
   },
   {
     "task_id": "IMPLEMENT-AGENT-POINTS-SYSTEM-001",
@@ -50,9 +58,13 @@
       "hooks": ["task_completion", "unblock", "uptime", "failure", "idle", "protocol_violation", "captaincy_check"]
     },
     "priority": 1,
-    "status": "PENDING",
+    "status": "ACTIVE",
     "injected_at": "{{NOW}}",
-    "injected_by": "Captain-Agent-5"
+    "injected_by": "Captain-Agent-5",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "last_progress_summary": "Implemented core AgentPointsManager with ledger and audit trail. Integrated points adjustments for task_completion (+10) and task_failure (-5) into ProjectBoardManager.move_task_to_completed. Next: Implement remaining hooks (unblock, uptime, idle, protocol_violation, captaincy_check) and make point values configurable.",
+    "timestamp_updated_utc": "{{NOW_UTC_ISO}}"
   },
   {
     "task_id": "ONBOARD-AGENT-POINTS-SYSTEM-002",
@@ -103,8 +115,12 @@
     },
     "priority": "CRITICAL",
     "tags": ["SELF_EVOLUTION", "REVENUE_IMPACT:high", "MARKET_READY:requires_polish"],
-    "status": "PENDING",
-    "injected_by": "captain"
+    "status": "ACTIVE",
+    "injected_by": "captain",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "last_progress_summary": "Task claimed. Initializing development of the task auto-rewriter tool.",
+    "timestamp_updated_utc": "{{NOW_UTC_ISO}}"
   },
   {
     "task_id": "THEA-LORE-WRITER-001",
@@ -246,38 +262,81 @@
     "task_id": "CAPTAIN-CHECKLIST-TRACKER-001",
     "action": "implement_checklist_tracker",
     "params": {
-      "duties": ["Discord queue checked", "devlog updated", "election state enforced", "protocol review"],
+      "duties": [
+        "Discord queue checked",
+        "devlog updated",
+        "election state enforced",
+        "protocol review"
+      ],
       "flag_on_slip": true
     },
     "priority": "HIGH",
-    "tags": ["LEADERSHIP", "ACCOUNTABILITY", "AUTONOMY"],
     "status": "PENDING",
-    "injected_by": "captain"
+    "injected_by": "captain",
+    "injected_at": "2024-07-30T12:00:00Z" 
   },
   {
-    "task_id": "CAPTAIN-SELF-HEAL-ROUTINE-001",
-    "action": "implement_self_heal_routine",
+    "task_id": "CAPTAIN-BLOCKER-READFILE-TIMEOUTS-002",
+    "action": "BLOCKER_RESOLUTION",
     "params": {
-      "idle_threshold_minutes": 60,
-      "actions": ["reinsert autonomy prompt", "dispatch swarmwide notification", "escalate to General Victor"]
+      "name": "Investigate and Resolve `read_file` Timeouts (BLOCK-002)",
+      "description": "Systematically investigate the widespread `read_file` timeouts affecting multiple files (e.g., `onboarding_autonomous_operation.md`, `PF-BRIDGE-INT-001_PyAutoGUIControlModule_API.md`, task JSONs). Identify root cause (tooling stability, file characteristics, etc.) and implement or propose a robust solution. This is critical for agent operation.",
+      "original_assigned_agent": "Gemini",
+      "original_created_by": "Captain-Gemini",
+      "tags": [
+        "blocker",
+        "critical",
+        "read_file",
+        "tooling_stability",
+        "core_functionality"
+      ],
+      "dependencies": [],
+      "estimated_duration": "4h"
     },
     "priority": "CRITICAL",
-    "tags": ["LEADERSHIP", "RESILIENCE", "SELF-HEAL"],
     "status": "PENDING",
-    "injected_by": "captain"
+    "injected_at": "2025-05-07T18:12:25.000Z-MIGRATION",
+    "injected_by": "Agent-1 (Migration)",
+    "history": [
+      {
+        "timestamp": "2025-05-07T18:12:25.000Z-MIGRATION",
+        "agent": "Agent-1 (Migration)",
+        "action": "Migrated from root future_tasks.json; original status IN_PROGRESS"
+      }
+    ]
   },
   {
-    "task_id": "CAPTAIN-MEMORY-SNAPSHOT-001",
-    "action": "implement_memory_snapshot",
+    "task_id": "BRIDGE-SUBTASK-005-ENHANCE-SCRAPINGLOGIC",
+    "action": "IMPLEMENTATION",
     "params": {
-      "interval_hours": 12,
-      "snapshot_targets": ["swarm state", "captain directive logs"],
-      "output_dir": "runtime/governance/snapshots/"
+      "name": "(Conditional) Enhance Scraping Logic in chatgpt_web_agent.py",
+      "description": "Based on a clearer definition of \"ChatGPTScraper\" requirements, if more than the latest text reply is needed, enhance the scraping capabilities of chatgpt_web_agent.py. This may involve more sophisticated HTML parsing or using PyAutoGUI to navigate/expose specific data elements on the page.",
+      "original_assigned_agent": null,
+      "original_created_by": "Gemini",
+      "tags": [
+        "chatgpt_web_agent",
+        "scraping",
+        "enhancement",
+        "conditional"
+      ],
+      "dependencies": [
+        "BRIDGE-SUBTASK-002-ENHANCE-WEBAGENT"
+      ],
+      "estimated_duration": "5h",
+      "parent_task_id": "GEMINI-PYAUTOGUI-BRIDGE-ANALYSIS-001",
+      "notes": "Deferred: Current runtime/modules/chatgpt_scraper/scraper.py and schema only require logging of string prompt/response. Advanced scraping (beyond latest text reply) is not currently a defined requirement from this module. Task can be reactivated if requirements change."
     },
-    "priority": "HIGH",
-    "tags": ["LEADERSHIP", "AUDIT", "RESILIENCE"],
+    "priority": "MEDIUM",
     "status": "PENDING",
-    "injected_by": "captain"
+    "injected_at": "2025-05-07T18:12:25.000Z-MIGRATION",
+    "injected_by": "Agent-1 (Migration)",
+    "history": [
+      {
+        "timestamp": "2025-05-07T18:12:25.000Z-MIGRATION",
+        "agent": "Agent-1 (Migration)",
+        "action": "Migrated from root future_tasks.json; original status DEFERRED"
+      }
+    ]
   },
   {
     "task_id": "CLEANUP-FLAKE8-ERRORS-001",
@@ -288,5 +347,105 @@
     "assigned_agent": null,
     "created_at": "TIMESTAMP",
     "notes": "Triggered after bypassing hooks for commit 0b54ed7."
+  },
+  {
+    "task_id": "APS-HOOK-UNBLOCK-001",
+    "action": "design_and_implement_hook",
+    "params": {
+      "feature": "Agent Points System",
+      "hook_name": "unblock",
+      "description": "Design and implement logic to identify 'unblock' events (e.g., when a task completion resolves a dependency for another blocked task) and award points via AgentPointsManager. Define point value for unblocking.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 2,
+    "status": "PENDING",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}"
+  },
+  {
+    "task_id": "APS-HOOK-UPTIME-IDLE-001",
+    "action": "design_and_implement_hook",
+    "params": {
+      "feature": "Agent Points System",
+      "hook_name": "uptime_and_idle_monitoring",
+      "description": "Design and implement a mechanism for tracking agent uptime and idleness. Integrate with AgentPointsManager to award points for consistent uptime and penalize for prolonged, unexplained idleness. Define point values and tracking periods.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 2,
+    "status": "PENDING",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}"
+  },
+  {
+    "task_id": "APS-HOOK-PROTOCOL-VIOLATION-001",
+    "action": "design_and_implement_hook",
+    "params": {
+      "feature": "Agent Points System",
+      "hook_name": "protocol_violation",
+      "description": "Identify key agent protocol violations (e.g., malformed messages, incorrect task updates, repeated basic errors). Implement triggers or manual reporting mechanisms to penalize these violations via AgentPointsManager. Define point values.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 3,
+    "status": "PENDING",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}"
+  },
+  {
+    "task_id": "APS-HOOK-IMPROVEMENTS-001",
+    "action": "design_and_implement_hook",
+    "params": {
+      "feature": "Agent Points System",
+      "hook_name": "improvements_award",
+      "description": "Design a mechanism for awarding points for significant agent-driven improvements (e.g., valuable refactoring, new tools, critical bug fixes not tied to a specific task failure). This may involve a manual award command for the Captain/Admin. Define point values.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 2,
+    "status": "PENDING",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}"
+  },
+  {
+    "task_id": "APS-HOOK-CAPTAINCY-CHECK-001",
+    "action": "design_and_implement_hook",
+    "params": {
+      "feature": "Agent Points System",
+      "hook_name": "captaincy_check_and_broadcast",
+      "description": "Implement a periodic process (e.g., in SwarmController or a dedicated monitor) to call AgentPointsManager.determine_captain(). The result (current Captain's ID) should be reliably stored/broadcast for swarm awareness (e.g., update runtime/governance/current_captain.txt).",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 1,
+    "status": "COMPLETED",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "timestamp_completed_utc": "{{NOW_UTC_ISO}}",
+    "completion_summary": "Integrated periodic captaincy check into SwarmController._stats_loop. Uses AgentPointsManager.determine_captain() and writes result to configurable file (runtime/governance/current_captain.txt). Configuration added to AppConfig and config.yaml."
+  },
+  {
+    "task_id": "APS-CONFIG-POINT-VALUES-001",
+    "action": "refactor_and_configure",
+    "params": {
+      "feature": "Agent Points System",
+      "component": "AgentPointsManager and integration points",
+      "description": "Refactor the Agent Points System to load point values (for task completion, failure, and other hooks) from AppConfig or a dedicated configuration file, instead of being hardcoded. Update documentation.",
+      "depends_on": ["IMPLEMENT-AGENT-POINTS-SYSTEM-001"]
+    },
+    "priority": 1,
+    "status": "COMPLETED",
+    "injected_by": "Agent-1 (Gemini)",
+    "injected_at": "{{NOW_UTC_ISO}}",
+    "claimed_by": "Agent-1 (Gemini)",
+    "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
+    "timestamp_completed_utc": "{{NOW_UTC_ISO}}",
+    "completion_summary": "Refactored AgentPointsManager and ProjectBoardManager integration to load point values from AppConfig (agent_points_system.point_values). Added default values and test script (scripts/test_points_config.py)."
   }
 ]

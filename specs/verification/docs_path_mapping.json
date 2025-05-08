@@ -1,0 +1,57 @@
+{
+    "docs/README.md": "ai_docs/about_documentation_archive/migrated_docs_readme.md",
+    "docs/USER_ONBOARDING.md": "ai_docs/onboarding/user_onboarding.md",
+    "docs/DEVELOPER_GUIDE.md": "ai_docs/onboarding/developer_guide.md",
+
+    "docs/architecture/": "ai_docs/architecture_design_docs/from_old_docs/architecture/",
+    "docs/architecture/agent_meeting_system.md": "ai_docs/architecture_design_docs/agent_meeting_system.md",
+    "docs/architecture/agent_debate_arena.md": "ai_docs/architecture_design_docs/agent_debate_arena.md",
+    "docs/architecture/digital_dreamscape.md": "ai_docs/architecture_design_docs/digital_dreamscape.md",
+    "docs/architecture/social_media_manager.md": "ai_docs/architecture_design_docs/social_media_manager.md",
+    "docs/architecture/chatgpt_cursor_bridge.md": "ai_docs/architecture_design_docs/chatgpt_cursor_bridge.md",
+    "docs/architecture/agent_capability_registry.md": "ai_docs/architecture_design_docs/agent_capability_registry.md",
+    "docs/architecture/bridge_intel_agent5.md": "ai_docs/architecture_design_docs/bridge_intel_agent5.md",
+
+    "docs/designs/": "ai_docs/architecture_design_docs/from_old_docs/designs/",
+    "docs/designs/automated_devlog_hook.md": "ai_docs/architecture_design_docs/automated_devlog_hook.md",
+    "docs/designs/agent_comms_v2_proposal.md": "ai_docs/architecture_design_docs/agent_comms_v2_proposal.md",
+
+    "docs/standards/": "ai_docs/protocols_and_standards/from_old_docs/standards/",
+    "docs/standards/naming_conventions.md": "ai_docs/protocols_and_standards/naming_conventions.md",
+    "docs/standards/error_handling_standard.md": "ai_docs/protocols_and_standards/error_handling_standard.md",
+    "docs/standards/script_execution_standards.md": "ai_docs/protocols_and_standards/script_execution_standards.md",
+    "docs/standards/configuration.md": "ai_docs/protocols_and_standards/configuration_management.md",
+    "docs/standards/task_management.md": "ai_docs/protocols_and_standards/task_management.md",
+    "docs/standards/devlog_reporting_standard.md": "ai_docs/protocols_and_standards/devlog_reporting_standard.md",
+
+    "docs/protocols/": "ai_docs/protocols_and_standards/from_old_docs/protocols/",
+    "docs/protocols/peer_review_protocol_v1.md": "ai_docs/protocols_and_standards/peer_review_protocol_v1.md",
+    
+    "docs/policies/": "ai_docs/governance/from_old_docs/policies/",
+    "docs/policies/automated_testing_policy_v1.md": "ai_docs/governance/automated_testing_policy_v1.md",
+
+    "docs/guides/": "ai_docs/guides_and_tutorials/from_old_docs/guides/",
+    "docs/guides/asset_management.md": "ai_docs/guides_and_tutorials/asset_management.md",
+
+    "docs/examples/": "ai_docs/examples_and_tutorials/from_old_docs/examples/", 
+
+    "docs/04_concepts/": "ai_docs/knowledge_base/concepts/",
+    "docs/schemas/": "ai_docs/knowledge_base/schemas/",
+    "docs/core/": "ai_docs/knowledge_base/core_internals_legacy_docs/",
+    "docs/utils/": "ai_docs/knowledge_base/utils_legacy_docs/",
+    "docs/testing/": "ai_docs/learning_resources/testing_legacy_docs/",
+    "docs/swarm/": "ai_docs/agent_coordination/legacy_swarm_docs/",
+    "docs/governance/": "ai_docs/governance/from_old_docs/main_governance/", 
+    "docs/planning/": "ai_docs/project_specific_knowledge/legacy_planning_docs/",
+    "docs/proposals/": "ai_docs/project_specific_knowledge/legacy_proposals/",
+    "docs/communication/": "ai_docs/agent_coordination/legacy_comms_docs/",
+    "docs/tools/": "ai_docs/tool_integrations/legacy_tools_docs/",
+    "docs/runtime_notes/": "ai_docs/project_specific_knowledge/legacy_runtime_notes/",
+    "docs/meta_lore/": "ai_docs/knowledge_base/meta_lore/",
+
+    "docs/analysis/": "ai_docs/project_specific_knowledge/legacy_analysis/",
+    "docs/analysis_reports/": "ai_docs/reports_archive/migrated_analysis_reports/", 
+    "docs/analysis_reports/social_platform_expansion_research.md": "ai_docs/reports_archive/social_platform_expansion_research.md",
+
+    "docs/archive/": "ai_docs/about_documentation_archive/migrated_docs_archive/"
+} 

@@ -1,9 +1,0 @@
-{{
-{
-  "saved_task_id": "AGENT7-REPAIR-VALIDATION-ENV-001",
-  "description": "Diagnose and fix the persistent environment issue preventing the execution of validation tools (flake8, py_compile).",
-  "last_status": "OBSOLETE",
-  "reason": "Environment blocker resolved externally. Task no longer required.",
-  "saved_at_utc": "{{CURRENT_UTC_ISO}}"
-}
-}}

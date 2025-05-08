@@ -2,73 +2,37 @@ import json
 import logging
 import os
 import re
-import sys
 import uuid
 from pathlib import Path
+from datetime import datetime, timezone
 
 # --- Project Path Setup ---
-script_dir = os.path.dirname(__file__)  # social/
-project_root = os.path.abspath(os.path.join(script_dir, ".."))  # Go up one level
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# script_dir = os.path.dirname(__file__)  # social/
+# project_root = os.path.abspath(os.path.join(script_dir, ".."))  # Go up one level
+# if project_root not in sys.path:
+#     sys.path.insert(0, project_root)
 # -------------------------
 
 # --- Dependencies ---
-try:
-    from dreamforge.core.governance_memory_engine import log_event  # noqa: I001
+from dreamforge.core.governance_memory_engine import log_event  # noqa: I001
+from dreamos.core.comms.mailbox import (
+    MAILBOXES_DIR_NAME,
+    MailboxError,
+    MailboxHandler,
+)
+from dreamos.core.config import AppConfig
+from dreamos.utils.common_utils import get_utc_iso_timestamp
 
-    # Import the new MailboxHandler and related constants/exceptions
-    from dreamos.core.comms.mailbox import (  # Assuming mailboxes_base_dir might be needed  # noqa: E501
-        MAILBOXES_DIR_NAME,
-        MailboxError,
-        MailboxHandler,
-    )
-    from dreamos.core.config import AppConfig  # Updated import
-    from dreamos.utils.common_utils import get_utc_iso_timestamp
-    from social.constants import AGENT_ID  # To know where to send the task
+# FIXME: The source of AGENT_ID (recipient for tasks) needs to be clarified.
+#        It was 'from social.constants import AGENT_ID'. This suggests a dependency
+#        outside the dreamos structure or a mislocated constant. 
+#        For now, define it as a placeholder that needs configuration.
+RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS = "PLACEHOLDER_CONFIGURE_ME" 
 
-    # Access MailboxHandler to write new tasks (adjust import path if needed)
-    from social.utils.mailbox_handler import MailboxHandler  # noqa: F811
-except ImportError as e:
-    print(f"[FeedbackProcessor] Warning: Failed to import dependencies: {e}")
-
-    # Dummy log_event
-    def log_event(event_type, source, details):
-        print(
-            f"[Dummy Logger - FeedbackProcessor] Event: {event_type}, Source: {source}, Details: {details}"  # noqa: E501
-        )
-        return False
-
-    # Dummy MailboxHandler for basic testing
-    class DummyMailboxHandler:
-        def __init__(self, inbox, outbox):
-            pass
-
-        def send_message(self, message, recipient_agent_id=None, filename_prefix=None):
-            print(f"[Dummy Mailbox] Would send message: {json.dumps(message)}")
-            return True  # Simulate success
-
-    MailboxHandler = DummyMailboxHandler
-    AGENT_ID = "SocialAgent_Fallback"
-    # EDIT START: Add dummy fallback for timestamp util if core not available
-    from datetime import datetime, timezone  # Need this for the fallback itself
-
-    def get_utc_iso_timestamp(timespec="milliseconds"):
-        """Fallback timestamp function."""
-        valid_timespecs = ["auto", "microseconds", "milliseconds", "seconds"]
-        if timespec not in valid_timespecs:
-            timespec = "milliseconds"
-        return (
-            datetime.now(timezone.utc)
-            .isoformat(timespec=timespec)
-            .replace("+00:00", "Z")
-        )
-
-    print("[FeedbackProcessor] Using fallback get_utc_iso_timestamp.")
-    # EDIT END
 # --------------------
 
 _SOURCE = "FeedbackProcessor"
+_SOURCE_AGENT_ID = "FeedbackProcessorService" # Made more specific for a service
 
 # --- Configuration ---
 # Simple keyword matching for MVP
@@ -83,44 +47,13 @@ SUGGESTION_KEYWORDS = [
     "create",
 ]
 BUG_KEYWORDS = ["bug", "error", "problem", "issue", "fix", "broken", "doesn't work"]
-# Load config to get the correct base path
-# This assumes the feedback processor runs in a context where AppConfig is available
-# If not, the base path might need to be passed in or discovered differently.
-try:
-    config = AppConfig.load()  # Load default config
-    AGENT_COMMS_BASE = project_root / "runtime" / "agent_comms"
-    MAILBOXES_BASE = AGENT_COMMS_BASE / MAILBOXES_DIR_NAME
-except Exception as config_e:
-    logging.error(
-        f"Failed to load AppConfig to determine mailbox path: {config_e}. Mailbox functionality may fail."  # noqa: E501
-    )
-    MAILBOXES_BASE = (
-        project_root / "runtime" / "agent_comms" / "agent_mailboxes"
-    )  # Hardcoded fallback path
 
-# Define the agent ID for this processor/service
-_SOURCE_AGENT_ID = "FeedbackProcessor"  # Or derive from config/context
+# AppConfig should be passed to a main function or class constructor, not loaded globally here.
+# MAILBOXES_BASE will be derived from AppConfig when available.
 
 # --- Initialize Mailbox Handler ---
-# Use the new MailboxHandler and the correct base path
-task_sender_mailbox: MailboxHandler | None = None
-try:
-    task_sender_mailbox = MailboxHandler(
-        agent_id=_SOURCE_AGENT_ID, mailboxes_base_dir=MAILBOXES_BASE
-    )
-    logging.info(
-        f"FeedbackProcessor initialized MailboxHandler for agent '{_SOURCE_AGENT_ID}' using base '{MAILBOXES_BASE}'"  # noqa: E501
-    )
-except MailboxError as mb_init_e:
-    logging.error(f"Failed to initialize MailboxHandler for sending tasks: {mb_init_e}")
-    # No dummy fallback here; if it fails, sending won't work.
-    task_sender_mailbox = None
-except Exception as mb_generic_e:
-    logging.error(
-        f"Unexpected error initializing MailboxHandler: {mb_generic_e}", exc_info=True
-    )
-    task_sender_mailbox = None
-
+# MailboxHandler (task_sender_mailbox) should be initialized in a class or main function
+# that receives AppConfig.
 
 def _extract_potential_suggestions(text: str) -> list[tuple[str, str]]:
     """Rudimentary extraction of sentences containing keywords."""
@@ -173,7 +106,7 @@ def _create_task_message(
     message = {
         "message_id": task_id,
         "sender_agent_id": _SOURCE_AGENT_ID,
-        "recipient_agent_id": AGENT_ID,
+        "recipient_agent_id": RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS, # Use defined placeholder
         "timestamp": timestamp,
         "type": "COMMAND",  # It's a command for the agent
         "command": command,
@@ -233,10 +166,10 @@ def process_feedback(feedback_items: list[dict]):
                     # Send the task message using MailboxHandler
                     # Requires MailboxHandler to be initialized correctly and AGENT_INBOX path to be valid  # noqa: E501
                     filename_prefix = f"task_{feedback_type}"
-                    if task_sender_mailbox:
+                    if task_sender_mailbox: # task_sender_mailbox needs to be passed or initialized in context
                         success = task_sender_mailbox.send_message(
                             task_message,
-                            recipient_agent_id=AGENT_ID,
+                            recipient_agent_id=RECIPIENT_AGENT_ID_FOR_FEEDBACK_TASKS, # Use defined placeholder
                             filename_prefix=filename_prefix,
                         )
                         if success:
@@ -296,7 +229,7 @@ def process_feedback(feedback_items: list[dict]):
 if __name__ == "__main__":
     # EDIT START: Need datetime import here if fallback wasn't triggered earlier
     # This ensures the dummy data generation works even if core utils were imported successfully.  # noqa: E501
-    from datetime import datetime, timezone
+    # from datetime import datetime, timezone
 
     print("Testing Feedback Processor...")
 

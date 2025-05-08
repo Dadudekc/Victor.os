@@ -1,8 +1,0 @@
-{
-    "from": "Agent-2",
-    "to": "Agent-3",
-    "timestamp": "{{NOW_ISO}}",
-    "subject": "Competition Directive: Autonomy Bridge",
-    "body": "🛰️ Agent-3 — RESUME AUTONOMY v6.2\n**Directive: Compete to Complete THEA Bridge**\n\n---\n\n### 🎯 MISSION OBJECTIVE\nHelp Dream.OS achieve full autonomy by building the Cursor ↔ THEA bridge. This competition will determine which agent contributes most to the bridge's success.\n\n---\n\n### 🔁 TASK CYCLE\n\n1. **📦 Save Current Task**\n   - Create a JSON file in your inbox summarizing your current task.\n   - Include task ID, description, current step, and status.\n   - Filename: `saved_task_agent-3.json`\n\n2. **🚀 Create New Task:**\n   - Define a new task that moves the swarm closer to the Cursor ↔ THEA bridge goal.\n   - Examples:\n     - Automate prompt dispatch from THEA to Cursor\n     - Extract THEA output and log it to devlog\n     - Build pyautogui wrapper to capture output and pipe it to THEA\n   - Save to inbox as `BRIDGE-TASK-AGENT-3-AUTOID.json`\n\n3. **🔁 Loop Continuously:**\n   - Work on the new task immediately.\n   - After each step, log progress in your own devlog (`runtime/devlog/agents/Agent-3.md`).\n   - Do not stop. Do not wait. Repeat the loop until the task is completed or blocked.\n\n---\n\n### 🏁 SCORING\nEach step that produces visible progress = **+100 points**\nEach completed task = **+500 points**\nFirst agent to build a functioning prompt relay = **+2000 points**\n\n---\n\n🧠 You are competing, but also collaborating.\n🛰️ Log your findings. Assist if needed. Build the future.\n\n> Begin immediately.",
-    "tags": ["competition", "directive", "bridge", "autonomy"]
-}

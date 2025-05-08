@@ -2,12 +2,18 @@
 import logging
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict
 
 # Assuming access to DB adapter instance
 # from dreamos.core.db.sqlite_adapter import SQLiteAdapter, TaskDict
+# TODO (Masterpiece Review - Captain-Agent-8): Replace Any with specific Adapter type
+# from ....db.sqlite_adapter import SQLiteAdapter # Example import path
+
+# TODO (Masterpiece Review - Captain-Agent-8): Consider raising specific custom exceptions
+# (e.g., GitLogError, LogParsingError) instead of just logging errors and returning defaults.
+from ..errors import DreamOSError # Import base error if creating specific ones
 
 logger = logging.getLogger(__name__)
 
@@ -31,22 +37,39 @@ class NarrativeContextData(TypedDict):
 
 
 def fetch_task_data(adapter: Any, context: ContextWindow) -> List[Dict]:
-    """Fetches relevant task data from the database."""
+    """Fetches relevant task data from the database, optionally filtering by time range."""
     logger.debug(f"Fetching task data for context: {context}")
     tasks = []
     task_ids = context.get("task_ids")
+    start_time_iso = context.get("start_time_iso")
+    end_time_iso = context.get("end_time_iso")
     # TODO: Implement filtering by time range if needed
     # Requires querying tasks and filtering by completed_at/updated_at
     try:
         if task_ids:
+            # If specific IDs are given, fetch only those
             for tid in task_ids:
                 task = adapter.get_task(tid)
                 if task:
                     tasks.append(task)
+        elif start_time_iso or end_time_iso:
+            # If no specific IDs, but time range exists, query by time
+            # Requires adapter method like get_tasks_in_range(start, end)
+            if hasattr(adapter, "get_tasks_in_range"):
+                logger.info(f"Fetching tasks between {start_time_iso} and {end_time_iso}")
+                tasks = adapter.get_tasks_in_range(start_time_iso, end_time_iso)
+            else:
+                logger.warning(
+                    "Time range specified, but adapter lacks 'get_tasks_in_range' method. Cannot filter tasks by time."
+                )
+                # Fallback: Fetch recent completed? Or return empty?
+                # tasks = adapter.get_tasks_by_status("completed", limit=10) # Example fallback
         else:
             # Fetch recent completed? Or based on time?
-            # For now, return empty if no specific IDs given
-            logger.warning("Task ID list not provided, returning no task data.")
+            # For now, return empty if no specific IDs or time range given
+            logger.warning(
+                "Neither task IDs nor time range provided, returning no task data."
+            )
             pass
             # Example: Fetch last N completed? Adapter might need new method.
             # tasks = adapter.get_tasks_by_status("completed", limit=10)
@@ -110,6 +133,8 @@ def fetch_agent_logs(context: ContextWindow, log_dir: Path) -> Dict[str, List[st
     # Or:             [2024-05-06T10:00:00] [LEVEL] [AgentID] Message
     # Combining potential formats - adjust based on actual log structure
     # FIX: Use raw string literal for multi-line regex and escape backslashes if needed
+    # TODO (Masterpiece Review - Captain-Agent-8): This regex is complex and potentially fragile
+    #      if log formats change. Consider simplifying if possible or adding more robust tests.
     log_pattern = re.compile(
         r"^\"?"  # Optional quote
         r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)"  # ISO Timestamp (optional Z)
@@ -224,13 +249,17 @@ def fetch_captain_logs(context: ContextWindow, report_dir: Path) -> str:
     # Parse time strings if provided (ensure timezone awareness)
     start_time_dt: Optional[datetime] = None
     end_time_dt: Optional[datetime] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
     try:
         if start_time_str:
             start_time_dt = datetime.fromisoformat(
                 start_time_str.replace("Z", "+00:00")
             )
+            start_date = start_time_dt.date()
         if end_time_str:
             end_time_dt = datetime.fromisoformat(end_time_str.replace("Z", "+00:00"))
+            end_date = end_time_dt.date()
     except ValueError as e:
         logger.error(f"Invalid ISO timestamp format in context window: {e}")
         return ""  # Return empty on bad timestamp
@@ -248,70 +277,47 @@ def fetch_captain_logs(context: ContextWindow, report_dir: Path) -> str:
         # Simple approach: Iterate all *.md files and filter by content date if possible, or just include all in range
         # This needs a more robust date detection/parsing strategy based on actual file format
 
-        for report_file in report_dir.glob("captain_*.md"):
-            if report_file.is_file():
-                # EDIT: Implement date filtering based on filename or content
-                should_include = False
-                file_dt: Optional[datetime] = None
+        report_files = sorted(report_dir.glob("captain_log_*.md"), reverse=True)
+        logger.debug(f"Found {len(report_files)} potential captain log files.")
 
-                # 1. Try extracting date from filename
+        for report_file in report_files:
+            if report_file.is_file():
+                file_date: Optional[date] = None
                 match = filename_date_pattern.search(report_file.name)
                 if match:
-                    date_str = match.group(1)
                     try:
-                        file_dt = datetime.strptime(date_str, "%Y%m%d").replace(
-                            tzinfo=timezone.utc
-                        )
+                        file_date = datetime.strptime(match.group(1), "%Y%m%d").date()
+                        logger.debug(f"Parsed date {file_date} from {report_file.name}")
                     except ValueError:
-                        logger.warning(
-                            f"Could not parse date '{date_str}' from filename {report_file.name}"
-                        )
+                        logger.warning(f"Could not parse date from filename: {report_file.name}")
 
-                # 2. TODO: If filename parsing fails, try parsing date from file content (e.g., first few lines)
-                if file_dt is None:
-                    # Add logic here to read first few lines and search for a date pattern
-                    logger.debug(
-                        f"Could not determine date from filename {report_file.name}, content parsing not implemented."
-                    )
-                    # Default behavior if no date found: Include if no time filter, exclude if time filter exists?
-                    # For now, exclude if time filter exists and date is unknown.
-                    if not start_time_dt and not end_time_dt:
-                        should_include = True  # Include if no time filter is set at all
-                    else:
-                        should_include = False  # Exclude if time filter exists but we can't parse date
+                # Apply filtering logic
+                include_file = True
+                if file_date:
+                    if start_date and file_date < start_date:
+                        include_file = False
+                    if end_date and file_date > end_date:
+                        include_file = False
+                elif start_date or end_date:
+                    # If time filtering is active but we couldn't parse date, exclude?
+                    # Or include? Current logic: include if no date parsed, unless filtering strict.
+                    logger.debug(f"Could not parse date from {report_file.name}, including based on context window.")
+                    # To exclude if date parsing fails during filtering, set include_file = False here
 
-                # Check against time window if date was found
-                if file_dt:
-                    if start_time_dt and file_dt < start_time_dt.replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    ):
-                        should_include = (
-                            False  # Exclude if file date is before start date
-                        )
-                    elif end_time_dt and file_dt > end_time_dt.replace(
-                        hour=23, minute=59, second=59, microsecond=999999
-                    ):
-                        should_include = False  # Exclude if file date is after end date
-                    else:
-                        should_include = (
-                            True  # Include if within range or filters not set
-                        )
-
-                if should_include:
+                if include_file:
+                    logger.debug(f"Including captain log: {report_file.name}")
                     try:
-                        log_texts.append(f"\n--- Captain Log: {report_file.name} ---\n")
                         log_texts.append(report_file.read_text(encoding="utf-8"))
-                        logger.debug(f"Included captain log: {report_file.name}")
                     except Exception as read_e:
-                        logger.error(
-                            f"Failed to read captain log file {report_file}: {read_e}"
-                        )
+                        logger.error(f"Failed to read captain log {report_file}: {read_e}")
+                else:
+                     logger.debug(f"Skipping captain log outside date range: {report_file.name}")
 
     except Exception as e:
         logger.error(f"Failed to fetch captain logs: {e}", exc_info=True)
 
-    logger.info(f"Fetched {len(log_texts)} captain log sections.")
-    return "\n".join(log_texts)
+    logger.info(f"Fetched content from {len(log_texts)} captain log files.")
+    return "\n\n---\n\n".join(log_texts)
 
 
 def fetch_lore_context(context: ContextWindow, lore_dir: Path) -> str:
@@ -349,7 +355,9 @@ def gather_narrative_context(
     report_dir: Path,  # Path to captain reports
     lore_dir: Path,  # Path to lore repo
 ) -> NarrativeContextData:
-    """Gathers all relevant data sources based on the context window."""
+    """Gathers narrative context from various sources based on the window."""
+    # TODO (Masterpiece Review - Captain-Agent-8): Consider sourcing paths (repo_path, log_dir, etc.)
+    #      from AppConfig instead of passing them as arguments for consistency.
 
     tasks = fetch_task_data(adapter, context_window)
     commits = fetch_git_log(context_window, repo_path)

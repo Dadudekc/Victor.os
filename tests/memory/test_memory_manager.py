@@ -1,41 +1,81 @@
 import json
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from pathlib import Path
 
 import pytest
+
+# Import AppConfig to create a mock
+from dreamos.core.config import AppConfig, PathsConfig
 
 # Adjust import based on actual project structure
 from dreamos.memory.memory_manager import MemoryManager
 
 
 @pytest.fixture
-def temp_memory_file(tmp_path):
-    """Provides a temporary path for the memory file."""
-    return tmp_path / "test_fragments.json"
+def mock_config(tmp_path):
+    """Provides a mock AppConfig with necessary paths."""
+    # Create a mock PathsConfig pointing to tmp_path
+    paths = PathsConfig(
+        runtime=tmp_path / "runtime",
+        logs=tmp_path / "runtime" / "logs",
+        agent_comms=tmp_path / "runtime" / "agent_comms",
+        central_task_boards=tmp_path / "runtime" / "agent_comms" / "central_task_boards",
+        # Assuming memory path is derived or needed
+        memory=tmp_path / "runtime" / "memory",
+        project_root=tmp_path # Mock project root as tmp_path for simplicity
+        # Add other required PathsConfig fields if MemoryManager needs them
+    )
+    # Create a mock AppConfig
+    config = MagicMock(spec=AppConfig)
+    config.paths = paths
+    # Mock other AppConfig attributes if needed by MemoryManager
+    return config
 
 
 @pytest.fixture
-def memory_manager(temp_memory_file):
-    """Provides a MemoryManager instance using the temp file."""
-    return MemoryManager(file_path=temp_memory_file)
+def temp_memory_file(mock_config):
+    """Provides a temporary path for the memory file based on mock_config."""
+    # Ensure the directory exists based on the mock config
+    memory_dir = mock_config.paths.memory
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    return memory_dir / "core_fragments.json"
+
+
+@pytest.fixture
+def memory_manager(temp_memory_file, mock_config):
+    """Provides a MemoryManager instance using the temp file and mock config."""
+    # Pass the mock config during instantiation
+    return MemoryManager(file_path=temp_memory_file, config=mock_config)
 
 
 # --- Test Cases ---
 
 
-def test_memory_manager_initialization_creates_file(temp_memory_file):
+def test_memory_manager_initialization_creates_file(temp_memory_file, mock_config):
     """Test that initializing MemoryManager creates the file if it doesn't exist."""
+    # Ensure file doesn't exist initially
+    if temp_memory_file.exists():
+        temp_memory_file.unlink()
+
     assert not temp_memory_file.exists()
-    MemoryManager(file_path=temp_memory_file)
+    # Pass mock_config to constructor
+    MemoryManager(file_path=temp_memory_file, config=mock_config)
     assert temp_memory_file.exists()
-    assert temp_memory_file.read_text() == "{}"
+    # Check for empty JSON object {}
+    try:
+        content = temp_memory_file.read_text()
+        assert json.loads(content) == {}
+    except json.JSONDecodeError:
+        # Handle case where file might be created but empty, depending on impl.
+        assert temp_memory_file.read_text() == "{}" # Explicit check for the string
 
 
-def test_memory_manager_initialization_loads_existing(temp_memory_file):
+def test_memory_manager_initialization_loads_existing(temp_memory_file, mock_config):
     """Test that initializing loads data from an existing valid file."""
     initial_data = {"frag1": {"data": "value1"}}
     temp_memory_file.write_text(json.dumps(initial_data))
 
-    manager = MemoryManager(file_path=temp_memory_file)
+    manager = MemoryManager(file_path=temp_memory_file, config=mock_config)
     assert manager.memory == initial_data
 
 

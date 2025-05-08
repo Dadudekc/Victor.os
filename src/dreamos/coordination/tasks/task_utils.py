@@ -1,3 +1,12 @@
+"""
+Provides utility functions related to task management and scoring.
+
+Note: Several functions for direct task file manipulation (read_tasks, write_tasks,
+update_task_status) are DEPRECATED and UNSAFE due to lack of file locking.
+Use ProjectBoardManager for safe task board operations.
+
+The primary active utility in this module is _calculate_task_score.
+"""
 import logging
 import math
 from datetime import datetime, timezone
@@ -144,6 +153,8 @@ def _calculate_task_score(task_data: Dict[str, Any]) -> Dict[str, Any]:
         details_list.append("Missing start/end timestamps for duration calculation.")
 
     # Total Score
+    # FIXME: The current total_score is a simple average of quality, efficiency, and penalty.
+    #        Consider if a weighted average or more configurable scoring mechanism is needed.
     quality: float = max(0.0, min(1.0, scoring["outcome_quality"]))
     efficiency: float = max(0.0, min(1.0, scoring["time_efficiency"]))
     penalty: float = max(0.0, min(1.0, scoring["escalation_penalty"]))

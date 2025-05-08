@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
+from dreamos.core.config import load_app_config
 
 # Setup logging
 logging.basicConfig(
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Define constants for default paths relative to the project root (assumed to be parent of src)  # noqa: E501
 DEFAULT_SRC_DIR = "src/dreamos"
 DEFAULT_TESTS_DIR = "tests"
-DEFAULT_OUTPUT_FILE = "runtime/logs/defunct_tests.jsonl"
+DEFAULT_EXCLUDE_DIRS = ["fixtures", "integration", "snapshots", "__pycache__"]
 
 
 def find_python_files(start_path: Path, exclude_init: bool = True) -> set[Path]:
@@ -68,9 +69,8 @@ def find_defunct_tests(
         output_file: Relative path to output JSONL file.
         args: Parsed command-line arguments (for --exclude-dirs).
     """
-    project_root = (
-        Path(__file__).resolve().parents[4]
-    )  # Adjust based on actual file location
+    config = load_app_config()
+    project_root = config.paths.project_root
     src_path = project_root / src_dir
     tests_path = project_root / tests_dir
     output_path = project_root / output_file
@@ -94,7 +94,7 @@ def find_defunct_tests(
 
     # {{ EDIT START: Use exclude_dirs argument }}
     # Define default exclusions
-    default_excluded_dirs = ["fixtures", "integration", "snapshots", "__pycache__"]
+    # default_excluded_dirs = ["fixtures", "integration", "snapshots", "__pycache__"] # Original placement
     # Get exclusions from args, split if provided as comma-separated string
     excluded_dirs = getattr(args, "exclude_dirs", None)
     if excluded_dirs:
@@ -105,7 +105,7 @@ def find_defunct_tests(
         ]
         logger.info(f"Using provided exclude_dirs: {resolved_excluded_dirs}")
     else:
-        resolved_excluded_dirs = default_excluded_dirs
+        resolved_excluded_dirs = DEFAULT_EXCLUDE_DIRS # Use module-level default
         logger.info(f"Using default exclude_dirs: {resolved_excluded_dirs}")
 
     original_count = len(test_files)
@@ -172,6 +172,9 @@ def find_defunct_tests(
 
 
 if __name__ == "__main__":
+    config = load_app_config()
+    default_output_file_rel = Path("runtime") / "logs" / "defunct_tests.jsonl"
+
     parser = argparse.ArgumentParser(
         description="Find defunct test files (tests whose corresponding source module might be missing)."  # noqa: E501
     )
@@ -187,13 +190,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output-file",
-        default=DEFAULT_OUTPUT_FILE,
-        help=f"Relative path to the output JSONL file (default: {DEFAULT_OUTPUT_FILE})",
+        default=str(default_output_file_rel),
+        help=f"Relative path (from project root) for the output JSONL file (default: {default_output_file_rel})",
     )
     parser.add_argument(
         "--exclude-dirs",
         type=str,
-        help=f"Comma-separated list of directory names to exclude within tests dir (e.g., fixtures,integration). Defaults: {','.join(DEFAULT_EXCLUDE_DIRS) if 'DEFAULT_EXCLUDE_DIRS' in locals() else 'fixtures,integration,snapshots,__pycache__'}",  # noqa: E501, F821
+        help=f"Comma-separated list of directory names to exclude within tests dir (e.g., fixtures,integration). Defaults: {','.join(DEFAULT_EXCLUDE_DIRS)}",  # noqa: E501
     )
 
     args = parser.parse_args()

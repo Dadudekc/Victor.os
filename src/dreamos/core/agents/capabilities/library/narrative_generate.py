@@ -2,6 +2,7 @@
 import logging
 from pathlib import Path
 from typing import Any, Optional, TypedDict
+from datetime import datetime, timezone
 
 # EDIT: Use real LLM client
 from dreamos.core.llm.client import LlmApiError, get_llm_client

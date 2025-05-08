@@ -1,0 +1,8 @@
+{
+  "command": "grep_search",
+  "parameters": {
+    "query": "SimulatedCursorTools",
+    "include_pattern": "*.py"
+  },
+  "correlation_id": "test-grep-005"
+} 

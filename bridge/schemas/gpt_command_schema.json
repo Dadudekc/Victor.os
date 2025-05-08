@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GPT Command Payload",
+  "description": "Schema for commands sent from GPT to the Cursor Bridge.",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "description": "Unique identifier for the request.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp of when the command was generated.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "command_type": {
+      "description": "The type of action Cursor should perform.",
+      "type": "string",
+      "enum": [
+        "edit_file", 
+        "run_terminal", 
+        "codebase_search", 
+        "file_search",
+        "read_file",
+        "list_dir",
+        "grep_search"
+      ]
+    },
+    "parameters": {
+      "description": "Command-specific parameters.",
+      "type": "object",
+      "properties": { 
+        "target_file": {"type": "string"},
+        "code_edit": {"type": "string"},
+        "instructions": {"type": "string"},
+        "command": {"type": "string"},
+        "is_background": {"type": "boolean"},
+        "query": {"type": "string"},
+        "target_directories": {"type": "array", "items": {"type": "string"}},
+        "start_line_one_indexed": {"type": "integer"},
+        "end_line_one_indexed_inclusive": {"type": "integer"},
+        "should_read_entire_file": {"type": "boolean"},
+        "relative_workspace_path": {"type": "string"},
+        "case_sensitive": {"type": "boolean"},
+        "include_pattern": {"type": "string"},
+        "exclude_pattern": {"type": "string"}
+        
+      },
+      "# Note": "Specific required fields depend on command_type, needs runtime validation."
+    }
+  },
+  "required": [
+    "request_id",
+    "timestamp",
+    "command_type",
+    "parameters"
+  ],
+  "additionalProperties": false
+} 

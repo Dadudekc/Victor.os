@@ -34,6 +34,9 @@ CheckStatus = Literal["PASS", "WARN", "FAIL", "ERROR"]
 CHECK_NAME = "cursor_agent_status"
 # {{ EDIT END }}
 
+# TODO (Masterpiece Review - Captain-Agent-8): Consider sourcing EXPECTED_AGENT_IDS
+#      dynamically from the orchestrator/registry if possible, rather than just config,
+#      to adapt to changes in active agents.
 # TODO: Make EXPECTED_AGENT_IDS configurable or dynamically retrieved from orchestrator/registry.  # noqa: E501
 # REMOVED hardcoded EXPECTED_AGENT_IDS
 
@@ -174,6 +177,10 @@ async def _run_check():
     print("-------------------")
 
 
+# TODO (Masterpiece Review - Captain-Agent-8): The standalone `_run_check` example uses
+#      direct instantiation (`CursorOrchestrator()`). In a real application,
+#      Dependency Injection should be used to provide the orchestrator instance
+#      to `check_cursor_agent_statuses` or `CursorStatusCheck`.
 if __name__ == "__main__":
     # Note: Running this standalone requires CursorOrchestrator
     # to be properly configured and potentially running if it uses external resources.

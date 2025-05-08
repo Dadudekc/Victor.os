@@ -1,3 +1,10 @@
+"""
+Coordinates voting sessions within the Dream.OS swarm.
+
+Listens for vote initiation events, collects agent votes, handles timeouts
+and quorum logic (partially implemented), and publishes results.
+Uses the AgentBus for event-driven communication and Pydantic models for data validation.
+"""
 import asyncio  # noqa: I001
 import logging
 from collections import Counter, defaultdict
@@ -37,6 +44,12 @@ class VotingCoordinator:
     def __init__(
         self, agent_bus: AgentBus, coordinator_id: str = "VotingCoordinator"
     ):  # Add an ID
+        """Initializes the VotingCoordinator.
+
+        Args:
+            agent_bus: The system-wide AgentBus instance for communication.
+            coordinator_id: A unique identifier for this coordinator instance.
+        """
         self.agent_bus = agent_bus
         self.coordinator_id = coordinator_id  # ID for publishing
         self.active_vote_session: Optional[Dict[str, Any]] = None
@@ -236,7 +249,15 @@ class VotingCoordinator:
         )
 
     async def record_vote(self, vote_data: AgentVote):
-        """Records an agent's vote if the session is active and matches."""
+        """Records an agent's vote for the active session.
+
+        Checks if a session is active, the vote ID matches, and the agent
+        hasn't voted already. Stores the validated AgentVote model.
+        Placeholder for quorum check logic.
+
+        Args:
+            vote_data: The validated AgentVote Pydantic model.
+        """
         if not self.active_vote_session:
             logger.warning("Attempted to record vote, but no session is active.")
             return
@@ -272,7 +293,14 @@ class VotingCoordinator:
         #      await self.tally_and_publish_results() # Tally immediately
 
     async def end_vote_session_after_delay(self, delay: int):
-        """Coroutine that waits for the duration and then ends the session."""
+        """Waits for a specified delay then triggers vote tallying and publishing.
+
+        This coroutine is typically launched as an asyncio.Task when a vote session starts.
+        It handles graceful cancellation if the session ends early (e.g., by quorum).
+
+        Args:
+            delay: The number of seconds to wait before ending the session.
+        """
         try:
             await asyncio.sleep(delay)
             if (
@@ -288,7 +316,12 @@ class VotingCoordinator:
             )
 
     async def tally_and_publish_results(self):
-        """Tallies votes, publishes results, and resets the session."""
+        """Tallies collected votes, determines an outcome, publishes results, and resets.
+
+        FIXME: Current tallying and outcome determination logic is placeholder
+               and needs to be implemented based on specific voting rules.
+        Publishes results to the AgentBus and then resets the session state.
+        """
         if not self.active_vote_session:
             logger.warning("Tally requested, but no session active.")
             return
@@ -298,8 +331,9 @@ class VotingCoordinator:
         logger.info(f"Tallying results for vote session '{session_vote_id}'.")
 
         # --- Tallying Logic Placeholder ---
-        # This needs to be adapted based on the actual structure of questions/choices
-        # Example: Simple majority for a single choice question
+        # FIXME: Implement actual tallying logic based on the expected vote structure
+        #        (e.g., single choice, multiple choice, ranked choice, specific questions).
+        #        The current implementation assumes a single question with simple choices.
         tally: Dict[str, Any] = defaultdict(Counter)
         participants = list(self.votes_received.keys())
         confidence_scores = {}
@@ -316,6 +350,8 @@ class VotingCoordinator:
                 rationales[agent_id] = vote.rationale
 
         # --- Determine Outcome Placeholder ---
+        # FIXME: Implement outcome determination logic based on tallying results
+        #        and the specific rules of the vote (e.g., majority, consensus).
         outcome = "Undetermined"  # Default
         if tally["question_1"]:
             # Find the choice with the most votes
@@ -371,7 +407,11 @@ class VotingCoordinator:
         self.reset_session()
 
     def reset_session(self):
-        """Resets the voting session state."""
+        """Resets the state of the current voting session.
+
+        Clears active session data, received votes, and cancels any active
+        timeout task.
+        """
         logger.debug("Resetting voting session state.")
         self.active_vote_session = None
         self.votes_received = {}
@@ -380,7 +420,11 @@ class VotingCoordinator:
         self.vote_task = None
 
     async def stop(self):
-        """Cleanly stops the coordinator by unsubscribing and cancelling tasks."""
+        """Stops the VotingCoordinator gracefully.
+
+        Cancels any active voting session timer task and unsubscribes from
+        all AgentBus topics.
+        """
         logger.info("Stopping VotingCoordinator...")
         if self.vote_task and not self.vote_task.done():
             self.vote_task.cancel()
