@@ -10,8 +10,9 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Type, cast
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
 
 # Core Dream.OS imports aligned with BaseAgent
 from dreamos.core.config import AppConfig
@@ -35,6 +36,15 @@ logger = logging.getLogger("Agent9ResponseInjector")
 # FIXME: CURSOR_INJECTION_AGENT_ID should be configurable via AppConfig.
 CURSOR_INJECTION_AGENT_ID = "Agent2"
 
+from dreamos.core.coordination.agent_bus import (
+    BusError,
+    Event,
+)
+
+from dreamos.core.coordination.agent_bus import (
+    BusError,
+    Event,
+)
 
 class Agent9ResponseInjector(BaseAgent):
     """Listens for CHATGPT_RESPONSE_SCRAPED events and triggers Cursor injection tasks."""  # noqa: E501

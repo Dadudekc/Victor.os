@@ -14,6 +14,11 @@ from . import (
     schema_validator,
     search,
     spec_parser,
+    autonomy_governor,
+    file_locking,
+    onboarding_utils,
+    safe_file_writer,
+    summarizer,
 )
 
 __all__ = [
@@ -29,4 +34,9 @@ __all__ = [
     "schema_validator",
     "search",
     "spec_parser",
+    "autonomy_governor",
+    "file_locking",
+    "onboarding_utils",
+    "safe_file_writer",
+    "summarizer",
 ]

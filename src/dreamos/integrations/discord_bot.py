@@ -16,6 +16,9 @@ from dreamos.core.errors.exceptions import DreamOSError  # Use project errors
 
 from dreamos_ai_organizer.core.state import StateDB
 
+# ADDED: Import file_io
+from dreamos.utils import file_io
+
 # from dreamos.utils.gui_utils import copy_text_from_agent # No longer needed here
 
 # Global instance (or dependency injection needed)
@@ -96,16 +99,15 @@ from dreamos.automation.cursor_orchestrator import CursorOrchestrator
 # from dreamos.utils.file_io import write_text_to_file, ensure_directory_exists
 
 
-# Placeholder for file utils if not imported
-def write_text_to_file(path: Path, content: str):
-    logger.info(f"[Placeholder] Writing {len(content)} chars to {path}")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def ensure_directory_exists(path: Path):
-    logger.info(f"[Placeholder] Ensuring directory {path} exists.")
-    path.mkdir(parents=True, exist_ok=True)
+# REMOVED Placeholder for file utils as file_io is now imported
+# def write_text_to_file(path: Path, content: str):
+#     logger.info(f"[Placeholder] Writing {len(content)} chars to {path}")
+#     path.parent.mkdir(parents=True, exist_ok=True)
+#     path.write_text(content, encoding="utf-8")
+# 
+# def ensure_directory_exists(path: Path):
+#     logger.info(f"[Placeholder] Ensuring directory {path} exists.")
+#     path.mkdir(parents=True, exist_ok=True)
 
 
 class DiscordBot:
@@ -236,15 +238,24 @@ class DiscordBot:
                 inbox_file_path = inbox_dir / inbox_file_name
 
                 try:
-                    ensure_directory_exists(inbox_dir)  # Ensure agent inbox dir exists
-                    write_text_to_file(
-                        inbox_file_path, prompt
-                    )  # Use project's file util
+                    # MODIFIED: Use file_io.ensure_directory
+                    if not file_io.ensure_directory(inbox_dir):
+                        logger.error(f"Failed to create inbox directory {inbox_dir} for {agent_id}")
+                        await ctx.send(f"Error: Could not prepare agent inbox for {agent_id}.")
+                        return
+                    
+                    # MODIFIED: Use file_io.write_text_file_atomic (or write_text_file if non-atomic is acceptable)
+                    # Assuming atomic write is preferred for robustness.
+                    if not file_io.write_text_file_atomic(inbox_file_path, prompt):
+                        logger.error(f"Failed to write prompt to inbox file {inbox_file_path} using file_io.")
+                        await ctx.send(f"Error: Could not write prompt to agent {agent_id}\'s inbox.")
+                        return
+
                     logger.info(f"Prompt written to inbox file: {inbox_file_path}")
-                    success = True  # Assume write success if no exception
+                    success = True  # Assume write success if no exception from file_io
                 except Exception as write_e:
                     logger.error(
-                        f"Failed to write prompt to inbox file {inbox_file_path}: {write_e}",
+                        f"Unexpected error during prompt inbox write operation for {inbox_file_path}: {write_e}",
                         exc_info=True,
                     )
                     await ctx.send(

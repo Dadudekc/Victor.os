@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 # {{ EDIT END }}
-from dreamos.coordination.agent_bus import AgentBus
+from dreamos.core.coordination.agent_bus import AgentBus
 
 # {{ EDIT START: Import health checks }}
 # {{ EDIT END }}
@@ -173,7 +173,9 @@ class DreamOSMainWindow(QMainWindow):
         self.agent_counters = {}  # initialize per-agent metrics including escalation
         import asyncio
 
-        from dreamos.coordination.dispatcher import EventType
+        from dreamos.core.coordination.event_types import (
+            AGENT_STATE_CHANGE,
+        )
 
         self._agent_bus = AgentBus()
 

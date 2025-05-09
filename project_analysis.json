@@ -837,40 +837,14 @@
     "src\\dreamos\\agents\\utils\\agent_utils.py": {
         "language": ".py",
         "functions": [
-            "with_error_handling",
-            "with_performance_tracking",
             "log_task_performance",
             "format_agent_report",
             "example_agent_util_function",
-            "decorator",
-            "decorator",
             "_task_done_callback"
         ],
-        "classes": {
-            "AgentError": {
-                "methods": [],
-                "docstring": "Base exception for agent-related errors.",
-                "base_classes": [
-                    "Exception"
-                ]
-            },
-            "TaskProcessingError": {
-                "methods": [],
-                "docstring": "Error during task processing.",
-                "base_classes": [
-                    "AgentError"
-                ]
-            },
-            "MessageHandlingError": {
-                "methods": [],
-                "docstring": "Error during message handling.",
-                "base_classes": [
-                    "AgentError"
-                ]
-            }
-        },
+        "classes": {},
         "routes": [],
-        "complexity": 8
+        "complexity": 4
     },
     "src\\dreamos\\chat_engine\\discord_dispatcher.py": {
         "language": ".py",
@@ -956,7 +930,8 @@
             "_perform_injection_sequence",
             "_perform_copy_sequence",
             "_perform_health_check_click",
-            "_log_retry_attempt"
+            "_log_retry_attempt",
+            "injection_task"
         ],
         "classes": {
             "CursorOrchestratorError": {
@@ -983,7 +958,7 @@
             }
         },
         "routes": [],
-        "complexity": 18
+        "complexity": 19
     },
     "src\\dreamos\\automation\\execution\\virtual_desktop_runner.py": {
         "language": ".py",
@@ -2961,6 +2936,27 @@
             "is_functional"
         ],
         "classes": {
+            "IntegrationError": {
+                "methods": [],
+                "docstring": "Base error for integration issues.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "APIError": {
+                "methods": [],
+                "docstring": "Error related to external API interaction.",
+                "base_classes": [
+                    "IntegrationError"
+                ]
+            },
+            "BrowserClientError": {
+                "methods": [],
+                "docstring": "Specific error for Browser Client operations.",
+                "base_classes": [
+                    "IntegrationError"
+                ]
+            },
             "BrowserClient": {
                 "methods": [
                     "__init__",
@@ -2980,9 +2976,23 @@
             "is_functional"
         ],
         "classes": {
+            "IntegrationError": {
+                "methods": [],
+                "docstring": "Base error for integration issues.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "APIError": {
+                "methods": [],
+                "docstring": "Error related to external API interaction.",
+                "base_classes": [
+                    "IntegrationError"
+                ]
+            },
             "AzureBlobError": {
                 "methods": [],
-                "docstring": null,
+                "docstring": "Specific error for Azure Blob Storage operations.",
                 "base_classes": [
                     "IntegrationError"
                 ]
@@ -3007,6 +3017,20 @@
             "is_bot_functional"
         ],
         "classes": {
+            "IntegrationError": {
+                "methods": [],
+                "docstring": "Base error for integration issues.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "APIError": {
+                "methods": [],
+                "docstring": "Error related to external API interaction.",
+                "base_classes": [
+                    "IntegrationError"
+                ]
+            },
             "DiscordClient": {
                 "methods": [
                     "__init__",
@@ -3090,6 +3114,20 @@
             "is_functional"
         ],
         "classes": {
+            "IntegrationError": {
+                "methods": [],
+                "docstring": "Base error for integration issues.",
+                "base_classes": [
+                    "DreamOSError"
+                ]
+            },
+            "APIError": {
+                "methods": [],
+                "docstring": "Error related to external API interaction.",
+                "base_classes": [
+                    "IntegrationError"
+                ]
+            },
             "OpenAIClient": {
                 "methods": [
                     "__init__",
@@ -3199,9 +3237,7 @@
         "language": ".py",
         "functions": [
             "compact_segment_data",
-            "_sync_rewrite",
-            "_sync_read_and_parse",
-            "dt_serializer"
+            "_sync_read_and_parse"
         ],
         "classes": {
             "CompactionError": {
@@ -3213,7 +3249,7 @@
             }
         },
         "routes": [],
-        "complexity": 4
+        "complexity": 2
     },
     "src\\dreamos\\monitoring\\performance_logger.py": {
         "language": ".py",
@@ -4458,11 +4494,14 @@
             "read_text_file",
             "write_text_file_atomic",
             "_extract_content_from_tool_response",
-            "safe_read_with_tool"
+            "safe_read_with_tool",
+            "ensure_directory",
+            "calculate_file_sha256",
+            "move_file"
         ],
         "classes": {},
         "routes": [],
-        "complexity": 8
+        "complexity": 11
     },
     "src\\dreamos\\utils\\gui_bridge_utils.py": {
         "language": ".py",
@@ -6700,15 +6739,48 @@
     "src\\dreamos\\tools\\thea_relay_agent.py": {
         "language": ".py",
         "functions": [
+            "_find_mock_project_root",
+            "get_config",
+            "__init__",
+            "__init__",
+            "__init__",
+            "__init__",
             "validate_agent_id_format",
             "__init__",
             "_validate_response",
+            "_sync_file_write",
             "_sync_load",
-            "_sync_move",
-            "_sync_glob",
-            "__init__"
+            "_sync_glob"
         ],
         "classes": {
+            "_MockConfigPaths": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "_MockConfigAgentSettings": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "_MockConfig": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
+            "_StandaloneDummyBaseAgent": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": null,
+                "base_classes": []
+            },
             "TheaMessage": {
                 "methods": [
                     "validate_agent_id_format"
@@ -6725,19 +6797,12 @@
                 ],
                 "docstring": "An agent that monitors a directory for THEA responses, parses them,\nand dispatches them to the appropriate agent mailboxes.",
                 "base_classes": [
-                    "BaseAgent"
+                    "_BaseAgent_cls"
                 ]
-            },
-            "BaseAgent": {
-                "methods": [
-                    "__init__"
-                ],
-                "docstring": null,
-                "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 11
+        "complexity": 19
     },
     "scripts\\generate_dreamscape_from_session.py": {
         "language": ".py",
@@ -6935,6 +7000,20 @@
                 "docstring": "Indicates an error during archiving or unarchiving operations.",
                 "base_classes": [
                     "DreamOSError"
+                ]
+            },
+            "TaskProcessingError": {
+                "methods": [],
+                "docstring": "Error during task processing.",
+                "base_classes": [
+                    "TaskError"
+                ]
+            },
+            "MessageHandlingError": {
+                "methods": [],
+                "docstring": "Error during message handling.",
+                "base_classes": [
+                    "AgentError"
                 ]
             }
         },
@@ -7802,7 +7881,6 @@
         "language": ".py",
         "functions": [
             "log_message",
-            "ensure_dir_exists",
             "load_deployment_config",
             "initialize_agents",
             "update_agent_points_file",
@@ -7829,7 +7907,7 @@
             }
         },
         "routes": [],
-        "complexity": 18
+        "complexity": 17
     },
     "scripts\\gpt_cursor_relay.py": {
         "language": ".py",
@@ -9737,8 +9815,6 @@
     "src\\dreamos\\integrations\\discord_bot.py": {
         "language": ".py",
         "functions": [
-            "write_text_to_file",
-            "ensure_directory_exists",
             "__init__",
             "_register_events",
             "_register_commands",
@@ -9809,7 +9885,7 @@
             }
         },
         "routes": [],
-        "complexity": 22
+        "complexity": 20
     },
     "src\\dreamos\\monitoring\\correlation_validator.py": {
         "language": ".py",
@@ -12975,14 +13051,8 @@
             "export_chatgpt_context",
             "categorize_agents",
             "__init__",
-            "_load_cache_sync",
-            "_save_cache_sync",
-            "_load_config",
-            "_status_update",
-            "_determine_files_to_process_sync",
-            "_sync_populate_analysis_from_cache",
-            "progress_update",
-            "_sync_scandir"
+            "_resolve_path_from_config",
+            "progress_update"
         ],
         "classes": {
             "ProjectCache": {
@@ -13035,16 +13105,14 @@
             "ProjectScanner": {
                 "methods": [
                     "__init__",
-                    "_load_cache_sync",
-                    "_save_cache_sync",
-                    "_load_config"
+                    "_resolve_path_from_config"
                 ],
                 "docstring": "Orchestrates the project scanning process using modular components.\nResponsibilities:\n  - Initializes all components (analyzer, processor, reporter, concurrency manager).\n  - Loads and saves the file hash cache (if enabled).\n  - Discovers files to be scanned.\n  - Detects moved files based on hash (if cache enabled).\n  - Manages asynchronous file processing via MultibotManager.\n  - Gathers results and passes them to the ReportGenerator.\n  - Provides methods to trigger optional steps like __init__ generation or context export.",
                 "base_classes": []
             }
         },
         "routes": [],
-        "complexity": 60
+        "complexity": 52
     },
     "src\\dreamos\\tools\\calibration\\__init__.py": {
         "language": ".py",
@@ -13281,6 +13349,108 @@
         "language": ".py",
         "functions": [],
         "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\automation\\execution\\agent_factory.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "create_active_agents"
+        ],
+        "classes": {
+            "AgentFactoryError": {
+                "methods": [],
+                "docstring": "Custom exception for agent factory errors.",
+                "base_classes": [
+                    "Exception"
+                ]
+            },
+            "AgentFactory": {
+                "methods": [
+                    "__init__",
+                    "create_active_agents"
+                ],
+                "docstring": "Handles the dynamic loading and instantiation of agents.",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\core\\coordination\\utils.py": {
+        "language": ".py",
+        "functions": [
+            "with_error_handling",
+            "with_performance_tracking",
+            "decorator",
+            "decorator"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "src\\dreamos\\core\\utils\\file_utils.py": {
+        "language": ".py",
+        "functions": [
+            "_sync_rewrite",
+            "dt_serializer"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\tools\\tests\\circular_import_probe.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "src\\dreamos\\utils\\autonomy_governor.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "check_operational_status",
+            "get_next_action_suggestion",
+            "validate_task_completion_checklist"
+        ],
+        "classes": {
+            "AgentAutonomyGovernor": {
+                "methods": [
+                    "__init__",
+                    "check_operational_status",
+                    "get_next_action_suggestion",
+                    "validate_task_completion_checklist"
+                ],
+                "docstring": "Provides checks and guidance based on AUTONOMOUS_LOOP principles (v2.1 Inbox-Centric).",
+                "base_classes": []
+            }
+        },
+        "routes": [],
+        "complexity": 8
+    },
+    "src\\dreamos\\utils\\import_debugger.py": {
+        "language": ".py",
+        "functions": [
+            "try_import"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "src\\dreamos\\utils\\summarizer.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "BaseSummarizer": {
+                "methods": [],
+                "docstring": "Abstract base class for summarization components.",
+                "base_classes": [
+                    "ABC"
+                ]
+            }
+        },
         "routes": [],
         "complexity": 0
     }

@@ -11,6 +11,9 @@ from pathlib import Path
 
 import click
 
+# MODIFIED IMPORT
+from dreamos.utils.safe_file_writer import SafeWriteError, safe_write_file
+
 # --- Adjust sys.path to allow importing from src --- START
 # This assumes the script is run from the project root (D:\\Dream.os)
 # If run from elsewhere, this path adjustment might need modification.

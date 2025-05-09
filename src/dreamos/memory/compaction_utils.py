@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dreamos.core.errors import MemoryError as CoreMemoryError
+from dreamos.core.utils.file_utils import rewrite_file_safely_atomic
 
 logger = logging.getLogger(__name__)
 
@@ -117,68 +118,6 @@ def compact_segment_data(
         return data
 
 
-async def _rewrite_memory_safely(
-    file_path: Path, data: List[Dict[str, Any]], is_compressed: bool
-) -> bool:
-    """Atomically writes data to a file using a temporary file and os.replace.
-
-    Handles JSON serialization, including datetime objects, and optional
-    zlib compression based on the `is_compressed` flag.
-
-    Args:
-        file_path: The target Path object for the final file.
-        data: The list of dictionary entries to serialize and write.
-        is_compressed: If True, applies zlib compression to the UTF-8 encoded JSON data.
-
-    Returns:
-        True if the write and atomic replacement were successful, False otherwise.
-        Errors during write or replace are logged.
-    """
-    temp_path = file_path.with_suffix(file_path.suffix + f".{os.getpid()}.tmp")
-
-    def _sync_rewrite():
-        # Prepare data for JSON serialization (handle datetimes)
-        def dt_serializer(obj):
-            if isinstance(obj, datetime):
-                return obj.isoformat()
-            raise TypeError(
-                f"Object of type {type(obj).__name__} is not JSON serializable"
-            )
-
-        json_data = json.dumps(data, indent=2, default=dt_serializer)
-
-        if is_compressed:
-            encoded_data = json_data.encode("utf-8")
-            compressed_data = zlib.compress(encoded_data)
-            with open(temp_path, "wb") as f:  # Write bytes
-                f.write(compressed_data)
-        else:
-            with open(temp_path, "w", encoding="utf-8") as f:
-                f.write(json_data)
-
-        os.replace(temp_path, file_path)
-        # Removed temp_path.exists() check before os.remove as os.replace handles it.
-        # The finally block will catch if temp_path still exists due to an error before os.replace.
-
-    try:
-        await asyncio.to_thread(_sync_rewrite)
-        logger.debug(f"Safely rewrote memory file: {file_path}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to rewrite memory file {file_path}: {e}", exc_info=True)
-        # Clean up temp file if save failed
-        if await asyncio.to_thread(temp_path.exists):  # Check existence async
-            try:
-                await asyncio.to_thread(os.remove, temp_path)  # Remove async
-            except OSError:
-                logger.error(f"Failed to remove temporary save file: {temp_path}")
-        return False
-    # The finally block from the original was a bit confusing with os.replace.
-    # If _sync_rewrite fails before os.replace, temp_path might exist.
-    # If os.replace succeeds, temp_path is gone.
-    # The except block above handles cleanup on failure.
-
-
 async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
     """Loads a memory segment file, applies compaction, and saves the result atomically.
 
@@ -274,10 +213,8 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
                 f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
             # _rewrite_memory_safely is now async
-            rewrite_success = await _rewrite_memory_safely(
-                file_path, compacted_data, is_compressed
-            )
-            if not rewrite_success:
+            success = await rewrite_file_safely_atomic(file_path, compacted_data, is_compressed)
+            if not success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")
                 # return False
@@ -311,10 +248,8 @@ async def compact_segment_file(file_path: Path, policy: Dict[str, Any]) -> bool:
                 f"Data compacted for {file_path}. Original: {len(original_data)}, New: {len(compacted_data)}. Attempting rewrite."
             )
             # _rewrite_memory_safely is now async
-            rewrite_success = await _rewrite_memory_safely(
-                file_path, compacted_data, is_compressed
-            )
-            if not rewrite_success:
+            success = await rewrite_file_safely_atomic(file_path, compacted_data, is_compressed)
+            if not success:
                 # EDIT START: Raise specific error
                 logger.error(f"Compaction failed during save for {file_path}")
                 # return False

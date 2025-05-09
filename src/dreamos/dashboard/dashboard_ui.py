@@ -2,8 +2,9 @@ import logging  # noqa: I001
 import os
 import sys
 from pathlib import Path
+import threading
 
-from dreamos.coordination.agent_bus import AgentBus, EventType
+from dreamos.core.coordination.agent_bus import AgentBus, EventType
 from dreamos.dashboard.models import AgentModel, MailboxModel, TaskModel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (

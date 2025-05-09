@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 
@@ -10,10 +10,11 @@ from dreamos.core.config import (
     MemoryMaintenanceConfig,
     PathsConfig,
 )
-from dreamos.core.utils.file_locking import (  # For mocking lock context
+from dreamos.utils.file_locking import (  # For mocking lock context
+    FileLock,
     LockAcquisitionError,
 )
-from dreamos.core.utils.summarizer import BaseSummarizer
+from dreamos.utils.summarizer import BaseSummarizer
 from dreamos.services.memory_maintenance_service import MemoryMaintenanceService
 
 # --- Fixtures ---

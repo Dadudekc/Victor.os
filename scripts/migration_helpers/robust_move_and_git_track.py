@@ -4,6 +4,10 @@ import json
 import os
 import shutil
 import subprocess
+from pathlib import Path
+
+# Assuming src is in PYTHONPATH or this script is adjusted to find dreamos
+from dreamos.utils import file_io
 
 # Script to robustly move files/directories and track with Git
 # Uses shutil.copy, git add <new>, git rm <old>
@@ -48,7 +52,9 @@ def robust_move_item(source_path, dest_path, is_directory, dry_run=True):
             print(f"DRY-RUN: Would create directory: {dest_parent_dir}")
         else:
             print(f"Creating directory: {dest_parent_dir}")
-            os.makedirs(dest_parent_dir, exist_ok=True)
+            if not file_io.ensure_directory(Path(dest_parent_dir)):
+                print(f"ERROR: Failed to create destination parent directory {dest_parent_dir} using file_io. Aborting for this item.")
+                return False # Abort if cannot create essential directory
 
     # Perform copy
     if dry_run:

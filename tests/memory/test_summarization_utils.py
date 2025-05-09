@@ -1,11 +1,11 @@
 import json  # noqa: I001
 import os
 import zlib  # Needed for checking compressed data
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from dreamos.core.config import SummarizationConfig
-from dreamos.core.utils.summarizer import BaseSummarizer  # For mocking
+from dreamos.utils.summarizer import BaseSummarizer  # For mocking
 
 # Adjust the import path based on your project structure
 from dreamos.memory.summarization_utils import (

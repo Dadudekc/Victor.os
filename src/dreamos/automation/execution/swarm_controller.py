@@ -68,11 +68,15 @@ from dreamos.tools.task_editor import (
 # {{ EDIT END }}
 
 # EDIT: Import GUI Controller (assuming Path exists)
-from ..gui.controller import GUIController
+# from ..gui.controller import GUIController # Import seems invalid/missing file
 
 # {{ EDIT START: Import devlog utility }}
 from dreamos.reporting.devlog_utils import update_devlog_index
 # {{ EDIT END }}
+
+# EDIT START: Import AgentFactory
+from .agent_factory import AgentFactory, AgentFactoryError
+# EDIT END
 
 logger = logging.getLogger(__name__)  # logging configured by entry point
 
@@ -150,16 +154,21 @@ class SwarmController:
 
         # -- runtime components --------------------------------------------
         self.stats_hook = StatsLoggingHook(self.nexus)
-        self.event_bus = EventBus()
+        # EDIT START: Use injected agent_bus
+        # self.event_bus = EventBus() # OLD - AgentBus is singleton, use passed one
+        self.event_bus = agent_bus # Use the injected instance
+        # EDIT END
         # {{ EDIT START: Instantiate ProjectBoardManager }}
         try:
-            self.pbm = ProjectBoardManager(config=self.config)
+            # Pass agent_bus to PBM if it needs it for event dispatch
+            self.pbm = ProjectBoardManager(config=self.config, agent_bus=self.event_bus)
             logger.info("ProjectBoardManager initialized.")
         except Exception as e:
             logger.critical(
                 f"Failed to initialize ProjectBoardManager: {e}", exc_info=True
             )
-            self.pbm = None  # Indicate PBM failed
+            # Decide if PBM failure is fatal
+            raise RuntimeError(f"ProjectBoardManager instantiation failed: {e}") from e
 
         # {{ EDIT START: Instantiate DevlogHook }}
         try:
@@ -172,9 +181,27 @@ class SwarmController:
 
         # -- orchestration state -------------------------------------------
         self._stop_event = threading.Event()
-        self.workers: List[GUIController] = []
-        self.agents: Dict[str, BaseAgent] = {}
+        self.workers: List[GUIController] = [] # Still uses GUIController type hint despite missing file?
         self.threads: List[threading.Thread] = []
+
+        # EDIT START: Initialize self.agents using AgentFactory
+        self.agents: Dict[str, BaseAgent] = {}
+        try:
+            logger.info("Initializing AgentFactory...")
+            agent_factory = AgentFactory(
+                config=self.config,
+                agent_bus=self.agent_bus,
+                pbm=self.pbm,
+                adapter=self.adapter
+            )
+            logger.info("Calling AgentFactory to create active agents...")
+            self.agents = agent_factory.create_active_agents()
+            logger.info(f"SwarmController agent registry populated with {len(self.agents)} agents.")
+        except Exception as factory_err:
+            logger.critical(f"Failed to initialize agents via AgentFactory: {factory_err}", exc_info=True)
+            # Decide if agent loading failure is fatal
+            raise RuntimeError(f"AgentFactory failed during initialization: {factory_err}") from factory_err
+        # EDIT END
 
         # --- EDIT START: Add state for captaincy check ---
         self.last_captaincy_check_time = time.monotonic()  # Track last check time
@@ -191,13 +218,7 @@ class SwarmController:
         # {{ EDIT START: Instantiate CursorOrchestrator }}
         # Use the async factory function if available and run it
         try:
-            # Need to run the async factory function in an event loop
-            # Since __init__ is synchronous, use asyncio.run() carefully or
-            # defer initialization that requires async context.
-            # Simpler approach: instantiate directly if possible, or call factory later.
-            # Let's assume direct instantiation or handle async init later in start().
-            # self.cursor_orchestrator = asyncio.run(get_cursor_orchestrator(config=config, agent_bus=self.event_bus))
-            # Direct instantiation (assuming __init__ is compatible):
+            # Pass the correct event_bus instance (which is the AgentBus instance)
             self.cursor_orchestrator = CursorOrchestrator(
                 config=config, agent_bus=self.event_bus
             )
@@ -206,7 +227,6 @@ class SwarmController:
             logger.critical(
                 f"Failed to instantiate CursorOrchestrator: {e}", exc_info=True
             )
-            # Decide if this is fatal
             raise RuntimeError(f"CursorOrchestrator instantiation failed: {e}") from e
         # {{ EDIT END }}
 

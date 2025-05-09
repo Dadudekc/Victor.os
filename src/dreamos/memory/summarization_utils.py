@@ -8,13 +8,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dreamos.core.errors import MemoryError as CoreMemoryError
-from dreamos.core.utils.summarizer import BaseSummarizer
+from ..utils.summarizer import BaseSummarizer
 from dreamos.integrations.openai_client import OpenAIClient
+from tenacity import RetryError, stop_after_attempt, wait_exponential
 
-# TODO: Consider moving _rewrite_memory_safely to a shared file utility module
-# (e.g., memory/io_utils.py or core/utils/file_utils.py) as it's also used
-# by compaction_utils.py.
-from .compaction_utils import _rewrite_memory_safely
+# MODIFIED IMPORT
+from ..core.llm.llm_provider import BaseLLMProvider
+from dreamos.core.utils.file_utils import rewrite_file_safely_atomic
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ async def summarize_segment_file(
             logger.info(
                 f"Saving summarized data to {file_path} ({len(new_data)} entries replacing {len(original_data)})..."  # noqa: E501
             )
-            rewrite_success = await _rewrite_memory_safely(file_path, new_data, is_compressed)
+            rewrite_success = await rewrite_file_safely_atomic(file_path, new_data, is_compressed)
             if not rewrite_success:
                 logger.error(f"Summarization failed during save for {file_path}")
                 raise SummarizationError(f"Failed during atomic save for {file_path}")

@@ -4,9 +4,25 @@ import asyncio  # noqa: I001
 import logging
 
 from playwright.async_api import Page, async_playwright
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from dreamos.core.config import get_config
-from . import APIError, IntegrationError, BrowserClientError
+from ..core.errors import DreamOSError
+
+# Define Integration/API/Browser errors locally
+class IntegrationError(DreamOSError):
+    """Base error for integration issues."""
+    pass
+
+class APIError(IntegrationError):
+    """Error related to external API interaction."""
+    pass
+
+class BrowserClientError(IntegrationError):
+    """Specific error for Browser Client operations."""
+    pass
 
 logger = logging.getLogger(__name__)
 

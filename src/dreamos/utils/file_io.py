@@ -363,3 +363,129 @@ def safe_read_with_tool(
             exc_info=True,
         )
         return None
+
+
+# --- New Utility Functions Start ---
+
+def ensure_directory(path: Path, parents: bool = True, exist_ok: bool = True) -> bool:
+    """
+    Ensures that a directory exists. If it does not, it attempts to create it.
+
+    Args:
+        path: The directory path to check and create.
+        parents: If True, any missing parents of this path are created as needed.
+                 If False, a FileNotFoundError is raised if a parent does not exist.
+        exist_ok: If True, an existing directory will not raise an error.
+                  If False, FileExistsError is raised if the target directory already exists.
+
+    Returns:
+        True if the directory exists or was successfully created, False otherwise.
+    """
+    try:
+        path.mkdir(parents=parents, exist_ok=exist_ok)
+        logger.debug(f"Directory ensured/created: {path}")
+        return True
+    except FileExistsError:
+        # This case should only be reached if exist_ok is False and directory exists
+        logger.warning(f"Directory already exists and exist_ok=False: {path}")
+        return False # Or raise, depending on desired strictness
+    except FileNotFoundError:
+        # This case should only be reached if parents is False and a parent dir is missing
+        logger.error(f"Failed to create directory {path}: Parent directory does not exist and parents=False.")
+        return False # Or raise
+    except OSError as e:
+        logger.error(f"Failed to create directory {path}: {e}", exc_info=True)
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error ensuring directory {path}: {e}", exc_info=True)
+        return False
+
+def calculate_file_sha256(file_path: Path) -> Optional[str]:
+    """
+    Calculates the SHA256 hash of a file.
+
+    Args:
+        file_path: The path to the file.
+
+    Returns:
+        The hex digest of the SHA256 hash, or None if the file cannot be read.
+    """
+    import hashlib # Local import as it's specific to this function
+
+    try:
+        hasher = hashlib.sha256()
+        with open(file_path, "rb") as file:
+            while True:
+                chunk = file.read(4096)  # Read in chunks
+                if not chunk:
+                    break
+                hasher.update(chunk)
+        hex_hash = hasher.hexdigest()
+        logger.debug(f"Calculated SHA256 hash for {file_path}: {hex_hash}")
+        return hex_hash
+    except FileNotFoundError:
+        logger.error(f"Cannot calculate hash: File not found at {file_path}")
+        return None
+    except IOError as e:
+        logger.error(f"Cannot calculate hash: IO error reading file {file_path}: {e}")
+        return None
+    except Exception as e: # Catch any other unexpected errors
+        logger.error(
+            f"Unexpected error calculating hash for {file_path}: {e}", exc_info=True
+        )
+        return None
+
+def move_file(
+    source_path: Path,
+    destination_dir: Path,
+    new_filename: Optional[str] = None,
+    create_destination_dir: bool = True,
+) -> Optional[Path]:
+    """
+    Moves a file to a target directory, optionally renaming it.
+
+    Args:
+        source_path: The path of the file to move.
+        destination_dir: The directory to move the file into.
+        new_filename: Optional new name for the file. If None, original name is used.
+        create_destination_dir: If True, ensures the destination directory exists.
+
+    Returns:
+        The path to the moved file, or None if an error occurs.
+    """
+    import shutil # Local import as it's specific to this function
+
+    if not source_path.is_file():
+        logger.error(f"Source for move is not a file: {source_path}")
+        return None
+
+    if create_destination_dir:
+        if not ensure_directory(destination_dir):
+            logger.error(
+                f"Failed to create or ensure destination directory {destination_dir} for move operation."
+            )
+            return None # ensure_directory already logged the specific error
+
+    target_filename = new_filename if new_filename else source_path.name
+    destination_path = destination_dir / target_filename
+
+    try:
+        shutil.move(str(source_path), str(destination_path))
+        logger.info(f"Successfully moved {source_path} to {destination_path}")
+        return destination_path
+    except FileNotFoundError: # Should be caught by source_path.is_file() or ensure_directory
+        logger.error(f"Move failed: File or directory not found. Source: {source_path}, DestDir: {destination_dir}")
+        return None
+    except shutil.Error as e: # Specific shutil errors like 'Destination path already exists'
+        logger.error(f"Move failed due to shutil.Error for {source_path} to {destination_path}: {e}")
+        return None
+    except OSError as e: # Other OS-level errors like permissions
+        logger.error(f"Move failed due to OSError for {source_path} to {destination_path}: {e}", exc_info=True)
+        return None
+    except Exception as e:
+        logger.error(
+            f"Unexpected error moving file {source_path} to {destination_path}: {e}", exc_info=True
+        )
+        return None
+
+# --- End New Utility Functions ---

@@ -4,9 +4,11 @@ import os
 from contextlib import contextmanager
 from datetime import datetime, timezone  # Use timezone
 from typing import Any, Dict, Optional  # Added for type hints
+from pathlib import Path
 
 # Updated import path
 from ..core.config import AppConfig
+from ..core.errors import ConfigurationError
 
 # EDIT START: Load config to get path
 # Define log path relative to potential runtime directory, avoid hardcoding 'memory' top-level  # noqa: E501
@@ -20,18 +22,19 @@ try:
     _config = AppConfig.load()
     LOG_PATH = _config.paths.performance_log_path
 except Exception as e:
-    logging.error(
-        f"Failed to load app config for PerformanceLogger: {e}", exc_info=True
-    )
-    # Fallback to a default path if config loading fails
-    LOG_PATH = os.path.join("runtime", "logs", "performance.jsonl")
-    # Ensure the fallback directory exists
-    try:
-        os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-    except OSError as e_mkdir:
-        logging.error(
-            f"Failed to create fallback performance log directory {os.path.dirname(LOG_PATH)}: {e_mkdir}"  # noqa: E501
-        )
+    # EDIT: Catch ConfigurationError specifically if needed, otherwise general Exception
+    # Use ConfigurationError directly if imported
+    if isinstance(e, ConfigurationError):
+        logging.error(f"Failed to load app config for PerformanceLogger: {e}")
+    else:
+        logging.error(f"Failed to load app config for PerformanceLogger (unexpected): {e}")
+    # Fallback path if config load fails
+    # REMOVED NameError causing line
+    # raise appconfig_errors.exceptions.ConfigurationError(
+    # Need a sensible fallback path
+    LOG_PATH = Path("runtime/logs/performance.jsonl")
+    logging.warning(f"Using fallback performance log path: {LOG_PATH}")
+
 # Ensure log directory exists (handled by AppConfig._ensure_dirs_exist or fallback above)  # noqa: E501
 # try: # REMOVED
 #     os.makedirs(LOG_DIR, exist_ok=True) # REMOVED

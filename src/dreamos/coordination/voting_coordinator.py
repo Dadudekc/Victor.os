@@ -23,7 +23,13 @@ from dreamos.utils.common_utils import get_utc_iso_timestamp
 from pydantic import ValidationError
 
 # Use AgentBus and publish/subscribe model
-from .agent_bus import AgentBus, EventType
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+# from .agent_bus import AgentBus, EventType # OLD relative import
+# from dreamos.core.coordination.base_agent import BaseAgent # REMOVED Unused Import causing circular dep
+# REMOVED: Import of non-existent VoteInitiatedPayload
+# from dreamos.core.coordination.event_payloads import (
+#     VoteInitiatedPayload,
+# )
 
 logger = logging.getLogger(__name__)
 

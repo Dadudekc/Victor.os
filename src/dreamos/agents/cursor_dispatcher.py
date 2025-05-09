@@ -22,6 +22,7 @@ from pathlib import Path
 from utils.prompt_renderer import PromptRenderer
 
 from .virtual_desktop_runner import VirtualDesktopController
+from dreamos.core.config import load_config
 
 # Logger Setup
 logger = logging.getLogger("CursorDispatcher")
@@ -124,23 +125,37 @@ def run_loop(shutdown_event):
 
     logger.info("🚀 Cursor Dispatcher started.")
 
-    # FIXME: Cursor path detection relies on a list of common paths.
-    #        A configuration option for `cursor_path` would be more robust.
-    if os.name == "nt":
-        cursor_paths = [
-            os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),
-            r"C:\Program Files\Cursor\Cursor.exe",
-        ]
-    else:
-        cursor_paths = [
-            "/usr/bin/cursor",
-            "/opt/Cursor/cursor",
-            os.path.expanduser("~/Applications/Cursor.AppImage"),
-        ]
-    cursor_path = next((p for p in cursor_paths if os.path.exists(p)), None)
+    # EDIT START: Load cursor_path from AppConfig with fallback
+    cursor_path = None
+    try:
+        config = load_config()
+        if config and config.cursor_executable_path and os.path.exists(config.cursor_executable_path):
+            cursor_path = config.cursor_executable_path
+            logger.info(f"Using Cursor path from AppConfig: {cursor_path}")
+        else:
+            logger.warning("Cursor path from AppConfig is not valid or not set. Will try OS-specific fallbacks.")
+    except Exception as e:
+        logger.warning(f"Could not load AppConfig to get Cursor path: {e}. Will try OS-specific fallbacks.")
 
     if not cursor_path:
-        logger.error("Cursor executable not found. Please set path manually.")
+        logger.info("Attempting to find Cursor path using OS-specific fallbacks as AppConfig was not used or path invalid.")
+        # FIXME: Configuration for `cursor_path` is now primary via AppConfig; these are secondary fallbacks.
+        if os.name == "nt":
+            fallback_cursor_paths = [
+                os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),
+                r"C:\Program Files\Cursor\Cursor.exe",
+            ]
+        else:
+            fallback_cursor_paths = [
+                "/usr/bin/cursor",
+                "/opt/Cursor/cursor",
+                os.path.expanduser("~/Applications/Cursor.AppImage"),
+            ]
+        cursor_path = next((p for p in fallback_cursor_paths if os.path.exists(p)), None)
+    # EDIT END
+
+    if not cursor_path:
+        logger.error("Cursor executable not found via AppConfig or fallbacks. Please configure `cursor_executable_path` in AppConfig or ensure Cursor is in a standard location.")
         return
 
     vdc = VirtualDesktopController()

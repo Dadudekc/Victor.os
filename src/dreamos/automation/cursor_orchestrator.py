@@ -2,7 +2,8 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, Literal, Optional, Tuple, Type
+from typing import Dict, Literal, Optional, Tuple, Type, Any, List, Union
+from pathlib import Path
 
 # Attempt PyAutoGUI/Pyperclip imports
 try:
@@ -31,18 +32,21 @@ import tenacity  # Assuming tenacity was added by Agent 4
 # Local imports (assuming sibling modules)
 # from .response_retriever import ResponseRetriever # Logic will be integrated
 # from .cursor_injector import inject_prompt # Logic will be integrated
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
-from dreamos.coordination.event_payloads import (
-    AgentStatusChangePayload,
-    CursorResultEvent,
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.event_payloads import (
+    AgentStatusEventPayload,
     CursorResultPayload,
+    TaskCompletionPayload,
 )
-from dreamos.core.config import AppConfig
+from dreamos.core.coordination.event_types import EventType
 from dreamos.core.coordination.event_payloads import (
     CursorInjectRequestPayload,
 )
 
-# EDIT END # ADDED BY THEA / Agent-1 Auto-Correction
+# EDIT START: Add AppConfig import for type hint
+from dreamos.core.config import AppConfig
+# EDIT END
+
 # EDIT START: Import core ToolError and new wait utility
 from dreamos.core.errors import ToolError as CoreToolError
 
@@ -124,7 +128,7 @@ class CursorOrchestrator:
 
     def __init__(
         self,
-        config: AppConfig,  # Require AppConfig
+        config: AppConfig,  # Use direct type hint
         agent_bus: Optional[AgentBus] = None,
     ):
         """Initializes the CursorOrchestrator singleton instance.
@@ -140,7 +144,13 @@ class CursorOrchestrator:
             CursorOrchestratorError: If UI dependencies missing or no coords loaded.
             ValueError: If config object is not provided.
         """
+        # EDIT START: Remove local import patch for AppConfig
+        # from dreamos.utils.import_debugger import try_import
+        # AppConfig_local = try_import(lambda: __import__("dreamos.core.config", fromlist=["AppConfig"]).AppConfig, label="CursorOrchestrator.__init__ -> AppConfig")
+        # EDIT END
+
         if not config:
+            logger.error("CRITICAL: AppConfig instance was not provided to CursorOrchestrator.__init__.")
             raise ValueError("AppConfig instance is required for CursorOrchestrator.")
 
         if not UI_AUTOMATION_AVAILABLE:
@@ -149,20 +159,33 @@ class CursorOrchestrator:
             )
 
         if hasattr(self, "_initialized") and self._initialized:
+            logger.debug("CursorOrchestrator already initialized.")
             return
 
-        self._app_config = config  # Store the full config
+        self._app_config = config  # Store the full config passed in
+
+        # Ensure gui_automation exists on the config object before accessing its attributes
+        if not hasattr(config, 'gui_automation') or config.gui_automation is None:
+            raise CursorOrchestratorError("gui_automation settings missing in AppConfig for CursorOrchestrator.")
+        
         self.config = config.gui_automation  # Keep direct access to relevant section
-        self.input_coords_path = self.config.input_coords_file_path.resolve()
-        self.copy_coords_path = self.config.copy_coords_file_path.resolve()
+        
+        # Ensure paths are available on self.config (which is config.gui_automation)
+        if not hasattr(self.config, 'input_coords_file_path') or self.config.input_coords_file_path is None:
+            raise CursorOrchestratorError("input_coords_file_path missing in GuiAutomationConfig.")
+        if not hasattr(self.config, 'copy_coords_file_path') or self.config.copy_coords_file_path is None:
+            raise CursorOrchestratorError("copy_coords_file_path missing in GuiAutomationConfig.")
+
+        self.input_coords_path = Path(self.config.input_coords_file_path).resolve()
+        self.copy_coords_path = Path(self.config.copy_coords_file_path).resolve()
         self.agent_bus = agent_bus or AgentBus()
         self.input_coordinates: Dict[str, Tuple[int, int]] = {}
         self.copy_coordinates: Dict[str, Tuple[int, int]] = {}
         self.agent_status: Dict[str, AgentStatus] = {}
-        self._load_all_coordinates()
+        self._load_all_coordinates() # This can raise CursorOrchestratorError
         self._initialize_agent_status()
         self._initialized = True
-        logger.info("CursorOrchestrator initialized with config.")
+        logger.info("CursorOrchestrator initialized.")
 
     def _load_all_coordinates(self):
         """Loads both input and copy coordinates."""
@@ -232,15 +255,15 @@ class CursorOrchestrator:
                 base_event_data = event_data or {}
                 correlation_id = base_event_data.get("correlation_id")
 
-                # Assuming status changes are system events, use AgentStatusChangePayload  # noqa: E501
-                payload = AgentStatusChangePayload(
+                # Assuming status changes are system events, use AgentStatusEventPayload  # noqa: E501
+                payload = AgentStatusEventPayload(
                     agent_id=agent_id,
                     status=status,
                     task_id=base_event_data.get(
                         "task_id"
                     ),  # Get optional fields from input
                     error_message=base_event_data.get("error"),
-                    # Add other fields from AgentStatusChangePayload if present in event_data  # noqa: E501
+                    # Add other fields from AgentStatusEventPayload if present in event_data  # noqa: E501
                 )
 
                 event = BaseEvent(
@@ -281,8 +304,7 @@ class CursorOrchestrator:
     ) -> bool:
         """Injects a prompt into the specified agent's Cursor window.
 
-        Handles agent status updates, coordinates loading, retries, and events.
-        Retrieves target window title from AppConfig.
+        Handles window focus, UI automation, and state management.
 
         Args:
             agent_id: The ID of the target agent's Cursor window.
@@ -291,156 +313,140 @@ class CursorOrchestrator:
             correlation_id: Optional correlation ID for event tracking.
 
         Returns:
-            True if injection sequence completed without raising retryable errors,
-            False otherwise.
+            True if injection was successful, False otherwise.
 
         Raises:
-            CursorOrchestratorError: If non-retryable errors occur (e.g., no coords).
+            CursorOrchestratorError: For critical UI automation failures.
         """
+        # Target for log messages, include correlation_id if available
+        log_target_id = f"{agent_id}{f' (CorrID: {correlation_id})' if correlation_id else ''}" # noqa E501
+
         if agent_id not in self.input_coordinates:
-            logger.error(f"inject_prompt: No input coordinates for {agent_id}")
+            logger.error(
+                f"inject_prompt for {log_target_id}: No input coordinates found."
+            )
             # Publish failure event
-            failure_payload = CursorResultPayload(
+            payload = CursorResultPayload(
                 operation="inject",
                 status="FAILURE",
                 message="Missing input coordinates",
                 correlation_id=correlation_id,
             )
-            failure_event = CursorResultEvent(
-                event_type=EventType.CURSOR_INJECT_FAILURE,
-                source_id="CursorOrchestrator",
-                data=failure_payload,
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
-            try:
-                # Use create_task for fire-and-forget dispatch
-                asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
-            except Exception as e:
-                logger.error(
-                    f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"
-                )
-            await self._set_agent_status(agent_id, "ERROR")
             return False
 
+        # Check and set agent status
         current_status = await self.get_agent_status(agent_id)
-        if current_status not in ["IDLE", "ERROR", "UNRESPONSIVE", "UNKNOWN"]:
+        if current_status not in [AgentStatus.IDLE, AgentStatus.AWAITING_USER_INPUT]:
             logger.warning(
-                f"inject_prompt: Agent {agent_id} is not IDLE/ERROR/UNKNOWN (status: {current_status}). Aborting injection."  # noqa: E501
+                f"inject_prompt for {log_target_id}: Agent not IDLE or AWAITING_USER_INPUT (Status: {current_status}). Injection aborted."  # noqa E501
+            )
+            # Publish failure event
+            payload = CursorResultPayload(
+                operation="inject",
+                status="FAILURE",
+                message=f"Agent not ready, status: {current_status}",
+                correlation_id=correlation_id,
+            )
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
             return False
+
+        await self._set_agent_status(
+            agent_id,
+            AgentStatus.INJECTING,
+        )
 
         x, y = self.input_coordinates[agent_id]
-        success = False
-        error_reason = "Unknown error during injection sequence"
-
-        # Get target window title from config
-        target_window_title = self.config.target_window_title
-        logger.debug(
-            f"Retrieved target window title from config: '{target_window_title}'"
+        target_window_title = (
+            self.agent_window_titles.get(agent_id) or self.config.target_window_title
         )
 
         try:
-            # EDIT START: Create and pass payload for CURSOR_INJECT_REQUEST
-            inject_request_payload = CursorInjectRequestPayload(
-                agent_id=agent_id,
-                prompt=prompt,  # Pass the prompt being injected
+            logger.info(
+                f"Injecting prompt for {log_target_id} (len: {len(prompt)}). Coords: ({x},{y}), Window: '{target_window_title}'"  # noqa E501
             )
+            # Use a retry mechanism for the UI automation part
+            retry_decorator = retry_on_exception(
+                max_attempts=self.config.retry_attempts,
+                exceptions=RETRYABLE_UI_EXCEPTIONS,
+                delay=self.config.retry_delay_seconds,
+                logger=logger,
+                log_message_prefix=f"inject_prompt UI for {log_target_id}: ",
+            )
+            # The function to be retried needs to be defined or callable here.
+            # We wrap _perform_injection_sequence.
+            # Note: If _perform_injection_sequence itself has @retry, this creates nested retries.
+            # Ensure only one layer of retry for the same operation.
+            # Assuming _perform_injection_sequence does NOT have @retry for this specific call pattern.
+
+            # Wrapped function for retry
+            def injection_task():
+                self._perform_injection_sequence(
+                    x, y, prompt, log_target_id, target_window_title
+                )
+
+            # Execute with retry
+            await asyncio.to_thread(retry_decorator(injection_task))
+
+            logger.info(f"Prompt injection successful for {log_target_id}.")
             await self._set_agent_status(
                 agent_id,
-                "INJECTING",
-                event_type=EventType.CURSOR_INJECT_REQUEST,
-                event_data=inject_request_payload.to_dict(),  # Pass serialized payload
+                AgentStatus.AWAITING_RESPONSE,
             )
-            # EDIT END
-
-            # Use tenacity for retries
-            retryer = tenacity.AsyncRetrying(
-                stop=tenacity.stop_after_attempt(self.config.retry_attempts),
-                wait=tenacity.wait_fixed(self.config.retry_delay_seconds),
-                retry=tenacity.retry_if_exception_type(RETRYABLE_UI_EXCEPTIONS),
-                before_sleep=self._log_retry_attempt,  # Log before sleeping
-                reraise=True,  # Reraise the exception after max attempts
-            )
-
-            # Call the sequence using asyncio.to_thread for blocking IO
-            await retryer.call(
-                lambda: asyncio.to_thread(
-                    self._perform_injection_sequence,
-                    x,
-                    y,
-                    prompt,
-                    agent_id,
-                    target_window_title,  # MODIFIED: Pass title from config
-                )
-            )
-            logger.info(f"Injection sequence seemingly completed for {agent_id}.")
-
-            # If sequence completed without raising retryable error, assume success for now  # noqa: E501
-            await self._set_agent_status(agent_id, "AWAITING_RESPONSE")
             # Publish success event
-            success_payload = CursorResultPayload(
+            payload = CursorResultPayload(
                 operation="inject",
                 status="SUCCESS",
                 correlation_id=correlation_id,
             )
-            success_event = CursorResultEvent(
-                event_type=EventType.CURSOR_INJECT_SUCCESS,
-                source_id="CursorOrchestrator",
-                data=success_payload,
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
-            try:
-                asyncio.create_task(self.agent_bus.dispatch_event(success_event))
-            except Exception as e:
-                logger.error(
-                    f"Failed to dispatch event {EventType.CURSOR_INJECT_SUCCESS}: {e}"
-                )
-            success = True
-
-        except tenacity.RetryError as e:
-            # Retries exhausted
-            final_error = e.last_attempt.exception()
-            error_reason = (
-                f"Failed after {self.config.retry_attempts} retries: {final_error}"
-            )
+            return True
+        except CursorOrchestratorError as e:  # Catch specific errors from _perform_injection_sequence
             logger.error(
-                f"inject_prompt failed for {agent_id} after retries: {error_reason}",
-                exc_info=final_error,
+                f"inject_prompt for {log_target_id} failed: {e}", exc_info=False
+            ) # Set exc_info=False if e already contains good summary
+            await self._set_agent_status(
+                agent_id,
+                AgentStatus.ERROR,
+                event_data={"error": str(e), "correlation_id": correlation_id},
             )
-            # Don't set status here, let finally block handle it
-        except Exception as e:
-            # Catch other unexpected errors (like non-retryable CursorOrchestratorError)
-            error_reason = f"Unexpected Error: {type(e).__name__}: {e}"
-            logger.error(
-                f"inject_prompt failed for {agent_id}: {error_reason}", exc_info=True
+            # Publish failure event
+            payload = CursorResultPayload(
+                operation="inject",
+                status="FAILURE",
+                message=str(e),
+                correlation_id=correlation_id,
             )
-            # Don't set status here, let finally block handle it
-
-        finally:
-            if not success:
-                logger.warning(
-                    f"Finalizing inject_prompt for {agent_id} with status ERROR due to: {error_reason}"  # noqa: E501
-                )
-                # Publish failure event
-                failure_payload = CursorResultPayload(
-                    operation="inject",
-                    status="FAILURE",
-                    message=str(error_reason)[:200],  # Truncate long messages
-                    correlation_id=correlation_id,
-                )
-                failure_event = CursorResultEvent(
-                    event_type=EventType.CURSOR_INJECT_FAILURE,
-                    source_id="CursorOrchestrator",
-                    data=failure_payload,
-                )
-                try:
-                    asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
-                except Exception as e:
-                    logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_INJECT_FAILURE}: {e}"  # noqa: E501
-                    )
-                # Set final status to ERROR
-                await self._set_agent_status(agent_id, "ERROR")
-
-        return success
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
+            )
+            return False
+        except Exception as e:  # Catch any other unexpected errors
+            logger.exception(
+                f"Unexpected error during inject_prompt for {log_target_id}: {e}"
+            )
+            await self._set_agent_status(
+                agent_id,
+                AgentStatus.ERROR,
+                event_data={"error": str(e), "correlation_id": correlation_id},
+            )
+            # Publish failure event for unexpected errors
+            payload = CursorResultPayload(
+                operation="inject",
+                status="FAILURE",
+                message=f"Unexpected error: {e}",
+                correlation_id=correlation_id,
+            )
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
+            )
+            return False
 
     # EDIT START: Add helper for focus check and recovery
     def _check_and_recover_focus(
@@ -666,144 +672,135 @@ class CursorOrchestrator:
         Notes:
             - Requires agent status to be "AWAITING_RESPONSE".
             - Sets agent status to "COPYING", then "IDLE" on success or "ERROR" on failure.
-            - Emits AgentBus events (CURSOR_RETRIEVE_SUCCESS/FAILURE).
+            - Emits AgentBus events (CURSOR_OPERATION_RESULT with appropriate payload).
         """  # noqa: E501
+        log_target_id = f"{agent_id}{f' (CorrID: {correlation_id})' if correlation_id else ''}" # noqa E501
+
         if agent_id not in self.copy_coordinates:
-            logger.error(f"retrieve_response: No copy coordinates for {agent_id}")
-            failure_payload = CursorResultPayload(
+            logger.error(f"retrieve_response for {log_target_id}: No copy coordinates.")
+            payload = CursorResultPayload(
                 operation="retrieve",
                 status="FAILURE",
                 message="Missing copy coordinates",
                 correlation_id=correlation_id,
             )
-            failure_event = CursorResultEvent(
-                event_type=EventType.CURSOR_RETRIEVE_FAILURE,
-                source_id="CursorOrchestrator",
-                data=failure_payload,
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
-            try:
-                asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
-            except Exception as e:
-                logger.error(
-                    f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_FAILURE}: {e}"
-                )
-            await self._set_agent_status(agent_id, "ERROR")
             return None
 
         current_status = await self.get_agent_status(agent_id)
-        if current_status != "AWAITING_RESPONSE":
+        if current_status != AgentStatus.AWAITING_RESPONSE:
             logger.warning(
-                f"retrieve_response: Agent {agent_id} is not AWAITING_RESPONSE (status: {current_status}). Aborting retrieval."  # noqa: E501
+                f"retrieve_response for {log_target_id}: Agent not AWAITING_RESPONSE (Status: {current_status}). Retrieval aborted."  # noqa E501
+            )
+            payload = CursorResultPayload(
+                operation="retrieve",
+                status="FAILURE",
+                message=f"Agent not awaiting response, status: {current_status}",
+                correlation_id=correlation_id,
+            )
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
             return None
 
+        await self._set_agent_status(agent_id, AgentStatus.COPYING)
+
         x, y = self.copy_coordinates[agent_id]
-        retrieved_text = None
-        success = False
-        error_reason = "Unknown error during retrieval sequence"
+        target_window_title = (
+            self.agent_window_titles.get(agent_id) or self.config.target_window_title
+        )
+        # Determine copy attempts from config, default to 1 if not specified
+        # EDIT START: Use self.config.copy_attempts directly with a default
+        copy_attempts = self.config.copy_attempts if self.config else 1
+        # EDIT END
 
+        retrieved_text: Optional[str] = None
+        last_error: Optional[Exception] = None
+
+        logger.info(
+            f"Retrieving response for {log_target_id}. Coords: ({x},{y}), Window: '{target_window_title}', Attempts: {copy_attempts}"  # noqa E501
+        )
+
+        # --- Wrap the core copy logic for retry ---
+        # Wrapped function for retry.
+        # Ensure _perform_copy_sequence does not have its own @retry decorator
+        # if this retry_decorator is applied here, to avoid nested retries.
+        # _perform_copy_sequence is already decorated with retry, so we just call it.
+
+        # EDIT START: Call the already-decorated _perform_copy_sequence directly
+        # No need for an additional retry decorator here if _perform_copy_sequence handles it.
         try:
-            await self._set_agent_status(agent_id, "COPYING")
-            # Use tenacity for retries
-            retryer = tenacity.AsyncRetrying(
-                stop=tenacity.stop_after_attempt(self.config.retry_attempts),
-                wait=tenacity.wait_fixed(self.config.retry_delay_seconds),
-                retry=tenacity.retry_if_exception_type(RETRYABLE_UI_EXCEPTIONS),
-                before_sleep=self._log_retry_attempt,  # Log before sleeping
-                reraise=True,  # Reraise the exception after max attempts
-            )
-            retrieved_text = await retryer.call(
-                lambda: asyncio.to_thread(self._perform_copy_sequence, x, y, agent_id)
-            )
+            # Check focus before attempting copy
+            if not self._check_and_recover_focus(target_window_title, log_target_id):
+                 raise CursorOrchestratorError("Window focus lost or recovery failed before copy.") # noqa E501
 
-            if retrieved_text is not None:
-                logger.info(
-                    f"retrieve_response: Successfully retrieved response for {agent_id}."  # noqa: E501
-                )
-                await self._set_agent_status(agent_id, "IDLE")
-                success_payload = CursorResultPayload(
-                    operation="retrieve",
-                    status="SUCCESS",
-                    retrieved_content=retrieved_text,  # Include content
-                    correlation_id=correlation_id,
-                )
-                success_event = CursorResultEvent(
-                    event_type=EventType.CURSOR_RETRIEVE_SUCCESS,
-                    source_id="CursorOrchestrator",
-                    data=success_payload,
-                )
-                try:
-                    asyncio.create_task(self.agent_bus.dispatch_event(success_event))
-                except Exception as e:
-                    logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_SUCCESS}: {e}"  # noqa: E501
-                    )
-                success = True
-            else:
-                # This case might indicate _perform_copy_sequence handled an error internally  # noqa: E501
-                # but didn't raise a retryable exception, or returned None.
-                error_reason = (
-                    "Retrieval sequence returned None (check logs for specific error)"
-                )
-                logger.error(f"retrieve_response failed for {agent_id}: {error_reason}")
+            retrieved_text = self._perform_copy_sequence(
+                x, y, log_target_id, target_window_title=target_window_title
+            ) # Pass target_window_title
+            if retrieved_text is None: # If retryable _perform_copy_sequence returned None after attempts
+                raise CursorOrchestratorError("Copy sequence failed after multiple retries, returned None.")
+            last_error = None # Clear last_error if successful
+        except RETRYABLE_UI_EXCEPTIONS as e: # Catch specific retryable exceptions
+            logger.warning(f"UI attempt failed for {log_target_id} (will be retried by _perform_copy_sequence if configured): {e}") # noqa E501
+            last_error = e # Store for potential final failure reporting
+            # The retry is handled by _perform_copy_sequence's decorator
+            # If it exhausts retries, it will raise, or return None.
+            # If _perform_copy_sequence returns None, it's caught above.
+            # If it raises non-RETRYABLE_UI_EXCEPTIONS, it's caught by the generic Exception below.
+        except CursorOrchestratorError as e: # Catch specific errors like focus loss
+            logger.error(f"retrieve_response for {log_target_id} failed: {e}", exc_info=False)
+            last_error = e
+        except Exception as e: # Catch any other unexpected error
+            logger.exception(f"Unexpected error during retrieve_response for {log_target_id}: {e}")
+            last_error = e
+        # EDIT END
 
-        except tenacity.RetryError as e:
-            # Retries exhausted
-            final_error = e.last_attempt.exception()
-            error_reason = (
-                f"Failed after {self.config.retry_attempts} retries: {final_error}"
+        if retrieved_text is not None:
+            logger.info(f"Response retrieved successfully for {log_target_id} (len: {len(retrieved_text)}).")
+            await self._set_agent_status(agent_id, AgentStatus.IDLE)
+            payload = CursorResultPayload(
+                operation="retrieve",
+                status="SUCCESS",
+                retrieved_content=retrieved_text,
+                correlation_id=correlation_id,
             )
-            logger.error(
-                f"retrieve_response failed for {agent_id} after retries: {error_reason}",  # noqa: E501
-                exc_info=final_error,
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
             )
-            # Don't set status here, let finally block handle it
-        except Exception as e:
-            # Catch other unexpected errors
-            error_reason = f"Unexpected Error: {type(e).__name__}: {e}"
-            logger.error(
-                f"retrieve_response failed for {agent_id}: {error_reason}",
-                exc_info=True,
+            return retrieved_text
+        else:
+            error_message = f"Failed to retrieve response after {copy_attempts} attempt(s)."
+            if last_error:
+                error_message += f" Last error: {last_error}"
+            logger.error(f"retrieve_response for {log_target_id}: {error_message}")
+            await self._set_agent_status(
+                agent_id,
+                AgentStatus.ERROR,
+                event_data={"error": error_message, "correlation_id": correlation_id},
             )
-            # Don't set status here, let finally block handle it
-
-        finally:
-            if not success:
-                logger.warning(
-                    f"Finalizing retrieve_response for {agent_id} with status ERROR due to: {error_reason}"  # noqa: E501
-                )
-                # Publish failure event
-                failure_payload = CursorResultPayload(
-                    operation="retrieve",
-                    status="FAILURE",
-                    message=str(error_reason)[:200],  # Truncate long messages
-                    correlation_id=correlation_id,
-                )
-                failure_event = CursorResultEvent(
-                    event_type=EventType.CURSOR_RETRIEVE_FAILURE,
-                    source_id="CursorOrchestrator",
-                    data=failure_payload,
-                )
-                try:
-                    asyncio.create_task(self.agent_bus.dispatch_event(failure_event))
-                except Exception as e:
-                    logger.error(
-                        f"Failed to dispatch event {EventType.CURSOR_RETRIEVE_FAILURE}: {e}"  # noqa: E501
-                    )
-                await self._set_agent_status(agent_id, "ERROR")
-
-        return retrieved_text if success else None
+            payload = CursorResultPayload(
+                operation="retrieve",
+                status="FAILURE",
+                message=error_message,
+                correlation_id=correlation_id,
+            )
+            await self.agent_bus.publish(
+                Event(type=EventType.CURSOR_OPERATION_RESULT, data=payload.model_dump())
+            )
+            return None
 
     @retry_on_exception(
-        max_attempts=3, exceptions=RETRYABLE_UI_EXCEPTIONS, delay=1.0, logger=logger
+        max_attempts=3, exceptions=RETRYABLE_UI_EXCEPTIONS, delay=1.0
     )
     def _perform_copy_sequence(
-        self, x: int, y: int, agent_id_for_log: str
+        self, x: int, y: int, agent_id_for_log: str, target_window_title: str
     ) -> Optional[str]:
         """Clicks the copy button and retrieves text from the clipboard."""
         logger.info(f"Attempting copy sequence for agent {agent_id_for_log}...")
         if not self._check_and_recover_focus(
-            self.config.target_window_title, agent_id_for_log
+            target_window_title, agent_id_for_log
         ):
             logger.warning(
                 f"Focus check/recovery failed for agent {agent_id_for_log} before copy."
@@ -1091,26 +1088,36 @@ _orchestrator_init_lock = asyncio.Lock()
 
 
 async def get_cursor_orchestrator(
-    config: AppConfig, agent_bus: Optional[AgentBus] = None
+    # Remove default config loading, rely on prior initialization
+    config: Optional[AppConfig] = None,
+    agent_bus: Optional[AgentBus] = None
 ) -> CursorOrchestrator:
-    """Provides access to the singleton CursorOrchestrator instance...
-    Args:
-        config: The AppConfig instance (required).
-        agent_bus: Optional AgentBus instance...
-    """
-    global _cursor_orchestrator_instance
-    if not config:
-        raise ValueError("AppConfig is required to get CursorOrchestrator instance.")
+    """Factory function to get the CursorOrchestrator singleton instance.
 
-    if _cursor_orchestrator_instance is None:
-        async with _orchestrator_init_lock:
-            if _cursor_orchestrator_instance is None:
-                logger.info(
-                    "Creating and initializing CursorOrchestrator singleton instance."
-                )
-                bus_to_use = agent_bus or AgentBus()
-                # Pass the required config object
-                instance = CursorOrchestrator(config=config, agent_bus=bus_to_use)
-                await instance.initialize()
-                _cursor_orchestrator_instance = instance
-    return _cursor_orchestrator_instance
+    IMPORTANT: Assumes the singleton has ALREADY been initialized elsewhere
+    (e.g., by SwarmController) with the correct AppConfig and AgentBus.
+    This function primarily serves to retrieve the existing singleton instance.
+    If called before initialization, it will raise an error.
+
+    Args:
+        config: (Deprecated/Ignored) Config is expected to be set during initial creation.
+        agent_bus: (Deprecated/Ignored) AgentBus is expected to be set during initial creation.
+
+    Returns:
+        The initialized CursorOrchestrator singleton instance.
+
+    Raises:
+        CursorOrchestratorError: If the orchestrator hasn't been initialized yet.
+    """
+    if CursorOrchestrator._instance is None or not CursorOrchestrator._instance._initialized:
+        # If the instance hasn't been created and initialized yet (e.g., by SwarmController),
+        # trying to initialize it here without guaranteed correct config/bus is problematic.
+        # It's better to enforce that initialization happens first.
+        logger.error("get_cursor_orchestrator called before CursorOrchestrator was initialized!")
+        raise CursorOrchestratorError("CursorOrchestrator instance not initialized. Ensure SwarmController or main entry point initializes it first.")
+
+    # Log warning if config or agent_bus were passed, as they are ignored now
+    if config is not None or agent_bus is not None:
+        logger.warning("get_cursor_orchestrator received config/agent_bus arguments, but they are ignored as initialization should pre-exist.")
+
+    return CursorOrchestrator._instance

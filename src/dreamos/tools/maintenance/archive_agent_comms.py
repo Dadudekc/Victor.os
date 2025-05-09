@@ -14,10 +14,12 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+from dreamos.utils import file_io
+
 # --- Configuration ---
 # Resolve paths relative to this script's new location
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[1]  # Assumes scripts/maintenance structure
+PROJECT_ROOT = SCRIPT_DIR.parents[2]  # Adjusted to reflect src/dreamos/tools/maintenance
 COMMS_DIR = PROJECT_ROOT / "runtime" / "agent_comms"
 ARCHIVE_BASE_DIR = COMMS_DIR / "archive"
 FILENAME_DATE_FORMAT = "%Y%m%d"  # Expects YYYYMMDD at the start of the filename
@@ -41,11 +43,9 @@ def main():
         return
 
     # Ensure base archive directory exists
-    try:
-        ARCHIVE_BASE_DIR.mkdir(exist_ok=True)
-    except OSError as e:
+    if not file_io.ensure_directory(ARCHIVE_BASE_DIR):
         logger.error(
-            f"Failed to create base archive directory {ARCHIVE_BASE_DIR}: {e}. Exiting."
+            f"Failed to create base archive directory {ARCHIVE_BASE_DIR} using file_io. Exiting."
         )
         return
 
@@ -74,23 +74,19 @@ def main():
                     target_archive_dir = ARCHIVE_BASE_DIR / file_date.strftime(
                         "%Y-%m-%d"
                     )
-                    target_archive_path = target_archive_dir / filename
 
                     logger.info(f"Archiving {filename} to {target_archive_dir}")
 
-                    try:
-                        target_archive_dir.mkdir(exist_ok=True)
-                        shutil.move(str(item), str(target_archive_path))
+                    moved_path = file_io.move_file(
+                        source_path=item,
+                        destination_dir=target_archive_dir,
+                    )
+
+                    if moved_path:
                         archived_count += 1
-                    except OSError as e:
+                    else:
                         logger.error(
-                            f"Failed to create/move file to archive directory {target_archive_dir}: {e}"  # noqa: E501
-                        )
-                        error_count += 1
-                    except Exception as e:
-                        logger.error(
-                            f"Unexpected error moving file {filename}: {e}",
-                            exc_info=True,
+                            f"Failed to archive file {filename} to {target_archive_dir} using file_io."
                         )
                         error_count += 1
                 else:

@@ -6,9 +6,19 @@ from typing import Optional
 
 import aiohttp
 import tenacity
+import discord
 
 from dreamos.core.config import get_config
-from . import APIError, IntegrationError
+from ..core.errors import DreamOSError
+
+# Define Integration/API errors locally
+class IntegrationError(DreamOSError):
+    """Base error for integration issues."""
+    pass
+
+class APIError(IntegrationError):
+    """Error related to external API interaction."""
+    pass
 
 logger = logging.getLogger(__name__)
 

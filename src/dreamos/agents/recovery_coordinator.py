@@ -13,7 +13,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from asyncio import Lock, Condition, Event as AsyncEvent
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.enums import AgentState, TaskStatus
+from dreamos.core.errors.exceptions import AgentRecoveryError, TaskAssignmentError
 
 # Core Dream.OS components
 from dreamos.core.coordination.base_agent import BaseAgent, TaskMessage, TaskStatus

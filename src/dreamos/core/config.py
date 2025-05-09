@@ -8,14 +8,16 @@ centralized access to application configuration.
 
 # core/config.py
 # EDIT START: Add print at the very beginning of the file
-print("DEBUG: dreamos.core.config.py - Top of file executing", flush=True)
+print("DEBUG_CONFIG: Top of dreamos.core.config.py")
 # EDIT END
 import logging
+print("DEBUG_CONFIG: Imported logging")
 import os
+print("DEBUG_CONFIG: Imported os")
 import threading
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 import yaml
 from pydantic import (
@@ -29,11 +31,21 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
+print("DEBUG_CONFIG: Before importing .errors", flush=True)
 # Adjusted imports to reflect new location within core
 # REMOVED: Unused AgentBus import
 # from .coordination.agent_bus import AgentBus
 # REMOVED: Obsolete config_utils references
-from . import errors # Import the errors package
+# {{ EDIT START }}
+from . import errors as appconfig_errors
+# {{ EDIT END }}
+
+# EDIT: Add DreamscapeConfig import here
+from dreamscape.config import DreamscapeConfig
+
+# Guarded import for GuiAutomationConfig
+if TYPE_CHECKING:
+    from dreamos.automation.config import GuiAutomationConfig
 
 # Define logger at module level
 logger = logging.getLogger(__name__)
@@ -48,6 +60,7 @@ _logging_configured = False  # Flag to prevent duplicate logging setup
 
 
 # --- Function to find project root robustly ---
+print("DEBUG_CONFIG: Before find_project_root_marker definition")
 def find_project_root_marker(marker: str = ".git") -> Path:
     """Finds the project root by searching upwards for a marker file/directory."""
     current_path = Path(__file__).resolve()
@@ -63,9 +76,11 @@ def find_project_root_marker(marker: str = ".git") -> Path:
         f"Project root marker '{marker}' not found starting from {Path(__file__).resolve()}. Falling back to CWD."
     )
     return Path.cwd()  # Or raise FileNotFoundError("Project root marker not found.")
+print("DEBUG_CONFIG: After find_project_root_marker definition")
 
 
 # --- Determine Project Root --- #
+print("DEBUG_CONFIG: Before PROJECT_ROOT determination")
 try:
     PROJECT_ROOT = find_project_root_marker()
     # EDIT START: Add print after PROJECT_ROOT determination
@@ -85,8 +100,9 @@ except FileNotFoundError as e:
         flush=True,
     )
     # EDIT END
-
+print("DEBUG_CONFIG: After PROJECT_ROOT determination, before DEFAULT_CONFIG_PATH")
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "runtime" / "config" / "config.yaml"
+print(f"DEBUG_CONFIG: DEFAULT_CONFIG_PATH set to {DEFAULT_CONFIG_PATH}")
 # EDIT START: Add print after DEFAULT_CONFIG_PATH determination
 print(
     f"DEBUG: dreamos.core.config.py - DEFAULT_CONFIG_PATH: {DEFAULT_CONFIG_PATH}",
@@ -100,6 +116,7 @@ print(
 # REMOVED: from dreamscape.config import DreamscapeConfig # Moved later
 
 
+print("DEBUG_CONFIG: Before LoggingConfig definition")
 class LoggingConfig(BaseModel):
     level: str = Field("INFO", description="Logging level (e.g., DEBUG, INFO, WARNING)")
     log_file: Optional[str] = Field(
@@ -129,6 +146,7 @@ class LoggingConfig(BaseModel):
             default_path = (root / "runtime" / "logs").resolve()
             # default_path.mkdir(parents=True, exist_ok=True) # (commented out, handled by _ensure_dirs_exist)
             return default_path
+print("DEBUG_CONFIG: After LoggingConfig definition, before PathsConfig")
 
 
 class PathsConfig(BaseModel):
@@ -137,6 +155,10 @@ class PathsConfig(BaseModel):
     )
     logs: Path = Field(
         PROJECT_ROOT / "runtime" / "logs", description="Path to the logs directory"
+    )
+    performance_log_path: Optional[Path] = Field(
+        default=None, # Or set a default like PROJECT_ROOT / "runtime" / "logs" / "performance.jsonl"
+        description="Path for the PerformanceLogger output file relative to project root."
     )
     agent_comms: Path = Field(
         PROJECT_ROOT / "runtime" / "agent_comms",
@@ -158,6 +180,24 @@ class PathsConfig(BaseModel):
     project_root: Path = Field(
         PROJECT_ROOT, description="Resolved project root directory"
     )
+    # EDIT START: Add new paths for scraper with defaults
+    chrome_profiles_base_dir: Path = Field(
+        PROJECT_ROOT / "runtime" / "chrome_profiles",
+        description="Base directory for Chrome user profiles."
+    )
+    cookies_base_dir: Path = Field(
+        PROJECT_ROOT / "runtime" / "cookies",
+        description="Base directory for storing cookies."
+    )
+    scraper_content_logs_base_dir: Path = Field(
+        PROJECT_ROOT / "runtime" / "scraper_logs" / "chat_mate",
+        description="Base directory for scraper content logs for ChatMate."
+    )
+    webdrivers_cache_base_dir: Path = Field(
+        PROJECT_ROOT / "runtime" / "webdrivers_cache",
+        description="Base directory for caching webdrivers."
+    )
+    # EDIT END
     # Paths identified during configuration management refactoring (TASK-REFACTOR-CONFIG-PATHS-001)
     # Define path for cursor state file (used in dreamos.services.utils.cursor)
     cursor_state_path: Optional[Path] = Field(
@@ -207,6 +247,8 @@ class PathsConfig(BaseModel):
     )
 
     # NOTE: GUI coords input path is handled under GuiAutomationConfig below
+
+print("DEBUG_CONFIG: After PathsConfig definition, before OpenAIConfig")
 
 
 class OpenAIConfig(BaseModel):
@@ -436,7 +478,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             logger.warning(
                 f"YamlConfigSettingsSource: Config file '{load_path}' not found."
             )
-            raise errors.exceptions.ConfigurationError(f"Config file not found: {load_path}")
+            raise appconfig_errors.exceptions.ConfigurationError(f"Config file not found: {load_path}")
 
         try:
             with open(load_path, "r", encoding=encoding_to_use) as f:
@@ -452,7 +494,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
                 logger.error(
                     f"Config file '{load_path}' content is not a valid dictionary."
                 )
-                raise errors.exceptions.ConfigurationError(
+                raise appconfig_errors.exceptions.ConfigurationError(
                     f"Config file is not a valid dictionary: {load_path}"
                 )
 
@@ -460,16 +502,16 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
             return config_data
         except yaml.YAMLError as e:
             logger.error(f"Error parsing YAML file '{load_path}': {e}", exc_info=True)
-            raise errors.exceptions.ConfigurationError(
+            raise appconfig_errors.exceptions.ConfigurationError(
                 f"Failed to load config due to YAML parsing error in {load_path}: {e}"
             ) from e
-        except errors.exceptions.ConfigurationError:
+        except appconfig_errors.exceptions.ConfigurationError:
             raise
         except Exception as e:
             logger.error(
                 f"Unexpected error loading YAML file '{load_path}': {e}", exc_info=True
             )
-            raise errors.exceptions.ConfigurationError(
+            raise appconfig_errors.exceptions.ConfigurationError(
                 f"Unexpected error loading config file {load_path}: {e}"
             ) from e
 
@@ -491,6 +533,7 @@ class YamlConfigSettingsSource(PydanticBaseSettingsSource):
     def __call__(self) -> dict[str, Any]:
         """Load and return the entire config dictionary from the YAML file."""
         return self._load_config()
+print("DEBUG_CONFIG: After YamlConfigSettingsSource, before load_config function")
 
 
 # --- End Moved YAML Source Class Definition ---
@@ -631,21 +674,38 @@ class OperatingMode(str, Enum):
 
 
 # --- AppConfig Definition ---
+print("DEBUG_CONFIG: Before AppConfig class definition")
 class AppConfig(BaseSettings):
     """Main application configuration loaded from environment variables and/or config file."""
+    print("DEBUG_CONFIG: Inside AppConfig class body", flush=True)
 
     # MOVED all custom type imports here
-    from dreamos.automation.config import GuiAutomationConfig
-    from dreamscape.config import DreamscapeConfig  # This was the previous attempt
+    # Imports are now handled outside class or at bottom of file
 
-    from . import errors # Import the errors package
+    # {{ EDIT START: Problematic 'from . import errors' line removed from this spot }}
+    # The line "from . import errors # Import the errors package" was previously here.
+    # It has been removed to resolve a Pydantic UserError.
+    # The 'errors' module is imported at the top level as 'appconfig_errors'.
+    # {{ EDIT END }}
+    # REMOVED: Unused AgentBus import
+    # from .coordination.agent_bus import AgentBus
+    # REMOVED: Obsolete config_utils references
+    # MOVED: from . import errors as appconfig_errors # Commented out here
 
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
-    dreamscape: DreamscapeConfig = Field(default_factory=DreamscapeConfig)
+    # EDIT START: Add cursor_executable_path to AppConfig
+    cursor_executable_path: Optional[str] = Field(
+        r"C:\\Program Files\\Cursor\\Cursor.exe",
+        description="Path to the Cursor executable."
+    )
+    # EDIT END
+    # Restore dreamscape field
+    dreamscape: 'DreamscapeConfig' = Field(default_factory=lambda: DreamscapeConfig())
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
-    gui_automation: Optional[GuiAutomationConfig] = None
+    # Restore gui_automation field
+    gui_automation: Optional['GuiAutomationConfig'] = None # MODIFIED: Forward ref hint
     pyautogui_bridge: PyAutoGUIBridgeConfig = Field(
         default_factory=PyAutoGUIBridgeConfig
     )
@@ -670,233 +730,215 @@ class AppConfig(BaseSettings):
 
     # Configuration loading behavior
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_nested_delimiter="__",
-        extra="ignore",  # Ignore extra fields from sources
-        # EDIT: Remove default yaml source from model_config if load() handles it
-        # yaml_file=DEFAULT_CONFIG_PATH,
+        env_prefix="DREAMOS_",  # Prefix for environment variables
+        env_file=".env",  # Default .env file
+        env_file_encoding="utf-8",
+        extra="ignore",  # Ignore extra fields from config sources
+        # Added: customize sources to include YAML first, then env vars, then .env
+        # The order determines precedence (last one wins for overlapping keys)
+        # Removed: settings_show_yaml_error (not a direct SettingsConfigDict key)
     )
 
-    # Class methods and validators
-    # @classmethod
-    # def settings_customise_sources(...): # Keep this if needed for env/dotenv/secrets
-    #    ...
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Determine the config file path (from env var or default)
+        # Ensure PROJECT_ROOT is available at this point
+        config_file_env = os.getenv(f"{cls.model_config['env_prefix']}CONFIG_PATH")
 
-    # @model_validator(mode='before')
-    # @classmethod
-    # def _determine_project_root(...): # Keep this
-    #    ...
+        # Use the resolved DEFAULT_CONFIG_PATH which is based on PROJECT_ROOT
+        config_file_path_to_load = (
+            Path(config_file_env) if config_file_env else DEFAULT_CONFIG_PATH
+        )
 
-    # @model_validator(mode='after')
-    # def _inject_project_root(...): # Keep this
-    #    ...
+        return (
+            init_settings,
+            YamlConfigSettingsSource(
+                settings_cls=settings_cls,
+                yaml_file=config_file_path_to_load, # Use the determined path
+                yaml_file_encoding="utf-8",
+            ),
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
 
-    # @model_validator(mode='after')
-    # def validate_paths(...): # Keep if needed
-    #    ...
-
-    # EDIT: Keep the static load method
     @classmethod
     def load(cls, config_file: Optional[str] = None) -> "AppConfig":
-        """Loads configuration from a YAML file, falling back to default if needed."""
-        config_path_to_load = None
-        if config_file:
-            config_path_to_load = Path(config_file)
-            if not config_path_to_load.is_absolute():
-                # Resolve relative to CWD? Or Project Root?
-                # Let's assume relative to Project Root defined above
-                config_path_to_load = (PROJECT_ROOT / config_file).resolve()
-            if not config_path_to_load.exists():
-                logger.error(f"Specified config file not found: {config_path_to_load}")
-                raise errors.exceptions.ConfigurationError(
-                    f"Config file not found: {config_path_to_load}"
-                )
-        elif DEFAULT_CONFIG_PATH.exists():
-            logger.info(
-                f"No config file specified, using default: {DEFAULT_CONFIG_PATH}"
-            )
-            config_path_to_load = DEFAULT_CONFIG_PATH
-        else:
-            logger.warning(
-                "No config file specified and default config not found. Using empty config."
-            )
-            # Return model with default values if no file found
+        global _config
+        global _logging_configured # Access the global flag
+
+        with _config_lock:
+            # If a specific config_file is provided, set it as an environment variable
+            # so that settings_customise_sources can pick it up.
+            # This allows overriding the default config path for this specific load() call.
+            original_env_config_path = os.getenv(f"{cls.model_config['env_prefix']}CONFIG_PATH")
+            if config_file:
+                os.environ[f"{cls.model_config['env_prefix']}CONFIG_PATH"] = str(Path(config_file).resolve())
+            elif original_env_config_path: # If env var was already set, respect it
+                os.environ[f"{cls.model_config['env_prefix']}CONFIG_PATH"] = str(Path(original_env_config_path).resolve())
+            else: # Otherwise, ensure it's set to the default for this load operation
+                os.environ[f"{cls.model_config['env_prefix']}CONFIG_PATH"] = str(DEFAULT_CONFIG_PATH.resolve())
+
+
             try:
-                # Ensure logger is available for setup_logging if called
-                instance = cls()  # Load with defaults / env vars
-                # setup_logging(instance) # Setup logging based on defaults
+                logger.info(f"Loading AppConfig from: {os.getenv(f'{cls.model_config['env_prefix']}CONFIG_PATH')}")
+                instance = cls() # This will trigger Pydantic's loading logic
+                instance.project_root_internal = PROJECT_ROOT # Set the resolved project root
+
+                # Perform path resolutions after loading
+                instance.paths.runtime = (
+                    instance.project_root_internal / instance.paths.runtime
+                ).resolve()
+                instance.paths.logs = (
+                    instance.project_root_internal / instance.paths.logs
+                ).resolve()
+
+                # EDIT START: Resolve all other optional paths if they are set
+                for field_name, field_type in instance.paths.model_fields.items():
+                    if field_name in ["runtime", "logs", "project_root", "task_schema"]: # Already handled or absolute
+                        continue
+                    path_value = getattr(instance.paths, field_name)
+                    if path_value and isinstance(path_value, (str, Path)): # Check if it's a path type
+                        original_path_str = str(path_value) # For logging
+                        if isinstance(path_value, str): # If loaded as string from YAML
+                            path_value = Path(path_value)
+
+                        if not path_value.is_absolute():
+                            resolved_path = (instance.project_root_internal / path_value).resolve()
+                            setattr(instance.paths, field_name, resolved_path)
+                            logger.debug(f"Resolved relative path for {field_name} (originally '{original_path_str}'): {resolved_path}")
+                        # If it's already a Path object and absolute (like our new defaults), no change needed by this if block.
+                # EDIT END
+
+
+                _config = instance
+
+                # Initialize logging only once after config is loaded
+                # and only if it hasn't been configured yet by an external entry point.
+                # The `_logging_configured` flag prevents re-configuration if an
+                # entry point (like a CLI tool) has already set up logging.
+                if not _logging_configured:
+                    setup_logging(instance)
+                    _logging_configured = True # Mark as configured
+                else:
+                    logger.debug("Logging already configured by entry point. Skipping AppConfig's setup_logging.")
+
+
                 return instance
             except Exception as e:
-                logger.critical(
-                    f"Failed to initialize AppConfig with defaults: {e}", exc_info=True
-                )
-                raise errors.exceptions.ConfigurationError(
-                    f"Failed to initialize AppConfig with defaults: {e}"
+                # Log the error with traceback for detailed debugging
+                logger.critical(f"Failed to load config from {os.getenv(f'{cls.model_config['env_prefix']}CONFIG_PATH')}: {e}", exc_info=True)
+                raise appconfig_errors.ConfigurationError(
+                    f"Failed to load application configuration from {os.getenv(f'{cls.model_config['env_prefix']}CONFIG_PATH')}: {e}"
                 ) from e
-
-        try:
-            import yaml
-
-            with open(config_path_to_load, "r") as f:
-                config_data = yaml.safe_load(f)
-            if not isinstance(config_data, dict):
-                logger.error(
-                    f"Config file {config_path_to_load} is not a valid dictionary."
-                )
-                raise errors.exceptions.ConfigurationError("Config file is not a valid dictionary.")
-
-            # Pass path for potential use in validation?
-            # config_data['config_file_path'] = str(config_path_to_load)
-
-            # Initialize using the loaded data dictionary
-            instance = cls(**config_data)
-            # setup_logging(instance) # Setup logging after successful load
-            logger.info(
-                f"Configuration loaded successfully from {config_path_to_load}."
-            )
-            return instance
-        except ImportError:
-            logger.critical(
-                "PyYAML is required to load config files. Please install it."
-            )
-            raise errors.exceptions.ConfigurationError("PyYAML is required to load config files.")
-        except Exception as e:
-            logger.critical(
-                f"Failed to load config from {config_path_to_load}: {e}", exc_info=True
-            )
-            raise errors.exceptions.ConfigurationError(
-                f"Failed to load config from {config_path_to_load}: {e}"
-            ) from e
-
-    # Removed _ensure_dirs_exist method - validation should handle this if needed
+            finally:
+                # Restore original environment variable if it was changed
+                if original_env_config_path:
+                    os.environ[f"{cls.model_config['env_prefix']}CONFIG_PATH"] = original_env_config_path
+                elif config_file: # If we set it and there wasn't one before
+                    del os.environ[f"{cls.model_config['env_prefix']}CONFIG_PATH"]
 
 
-# --- Configuration Error Exception ---
-# (Keep ConfigurationError class if defined here previously, or ensure import is correct)
-# class ConfigurationError(CoreConfigurationError):
-#    pass
-
-
-# --- Logging Setup Function ---
 def setup_logging(config: AppConfig):
-    """Configures logging based on the loaded AppConfig."""
     global _logging_configured
-    if _logging_configured:
+    if _logging_configured: # Check again to be absolutely sure
+        logger.debug("setup_logging called but logging already configured. Skipping.")
         return
+
+    # Ensure the log directory exists
+    log_dir = config.logging.resolve_log_dir(config.paths.project_root) # Pass project_root
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        # Fallback to a very basic console logger if dir creation fails
+        logging.basicConfig(level=logging.WARNING)
+        logger.error(f"Failed to create log directory {log_dir}: {e}. Using basic console logging.")
+        _logging_configured = True # Mark as configured to avoid retry loops
+        return
+
 
     log_level_str = config.logging.level.upper()
     log_level = getattr(logging, log_level_str, logging.INFO)
 
-    log_format = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    date_format = "%Y-%m-%d %H:%M:%S"
+    handlers: List[logging.Handler] = []
+    formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
 
-    handlers = []
     if config.logging.log_to_console:
-        handlers.append(logging.StreamHandler())
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        handlers.append(console_handler)
 
-    # Resolve log file path relative to project root
-    log_dir = config.paths.logs  # Assume paths.logs is resolved Path
-    log_dir.mkdir(parents=True, exist_ok=True)
     if config.logging.log_file:
-        log_file_path = log_dir / config.logging.log_file
-        handlers.append(logging.FileHandler(log_file_path, encoding="utf-8"))
+        # Use the resolved log_dir from LoggingConfig
+        file_handler = logging.FileHandler(log_dir / config.logging.log_file, encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        handlers.append(file_handler)
 
-    # Remove existing handlers from root logger before adding new ones
-    # This prevents duplicate logs if setup_logging is called multiple times
-    # (although _logging_configured flag should prevent this)
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
+    # Configure the root logger
+    # Get the root logger
+    root_logger = logging.getLogger()
+    # Set its level. This is important because handlers won't process messages below this level.
+    root_logger.setLevel(log_level)
+    # Remove any existing handlers to avoid duplication if setup_logging is called multiple times
+    # (though _logging_configured should prevent this)
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    # Add the new handlers
+    for handler in handlers:
+        root_logger.addHandler(handler)
 
-    # Configure root logger
-    logging.basicConfig(
-        level=log_level, format=log_format, datefmt=date_format, handlers=handlers
-    )
     logger.info(
-        f"Logging configured. Level: {log_level_str}, Console: {config.logging.log_to_console}, File: {config.logging.log_file or 'Disabled'}"
+        f"Logging configured. Level: {log_level_str}. Console: {config.logging.log_to_console}. File: {config.logging.log_file or 'Disabled'}"
     )
-    _logging_configured = True
+    _logging_configured = True # Set flag after successful configuration
 
 
-# --- Configuration Loading and Access Functions (Restored Pattern) ---
-
-
-def load_config(config_path: Optional[Union[str, Path]] = None) -> AppConfig:
-    """Loads configuration from YAML, sets up logging, and stores the instance globally."""
+def load_config(config_file: Optional[str | Path] = None) -> AppConfig:
+    """Loads application configuration using the AppConfig.load method."""
     global _config
-    with _config_lock:
-        if _config:
-            return _config
-        path_to_load = None
-        if config_path:
-            path_to_load = Path(config_path)
-            logger.info(f"Attempting to load specified config: {path_to_load}")
-        elif DEFAULT_CONFIG_PATH.exists():
-            path_to_load = DEFAULT_CONFIG_PATH
-            logger.info(f"No config path specified, using default: {path_to_load}")
-        else:
-            logger.warning(
-                "No config file specified and default not found. Creating default AppConfig instance."
-            )
-            try:
-                _config = AppConfig()  # Initialize with defaults/env vars
-                setup_logging(_config)
-                return _config
-            except Exception as e:
-                logger.critical(
-                    f"Failed to initialize default AppConfig: {e}", exc_info=True
-                )
-                raise errors.exceptions.ConfigurationError(
-                    f"Failed to initialize default AppConfig: {e}"
-                ) from e
-
-        if not path_to_load.exists():
-            logger.error(f"Configuration file not found: {path_to_load}")
-            raise errors.exceptions.ConfigurationError(f"Config file not found: {path_to_load}")
-
-        try:
-            # Use AppConfig's own classmethod for loading/parsing if it exists and is preferred
-            # Or, load YAML manually and initialize AppConfig instance
-            # Assuming manual load here based on previous structure:
-            with open(path_to_load, "r", encoding="utf-8") as f:
-                config_data = yaml.safe_load(f)
-            if not isinstance(config_data, dict):
-                raise errors.exceptions.ConfigurationError(
-                    "Config file content is not a valid dictionary."
-                )
-
-            loaded_instance = AppConfig(**config_data)
-            _config = loaded_instance  # Store globally
-            setup_logging(_config)  # Setup logging AFTER successful load
-            logger.info(f"Configuration loaded successfully from {path_to_load}.")
-            return _config
-        except Exception as e:
-            logger.critical(
-                f"Failed to load or parse config from {path_to_load}: {e}",
-                exc_info=True,
-            )
-            raise errors.exceptions.ConfigurationError(
-                f"Failed to load/parse config from {path_to_load}: {e}"
-            ) from e
+    if _config is None or config_file: # Reload if a specific file is given
+        _config = AppConfig.load(config_file=str(config_file) if config_file else None)
+    if _config is None: # Should not happen if load was successful
+        raise appconfig_errors.ConfigurationError("Configuration could not be loaded.")
+    return _config
 
 
 def get_config() -> AppConfig:
-    """Returns the globally loaded AppConfig instance, loading it if necessary."""
-    # Quick check without lock first for performance
-    if _config:
-        return _config
-    # If not loaded, acquire lock and load
-    with _config_lock:
-        if _config is None:
-            # load_config handles setting the global _config
-            load_config()
-        # We can be sure _config is not None here unless load_config failed badly
-        if _config is None:
-            # This should ideally not happen if load_config raises exceptions
-            raise errors.exceptions.ConfigurationError("Configuration could not be loaded.")
-        return _config
+    """Returns the global AppConfig instance, loading it if necessary."""
+    global _config
+    if _config is None:
+        logger.debug("Global config not yet loaded. Loading default AppConfig now.")
+        _config = AppConfig.load() # Loads default or from DREAMOS_CONFIG_PATH
+    if _config is None: # Should not happen
+        raise appconfig_errors.ConfigurationError("Configuration could not be retrieved or loaded.")
+    return _config
 
 
-# --- Helper function find_project_root_marker (keep as is) ---
-# ...
+# EDIT START: Remove late import of GuiAutomationConfig
+# from dreamos.automation.config import GuiAutomationConfig # MOVED AND GUARDED
+# EDIT END
 
-# REMOVED: AppConfig.load classmethod as it duplicates load_config logic
+# At the very end of the file, after all model definitions and functions
+AppConfig.model_rebuild()
+print("DEBUG_CONFIG: End of dreamos.core.config.py, AppConfig.model_rebuild() called.")
+
+# Ensure logging is set up if this module is imported and no entry point has done so.
+# This is a fallback. Ideally, the main application entry point calls load_config() or get_config().
+# if not _logging_configured:
+#     try:
+#         fallback_config = get_config() # Try to get/load config
+#         # setup_logging(fallback_config) # setup_logging is now called within load/get
+#     except Exception as e:
+#         # If config loading fails here, use a very basic logger.
+#         logging.basicConfig(level=logging.WARNING)
+#         logger.error(f"Fallback logging setup failed due to config error: {e}. Using basic console logging.")
+#         _logging_configured = True # Prevent further attempts

@@ -1,14 +1,12 @@
-
 import os
-import ast
-import json
-import hashlib
-import threading
-import queue
+import asyncio
 import logging
-from pathlib import Path
-from typing import Dict, Union, Optional, List, Any
 import argparse
+from pathlib import Path
+
+# EDIT START: Import the main ProjectScanner class from project_scanner.py
+from .project_scanner import ProjectScanner
+# EDIT END
 
 logger = logging.getLogger(__name__)
 
@@ -754,43 +752,80 @@ class ProjectScanner:
 # ---------------------------------
 # CLI Usage
 # ---------------------------------
-def main():
-    import argparse
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+async def main():
+    parser = argparse.ArgumentParser(description="Scan project files for analysis.")
+    parser.add_argument(
+        "--path",
+        type=str,
+        default=".",
+        help="Path to the project root directory (default: current directory)",
+    )
+    parser.add_argument(
+        "--ignore",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Additional directory names to ignore relative to project root.",
+    )
+    parser.add_argument(
+        "--no-cache", action="store_true", help="Disable reading from/writing to cache."
+    )
+    parser.add_argument(
+        "--workers", type=int, default=os.cpu_count() or 4, help="Number of worker threads."
+    )
+    parser.add_argument(
+        "--log-level", type=str, default="INFO", help="Logging level (e.g., DEBUG, INFO)"
+    )
+    parser.add_argument(
+        "--force-rescan",
+        type=str,
+        nargs="*",
+        help="Glob patterns for files to force rescan even if cache is valid.",
+    )
+    parser.add_argument(
+        "--reports-dir",
+        type=str,
+        default="reports", # Default relative path
+        help="Directory relative to project root to save output reports."
+    )
 
-    parser = argparse.ArgumentParser(description="Project scanner with agent categorization and incremental caching.")
-    parser.add_argument("--project-root", default=".", help="Root directory to scan.")
-    parser.add_argument("--ignore", nargs="*", default=[], help="Additional directories to ignore.")
-    parser.add_argument("--categorize-agents", action="store_true", help="Categorize Python classes into maturity level and agent type.")
-    parser.add_argument("--no-chatgpt-context", action="store_true", help="Skip exporting ChatGPT context.")
-    parser.add_argument("--generate-init", action="store_true", help="Enable auto-generating __init__.py files.")
     args = parser.parse_args()
 
-    scanner = ProjectScanner(project_root=args.project_root)
-    scanner.additional_ignore_dirs = set(args.ignore)
+    log_level = getattr(logging, args.log_level.upper(), logging.INFO)
+    logging.basicConfig(
+        level=log_level, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    )
+    logging.getLogger("asyncio").setLevel(logging.WARNING)
+    logging.getLogger("filelock").setLevel(logging.WARNING)
 
-    scanner.scan_project()
+    logger.info("DreamOS Core Config loaded and logging configured.")
+    logger.info(f"Starting scan for project at: {Path(args.path).resolve()}")
+    logger.info(f"Using cache: {not args.no_cache}")
+    logger.info(f"Number of workers: {args.workers}")
 
-    if args.generate_init:
-        scanner.generate_init_files(overwrite=True)
+    project_root = Path(args.path).resolve()
+    reports_dir_abs = project_root / args.reports_dir
 
-    if args.categorize_agents:
-        scanner.categorize_agents()
-        scanner.report_generator.save_report()
-        logging.info("✅ Agent categorization complete. Updated project_analysis.json.")
+    try:
+        scanner = ProjectScanner(
+            project_root=project_root,
+            additional_ignore_dirs=set(args.ignore),
+            use_cache=(not args.no_cache),
+        )
 
-    if not args.no_chatgpt_context:
-        scanner.export_chatgpt_context()
-        logging.info("✅ ChatGPT context exported by default.")
+        logger.info("Scanning project...")
+        await scanner.scan_project(
+            num_workers=args.workers,
+            force_rescan_patterns=args.force_rescan,
+        )
 
-        # Output merged ChatGPT context to stdout
-        context_path = Path(args.project_root) / "chatgpt_project_context.json"
-        if context_path.exists():
-            try:
-                with context_path.open("r", encoding="utf-8") as f:
-                    chatgpt_context = json.load(f)
-            except Exception as e:
-                logger.error(f"❌ Error reading exported ChatGPT context: {e}")
+        await scanner.export_chatgpt_context_async()
+
+        logger.info(f"Project scan completed. Check output files in {reports_dir_abs}")
+
+    except Exception as e:
+        logger.critical(f"❌ Project scan failed: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

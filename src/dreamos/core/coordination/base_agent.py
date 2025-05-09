@@ -12,18 +12,26 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 # REMOVED obsolete dreamforge comments/imports
 # Assuming agent_utils is now in core/utils # This comment is incorrect, it's in agents/utils  # noqa: E501
-from dreamos.agents.utils.agent_utils import (  # publish_task_update, # Will be replaced by internal event publishing; publish_error,       # Will be replaced by internal event publishing  # noqa: E501
-    MessageHandlingError,
-    TaskProcessingError,
-    handle_task_cancellation,
-    log_task_performance,
-    with_error_handling,
-    with_performance_tracking,
-)
+# REMOVED old import from agents.utils
+# from dreamos.agents.utils.agent_utils import (
+#    MessageHandlingError, # Keep errors here for now, ensure they are defined/imported
+#    TaskProcessingError,
+#    handle_task_cancellation,
+#    log_task_performance,
+#    with_error_handling,
+#    with_performance_tracking,
+# )
+
+# ADDED import from core.coordination.utils
+from .utils import with_error_handling, with_performance_tracking
+# Still need error definitions
+from ..errors import AgentError, TaskError, TaskProcessingError, MessageHandlingError
 
 # Update imports to use 'core' or relative paths
 # REMOVED obsolete dreamforge comment
-from dreamos.coordination.agent_bus import (  # CORRECTED PATH
+# MODIFIED: Correct path for AgentBus
+from dreamos.core.coordination.agent_bus import (
+# from dreamos.coordination.agent_bus import (  # CORRECTED PATH
     AgentBus,
     BaseEvent,
 )
@@ -42,9 +50,9 @@ from dreamos.core.coordination.message_patterns import (
     TaskStatus,
 )
 
-# from dreamos.core.memory.governance_memory_engine import log_event
+# MODIFIED import path
+from ...monitoring.performance_logger import PerformanceLogger
 # from dreamos.core.utils.performance_logger import PerformanceLogger
-from dreamos.core.utils.performance_logger import PerformanceLogger
 
 # from dreamos.core.logging.swarm_logger import (  # Removed unused import
 #     log_agent_event,
@@ -387,7 +395,7 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
     # --- End Standardized Event Publishing Helpers ---
 
     @with_error_handling(
-        MessageHandlingError, error_publisher=publish_agent_error
+        MessageHandlingError#, error_publisher=publish_agent_error # Passing publisher removed for simplicity
     )  # Pass error publisher
     @with_performance_tracking("handle_command")
     async def _handle_command(self, topic: str, message: Dict[str, Any]):
@@ -470,7 +478,7 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
         return priority_map.get(priority, priority_map[TaskPriority.MEDIUM])
 
     @with_error_handling(
-        TaskProcessingError, error_publisher=publish_agent_error
+        TaskProcessingError#, error_publisher=publish_agent_error # Passing publisher removed
     )  # Pass error publisher
     async def _process_task_queue(self):
         """Continuously process tasks from the priority queue."""
@@ -549,7 +557,7 @@ class BaseAgent(ABC, BaseAgentLifecycleMixin):  # ADD MIXIN TO CLASS DEFINITION
         self.logger.info("Task processing loop stopped.")
 
     @with_error_handling(
-        TaskProcessingError
+        TaskProcessingError # Use specific error
     )  # Error handled internally, decorator for safety net
     @with_performance_tracking("process_single_task")
     async def _process_single_task(

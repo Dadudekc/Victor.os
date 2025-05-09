@@ -14,6 +14,7 @@ from typing import (  # Assuming Union is needed for BasePolicyConfig resolution
 )
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 if TYPE_CHECKING:
     from dreamos.core.config import (
@@ -28,8 +29,8 @@ if TYPE_CHECKING:
     # Define BasePolicyConfig for type checking context if it's composed of these
     BasePolicyConfig = Union[CompactionPolicyConfig, SummarizationPolicyConfigType]
 
-from dreamos.core.utils.file_locking import FileLock, LockAcquisitionError
-from dreamos.core.utils.summarizer import BaseSummarizer
+from ..utils.file_locking import FileLock, LockAcquisitionError
+from ..utils.summarizer import BaseSummarizer
 from dreamos.memory.compaction_utils import CompactionError, compact_segment_file
 from dreamos.memory.summarization_utils import (
     SummarizationError,

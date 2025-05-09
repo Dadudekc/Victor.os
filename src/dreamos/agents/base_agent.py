@@ -3,7 +3,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Coroutine, Any
 
 from dreamos.core.comms.mailbox_utils import (
     delete_message,
@@ -15,6 +15,15 @@ from dreamos.core.comms.mailbox_utils import (
 # Assuming these might be needed, import placeholders/actual implementations
 from dreamos.core.config import AppConfig
 from dreamos.core.coordination.agent_bus import AgentBus
+
+# ADDED: Import utilities from agent_utils
+from .utils.agent_utils import (
+    with_error_handling,
+    safe_create_task,
+    AgentError, # Base error class for agents
+    MessageHandlingError # Specific error for message processing
+    # Note: PerformanceLogger and with_performance_tracking could be added later if needed
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +48,8 @@ class BaseAgent(ABC):
         self.logger = logging.getLogger(f"Agent.{self.agent_id}")
         self.logger.info(f"BaseAgent {self.agent_id} initialized.")
         self._extra_kwargs = kwargs
+        # TODO: Consider adding PerformanceLogger instance here if performance tracking is desired
+        # self.perf_logger = PerformanceLogger(f"Agent.{self.agent_id}")
 
     @property
     def status(self) -> str:
@@ -63,10 +74,12 @@ class BaseAgent(ABC):
         #     await self.agent_bus.publish(f"agent.{self.agent_id}.status", event.model_dump())
 
     @abstractmethod
+    @with_error_handling(error_class=AgentError)
     async def run_autonomous_loop(self):
         """The main autonomous execution loop for the agent."""
         pass
 
+    @with_error_handling(error_class=MessageHandlingError)
     async def _handle_bus_message(self, topic: str, data: dict):
         """Placeholder for handling messages received from the bus."""
         self.logger.debug(
@@ -74,6 +87,7 @@ class BaseAgent(ABC):
         )
         pass
 
+    @with_error_handling(error_class=AgentError)
     async def _scan_and_process_mailbox(self, specific_mailbox_path: Path):
         """
         Scans the specified mailbox directory for messages and processes them.
@@ -116,9 +130,9 @@ class BaseAgent(ABC):
                         self.logger.warning(
                             f"[{self.agent_id}] Failed to read message content from {msg_file_path.name}. Marked as not processed."
                         )
-                except Exception as msg_proc_err:
+                except Exception as msg_read_err:
                     self.logger.error(
-                        f"[{self.agent_id}] Error during processing of message {msg_file_path.name}: {msg_proc_err}",
+                        f"[{self.agent_id}] Error reading message file {msg_file_path.name}: {msg_read_err}",
                         exc_info=True,
                     )
                 finally:
@@ -144,6 +158,7 @@ class BaseAgent(ABC):
                 exc_info=True,
             )
 
+    @with_error_handling(error_class=MessageHandlingError)
     async def _process_message(self, message_content: dict) -> bool:
         """
         Processes a single message received in the agent's mailbox.
@@ -172,6 +187,7 @@ class BaseAgent(ABC):
         )
         return True
 
+    @with_error_handling(error_class=AgentError)
     async def initialize(self):
         """Optional asynchronous initialization steps for the agent."""
         self.logger.info(f"[{self.agent_id}] Performing async initialization...")
@@ -180,6 +196,7 @@ class BaseAgent(ABC):
         # Example: Subscribe to relevant topics
         # await self.agent_bus.subscribe(f"agent.{self.agent_id}.command", self._handle_bus_message)
 
+    @with_error_handling(error_class=AgentError)
     async def shutdown(self):
         """Optional asynchronous cleanup steps for the agent."""
         self.logger.info(f"[{self.agent_id}] Shutting down...")
@@ -187,5 +204,18 @@ class BaseAgent(ABC):
         # Example: Unsubscribe from topics
         # await self.agent_bus.unsubscribe(f"agent.{self.agent_id}.command", self._handle_bus_message)
 
+    # ADDED: Helper for safe task creation
+    async def _safe_create_task(self, coro: Coroutine, *, name: Optional[str] = None) -> asyncio.Task:
+        """Creates an asyncio Task safely, ensuring exceptions are logged.
+        
+        Args:
+            coro: The coroutine to run.
+            name: Optional name for the task.
+        
+        Returns:
+            The created asyncio Task.
+        """
+        # Uses the safe_create_task utility, passing the agent's logger instance
+        return await safe_create_task(coro, name=name, logger_instance=self.logger)
 
 # Need to import asyncio if used above

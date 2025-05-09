@@ -8,6 +8,8 @@ from typing import Any, Dict, List
 
 import filelock
 
+from dreamos.utils import file_io
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,15 +35,15 @@ class SnapshotManager:
             # raise SnapshotError(f"Database file not found: {self.db_path}")
 
         # Ensure snapshot directory exists
-        try:
-            self.snapshot_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Snapshot directory ensured: {self.snapshot_dir}")
-        except Exception as e:
+        if not file_io.ensure_directory(self.snapshot_dir):
+            # file_io.ensure_directory already logs the error
             logger.critical(
-                f"Failed to create snapshot directory {self.snapshot_dir}: {e}",
-                exc_info=True,
+                f"Failed to create or ensure snapshot directory {self.snapshot_dir}. SnapshotManager may not function."
             )
-            raise SnapshotError(f"Failed to create snapshot directory: {e}") from e
+            # Depending on desired behavior, we might raise an error immediately
+            raise SnapshotError(f"Failed to create snapshot directory: {self.snapshot_dir}")
+        else:
+            logger.info(f"Snapshot directory ensured: {self.snapshot_dir}")
 
     def create_snapshot(self, reason: str = "manual") -> Path:
         """Creates a snapshot by copying the database file, using a file lock.

@@ -1,11 +1,7 @@
-# AUTO-GENERATED __init__.py
-# DO NOT EDIT MANUALLY - changes may be overwritten
+"""Core utility modules for DreamOS."""
 
-from . import autonomy_governor, file_locking, onboarding_utils, summarizer
+from .file_utils import rewrite_file_safely_atomic
 
 __all__ = [
-    "autonomy_governor",
-    "file_locking",
-    "onboarding_utils",
-    "summarizer",
-]
+    "rewrite_file_safely_atomic",
+] 

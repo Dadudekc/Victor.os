@@ -30,6 +30,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # )
 from dreamos.automation.execution.swarm_controller import SwarmController
 from dreamos.core.config import AppConfig, setup_logging
+from dreamos.core.db.sqlite_adapter import SQLiteAdapter
+from dreamos.core.coordination.agent_bus import AgentBus
 
 # {{ EDIT START: Explicitly remove dashboard import line }}
 # from dreamos.dashboard.dashboard_app import run_dashboard # REMOVED BY AGENT-1
@@ -83,47 +85,39 @@ app = click.Group(help="DreamOS Command Line Interface")
 @click.group()
 @click.option(
     "--config",
+    "cli_config_path", # Renamed to avoid conflict with AppConfig instance
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Path to the main configuration file (e.g., config.yaml)",
 )
 @click.pass_context
-def cli(ctx, config):
+def cli(ctx, cli_config_path):
     """DreamOS Command Line Interface"""
     ctx.ensure_object(dict)
     try:
-        # {{ EDIT START: Update config loading }}
         # Instantiate AppConfig directly - uses pydantic-settings sources
-        # (Init > Env > DotEnv > Default YAML)
         loaded_config = AppConfig()
 
         # If a specific --config file was passed via CLI, load it and override
-        if config:
-            logger.info(f"CLI --config specified: {config}. Attempting override.")
-            if config.exists():
-                try:
-                    with open(config, "r") as f:
-                        override_data = yaml.safe_load(f) or {}
-                    # Update the initially loaded config with override data
-                    # model_copy(update=...) creates a new instance with updated fields
-                    loaded_config = loaded_config.model_copy(update=override_data)
-                    logger.info(f"Successfully applied overrides from {config}")
-                except Exception as e:
-                    logger.error(
-                        f"Failed to load or apply override config {config}: {e}"
-                    )
-                    # Decide if this is fatal or just a warning
-                    sys.exit(1)  # Make it fatal for now
-            else:
-                logger.error(f"Specified --config file does not exist: {config}")
+        if cli_config_path:
+            logger.info(f"CLI --config specified: {cli_config_path}. Attempting override.")
+            # No need for exists check as click type=Path(exists=True) handles it
+            try:
+                with open(cli_config_path, "r") as f:
+                    override_data = yaml.safe_load(f) or {}
+                # Update the initially loaded config with override data
+                loaded_config = loaded_config.model_copy(update=override_data)
+                logger.info(f"Successfully applied overrides from {cli_config_path}")
+            except Exception as e:
+                logger.error(
+                    f"Failed to load or apply override config {cli_config_path}: {e}"
+                )
                 sys.exit(1)
-
-        # loaded_config = AppConfig(_config_file=config) # OLD loading
-        # {{ EDIT END }}
 
         setup_logging(loaded_config)
         ctx.obj["config"] = loaded_config
         logger.info("DreamOS CLI starting...")
-        logger.info(f"Loaded configuration: {loaded_config.model_dump_json(indent=2)}")
+        # Avoid logging potentially sensitive full config dump to INFO
+        logger.debug(f"Loaded configuration: {loaded_config.model_dump_json(indent=2)}")
     except FileNotFoundError as e:
         logger.error(f"Configuration file error: {e}")
         sys.exit(1)
@@ -139,30 +133,63 @@ def cli(ctx, config):
 @click.pass_context
 def run(ctx):
     """Initialize and run the main SwarmController."""
-    config = ctx.obj["config"]
+    config_from_ctx: AppConfig = ctx.obj["config"]
     try:
-        # {{ EDIT START: Instantiate and run SwarmController }}
         # Load initial tasks if needed (example logic commented out)
         initial_tasks = []
-        # initial_tasks_path = config.paths.project_root / "runtime/initial_tasks.json"
-        # ... loading logic ...
+
+        logger.info("Initializing core dependencies...")
+
+        # Initialize SQLiteAdapter
+        # Ensure the database path is correctly derived from config
+        db_path_str = getattr(config_from_ctx.paths, "database_path", None)
+        if not db_path_str:
+            # Constructing a plausible default path if not in config
+            db_path = config_from_ctx.paths.project_root / "runtime" / "db" / "dreamos.db"
+            logger.warning(f"AppConfig.paths.database_path not set, using default: {db_path}")
+        else:
+            db_path = Path(db_path_str)
+            if not db_path.is_absolute():
+                db_path = config_from_ctx.paths.project_root / db_path
+
+        db_path = db_path.resolve()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Using database path: {db_path}")
+        sqlite_adapter = SQLiteAdapter(db_path=str(db_path))
+
+        # Ensure DB schema exists (assuming sync method for simplicity here)
+        try:
+            # Replace with actual schema creation logic if needed, potentially async
+            # e.g., if adapter has `create_schema_if_not_exists() -> None` (sync):
+            # sqlite_adapter.create_schema_if_not_exists()
+            # Or if it requires connection context (sync example):
+            # with sqlite_adapter.connect_sync() as conn:
+            #     sqlite_adapter.create_schema_sync(conn)
+            # Or handle via asyncio.run if methods are async.
+            # For now, assuming adapter handles schema implicitly or it's done elsewhere.
+            logger.info("SQLiteAdapter initialized.")
+        except Exception as db_err:
+            logger.error(f"Failed during SQLiteAdapter setup: {db_err}", exc_info=True)
+            sys.exit(1)
+
+        # Initialize AgentBus (it's a singleton, so this gets the instance)
+        agent_bus = AgentBus()
+        logger.info("AgentBus instance obtained.")
 
         logger.info("Attempting to initialize SwarmController...")
-        controller = SwarmController(config=config)
+        # Pass the required adapter and agent_bus
+        controller = SwarmController(config=config_from_ctx, adapter=sqlite_adapter, agent_bus=agent_bus)
         logger.info("SwarmController initialized.")
 
-        # SwarmController.start() is blocking and manages its own threads/loops.
-        # Run it directly as the CLI's primary purpose here is to launch it.
         logger.info("Attempting to start SwarmController...")
+        # SwarmController.start() is blocking and manages its own threads/loops.
         controller.start(initial_tasks=initial_tasks)
 
-        # The start method blocks until shutdown is called or loop ends.
         logger.info("SwarmController start method returned (likely shutdown). Exiting.")
-        # {{ EDIT END }}
 
     except Exception as e:
         logger.exception(
-            f"An unexpected error occurred during orchestrator execution: {e}"
+            f"An unexpected error occurred during SwarmController execution: {e}"
         )
         sys.exit(1)
 
@@ -189,7 +216,7 @@ if __name__ == "__main__":
 
     try:
         # Let Click handle the command invocation
-        cli()
+        cli(standalone_mode=False) # Add standalone_mode=False for click>=8 compatibility
     except KeyboardInterrupt:
         logger.info("DreamOS CLI terminated by user.")
         sys.exit(0)

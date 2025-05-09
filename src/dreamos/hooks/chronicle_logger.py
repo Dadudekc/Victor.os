@@ -1,10 +1,14 @@
 # src/dreamos/hooks/chronicle_logger.py
+import json
 import logging
 import threading
 from datetime import datetime
 from pathlib import Path
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent
+from dreamos.core.coordination.event_types import (
+    AGENT_LIFECYCLE_EVENT,
+)
 
 # TODO: Consider removing dependency on core events if hooks should be generic
 from dreamos.core.coordination.events import DebugInfoData, DebugInfoEvent

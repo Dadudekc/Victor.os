@@ -8,15 +8,28 @@ import pygetwindow as gw
 import win32con
 import win32gui
 from screeninfo import get_monitors
+from dreamos.core.config import load_config
 
-CURSOR_PATHS = [
-    os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),
-    r"C:\Program Files\Cursor\Cursor.exe",  # Note: Escaped backslashes for Python string  # noqa: E501
-]
-CURSOR_PATH = next((p for p in CURSOR_PATHS if os.path.exists(p)), None)
+CURSOR_PATH = None
+try:
+    config = load_config()
+    if config and config.cursor_executable_path and os.path.exists(config.cursor_executable_path):
+        CURSOR_PATH = config.cursor_executable_path
+    else:
+        print("Warning: Cursor path from config is not valid or not set. Trying fallbacks.")
+except Exception as e:
+    print(f"Warning: Could not load AppConfig to get Cursor path: {e}. Trying fallbacks.")
 
 if not CURSOR_PATH:
-    raise FileNotFoundError("❌ Cursor.exe not found. Please adjust CURSOR_PATH.")
+    # Fallback paths if config loading fails or path is not set/valid in config
+    FALLBACK_CURSOR_PATHS = [
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Cursor\Cursor.exe"),
+        r"C:\Program Files\Cursor\Cursor.exe",
+    ]
+    CURSOR_PATH = next((p for p in FALLBACK_CURSOR_PATHS if os.path.exists(p)), None)
+
+if not CURSOR_PATH:
+    raise FileNotFoundError("❌ Cursor.exe not found. Please check configuration or standard installation paths.")
 
 
 def launch_cursor_instance(index):

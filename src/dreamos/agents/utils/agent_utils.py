@@ -14,104 +14,15 @@ from dreamos.core.coordination.event_types import EventType
 from dreamos.core.coordination.message_patterns import (
     TaskMessage,
 )
-from dreamos.core.events.base_event import BaseDreamEvent
-from dreamos.core.memory.governance_memory_engine import log_event
-from dreamos.core.utils.performance_logger import PerformanceLogger
-from dreamos.utils.common_utils import get_utc_iso_timestamp
+# from dreamos.core.events.base_event import BaseDreamEvent # Seems unused
+# from dreamos.core.memory.governance_memory_engine import log_event # COMMENTED OUT
+from ...monitoring.performance_logger import PerformanceLogger
+from ...utils.common_utils import get_utc_iso_timestamp
 
 # Setup a logger for utility functions
 util_logger = logging.getLogger("core.utils")
 
 logger = logging.getLogger(__name__)
-
-
-class AgentError(Exception):
-    """Base exception for agent-related errors."""
-
-    pass
-
-
-class TaskProcessingError(AgentError):
-    """Error during task processing."""
-
-    pass
-
-
-class MessageHandlingError(AgentError):
-    """Error during message handling."""
-
-    pass
-
-
-def with_error_handling(error_class: type = AgentError):
-    """Decorator for functions that need standardized error handling and logging."""
-
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Identify self/agent_id if method is called on an agent instance
-            agent_id = "unknown_agent"
-            if args and hasattr(args[0], "agent_id"):
-                agent_id = args[0].agent_id
-            elif "self" in kwargs and hasattr(kwargs["self"], "agent_id"):
-                agent_id = kwargs["self"].agent_id
-
-            try:
-                return await func(*args, **kwargs)
-            except Exception as e:
-                # Log the error using standard logger if available on self, otherwise use util_logger  # noqa: E501
-                logger_instance = getattr(
-                    args[0] if args else None, "logger", util_logger
-                )
-
-                error_msg = f"Error in {func.__name__}: {e}"
-                logger_instance.error(error_msg, exc_info=True)
-
-                # Log governance event
-                error_details = {
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                    "function": func.__name__,
-                    "args": str(args[1:]) if args else "()",  # Don't log self
-                    "kwargs": str(kwargs),
-                }
-                try:
-                    log_event("AGENT_UTIL_ERROR", agent_id, error_details)
-                except Exception as log_e:
-                    logger_instance.error(
-                        f"Failed to log governance event for agent error: {log_e}"
-                    )
-
-                # Re-raise the specified error class
-                raise error_class(error_msg) from e
-
-        return wrapper
-
-    return decorator
-
-
-def with_performance_tracking(operation_name: str):
-    """Decorator for tracking operation performance. Assumes 'self' is the first arg and has 'perf_logger'."""  # noqa: E501
-
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(self, *args, **kwargs):
-            # Ensure self has perf_logger attribute
-            if not hasattr(self, "perf_logger") or not isinstance(
-                self.perf_logger, PerformanceLogger
-            ):
-                util_logger.warning(
-                    f"Performance tracking skipped for {operation_name}: 'perf_logger' not found or invalid on {self}."  # noqa: E501
-                )
-                return await func(self, *args, **kwargs)
-
-            # Use the performance logger from the instance
-            with self.perf_logger.track_operation(operation_name):
-                return await func(self, *args, **kwargs)
-
-        return wrapper
-
-    return decorator
 
 
 async def publish_task_update(
@@ -333,18 +244,22 @@ def log_task_performance(
         )
         util_logger.debug(f"Logged performance for task {task.task_id}")
     except Exception as e:
-        error_details = {
-            "error": f"Failed to log performance outcome for task {task.task_id}: {e}",
-            "details": str(e),
-        }
-        util_logger.error(error_details["error"], exc_info=True)
-        try:
-            # Log failure to log performance as a separate governance event
-            log_event("PERF_LOGGING_FAILED", agent_id, error_details)
-        except Exception as log_e:
-            util_logger.error(
-                f"CRITICAL: Failed even to log the performance logging failure: {log_e}"
-            )
+        util_logger.error(
+            f"Performance logging failed for task {task.task_id}: {e}", exc_info=True
+        )
+        # COMMENTED OUT governance logging
+        # error_details = {
+        #     "task_id": task.task_id,
+        #     "error": str(e),
+        #     "traceback": traceback.format_exc(),
+        # }
+        # try:
+        #     # Log failure to log performance as a separate governance event
+        #     log_event("PERF_LOGGING_FAILED", agent_id, error_details)
+        # except Exception as log_e:
+        #     util_logger.error(
+        #         f"Failed to log governance event for perf logging failure: {log_e}"
+        #     )
 
 
 def format_agent_report(

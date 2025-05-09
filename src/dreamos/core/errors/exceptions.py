@@ -105,3 +105,13 @@ class ArchivingError(DreamOSError):
 
 
 # Add other common base exceptions as needed
+
+# ADDED errors from agent_utils
+class TaskProcessingError(TaskError): # Inherit from TaskError
+    """Error during task processing."""
+    pass
+
+class MessageHandlingError(AgentError): # Inherit from AgentError
+    """Error during message handling."""
+    pass
+# END ADDED errors

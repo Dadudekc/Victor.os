@@ -6,16 +6,16 @@ import logging
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.core.coordination.event_payloads import (
     TaskCompletionPayload,
     TaskFailurePayload,
 )
 from dreamos.services.failed_prompt_archive import FailedPromptArchiveService
 
-from ..core.coordination.base_agent import TaskStatus
+from ..core.coordination.message_patterns import TaskStatus
 
 # TODO: Evaluate replacing threading with asyncio tasks for the monitor loop
 # if the dispatcher and memory components are fully async-compatible.

@@ -3,8 +3,8 @@ import asyncio
 import logging
 from typing import Any, Dict, Literal, Optional
 
-# Import AppConfig
-from ..config import AppConfig
+# Import AppConfig - REMOVED from top level
+# from ..config import AppConfig
 
 # Assuming CursorOrchestrator is accessible via a getter or singleton pattern
 # Adjust import path as needed based on final location
@@ -48,7 +48,8 @@ class CursorStatusCheck:
     """Encapsulates the logic for the cursor agent status check."""
 
     def __init__(
-        self, config: AppConfig, cursor_orchestrator: Optional[CursorOrchestrator]
+        self, config: 'AppConfig', # MODIFIED: Use forward reference string
+        cursor_orchestrator: Optional[CursorOrchestrator]
     ):
         self.config = config
         self.expected_agent_ids = config.health_checks.expected_agent_ids
@@ -137,8 +138,8 @@ class CursorStatusCheck:
 
 # Keep original function signature as a wrapper?
 async def check_cursor_agent_statuses(
-    config: AppConfig,  # Requires config
-    cursor_orchestrator: Optional[CursorOrchestrator],  # Requires orchestrator instance
+    config: 'AppConfig', # MODIFIED: Use forward reference string
+    cursor_orchestrator: Optional[CursorOrchestrator], # Requires orchestrator instance
 ) -> Dict[str, Any]:
     """Runs the cursor agent status check using config and orchestrator instance."""
     checker = CursorStatusCheck(config, cursor_orchestrator)
@@ -153,8 +154,9 @@ async def _run_check():
         print("CursorOrchestrator not available. Cannot run check.")
         return
 
-    # Load config
+    # Load config - Import AppConfig locally
     try:
+        from ..config import AppConfig # MODIFIED: Import locally
         app_config = AppConfig.load()
     except Exception as e:
         print(f"Failed to load AppConfig: {e}. Cannot run check.")

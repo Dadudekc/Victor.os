@@ -1,15 +1,16 @@
 """Lifecycle methods (start, stop) separated from BaseAgent for modularity."""
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional
 
 # Import error types if needed for specific handling within start/stop
 # from ..core.errors import AgentError
 # Import decorators if they are defined elsewhere and used here
-from ...agents.utils.agent_utils import with_error_handling
+from .utils import with_error_handling
 
-# Import log_event if used directly here
-from ..memory.governance_memory_engine import log_event
+# Avoid importing BaseAgent directly here if possible
+# COMMENTED OUT: Missing module
+# from ..memory.governance_memory_engine import log_event
 
 # Import EventType for subscriptions
 from .event_types import EventType
@@ -28,7 +29,8 @@ class BaseAgentLifecycleMixin:
     async def start(self):
         """Start the agent, subscribe to topics, and launch task processor."""
         self.logger.info(f"Starting agent {self.agent_id}...")
-        log_event("AGENT_START", self.agent_id, {"version": "1.0.0"})
+        # COMMENTED OUT: Missing module
+        # log_event("AGENT_START", self.agent_id, {"version": "1.0.0"})
         self._running = True
 
         # Subscribe to command messages using topic string
@@ -81,9 +83,10 @@ class BaseAgentLifecycleMixin:
                     await task
                 except asyncio.CancelledError:
                     self.logger.info(f"Cancelled active task {task_id}.")
-                    log_event(
-                        "AGENT_TASK_CANCELLED", self.agent_id, {"task_id": task_id}
-                    )
+                    # COMMENTED OUT: Missing module
+                    # log_event(
+                    #     "AGENT_TASK_CANCELLED", self.agent_id, {"task_id": task_id}
+                    # )
                 # Ensure removal even if await fails
                 self._active_tasks.pop(task_id, None)
 
@@ -131,5 +134,6 @@ class BaseAgentLifecycleMixin:
         # Call agent-specific shutdown
         await self._on_stop()
 
-        log_event("AGENT_STOP", self.agent_id, {"reason": "Shutdown requested"})
+        # COMMENTED OUT: Missing module
+        # log_event("AGENT_STOP", self.agent_id, {"reason": "Shutdown requested"})
         self.logger.info(f"Agent {self.agent_id} stopped successfully.")

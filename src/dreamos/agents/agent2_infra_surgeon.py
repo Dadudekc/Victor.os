@@ -11,9 +11,10 @@ import asyncio
 import logging
 import traceback
 import uuid
+import re
 from typing import Any, Dict, Optional, Tuple
 
-from dreamos.coordination.agent_bus import AgentBus, BaseEvent, EventType
+from dreamos.core.coordination.agent_bus import AgentBus, BaseEvent, EventType
 from dreamos.core.comms.mailbox_utils import (
     # delete_message, # No longer called directly by Agent2, BaseAgent handles it
     # list_mailbox_messages, # No longer called directly by Agent2
@@ -23,17 +24,24 @@ from dreamos.core.comms.mailbox_utils import (
 
 # Import AppConfig
 from dreamos.core.config import AppConfig
-from dreamos.core.coordination.message_patterns import TaskMessage
-from dreamos.core.eventing.publishers import publish_cursor_inject_event
+from dreamos.core.coordination.message_patterns import (
+    TaskMessage,
+    TaskPriority,
+    TaskStatus,
+)
+# REMOVED: from dreamos.core.eventing.publishers import publish_cursor_inject_event
+
+# ADDED: Import payload needed for publishing
+from dreamos.core.coordination.event_payloads import CursorInjectRequestPayload
 
 from ..coordination.project_board_manager import (
     ProjectBoardManager,
-    TaskClaimError,
-    TaskStatus,
+    # TaskStatus, # REMOVED - Imported from message_patterns
 )
 
 # --- Core DreamOS Imports ---
-from .base_agent import BaseAgent
+# Moved import later to potentially break cycle
+from ..core.coordination.base_agent import BaseAgent 
 
 # Configure basic logging
 # logging.basicConfig(
@@ -46,6 +54,9 @@ DEFAULT_RESPONSE_TIMEOUT = 60.0  # Timeout in seconds for waiting for cursor res
 
 
 # --- Agent Class Definition ---
+# Moved import here
+# from dreamos.core.coordination.base_agent import BaseAgent 
+
 class Agent2InfraSurgeon(BaseAgent):
     """
     Agent responsible for executing infrastructure-related tasks via GUI automation (Cursor).
@@ -150,14 +161,25 @@ class Agent2InfraSurgeon(BaseAgent):
             logger.info(
                 f"[{self.agent_id}] Publishing cursor inject request for CorrID: {correlation_id}..."  # noqa: E501
             )
-            # Use the instance's agent_bus
-            success = await publish_cursor_inject_event(
-                target_agent_id=self.agent_id,
-                prompt=prompt,
-                source_agent_id=self.agent_id,
-                correlation_id=correlation_id,
-                agent_bus=self.agent_bus,
+
+            # --- MODIFIED: Replace helper with direct publish --- 
+            # Create the payload
+            payload = CursorInjectRequestPayload(
+                agent_id=self.agent_id,  # Target window is Agent-2's window
+                prompt=prompt
             )
+            # Create the event
+            inject_event = Event(
+                type=EventType.CURSOR_INJECT_REQUEST,
+                source_id=self.agent_id,
+                data=payload.model_dump(),
+                correlation_id=correlation_id
+            )
+            # Publish the event
+            await self.agent_bus.publish(inject_event)
+            # Assume publish is successful if no exception
+            success = True 
+            # --- END MODIFICATION --- 
 
             if not success:
                 logger.error(
@@ -389,8 +411,7 @@ class Agent2InfraSurgeon(BaseAgent):
                         self.logger.warning(
                             f"[{self.agent_id}] Claim successful for {task_id_to_claim} but no details returned?"  # noqa: E501
                         )
-
-                except TaskClaimError as e:
+                except ProjectBoardError as e: 
                     self.logger.warning(
                         f"[{self.agent_id}] Failed to claim task {task_id_to_claim}: {e}"  # noqa: E501
                     )

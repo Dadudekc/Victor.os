@@ -4,32 +4,36 @@ import json
 import os
 import subprocess  # Added for executing external scripts
 import time
+from pathlib import Path # ADDED IMPORT for Path
 
 import yaml  # Requires PyYAML to be installed (pip install pyyaml)
 
+# Assuming src is in PYTHONPATH or this script is adjusted to find dreamos
+from dreamos.utils import file_io # ADDED IMPORT
+
 # --- Path Configuration ---
 # These paths are configured assuming the script is in 'scripts/' and the workspace root is one level up.
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-WORKSPACE_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__))) # MODIFIED to Path
+WORKSPACE_ROOT = SCRIPT_DIR.parent.resolve() # MODIFIED to Path and .resolve()
 
-BASE_RUNTIME_DIR = os.path.join(WORKSPACE_ROOT, "runtime")
-DEPLOYMENT_CONFIG_PATH = os.path.join(
-    BASE_RUNTIME_DIR, "agent_comms", "deployments", "multi_agent_deployment.yaml"
+BASE_RUNTIME_DIR = WORKSPACE_ROOT / "runtime" # MODIFIED to Path
+DEPLOYMENT_CONFIG_PATH = (
+    BASE_RUNTIME_DIR / "agent_comms" / "deployments" / "multi_agent_deployment.yaml" # MODIFIED to Path
 )
-AGENT_MAILBOX_DIR = os.path.join(BASE_RUNTIME_DIR, "agent_comms", "agent_mailboxes")
-LOG_DIR = os.path.join(BASE_RUNTIME_DIR, "logs")
-OUTPUT_DIR = os.path.join(BASE_RUNTIME_DIR, "dreamscape_output")
-AGENT_DEVLOG_DIR = os.path.join(
-    BASE_RUNTIME_DIR, "devlog", "agents"
-)  # Centralized agent devlogs
-CHRONICLE_CONVERSATIONS_SCRIPT_PATH = os.path.join(
-    SCRIPT_DIR, "chronicle_conversations.py"
-)  # Path to the script
+AGENT_MAILBOX_DIR = BASE_RUNTIME_DIR / "agent_comms" / "agent_mailboxes" # MODIFIED to Path
+LOG_DIR = BASE_RUNTIME_DIR / "logs" # MODIFIED to Path
+OUTPUT_DIR = BASE_RUNTIME_DIR / "dreamscape_output" # MODIFIED to Path
+AGENT_DEVLOG_DIR = (
+    BASE_RUNTIME_DIR / "devlog" / "agents"
+)  # Centralized agent devlogs # MODIFIED to Path
+CHRONICLE_CONVERSATIONS_SCRIPT_PATH = (
+    SCRIPT_DIR / "chronicle_conversations.py"
+)  # Path to the script # MODIFIED to Path
 
-AGENT_POINTS_PATH = os.path.join(LOG_DIR, "agent_points.json")
-DEPLOYMENT_STATUS_PATH = os.path.join(LOG_DIR, "deployment_status.yaml")
-DREAMSCAPE_ARC_MAP_PATH = os.path.join(LOG_DIR, "dreamscape_arc_map.json")
-CONTROLLER_LOG_PATH = os.path.join(LOG_DIR, "dreamscape_controller.log")
+AGENT_POINTS_PATH = LOG_DIR / "agent_points.json" # MODIFIED to Path
+DEPLOYMENT_STATUS_PATH = LOG_DIR / "deployment_status.yaml" # MODIFIED to Path
+DREAMSCAPE_ARC_MAP_PATH = LOG_DIR / "dreamscape_arc_map.json" # MODIFIED to Path
+CONTROLLER_LOG_PATH = LOG_DIR / "dreamscape_controller.log" # MODIFIED to Path
 
 
 # --- Utility Functions ---
@@ -39,23 +43,14 @@ def log_message(message, level="INFO"):
     log_line = f"[{timestamp}] [{level}] {message}"
     print(log_line)
     try:
+        # Ensure log directory exists before writing to log file
+        file_io.ensure_directory(LOG_DIR) # MODIFIED: Use file_io
         with open(CONTROLLER_LOG_PATH, "a", encoding="utf-8") as f:
             f.write(log_line + "\n")
     except Exception as e:
         print(
             f"CRITICAL: Failed to write to controller log at {CONTROLLER_LOG_PATH}: {e}"
         )
-
-
-def ensure_dir_exists(dir_path):
-    """Ensures a directory exists, creating it if necessary."""
-    if not os.path.exists(dir_path):
-        try:
-            os.makedirs(dir_path)
-            log_message(f"Created directory: {dir_path}", "DEBUG")
-        except Exception as e:
-            log_message(f"Failed to create directory {dir_path}: {e}", "ERROR")
-            # Depending on severity, you might want to raise the error or exit
 
 
 # --- Agent Class ---
@@ -67,20 +62,25 @@ class Agent:
         self.tasks_from_yaml = (
             tasks_from_yaml  # Tasks as defined in the deployment YAML
         )
-        self.prompt_path = prompt_path
+        self.prompt_path = Path(prompt_path) if prompt_path else None # Ensure prompt_path is Path
         self.points = 0
         self.status = "idle"
         self.current_task_index = 0
-        self.devlog_path = os.path.join(AGENT_DEVLOG_DIR, f"{self.id}_devlog.md")
-        ensure_dir_exists(
-            os.path.dirname(self.devlog_path)
-        )  # Ensure agent's devlog directory exists
+        self.devlog_path = AGENT_DEVLOG_DIR / f"{self.id}_devlog.md" # MODIFIED to Path
+        
+        # MODIFIED: Use file_io.ensure_directory
+        if not file_io.ensure_directory(self.devlog_path.parent):
+            log_message(f"Failed to create devlog directory for agent {self.id} at {self.devlog_path.parent}", "ERROR")
+            # Agent can still be initialized, but devlog writing might fail later.
 
     def get_prompt_content(self):
         """Reads and returns the content of the agent's prompt file."""
+        if not self.prompt_path:
+            log_message(f"No prompt path defined for agent {self.id}", "WARNING")
+            return None
         try:
-            with open(self.prompt_path, "r", encoding="utf-8") as f:
-                return f.read()
+            # MODIFIED: Use Path object's read_text
+            return self.prompt_path.read_text(encoding="utf-8")
         except FileNotFoundError:
             log_message(
                 f"Prompt file not found for agent {self.id} at {self.prompt_path}",
@@ -433,9 +433,23 @@ def dreamscape_controller_main():
     """Main function to orchestrate the Dreamscape agent swarm."""
 
     # Initial setup: ensure essential directories exist
-    ensure_dir_exists(LOG_DIR)
-    ensure_dir_exists(OUTPUT_DIR)
-    ensure_dir_exists(AGENT_DEVLOG_DIR)
+    # MODIFIED: Use file_io.ensure_directory for multiple critical paths
+    base_dirs_to_ensure = [
+        BASE_RUNTIME_DIR,
+        AGENT_MAILBOX_DIR,
+        LOG_DIR,
+        OUTPUT_DIR,
+        AGENT_DEVLOG_DIR,
+        DEPLOYMENT_CONFIG_PATH.parent, # Ensure parent of deployment config
+        AGENT_POINTS_PATH.parent, # Ensure parent of agent_points.json (which is LOG_DIR, but explicit)
+        # CONTROLLER_LOG_PATH is handled by log_message's first call
+    ]
+    for dir_path in base_dirs_to_ensure:
+        if not file_io.ensure_directory(dir_path):
+            log_message(f"CRITICAL: Failed to ensure base directory: {dir_path}. Controller cannot proceed.", "ERROR")
+            return # Exit if critical directories can't be made
+
+    log_message("Base directories ensured.", "DEBUG")
 
     log_message("--- Dreamscape Octacore Controller Initializing ---", "INFO")
 

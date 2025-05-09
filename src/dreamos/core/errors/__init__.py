@@ -9,6 +9,7 @@ from . import (
 from .exceptions import (
     AgentError,
     ArchivingError,
+    BoardLockError,
     CommunicationError,
     ConfigurationError,
     CoordinateError,
@@ -18,6 +19,10 @@ from .exceptions import (
     ProjectBoardError,
     TaskError,
     ToolError,
+    TaskNotFoundError,
+    TaskValidationError,
+    TaskProcessingError,
+    MessageHandlingError,
     ValidationError,
 )
 
@@ -29,10 +34,15 @@ __all__ = [
     "TaskError",
     "ToolError",
     "ProjectBoardError",
+    "TaskNotFoundError",
+    "TaskValidationError",
+    "TaskProcessingError",
     "CoordinateError",
     "CommunicationError",
     "MemoryError",
+    "MessageHandlingError",
     "ValidationError",
     "CursorOrchestratorError",
     "ArchivingError",
+    "BoardLockError",
 ]

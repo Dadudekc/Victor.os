@@ -5,16 +5,25 @@ from typing import Optional
 
 import tenacity  # Add tenacity for retry logic
 from azure.core.exceptions import AzureError, ResourceNotFoundError
-from azure.storage.blob.aio import BlobServiceClient  # Import async client
+from azure.storage.blob import BlobClient, BlobServiceClient, ContainerClient
 
 from dreamos.core.config import get_config
-from . import APIError, IntegrationError, AzureBlobError
+from ..core.errors import DreamOSError
 
-logger = logging.getLogger(__name__)
+# Define Integration/API errors locally if not found elsewhere
+class IntegrationError(DreamOSError): # Inherit from base DreamOS error
+    """Base error for integration issues."""
+    pass
 
+class APIError(IntegrationError):
+    """Error related to external API interaction."""
+    pass
 
 class AzureBlobError(IntegrationError):
+    """Specific error for Azure Blob Storage operations."""
     pass
+
+logger = logging.getLogger(__name__)
 
 
 class AzureBlobClient:
