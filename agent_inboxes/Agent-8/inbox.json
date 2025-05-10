@@ -1,0 +1,17 @@
+[
+    {
+        "prompt_id": "PROMPT-DISPERSER-009",
+        "type": "instruction",
+        "status": "Active",
+        "timestamp": "2024-03-10T12:00:00.000000Z",
+        "origin_episode": "EPISODE-02-INFINITE-LOOPS",
+        "content": "Write parsed tasks into correct inbox files using structured prompt format.",
+        "source_episode_task": "PROMPT-DISPERSER-009",
+        "id": "PROMPT-DISPERSER-009",
+        "owner": "Agent-8",
+        "points": 500,
+        "deps": [
+            "YAML-PARSER-008"
+        ]
+    }
+] 

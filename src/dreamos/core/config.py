@@ -41,7 +41,8 @@ from . import errors as appconfig_errors
 # {{ EDIT END }}
 
 # EDIT: Add DreamscapeConfig import here
-from dreamscape.config import DreamscapeConfig
+# from dreamscape.config import DreamscapeConfig # Temporarily commented out for diagnosis
+print("DEBUG_CONFIG: DreamscapeConfig import line processed (commented out)")
 
 # Guarded import for GuiAutomationConfig
 if TYPE_CHECKING:
@@ -701,7 +702,7 @@ class AppConfig(BaseSettings):
     )
     # EDIT END
     # Restore dreamscape field
-    dreamscape: 'DreamscapeConfig' = Field(default_factory=lambda: DreamscapeConfig())
+    # dreamscape: 'DreamscapeConfig' = Field(default_factory=lambda: DreamscapeConfig()) # Temporarily commented out for diagnosis
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     chatgpt_scraper: ChatGPTScraperConfig = Field(default_factory=ChatGPTScraperConfig)
     # Restore gui_automation field

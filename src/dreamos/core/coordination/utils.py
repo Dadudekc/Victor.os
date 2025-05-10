@@ -48,7 +48,7 @@ def with_error_handling(error_class: type = AgentError):
                     args[0] if args else None, "logger", util_logger
                 )
 
-                error_msg = f"Error in {func.__name__}: {e}"
+                error_msg = f"test" # Simplified f-string for diagnosis
                 logger_instance.error(error_msg, exc_info=True)
 
                 # Log governance event - COMMENTED OUT

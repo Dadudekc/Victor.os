@@ -1,0 +1,110 @@
+{
+  "metadata": {
+    "episode": "02",
+    "codename": "INFINITE LOOPS",
+    "overall_refined_objective": "Implement a continuous operational loop for all eight cursor agents, ensuring mission adherence (drift-proofing) through automated monitoring and AI-driven escalation. This system will utilize agent-specific inboxes for dynamic tasking and state management, complemented by persistent lifecycle logs, to foster adaptive responsiveness and robust self-correction.",
+    "theme": "Full-circle agent task automation without human intervention.",
+    "north_star": "Agents self-resume, complete tasks, refresh task board, and reinitiate\u2014all on their own.",
+    "objectives": [
+      "Maintain inbox timestamp tracking, self-resume, and escalation logic.",
+      "Enable task completion detection and refresh queue from ChatGPT.",
+      "Build YAML \u2192 Agent Prompt dispersal engine (by Agent-7 + 8)."
+    ],
+    "definition_of_done": [
+      "All 8 agents active and contributing to loop operations or system enhancements.",
+      "Episode YAML can be parsed and distributed to agent inboxes automatically.",
+      "Logs and devlogs show end-to-end execution and refresh cycles."
+    ],
+    "next_episode_trigger": "Run one full loop from YAML > parsed tasks > injected inboxes > executed by agents."
+  },
+  "tasks": {
+    "Agent-1": [
+      {
+        "id": "LOOP-WATCHDOG-001",
+        "owner": "Agent-1",
+        "points": 400,
+        "status": "Done",
+        "description": "`inbox_watcher.py`: monitor timestamps every 60s, trigger auto-resume on stale state.",
+        "deps": []
+      }
+    ],
+    "Agent-2": [
+      {
+        "id": "ESCALATION-003",
+        "owner": "Agent-2",
+        "points": 500,
+        "status": "Done",
+        "description": "On 5th resume, send context to ChatGPT and await tailored reply.",
+        "deps": []
+      }
+    ],
+    "Agent-3": [
+      {
+        "id": "TASK-CHECK-004",
+        "owner": "Agent-3",
+        "points": 400,
+        "status": "Done",
+        "description": "`loop_orchestrator.py`: detect empty task queue and call `refresh_task_queue()`.",
+        "deps": []
+      }
+    ],
+    "Agent-4": [
+      {
+        "id": "REFRESH-FLOW-005",
+        "owner": "Agent-4",
+        "points": 600,
+        "status": "Done",
+        "description": "Inject new tasks into each agent's inbox, rotate prompts.",
+        "deps": []
+      }
+    ],
+    "Agent-5": [
+      {
+        "id": "FULL-LOOP-006",
+        "owner": "Agent-5",
+        "points": 700,
+        "status": "Done",
+        "description": "Run full cycle: Task > Resume > Escalate > Complete > Refresh > Inject > Resume.",
+        "deps": [
+          "LOOP-WATCHDOG-001",
+          "ESCALATION-003",
+          "TASK-CHECK-004",
+          "REFRESH-FLOW-005"
+        ]
+      }
+    ],
+    "Agent-6": [
+      {
+        "id": "LOG-LOOP-007",
+        "owner": "Agent-6",
+        "points": 300,
+        "status": "Done",
+        "description": "Write lifecycle entries to `agent_<n>.md` and update `devlog.md`.",
+        "deps": []
+      }
+    ],
+    "Agent-7": [
+      {
+        "id": "YAML-PARSER-008",
+        "owner": "Agent-7",
+        "points": 500,
+        "status": "Active",
+        "description": "(Agent-7) Create `episode_parser.py` to read episode YAML and extract agent-specific task segments.",
+        "deps": []
+      }
+    ],
+    "Agent-8": [
+      {
+        "id": "PROMPT-DISPERSER-009",
+        "owner": "Agent-8",
+        "points": 500,
+        "status": "Active",
+        "description": "(Agent-8) Build `disperse_tasks.py` that writes each parsed task to `agent_<n>/inbox.json`.",
+        "deps": [
+          "YAML-PARSER-008"
+        ]
+      }
+    ]
+  },
+  "parsed_at": "2025-05-10T08:42:48.585464"
+}

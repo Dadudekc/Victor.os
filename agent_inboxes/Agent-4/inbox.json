@@ -1,0 +1,14 @@
+[
+    {
+        "prompt_id": "REFRESH-FLOW-005",
+        "type": "instruction",
+        "status": "Done",
+        "timestamp": "2024-03-10T12:00:00.000000Z",
+        "origin_episode": "EPISODE-02-INFINITE-LOOPS",
+        "content": "No description provided.",
+        "source_episode_task": "REFRESH-FLOW-005",
+        "id": "REFRESH-FLOW-005",
+        "owner": "Agent-4",
+        "points": 600
+    }
+] 

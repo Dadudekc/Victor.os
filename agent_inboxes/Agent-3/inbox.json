@@ -1,0 +1,14 @@
+[
+    {
+        "prompt_id": "TASK-CHECK-004",
+        "type": "instruction",
+        "status": "Done",
+        "timestamp": "2024-03-10T12:00:00.000000Z",
+        "origin_episode": "EPISODE-02-INFINITE-LOOPS",
+        "content": "No description provided.",
+        "source_episode_task": "TASK-CHECK-004",
+        "id": "TASK-CHECK-004",
+        "owner": "Agent-3",
+        "points": 400
+    }
+] 
