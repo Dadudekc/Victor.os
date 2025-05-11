@@ -24,13 +24,13 @@ This guide outlines the branch management strategy for agents working in the Dre
 
 2. **Before Starting Work**
    ```bash
-   # Always start from an up-to-date main branch
-   git checkout main
-   git pull origin main
+   # Always start from an up-to-date master branch
+   git checkout master
+   git pull origin master
    
    # Create/switch to your agent branch
    git checkout agent{N}
-   git merge main  # Ensure your branch is up to date
+   git merge master  # Ensure your branch is up to date
    ```
 
 ## Workflow
@@ -53,11 +53,11 @@ This guide outlines the branch management strategy for agents working in the Dre
 
 3. **Keeping Up to Date**
    ```bash
-   # Regularly sync with main
-   git checkout main
-   git pull origin main
+   # Regularly sync with master
+   git checkout master
+   git pull origin master
    git checkout agent{N}
-   git merge main
+   git merge master
    ```
 
 ## Best Practices
@@ -68,12 +68,12 @@ This guide outlines the branch management strategy for agents working in the Dre
    - Follow conventional commit format
 
 2. **Branch Hygiene**
-   - Keep your branch up to date with main
+   - Keep your branch up to date with master
    - Resolve conflicts promptly
-   - Don't let your branch drift too far from main
+   - Don't let your branch drift too far from master
 
 3. **Code Review**
-   - All changes should be reviewed before merging to main
+   - All changes should be reviewed before merging to master
    - Use pull requests for code review
    - Address review comments promptly
 
@@ -94,11 +94,11 @@ git checkout agent{N}
 # Create and switch to your agent branch
 git checkout -b agent{N}
 
-# Update your branch with main
-git checkout main
-git pull origin main
+# Update your branch with master
+git checkout master
+git pull origin master
 git checkout agent{N}
-git merge main
+git merge master
 
 # Push your changes
 git push origin agent{N}
@@ -118,10 +118,10 @@ git log --oneline
    git commit -m "Resolve merge conflicts"
    ```
 
-2. **Accidental Commits to Main**
+2. **Accidental Commits to Master**
    ```bash
-   # If you accidentally committed to main
-   git checkout main
+   # If you accidentally committed to master
+   git checkout master
    git reset --hard HEAD~1  # Undo last commit
    git checkout agent{N}
    # Make your changes here instead
