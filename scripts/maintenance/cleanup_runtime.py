@@ -9,17 +9,23 @@ structure according to the cleanup plan.
 import os
 import shutil
 import json
+import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 import logging
 
 # Configure logging
+log_dir = Path('runtime/logs/operations')
+log_dir.mkdir(parents=True, exist_ok=True)
+log_file = log_dir / f'cleanup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('runtime/cleanup.log'),
-        logging.StreamHandler()
+        logging.FileHandler(log_file),
+        logging.StreamHandler(sys.stdout)
     ]
 )
 
@@ -28,17 +34,24 @@ class RuntimeCleanup:
         self.runtime_dir = Path('runtime')
         self.backup_dir = self.runtime_dir / 'backups' / f'cleanup_{datetime.now().strftime("%Y%m%d_%H%M%S")}'
         self.moves_log = []
+        self.errors = []
         
     def create_backup(self):
         """Create a backup of the runtime directory."""
         logging.info(f"Creating backup in {self.backup_dir}")
         try:
+            # Create backup directory if it doesn't exist
+            self.backup_dir.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Create backup
             shutil.copytree(self.runtime_dir, self.backup_dir, 
                           ignore=shutil.ignore_patterns('backups', 'cleanup.log'))
             logging.info("Backup created successfully")
             return True
         except Exception as e:
-            logging.error(f"Failed to create backup: {e}")
+            error_msg = f"Failed to create backup: {str(e)}\n{traceback.format_exc()}"
+            logging.error(error_msg)
+            self.errors.append(error_msg)
             return False
 
     def create_new_structure(self):
@@ -61,7 +74,9 @@ class RuntimeCleanup:
                 full_path.mkdir(parents=True, exist_ok=True)
                 logging.info(f"Created directory: {full_path}")
             except Exception as e:
-                logging.error(f"Failed to create directory {full_path}: {e}")
+                error_msg = f"Failed to create directory {full_path}: {str(e)}\n{traceback.format_exc()}"
+                logging.error(error_msg)
+                self.errors.append(error_msg)
 
     def move_files(self, source_pattern, target_dir, file_pattern='*'):
         """Move files from source to target directory."""
@@ -72,10 +87,22 @@ class RuntimeCleanup:
             logging.warning(f"Source directory does not exist: {source_dir}")
             return
             
+        # Create target directory if it doesn't exist
+        target_dir.mkdir(parents=True, exist_ok=True)
+            
         for file_path in source_dir.glob(file_pattern):
             if file_path.is_file():
                 target_path = target_dir / file_path.name
                 try:
+                    # Handle file name conflicts
+                    if target_path.exists():
+                        base = target_path.stem
+                        suffix = target_path.suffix
+                        counter = 1
+                        while target_path.exists():
+                            target_path = target_dir / f"{base}_{counter}{suffix}"
+                            counter += 1
+                    
                     shutil.move(str(file_path), str(target_path))
                     self.moves_log.append({
                         'source': str(file_path),
@@ -84,7 +111,9 @@ class RuntimeCleanup:
                     })
                     logging.info(f"Moved {file_path} to {target_path}")
                 except Exception as e:
-                    logging.error(f"Failed to move {file_path}: {e}")
+                    error_msg = f"Failed to move {file_path}: {str(e)}\n{traceback.format_exc()}"
+                    logging.error(error_msg)
+                    self.errors.append(error_msg)
 
     def consolidate_temp_dirs(self):
         """Consolidate all temp directories."""
@@ -143,17 +172,25 @@ class RuntimeCleanup:
                         dir_path.rmdir()
                         logging.info(f"Removed empty directory: {dir_path}")
                 except Exception as e:
-                    logging.error(f"Failed to remove directory {dir_path}: {e}")
+                    error_msg = f"Failed to remove directory {dir_path}: {str(e)}\n{traceback.format_exc()}"
+                    logging.error(error_msg)
+                    self.errors.append(error_msg)
 
     def save_moves_log(self):
         """Save the moves log to a JSON file."""
         log_file = self.runtime_dir / 'cleanup_moves.json'
         try:
             with open(log_file, 'w') as f:
-                json.dump(self.moves_log, f, indent=2)
+                json.dump({
+                    'moves': self.moves_log,
+                    'errors': self.errors,
+                    'timestamp': datetime.now().isoformat()
+                }, f, indent=2)
             logging.info(f"Saved moves log to {log_file}")
         except Exception as e:
-            logging.error(f"Failed to save moves log: {e}")
+            error_msg = f"Failed to save moves log: {str(e)}\n{traceback.format_exc()}"
+            logging.error(error_msg)
+            self.errors.append(error_msg)
 
     def run(self):
         """Run the complete cleanup process."""
@@ -180,11 +217,17 @@ class RuntimeCleanup:
             # Save moves log
             self.save_moves_log()
             
-            logging.info("Cleanup completed successfully")
-            return True
+            if self.errors:
+                logging.warning(f"Cleanup completed with {len(self.errors)} errors")
+                return False
+            else:
+                logging.info("Cleanup completed successfully")
+                return True
             
         except Exception as e:
-            logging.error(f"Cleanup failed: {e}")
+            error_msg = f"Cleanup failed: {str(e)}\n{traceback.format_exc()}"
+            logging.error(error_msg)
+            self.errors.append(error_msg)
             return False
 
 if __name__ == '__main__':

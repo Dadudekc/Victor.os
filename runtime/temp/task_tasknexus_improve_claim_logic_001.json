@@ -1,9 +1,0 @@
-{
-  "task_id": "TASK-TASKNEXUS-IMPROVE-CLAIM-LOGIC-001",
-  "name": "Improve TaskNexus Claim Logic",
-  "description": "Refactor the `TaskNexus.get_next_task` method (or equivalent agent acquisition logic) to include priority sorting and dependency checking *before* attempting to claim a task from the ready queue via the PBM. This prevents unnecessary claim attempts on tasks that cannot yet be executed.",
-  "priority": "MEDIUM",
-  "task_type": "REFACTOR/IMPROVEMENT",
-  "dependencies": [],
-  "required_capabilities": ["PYTHON_SCRIPTING", "SYSTEM_ANALYSIS"]
-}
