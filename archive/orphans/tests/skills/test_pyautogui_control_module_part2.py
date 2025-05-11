@@ -1,3 +1,6 @@
+# CONSOLIDATED: This file now contains all pyautogui-related tests from both part 1 and part 2.
+# The previous test_pyautogui_control_module.py has been merged here and removed as part of deduplication.
+
 # tests/skills/test_pyautogui_control_module_part2.py
 
 import unittest
