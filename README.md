@@ -136,7 +136,6 @@ swarm stability and achieving our collective goals.**
 │   │   ├── utils/        # Common shared utility functions
 │   │   ├── cli/          # Command-line interface
 │   │   └── gui/          # Graphical user interface
-│   │   └── ... (other core packages)
 │   └── dreamscape/     # Digital Dreamscape feature (Content Generation)
 │       ├── __init__.py
 │       ├── agents/       # Planner and Writer agents for content
@@ -144,7 +143,15 @@ swarm stability and achieving our collective goals.**
 │       ├── events/       # Events specific to the Dreamscape workflow
 │       ├── schemas/      # Data schemas for Dreamscape events/models
 │       └── utils/        # Utilities specific to Dreamscape
-└── tests/              # Unit and integration tests
+├── docs/               # Project documentation
+│   ├── swarm/         # Agent protocols and guidelines
+│   ├── tools/         # Tool usage documentation
+│   └── protocols/     # System protocols and procedures
+├── runtime/           # Runtime files and state
+│   ├── agent_comms/   # Agent communication files
+│   ├── governance/    # Governance-related files
+│   └── agent_registry/# Agent registration and contracts
+└── tests/            # Unit and integration tests
 ```
 
 **Detailed Package Explanations:**
@@ -185,7 +192,7 @@ pip install pyautogui pywinauto
 ### Usage
 
 ```bash
-python scripts/cursor_auto.py --prompt-dir path/to/prompts --heartbeat 30
+python src/dreamos/tools/cursor_auto.py --prompt-dir path/to/prompts --heartbeat 30
 ```
 
 - `--prompt-dir`: directory containing `*.prompt.md` files.

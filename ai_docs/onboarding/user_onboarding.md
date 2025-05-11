@@ -87,11 +87,55 @@ _(Note: The exact command structure needs verification as the `cli/main.py` file
   # Verify exact command, this is based on the scanner module's own CLI parser
   # python -m src.dreamos.cli scan --categorize-agents --generate-init
   ```
+- **Run Cleanup Protocol:** Maintain codebase health and organization
+  ```bash
+  python scripts/maintenance/project_cleanup_protocol.py
+  ```
+  This will:
+  - Analyze project files using `project_analysis.json` and `chatgpt_project_context.json`
+  - Archive low-utility files to `archive/orphans/`
+  - Log actions in `cleanup_log.json`
+- **Check for Duplicate Tasks:** Find and manage duplicate tasks in the system
+  ```bash
+  python src/dreamos/tools/maintenance/find_duplicate_tasks.py
+  ```
+  This will:
+  - Scan all task files (JSON/MD) for duplicates
+  - Generate a detailed report at `reports/duplicate_tasks_report.md`
+  - Help maintain task organization and prevent redundancy
 - **Execute a Specific Task:** (Verify command structure)
   ```bash
   # Hypothetical example:
   # python -m src.dreamos.cli run-task --name "Update documentation" --agent DocsAgent
   ```
+
+### Task Management
+
+Dream.OS uses a structured approach to task management:
+
+- **Task Files:**
+  - Tasks are stored in JSON or Markdown files
+  - Common locations include:
+    - `runtime/tasks/` for main task files
+    - `runtime/agent_comms/` for agent-specific tasks
+    - `runtime/project_boards/` for project-level tasks
+
+- **Task States:**
+  - Backlog: Pending tasks (`task_backlog.json`)
+  - Working: In-progress tasks (`working_tasks.json`)
+  - Completed: Finished tasks (`completed_tasks.json`)
+  - Future: Planned tasks (`future_tasks.json`)
+
+- **Task Maintenance:**
+  - Regularly check for duplicates using the duplicate detection script
+  - Review and clean up task files
+  - Archive completed tasks when appropriate
+  - Keep task metadata up to date
+
+- **Task Reports:**
+  - Find task reports in the `reports/` directory
+  - Review `duplicate_tasks_report.md` for task organization
+  - Check task statistics in `runtime/operational_logs/stats/`
 
 ### GUI Dashboard
 
@@ -160,6 +204,12 @@ The scanner (`src/dreamos/tools/analysis/scanner/`) is crucial for context and a
 - **`project_analysis.json`**: Output of the project scanner tool.
 - **`chatgpt_project_context.json`**: LLM-consumable context export from the scanner.
 - **`dependency_cache.json`**: File hash cache used by the scanner.
+- **`scripts/maintenance/`**: Maintenance and cleanup tools
+  - `project_cleanup_protocol.py`: Automated cleanup system
+  - `cleanup_agent_prompt.md`: Protocol documentation
+- **`archive/`**: Safety net for archived files
+  - `orphans/`: Directory for orphaned or low-utility files
+- **`cleanup_log.json`**: Log of cleanup actions
 
 ## Agent Autonomy Concepts
 

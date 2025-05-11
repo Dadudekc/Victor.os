@@ -9,13 +9,13 @@
 ## Log Entries (Timestamp UTC)
 
 *   `{{iso_timestamp_utc}}`: Mission Activated by Commander THEA. Scope and reporting structure acknowledged. Initiating mission log.
-*   `{{iso_timestamp_utc}}`: Resuming task `CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001`. Next step: Verify `update_task` and `claim_task` methods and tests in `ProjectBoardManager`.
-*   `{{iso_timestamp_utc}}`: Completed task `CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001`. Implemented `delete_task`, added tests including `claim_task` rollback verification, reviewed `update_task`, documented public PBM interface. Status set to `COMPLETED_PENDING_REVIEW`.
+*   `{{iso_timestamp_utc}}`: Resuming task `CORE-002`. Next step: Verify `update_task` and `claim_task` methods and tests in `ProjectBoardManager`.
+*   `{{iso_timestamp_utc}}`: Completed task `CORE-002`. Implemented `delete_task`, added tests including `claim_task` rollback verification, reviewed `update_task`, documented public PBM interface. Status set to `COMPLETED_PENDING_REVIEW`.
 *   `{{iso_timestamp_utc}}`: Received SYNC-OVERRIDE-COMMANDER-THEA directive. Confirming command sync with Commander THEA and Captain Agent 8. Proceeding with status report and required actions.
-*   `{{iso_timestamp_utc}}`: Status Report to THEA: Last task `CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001` completed. PBM Access functional. `update_task`/`claim_task` validation partially complete (basic tests/rollback covered), deep validation pending. Per directive, pivoting to claim and execute `TEST-VALIDATE-CORE-SERVICES-001` immediately.
+*   `{{iso_timestamp_utc}}`: Status Report to THEA: Last task `CORE-002` completed. PBM Access functional. `update_task`/`claim_task` validation partially complete (basic tests/rollback covered), deep validation pending. Per directive, pivoting to claim and execute `TEST-VALIDATE-CORE-SERVICES-001` immediately.
 *   `{{iso_timestamp_utc}}`: Received THEA sync confirmation directive.
     *   Current Task: `CAPTAIN8-MANDATE-TESTING-INFRA-001` (claimed as interim action).
-    *   Last Concrete Action: Claimed `CAPTAIN8-MANDATE-TESTING-INFRA-001` after reporting completion of `CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001` and lack of `TEST-VALIDATE-CORE-SERVICES-001`.
+    *   Last Concrete Action: Claimed `CAPTAIN8-MANDATE-TESTING-INFRA-001` after reporting completion of `CORE-002` and lack of `TEST-VALIDATE-CORE-SERVICES-001`.
     *   PBM Validation Status: `update_task`/`claim_task` confirmed functional. Basic test coverage exists (including rollback). Deep validation (atomicity/locking, schema edge cases) confirmed INCOMPLETE.
 *   `{{iso_timestamp_utc}}`: Adjusting Scope: Mandated task `TEST-VALIDATE-CORE-SERVICES-001` not found. Incorporating remaining PBM validation (`update_task`/`claim_task` atomicity/locking/schema tests) into currently claimed task `CAPTAIN8-MANDATE-TESTING-INFRA-001` to ensure immediate progress per THEA directive.
 *   `{{iso_timestamp_utc}}`: Initiating PBM Validation Testing under `CAPTAIN8-MANDATE-TESTING-INFRA-001`. First step: Add tests using mocking for file locking scenarios (`BoardLockError`) for `update_task` and `claim_task`.

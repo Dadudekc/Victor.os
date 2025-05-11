@@ -1,0 +1,149 @@
+last_updated: '2025-05-11T08:51:41.157159'
+total_episodes: 4
+episodes:
+- episode_id: '01'
+  codename: FOUNDATION LAYING
+  title: Establish the core infrastructure and communication protocols for the Dream.OS
+    system, enabling coordinated agent operations and task management.
+  theme: Building the foundation for autonomous agent collaboration.
+  north_star: Create a robust, self-organizing system where agents can effectively
+    communicate and coordinate tasks.
+  status: Completed
+  artifacts:
+  - 'COMM-PROTO-001: Define and implement standardized message types for agent communication.'
+  - 'MAILBOX-STD-002: Create canonical mailbox standards for agent message handling.'
+  - 'TASK-TRACK-003: Implement central task backlog with ownership and point tracking.'
+  - 'STATUS-SIG-004: Develop agent status signaling protocol for coordination.'
+  - 'DIR-SCAN-005: Build project scanner to map code structure and agent responsibilities.'
+  created_at: '2025-05-10T20:31:33.999593'
+  updated_at: '2025-05-10T20:31:35.916475'
+  objectives:
+  - Implement basic agent communication protocols and message standards.
+  - Set up task tracking and management infrastructure.
+  - Establish agent status signaling and coordination mechanisms.
+  definition_of_done:
+  - All agents can communicate using standardized message types.
+  - Task tracking system is operational with ownership and points.
+  - Agent status signaling enables effective coordination.
+  - Project structure is mapped and documented.
+- episode_id: '02'
+  codename: ''
+  title: Implement a continuous operational loop for all eight cursor agents, ensuring
+    mission adherence (drift-proofing) through automated monitoring and AI-driven
+    escalation. This system will utilize agent-specific inboxes for dynamic tasking
+    and state management, complemented by persistent lifecycle logs, to foster adaptive
+    responsiveness and robust self-correction.
+  theme: Full-circle agent task automation without human intervention.
+  north_star: Agents self-resume, complete tasks, refresh task board, and reinitiate—all
+    on their own.
+  status: Completed
+  artifacts:
+  - 'YAML-PARSER-008: Parse episode YAML and extract task list per agent.'
+  - 'PROMPT-DISPERSER-009: Write parsed tasks into correct inbox files using structured
+    prompt format.'
+  - 'LOOP-WATCHDOG-001: `inbox_watcher.py`: monitor timestamps every 60s, trigger
+    auto-resume on stale state.'
+  - 'ESCALATION-003: On 5th resume, send context to ChatGPT and await tailored reply.'
+  - 'TASK-CHECK-004: `loop_orchestrator.py`: detect empty task queue and call `refresh_task_queue()`.'
+  - 'REFRESH-FLOW-005: Inject new tasks into each agent''s inbox, rotate prompts.'
+  - 'FULL-LOOP-006: Run full cycle: Task > Resume > Escalate > Complete > Refresh
+    > Inject > Resume.'
+  - 'LOG-LOOP-007: Write lifecycle entries to `agent_<n>.md` and update `devlog.md`.'
+  - 'YAML-PARSER-008: (Agent-7) Create `episode_parser.py` to read episode YAML and
+    extract agent-specific task segments.'
+  - 'PROMPT-DISPERSER-009: (Agent-8) Build `disperse_tasks.py` that writes each parsed
+    task to `agent_<n>/inbox.json`.'
+  created_at: '2025-05-09T17:34:59.600497'
+  updated_at: '2025-05-11T03:47:45.820470'
+  objectives:
+  - Maintain inbox timestamp tracking, self-resume, and escalation logic.
+  - Enable task completion detection and refresh queue from ChatGPT.
+  - Build YAML → Agent Prompt dispersal engine (by Agent-7 + 8).
+  definition_of_done:
+  - All 8 agents active and contributing to loop operations or system enhancements.
+  - Episode YAML can be parsed and distributed to agent inboxes automatically.
+  - Logs and devlogs show end-to-end execution and refresh cycles.
+- episode_id: 02B
+  codename: ARCHITECTURE REFINEMENT
+  title: Streamline and optimize the codebase architecture through systematic cleanup,
+    deduplication, and structural refinement. This initiative focuses on eliminating
+    redundancy, improving code organization, and establishing clear patterns for future
+    development.
+  theme: Clean, maintainable, and efficient codebase structure.
+  north_star: A lean, well-organized codebase with minimal duplication and clear architectural
+    boundaries.
+  status: Planned
+  artifacts:
+  - 'CLEANUP-001: Identify and consolidate duplicate utilities, focusing on common
+    functions'
+  - 'STRUCTURE-002: Reorganize directory structure for better module separation'
+  - 'DOCS-003: Document architectural decisions and their rationale'
+  - 'VALIDATE-004: Verify system functionality after cleanup'
+  - 'PATTERNS-005: Define and document coding patterns'
+  - 'CLEANUP-001: Audit and remove duplicate utility functions across codebase'
+  - 'STRUCTURE-002: Realign directory structure for better module organization'
+  - 'DOCS-003: Document architectural decisions and patterns'
+  - 'VALIDATE-004: Verify all systems operational post-cleanup'
+  - 'PATTERNS-005: Establish and document coding patterns for future development'
+  created_at: '2025-05-10T20:32:48.607456'
+  updated_at: '2025-05-10T20:32:50.291059'
+  objectives:
+  - Identify and remove redundant scripts and utilities
+  - Realign directory structure for better organization
+  - Document high-impact architectural decisions
+  - Establish clear patterns for future development
+  definition_of_done:
+  - All duplicate utilities consolidated into appropriate modules
+  - Directory structure optimized and documented
+  - Architectural decisions documented with rationale
+  - All systems verified operational
+  - Coding patterns established and documented
+- episode_id: '03'
+  codename: ''
+  title: ''
+  theme: ''
+  north_star: ''
+  status: Planned
+  artifacts:
+  - 'ANALYZE-FAILURE-001: Conduct a thorough analysis of the factors that led to the
+    failure of overnight autonomy runs in Episode 2.'
+  - 'REFINE-PROTOCOLS-002: Update agent protocols to incorporate more robust feedback
+    loops and error handling mechanisms.'
+  - 'IMPLEMENT-MONITORING-003: Set up enhanced monitoring to track agent activity
+    and detect lapses in real time.'
+  - 'TEST-RUN-004: Conduct a test run with updated protocols to verify improved overnight
+    autonomy.'
+  - 'REPORT-FINDINGS-005: Compile a report summarizing the findings and improvements
+    from the test run.'
+  - 'OPTIMIZE-SCRIPTS-006: Optimize and streamline the scripts used for agent execution
+    to reduce latency and errors.'
+  - 'DOCUMENT-CHANGES-007: Document all changes made during the refinement process
+    for future reference and onboarding.'
+  - 'ANALYZE-FAILURE-001: Conduct a thorough analysis of the factors that led to the
+    failure of overnight autonomy runs in Episode 2.'
+  - 'REFINE-PROTOCOLS-002: Update agent protocols to incorporate more robust feedback
+    loops and error handling mechanisms.'
+  - 'IMPLEMENT-MONITORING-003: Set up enhanced monitoring to track agent activity
+    and detect lapses in real time.'
+  - 'TEST-RUN-004: Conduct a test run with updated protocols to verify improved overnight
+    autonomy.'
+  - 'REPORT-FINDINGS-005: Compile a report summarizing the findings and improvements
+    from the test run.'
+  - 'OPTIMIZE-SCRIPTS-006: Optimize and streamline the scripts used for agent execution
+    to reduce latency and errors.'
+  - 'DOCUMENT-CHANGES-007: Document all changes made during the refinement process
+    for future reference and onboarding.'
+  created_at: '2025-05-10T20:31:44.486248'
+  updated_at: '2025-05-11T03:50:44.375126'
+  objectives:
+  - Identify and analyze causes of overnight autonomy failures from Episode 2.
+  - Refine agent protocols and feedback mechanisms.
+  - Implement real-time monitoring and error detection.
+  - Verify improvements with a controlled test run.
+  - Document all changes and findings.
+  definition_of_done:
+  - All root causes of overnight autonomy failures are identified and documented.
+  - Agent protocols and scripts are updated and tested.
+  - Real-time monitoring is operational and validated.
+  - A successful overnight test run is completed.
+  - Comprehensive documentation and a summary report are produced.

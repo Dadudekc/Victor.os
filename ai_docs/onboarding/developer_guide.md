@@ -149,6 +149,69 @@ implementation.)_
   distributed or concurrent environment.
 - **Write Unit Tests**: Test agent logic and message handling independently.
 
+### Task Management & Duplicate Detection
+
+- **Task Organization**:
+  - Keep tasks in dedicated JSON/MD files under appropriate directories
+  - Use consistent task schemas with required fields (description, status, priority)
+  - Maintain task metadata (task_id, assigned_agent, etc.)
+  - Group related tasks in logical files (e.g., backlog, working, completed)
+
+- **Duplicate Prevention**:
+  - Run the duplicate task detection script regularly:
+    ```bash
+    python src/dreamos/tools/maintenance/find_duplicate_tasks.py
+    ```
+  - Review the generated report at `reports/duplicate_tasks_report.md`
+  - Fix duplicates by consolidating or removing redundant tasks
+  - Use task IDs to track unique tasks across the system
+
+- **Task File Maintenance**:
+  - Keep JSON files well-formed and valid
+  - Use the built-in JSON repair functionality for fixing common issues
+  - Maintain proper task metadata for better tracking
+  - Follow the canonical task format for consistency
+
+- **Task Workflow**:
+  1. Create tasks with unique IDs and clear descriptions
+  2. Assign appropriate metadata (priority, agent, status)
+  3. Move tasks through states (backlog → working → completed)
+  4. Regularly check for and resolve duplicates
+  5. Archive completed tasks appropriately
+
+### Code Cleanup & Maintenance
+
+- **Regular Cleanup**: Use the project cleanup protocol (`scripts/maintenance/project_cleanup_protocol.py`) to maintain codebase health:
+  - Run after major feature additions
+  - Before releases
+  - When project complexity increases
+  - As part of regular maintenance
+
+- **File Organization**:
+  - Keep files focused and maintain utility scores above 0.5
+  - Avoid duplicate functionality across files
+  - Maintain complexity scores below 30
+  - Use proper imports to prevent orphaned files
+
+- **Cleanup Protocol Usage**:
+  ```bash
+  python scripts/maintenance/project_cleanup_protocol.py
+  ```
+  - Reviews `project_analysis.json` and `chatgpt_project_context.json`
+  - Archives low-utility files to `archive/orphans/`
+  - Maintains detailed logs in `cleanup_log.json`
+
+- **Safety Measures**:
+  - Files are archived rather than deleted
+  - All actions are logged
+  - Archive directory serves as a safety net
+  - Files can be restored if needed
+
+- **Documentation**:
+  - Keep docstrings up to date
+  - Document file dependencies
+  - Update project documentation when making structural changes
+
 ## Project Structure Guidelines
 
 *(Consolidated from Developer Notes)*

@@ -1,0 +1,68 @@
+# Development files
+.git/
+.github/
+.gitignore
+.prettierrc.json
+.flake8
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.coverage
+htmlcov/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Environment
+.venv/
+venv/
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.ruff_cache/
+.mypy_cache/
+.dreamos_cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Large data files
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# Source maps
+*.map
+
+# Debug files
+*.debug
+debug/

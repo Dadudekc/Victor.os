@@ -1,0 +1,25 @@
+episode_id: "TEST"
+codename: "Validation Run"
+title: "Test Markdown Output"
+theme: "Testing"
+north_star: "Make summarizer work"
+narrative: |
+  This is a test narrative block.
+objectives:
+  - Verify YAML parsing
+  - Confirm file writing
+definition_of_done:
+  - Summarizer generates markdown
+status: "Planned"
+task_board:
+  - task_id: TEST-001
+    name: Test Task
+    status: PENDING
+    priority: LOW
+themes:
+  - name: Basic Validation
+    description: A minimal example to trigger markdown/lore output
+milestones:
+  - id: MILESTONE-TEST-001
+    name: Pass Summarizer Test
+    status: NOT_STARTED

@@ -16,5 +16,5 @@
     ],
     "notes": "Task created after commit af0c41b required --no-verify due to pre-commit hook failures."
   }
-  // ... existing JSON objects ...
+
 ]

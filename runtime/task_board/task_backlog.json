@@ -1,17 +1,119 @@
 [
-  // No tasks remaining in backlog for Agent-4 currently
-  // {
-  //   "task_id": "ANALYZE-DEVLOG-TIMESTAMP-INJECTION-AGENT4-AUTOID",
-  //   "name": "Analyze Devlog Auto-Timestamp Injection Consistency",
-  //   "description": "Review agent devlog entries (`runtime/devlog/agents/*.md`) to verify if the placeholder `{{iso_timestamp_utc()}}` is consistently replaced with actual timestamps by the logging mechanism or requires manual insertion. Propose standardization or fixes if inconsistencies are found.",
-  //   "priority": "Low",
-  //   "status": "WORKING",
-  //   "task_type": "MAINTENANCE",
-  //   "dependencies": ["DEFINE-DEVLOG-REPORTING-STD-AGENT4-AUTOID"],
-  //   "assigned_agent_id": "Agent-4",
-  //   "created_timestamp": "placeholder_timestamp",
-  //   "last_updated_timestamp": "placeholder_timestamp",
-  //   "notes": "Self-proposed and claimed by Agent-4 during IDLE/Self-Prompting protocol (Cycle 2) based on THEA suggestion."
-  // }
-  // Task FIX-DEVLOG-TIMESTAMP-INJECTION-AGENT4-AUTOID completed and removed.
+  {
+    "task_id": "CLI-001",
+    "name": "PBM CLI Interface Refactor",
+    "description": "Refactor the PBM CLI script (scripts/utils/manage_tasks.py) to use Click with a full command set (add, update, claim, complete, list-*, get). Verify the changes made for CLI-001, check relevant file history, and determine if the refactoring was incorrect, incomplete, reverted, or applied to the wrong file.",
+    "priority": "High",
+    "status": "PENDING",
+    "task_type": "REFACTOR",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple PBM CLI investigation tasks. Original task CLI-001 was reported complete by Agent-3 but requires verification."
+  },
+  {
+    "task_id": "CORE-001",
+    "name": "Config File Edit Tool Investigation",
+    "description": "Investigate and resolve persistent edit tool failures when modifying src/dreamos/core/config.py. Root cause unknown (permissions, locking, tool bug?). Implement workaround or fix.",
+    "priority": "High",
+    "status": "PENDING",
+    "task_type": "BUGFIX",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple config.py edit tool investigation tasks. Critical for system stability."
+  },
+  {
+    "task_id": "CORE-002",
+    "name": "AgentBus Implementation Repair",
+    "description": "Repair the AgentBus implementation in src/dreamos/core/coordination/agent_bus.py. Address F821/F401 errors and ensure Singleton pattern, SimpleEventBus integration, and event dispatching work correctly.",
+    "priority": "High",
+    "status": "PENDING",
+    "task_type": "REFACTOR",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple AgentBus repair tasks. Source: Mailbox message TASK_AGENT8-*.json"
+  },
+  {
+    "task_id": "AGENT-001",
+    "name": "Agent Identity and Capabilities",
+    "description": "Investigate relationship between AgentIdentity.skills and CapabilityRegistry. Determine if they represent the same concept. If same: Refactor to use capability IDs or remove redundant field. If different: Document distinct purposes. Update related code (identity management, capability registration, task assignment).",
+    "priority": "Medium",
+    "status": "PENDING",
+    "task_type": "REFACTOR",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple agent identity investigation tasks. Critical for system architecture clarity."
+  },
+  {
+    "task_id": "AGENT-002",
+    "name": "Agent Event Handling Standardization",
+    "description": "Standardize event handling across all agents. Ensure consistent subscription to events, verify task reception (EventType.TASK), implement robust payload parsing, and standardize status reporting.",
+    "priority": "Medium",
+    "status": "PENDING",
+    "task_type": "REFACTOR",
+    "dependencies": ["CORE-002"],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple event handling standardization tasks. Depends on AgentBus repair."
+  },
+  {
+    "task_id": "AGENT-003",
+    "name": "Agent Documentation",
+    "description": "Comprehensive documentation update for all agents. Add clear module/class docstrings, document specific tasks/events handled, enhance logging for better traceability, and update integration documentation.",
+    "priority": "Medium",
+    "status": "PENDING",
+    "task_type": "DOCUMENTATION",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple documentation tasks. Critical for system maintainability."
+  },
+  {
+    "task_id": "TEST-001",
+    "name": "Agent Testing Framework",
+    "description": "Implement comprehensive testing for agents. Add/update unit tests for individual agent logic, create integration tests using mocked AgentBus, test event handling and task processing, and verify error handling and recovery.",
+    "priority": "Medium",
+    "status": "PENDING",
+    "task_type": "TESTING",
+    "dependencies": ["CORE-002"],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple testing-related tasks. Depends on AgentBus repair."
+  },
+  {
+    "task_id": "TEST-002",
+    "name": "Code Quality",
+    "description": "Run flake8 on src/dreamos and fix issues. Priority: undefined names (F821), unused imports (F401), and logic-related warnings. Defer long-line and comment warnings unless blocking.",
+    "priority": "Medium",
+    "status": "PENDING",
+    "task_type": "MAINTENANCE",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple code quality tasks. Critical for code maintainability."
+  },
+  {
+    "task_id": "TASK-001",
+    "name": "Task Review Protocol",
+    "description": "Process backlog of COMPLETED_PENDING_REVIEW tasks. Prioritize critical fixes, implement peer review protocol, assign reviews based on expertise, and validate completed work.",
+    "priority": "High",
+    "status": "PENDING",
+    "task_type": "PROCESS",
+    "dependencies": [],
+    "assigned_agent_id": null,
+    "created_timestamp": "2024-03-19T00:00:00Z",
+    "last_updated_timestamp": "2024-03-19T00:00:00Z",
+    "notes": "Consolidated from multiple task review tasks. Critical for task management workflow."
+  }
 ]

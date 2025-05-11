@@ -13453,5 +13453,1534 @@
         },
         "routes": [],
         "complexity": 0
+    },
+    "test_night_cycle.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_simulate_time_progression",
+            "_simulate_night_cycle_start",
+            "_simulate_midnight_events",
+            "_simulate_early_morning_events",
+            "_simulate_day_cycle_start",
+            "_simulate_random_event",
+            "_monitor_systems",
+            "start_simulation",
+            "_handle_shutdown",
+            "stop_simulation"
+        ],
+        "classes": {
+            "NightCycleSimulator": {
+                "methods": [
+                    "__init__",
+                    "_simulate_time_progression",
+                    "_simulate_night_cycle_start",
+                    "_simulate_midnight_events",
+                    "_simulate_early_morning_events",
+                    "_simulate_day_cycle_start",
+                    "_simulate_random_event",
+                    "_monitor_systems",
+                    "start_simulation",
+                    "_handle_shutdown",
+                    "stop_simulation"
+                ],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 22
+    },
+    "midnight_runner.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_load_state",
+            "_save_state",
+            "is_night_cycle",
+            "adjust_resources",
+            "monitor_health",
+            "_get_memory_usage",
+            "_get_cpu_usage",
+            "handle_recovery",
+            "_execute_recovery_protocol",
+            "_reset_components",
+            "_verify_system_state",
+            "emergency_shutdown",
+            "run_cycle",
+            "_process_events",
+            "_handle_event",
+            "_handle_task_completion",
+            "_handle_error_event",
+            "_handle_state_change",
+            "start",
+            "_handle_shutdown"
+        ],
+        "classes": {
+            "MidnightRunner": {
+                "methods": [
+                    "__init__",
+                    "_load_state",
+                    "_save_state",
+                    "is_night_cycle",
+                    "adjust_resources",
+                    "monitor_health",
+                    "_get_memory_usage",
+                    "_get_cpu_usage",
+                    "handle_recovery",
+                    "_execute_recovery_protocol",
+                    "_reset_components",
+                    "_verify_system_state",
+                    "emergency_shutdown",
+                    "run_cycle",
+                    "_process_events",
+                    "_handle_event",
+                    "_handle_task_completion",
+                    "_handle_error_event",
+                    "_handle_state_change",
+                    "start",
+                    "_handle_shutdown"
+                ],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 42
+    },
+    "bridge_expansion.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_load_state",
+            "_save_state",
+            "subscribe",
+            "unsubscribe",
+            "publish",
+            "sync_state",
+            "get_message_history",
+            "monitor_health",
+            "process_events",
+            "_handle_event",
+            "_handle_message_event",
+            "_handle_state_sync_event",
+            "_handle_error_event",
+            "start",
+            "_handle_shutdown"
+        ],
+        "classes": {
+            "BridgeExpansion": {
+                "methods": [
+                    "__init__",
+                    "_load_state",
+                    "_save_state",
+                    "subscribe",
+                    "unsubscribe",
+                    "publish",
+                    "sync_state",
+                    "get_message_history",
+                    "monitor_health",
+                    "process_events",
+                    "_handle_event",
+                    "_handle_message_event",
+                    "_handle_state_sync_event",
+                    "_handle_error_event",
+                    "start",
+                    "_handle_shutdown"
+                ],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 32
+    },
+    "archive\\orphans\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\agents\\cursor_dispatcher.py": {
+        "language": ".py",
+        "functions": [
+            "render_task_prompt",
+            "load_queue",
+            "save_queue",
+            "dispatch_tasks",
+            "run_loop"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 5
+    },
+    "archive\\orphans\\agents\\agent2_infra_surgeon.py": {
+        "language": ".py",
+        "functions": [
+            "__init__"
+        ],
+        "classes": {
+            "Agent2InfraSurgeon": {
+                "methods": [
+                    "__init__"
+                ],
+                "docstring": "Agent responsible for executing infrastructure-related tasks via GUI automation (Cursor).\nInteracts primarily by publishing CURSOR_INJECT_REQUEST events and listening for\nCURSOR_RETRIEVE_SUCCESS/FAILURE responses.",
+                "base_classes": [
+                    "BaseAgent"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\agents\\utils\\agent1_taskboard_workaround.py": {
+        "language": ".py",
+        "functions": [
+            "_acquire_lock_local",
+            "_read_board_local",
+            "_rewrite_memory_safely_local",
+            "update_global_task_local",
+            "__init__",
+            "__enter__",
+            "__exit__",
+            "acquire",
+            "release",
+            "is_locked"
+        ],
+        "classes": {
+            "_DummyLock": {
+                "methods": [
+                    "__init__",
+                    "__enter__",
+                    "__exit__",
+                    "acquire",
+                    "release",
+                    "is_locked"
+                ],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Prototype",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 16
+    },
+    "archive\\orphans\\apps\\dreamscape\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\agents\\validation\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\core\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\core\\monitoring\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\threads\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\automation\\execution\\cursor_fleet_launcher.py": {
+        "language": ".py",
+        "functions": [
+            "launch_cursor_instance",
+            "move_window",
+            "get_cursor_windows",
+            "assign_windows_to_monitors",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 5
+    },
+    "archive\\orphans\\channels\\azure_eventhub_channel.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\channels\\channel_loader.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\channels\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\cli\\command_supervisor.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "archive\\orphans\\cli\\disperse_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "verify_task_dispersal",
+            "generate_completion_receipt",
+            "disperse_tasks_to_inboxes"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "archive\\orphans\\cli\\episode_parser.py": {
+        "language": ".py",
+        "functions": [
+            "parse_episode_yaml",
+            "validate_episode_structure"
+        ],
+        "classes": {
+            "Task": {
+                "methods": [],
+                "docstring": "Represents a single task in the episode.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "Milestone": {
+                "methods": [],
+                "docstring": "Represents a milestone in the episode.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "EpisodeMetadata": {
+                "methods": [],
+                "docstring": "Represents the metadata of an episode.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\cli\\pyqt_dashboard.py": {
+        "language": ".py",
+        "functions": [
+            "get_agent_inbox_data",
+            "__init__",
+            "load_agent_inboxes",
+            "display_agent_inbox"
+        ],
+        "classes": {
+            "AgentInboxDashboard": {
+                "methods": [
+                    "__init__",
+                    "load_agent_inboxes",
+                    "display_agent_inbox"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "QMainWindow"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 7
+    },
+    "archive\\orphans\\cli\\sync_episode_status.py": {
+        "language": ".py",
+        "functions": [
+            "setup_logging",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\cli\\task_editor.py": {
+        "language": ".py",
+        "functions": [
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "archive\\orphans\\cli\\test_runner.py": {
+        "language": ".py",
+        "functions": [
+            "run_cli_tool",
+            "test_all_tools"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\cli\\__main__.py": {
+        "language": ".py",
+        "functions": [
+            "discover_cli_tools",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\coordination\\dispatchers\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\config.py": {
+        "language": ".py",
+        "functions": [
+            "find_project_root_marker",
+            "setup_logging",
+            "load_config",
+            "get_config",
+            "resolve_log_dir",
+            "__init__",
+            "_load_config",
+            "get_field_value",
+            "prepare_field_value",
+            "__call__",
+            "settings_customise_sources",
+            "load"
+        ],
+        "classes": {
+            "LoggingConfig": {
+                "methods": [
+                    "resolve_log_dir"
+                ],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "PathsConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "OpenAIConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "ChatGPTScraperConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "GuiAutomationConfig": {
+                "methods": [],
+                "docstring": "Configuration for GUI automation features.",
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "AgentActivationConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "SwarmConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "AzureBlobConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "IntegrationsConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "MonitoringConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "HealthCheckConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "OrchestratorConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "PyAutoGUIBridgeConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "YamlConfigSettingsSource": {
+                "methods": [
+                    "__init__",
+                    "_load_config",
+                    "get_field_value",
+                    "prepare_field_value",
+                    "__call__"
+                ],
+                "docstring": "A Pydantic settings source that loads configuration from a YAML file.\n\nThis class is used in conjunction with `AppConfig.settings_customise_sources`\nto enable loading application settings from a specified YAML configuration file.\nIt handles finding the YAML file (with priority to environment variables)\nand parsing its content.",
+                "base_classes": [
+                    "PydanticBaseSettingsSource"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "BasePolicyConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "CompactionPolicyConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BasePolicyConfig"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "SummarizationConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BasePolicyConfig"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "AgentMemoryPolicyOverride": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "MemoryMaintenanceConfig": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "AgentPointsSystemConfig": {
+                "methods": [],
+                "docstring": "Configuration for the agent points system.",
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "LogLevel": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "str",
+                    "Enum"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "OperatingMode": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "str",
+                    "Enum"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "AppConfig": {
+                "methods": [
+                    "settings_customise_sources",
+                    "load"
+                ],
+                "docstring": "Main application configuration loaded from environment variables and/or config file.",
+                "base_classes": [
+                    "BaseSettings"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "Config": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Prototype",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 20
+    },
+    "archive\\orphans\\core\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\agents\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\awareness\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\coordination\\utils.py": {
+        "language": ".py",
+        "functions": [
+            "with_error_handling",
+            "with_performance_tracking",
+            "decorator",
+            "decorator"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "archive\\orphans\\core\\coordination\\schemas\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\errors\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\db\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\narrative\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\tasks\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\tools\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\core\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\feedback\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\identity\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\integrations\\agent_services\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\integrations\\cursor\\coordination\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\integrations\\social\\core\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\memory\\layers\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\rendering\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\schemas\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\skills\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\social\\exceptions\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\social\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\social\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\tests\\test_cli.py": {
+        "language": ".py",
+        "functions": [
+            "test_cli_help",
+            "test_task_editor_command",
+            "test_command_supervisor_command",
+            "test_task_editor_args",
+            "test_command_supervisor_args"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 5
+    },
+    "archive\\orphans\\tests\\social\\tests\\social\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\tools\\edit_file.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\tools\\regenerate_init_files.py": {
+        "language": ".py",
+        "functions": [
+            "main",
+            "__init__",
+            "analyze_module",
+            "__init__",
+            "generate_init_file",
+            "regenerate_all"
+        ],
+        "classes": {
+            "ModuleAnalyzer": {
+                "methods": [
+                    "__init__",
+                    "analyze_module"
+                ],
+                "docstring": "Analyzes Python modules to determine their exports and dependencies.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "InitFileGenerator": {
+                "methods": [
+                    "__init__",
+                    "generate_init_file",
+                    "regenerate_all"
+                ],
+                "docstring": "Generates __init__.py files with proper exports and documentation.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 11
+    },
+    "archive\\orphans\\tools\\validate_imports.py": {
+        "language": ".py",
+        "functions": [
+            "main",
+            "__init__",
+            "find_python_files",
+            "get_module_name",
+            "analyze_imports",
+            "validate_imports",
+            "report_results"
+        ],
+        "classes": {
+            "ImportValidator": {
+                "methods": [
+                    "__init__",
+                    "find_python_files",
+                    "get_module_name",
+                    "analyze_imports",
+                    "validate_imports",
+                    "report_results"
+                ],
+                "docstring": "Validates imports across Python modules.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 13
+    },
+    "archive\\orphans\\tools\\analysis\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\main.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_init_tree_sitter_language",
+            "analyze_file",
+            "_analyze_python",
+            "_analyze_rust",
+            "_analyze_javascript",
+            "__init__",
+            "run",
+            "__init__",
+            "add_task",
+            "wait_for_completion",
+            "stop_workers",
+            "__init__",
+            "hash_file",
+            "should_exclude",
+            "process_file",
+            "__init__",
+            "load_existing_report",
+            "save_report",
+            "generate_init_files",
+            "load_existing_chatgpt_context",
+            "export_chatgpt_context",
+            "__init__",
+            "load_cache",
+            "save_cache",
+            "scan_project",
+            "_process_file",
+            "generate_init_files",
+            "export_chatgpt_context",
+            "categorize_agents",
+            "_maturity_level",
+            "_agent_type",
+            "_traverse",
+            "get_node_text",
+            "_traverse"
+        ],
+        "classes": {
+            "LanguageAnalyzer": {
+                "methods": [
+                    "__init__",
+                    "_init_tree_sitter_language",
+                    "analyze_file",
+                    "_analyze_python",
+                    "_analyze_rust",
+                    "_analyze_javascript"
+                ],
+                "docstring": "Handles language-specific code analysis for different programming languages.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "BotWorker": {
+                "methods": [
+                    "__init__",
+                    "run"
+                ],
+                "docstring": "A background worker that pulls file tasks from a queue,\nprocesses them, and appends results to results_list.",
+                "base_classes": [
+                    "threading.Thread"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "ActionAgent"
+            },
+            "MultibotManager": {
+                "methods": [
+                    "__init__",
+                    "add_task",
+                    "wait_for_completion",
+                    "stop_workers"
+                ],
+                "docstring": "Manages a pool of BotWorker threads.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "FileProcessor": {
+                "methods": [
+                    "__init__",
+                    "hash_file",
+                    "should_exclude",
+                    "process_file"
+                ],
+                "docstring": "Handles file hashing, ignoring, caching checks, etc.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "ReportGenerator": {
+                "methods": [
+                    "__init__",
+                    "load_existing_report",
+                    "save_report",
+                    "generate_init_files",
+                    "load_existing_chatgpt_context",
+                    "export_chatgpt_context"
+                ],
+                "docstring": "Handles merging new analysis into existing project_analysis.json and chatgpt context.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "ProjectScanner": {
+                "methods": [
+                    "__init__",
+                    "load_cache",
+                    "save_cache",
+                    "scan_project",
+                    "_process_file",
+                    "generate_init_files",
+                    "export_chatgpt_context",
+                    "categorize_agents",
+                    "_maturity_level",
+                    "_agent_type"
+                ],
+                "docstring": "A universal project scanner that:\n  - Identifies Python, Rust, JS, TS files.\n  - Extracts functions, classes, routes, complexity.\n  - Caches file hashes to skip unchanged files.\n  - Detects moved files by matching file hashes.\n  - Merges new analysis into existing project_analysis.json (preserving old entries).\n  - Exports a merged ChatGPT context if requested (preserving old context data).\n  - Processes files asynchronously with BotWorker threads.\n  - Auto-generates __init__.py files for Python packages.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 67
+    },
+    "archive\\orphans\\tools\\calibration\\calibrate_agent_gui.py": {
+        "language": ".py",
+        "functions": [
+            "load_existing_coords",
+            "save_coords",
+            "calibrate_element",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 4
+    },
+    "archive\\orphans\\tools\\cursor_bridge\\cursor_bridge.py": {
+        "language": ".py",
+        "functions": [
+            "publish_bridge_status",
+            "_get_bridge_config",
+            "_ensure_config",
+            "handle_gpt_payload",
+            "find_and_focus_cursor_window",
+            "inject_prompt_into_cursor",
+            "configure_response_area",
+            "capture_response_area",
+            "extract_text_from_image",
+            "monitor_and_extract_response",
+            "summarize_cursor_output",
+            "interact_with_cursor",
+            "parse_bridge_log",
+            "push_telemetry",
+            "simulate_gpt_call",
+            "run_demo_scenario",
+            "validate_full_cycle",
+            "relay_prompt_via_web_and_gui",
+            "log_telemetry",
+            "__init__",
+            "resolve"
+        ],
+        "classes": {
+            "BusMessage": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [
+                    "BaseModel"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "CursorBridgeError": {
+                "methods": [],
+                "docstring": "Custom exception for Cursor Bridge specific errors.",
+                "base_classes": [
+                    "Exception"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "CursorInjectError": {
+                "methods": [],
+                "docstring": "Indicates an error during the injection phase (focusing, pasting, etc.).",
+                "base_classes": [
+                    "CursorBridgeError"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "CursorExtractError": {
+                "methods": [],
+                "docstring": "Indicates an error during the extraction phase (capture, OCR, stabilization).",
+                "base_classes": [
+                    "CursorBridgeError"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "ConfigWrapper": {
+                "methods": [
+                    "__init__",
+                    "resolve"
+                ],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Prototype",
+                "agent_type": "Utility"
+            },
+            "MessageTypePlaceholder": {
+                "methods": [],
+                "docstring": null,
+                "base_classes": [],
+                "maturity": "Prototype",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 23
+    },
+    "archive\\orphans\\tools\\maintenance\\find_duplicate_tasks.py": {
+        "language": ".py",
+        "functions": [
+            "is_excluded",
+            "parse_json_file",
+            "parse_md_file",
+            "find_task_files",
+            "normalize",
+            "find_duplicate_tasks",
+            "backup_file",
+            "get_task_metadata",
+            "determine_canonical_task",
+            "generate_markdown_report",
+            "auto_fix_duplicates",
+            "fix_json_duplicate",
+            "fix_md_duplicate",
+            "repair_json_content",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 15
+    },
+    "archive\\orphans\\tools\\maintenance\\refactor_task_ids.py": {
+        "language": ".py",
+        "functions": [
+            "find_files_to_scan",
+            "update_task_references",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "archive\\orphans\\tools\\validation\\check_imports.py": {
+        "language": ".py",
+        "functions": [
+            "main",
+            "__init__",
+            "_parse_file",
+            "_check_import_resolution",
+            "_detect_circular_imports",
+            "validate",
+            "dfs"
+        ],
+        "classes": {
+            "ImportValidator": {
+                "methods": [
+                    "__init__",
+                    "_parse_file",
+                    "_check_import_resolution",
+                    "_detect_circular_imports",
+                    "validate"
+                ],
+                "docstring": "Validates Python imports in the codebase.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 12
+    },
+    "archive\\orphans\\tools\\validation\\validate_gui_coords.py": {
+        "language": ".py",
+        "functions": [
+            "load_coords",
+            "find_and_activate_window",
+            "inject_test_prompt",
+            "retrieve_response",
+            "save_results",
+            "_validate_coord_structure",
+            "_check_coord_proximity",
+            "_check_accessibility",
+            "_check_for_duplicates",
+            "validate_gui_coordinates",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 11
+    },
+    "archive\\orphans\\tools\\_core\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\utils\\episode_status_sync.py": {
+        "language": ".py",
+        "functions": [
+            "__init__",
+            "_get_episode_flag_files",
+            "_check_runtime_logs",
+            "_get_task_board_status",
+            "_determine_episode_status",
+            "sync_episode_status",
+            "sync_all_episodes"
+        ],
+        "classes": {
+            "EpisodeStatus": {
+                "methods": [],
+                "docstring": "Episode completion status indicators.",
+                "base_classes": [
+                    "Enum"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "EpisodeStatusSync": {
+                "methods": [
+                    "__init__",
+                    "_get_episode_flag_files",
+                    "_check_runtime_logs",
+                    "_get_task_board_status",
+                    "_determine_episode_status",
+                    "sync_episode_status",
+                    "sync_all_episodes"
+                ],
+                "docstring": "Synchronizes episode statuses by analyzing multiple sources.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 14
+    },
+    "archive\\orphans\\utils\\file_locking.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {
+            "LockAcquisitionError": {
+                "methods": [],
+                "docstring": "Raised when a file lock cannot be acquired within the specified timeout.\n\nThis typically occurs if another process or thread holds the lock for too\nlong. The original `filelock.Timeout` exception is chained for context.",
+                "base_classes": [
+                    "DreamOSError"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "LockDirectoryError": {
+                "methods": [],
+                "docstring": "Raised when the directory for the lock file cannot be created or accessed.\n\nThis usually indicates a filesystem permission issue or an invalid base\npath. The original `OSError` is chained for context.",
+                "base_classes": [
+                    "DreamOSError"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 0
+    },
+    "archive\\orphans\\utils\\onboarding_utils.py": {
+        "language": ".py",
+        "functions": [
+            "write_yaml_sync",
+            "read_yaml_sync"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "archive\\orphans\\utils\\safe_file_writer.py": {
+        "language": ".py",
+        "functions": [
+            "safe_write_file"
+        ],
+        "classes": {
+            "SafeWriteError": {
+                "methods": [],
+                "docstring": "Custom exception raised for errors during the safe file writing process.\n\nThis includes errors related to:\n- Invalid input parameters (path, content type).\n- Failure to acquire the file lock within the timeout period.\n- IOErrors during temporary file writing or final file replacement.\n- Unexpected exceptions during the write/rename process.",
+                "base_classes": [
+                    "IOError"
+                ],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 1
+    },
+    "archive\\orphans\\utils\\summarizer.py": {
+        "language": ".py",
+        "functions": [
+            "load_episode_yaml",
+            "generate_markdown_briefing",
+            "generate_lore_json",
+            "generate_devlog",
+            "write_episode_briefing",
+            "write_lore_json",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 7
+    },
+    "archive\\orphans\\utils\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "episodes\\episode_index_builder.py": {
+        "language": ".py",
+        "functions": [
+            "main",
+            "__init__",
+            "_extract_artifacts",
+            "_determine_status",
+            "_parse_episode_file",
+            "build_index"
+        ],
+        "classes": {
+            "EpisodeIndexEntry": {
+                "methods": [],
+                "docstring": "Represents a single episode entry in the index.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            },
+            "EpisodeIndexBuilder": {
+                "methods": [
+                    "__init__",
+                    "_extract_artifacts",
+                    "_determine_status",
+                    "_parse_episode_file",
+                    "build_index"
+                ],
+                "docstring": "Builds and maintains the global episode index.",
+                "base_classes": [],
+                "maturity": "Core Asset",
+                "agent_type": "Utility"
+            }
+        },
+        "routes": [],
+        "complexity": 11
+    },
+    "scripts\\scan_for_rogue_files.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "scripts\\maintenance\\bloat_watcher.py": {
+        "language": ".py",
+        "functions": [
+            "get_size",
+            "format_size",
+            "should_exclude",
+            "scan_directory",
+            "generate_report",
+            "main"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 6
+    },
+    "scripts\\maintenance\\move_bloat.py": {
+        "language": ".py",
+        "functions": [
+            "get_dir_size",
+            "find_top_bloat_dir",
+            "move_bloat_dir"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 3
+    },
+    "scripts\\maintenance\\move_orphans.py": {
+        "language": ".py",
+        "functions": [
+            "move_orphans"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "scripts\\maintenance\\scan_for_orphans.py": {
+        "language": ".py",
+        "functions": [
+            "find_orphans"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "scripts\\maintenance\\zero_value_sweep.py": {
+        "language": ".py",
+        "functions": [
+            "should_delete",
+            "sweep"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 2
+    },
+    "src\\dreamos\\utils\\context_injector.py": {
+        "language": ".py",
+        "functions": [
+            "inject_context"
+        ],
+        "classes": {},
+        "routes": [],
+        "complexity": 1
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tests\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\binding_test.js": {
+        "language": ".js",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\index.d.ts": {
+        "language": ".ts",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\binding_test.js": {
+        "language": ".js",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\index.d.ts": {
+        "language": ".ts",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tests\\__init__.py": {
+        "language": ".py",
+        "functions": [],
+        "classes": {},
+        "routes": [],
+        "complexity": 0
     }
 }

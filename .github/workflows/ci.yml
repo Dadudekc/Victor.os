@@ -25,3 +25,89 @@ jobs:
       - name: Run pytest
         run: |
           pytest --maxfail=1 --disable-warnings -q
+
+  check-duplicate-tasks:
+    name: Check for Duplicate Tasks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run duplicate task check
+        run: |
+          python src/dreamos/tools/maintenance/find_duplicate_tasks.py --report
+        continue-on-error: false
+
+      - name: Upload duplicate tasks report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: duplicate-tasks-report
+          path: runtime/reports/duplicate_tasks_report.md
+
+  check-bloat:
+    name: Check Repository Bloat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run bloat watcher
+        run: |
+          python scripts/maintenance/bloat_watcher.py
+        continue-on-error: true
+
+      - name: Upload bloat report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: bloat-report
+          path: runtime/reports/bloat_watcher_report.md
+
+  scan-project:
+    name: Scan Project Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run project scanner
+        run: |
+          python scripts/maintenance/project_scanner.py
+        continue-on-error: true
+
+      - name: Upload project scan report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: project-scan-report
+          path: |
+            runtime/reports/project_scan_report.md
+            runtime/reports/project_scan_data.json

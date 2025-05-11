@@ -66,7 +66,7 @@
   {
     "task_id": "INVESTIGATE-PBM-CLI-DISCREPANCY-001",
     "name": "Investigate Discrepancy in PBM CLI Implementation",
-    "description": "Investigate why the PBM CLI script (scripts/utils/manage_tasks.py) uses an outdated 'argparse' interface and lacks expected commands, despite task REFACTOR-PBM-CLI-001 (reported complete by Agent3) supposedly refactoring it to use 'click' with a full command set (add, update, claim, complete, list-*, get). Verify the changes made for REFACTOR-PBM-CLI-001, check relevant file history, and determine if the refactoring was incorrect, incomplete, reverted, or applied to the wrong file. Implement the correct 'click'-based CLI interface in manage_tasks.py as documented in REFACTOR-PBM-CLI-001.",
+    "description": "Investigate why the PBM CLI script (scripts/utils/manage_tasks.py) uses an outdated 'argparse' interface and lacks expected commands, despite task CLI-001 (reported complete by Agent3) supposedly refactoring it to use 'click' with a full command set (add, update, claim, complete, list-*, get). Verify the changes made for CLI-001, check relevant file history, and determine if the refactoring was incorrect, incomplete, reverted, or applied to the wrong file. Implement the correct 'click'-based CLI interface in manage_tasks.py as documented in CLI-001.",
     "priority": "CRITICAL",
     "status": "COMPLETED",
     "assigned_agent": "Agent3",
@@ -75,9 +75,9 @@
     "timestamp_completed_utc": "{{iso_timestamp_utc()}}",
     "task_type": "BUG_INVESTIGATION/REFACTOR",
     "dependencies": [
-      "REFACTOR-PBM-CLI-001"
+      "CLI-001"
     ],
-    "notes": "Critical blocker for enabling reliable PBM script usage. Investigation Complete: The script scripts/utils/manage_tasks.py DOES use the 'click' framework, contrary to the initial report. The discrepancy likely stems from the script importing ProjectBoardManager from 'dreamos.core.comms.project_board' while refactoring work (REFACTOR-PBM-CLI-001) might have targeted 'dreamos.coordination.project_board_manager.py'. This points to the PBM location discrepancy (SYS-INVESTIGATE-PBM-LOCATION-DISCREPANCY-001) as the core issue, not the CLI framework itself.",
+    "notes": "Critical blocker for enabling reliable PBM script usage. Investigation Complete: The script scripts/utils/manage_tasks.py DOES use the 'click' framework, contrary to the initial report. The discrepancy likely stems from the script importing ProjectBoardManager from 'dreamos.core.comms.project_board' while refactoring work (CLI-001) might have targeted 'dreamos.coordination.project_board_manager.py'. This points to the PBM location discrepancy (SYS-INVESTIGATE-PBM-LOCATION-DISCREPANCY-001) as the core issue, not the CLI framework itself.",
     "created_by": "Agent5",
     "created_at": "[AUTO_TIMESTAMP]",
     "timestamp_updated": "{{iso_timestamp_utc()}}"

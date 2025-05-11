@@ -157,6 +157,68 @@ This is the heart of the Dream.OS framework:
 *   **`cli/`**: Command-line interface entry points and logic.
 *   **`automation/`**: Helper modules for GUI automation tasks (e.g., wrappers around `pyautogui`).
 
+## 9. Maintenance & Cleanup Protocols
+
+### 9.1. Project Cleanup Protocol
+
+The project includes an automated cleanup system to maintain codebase health and organization. This protocol helps identify and handle:
+- Orphaned files
+- Duplicate functionality
+- Low-utility code
+- Complex files that need refactoring
+
+#### Running the Cleanup Protocol
+
+1. **Initial Analysis**
+   ```bash
+   python scripts/maintenance/project_cleanup_protocol.py
+   ```
+   This will:
+   - Analyze project files using `project_analysis.json` and `chatgpt_project_context.json`
+   - Calculate utility scores for files
+   - Identify duplicate functions
+   - Find orphaned files
+   - Archive files that don't meet criteria
+
+2. **Review Process**
+   - Check `cleanup_log.json` for actions taken
+   - Review archived files in `archive/orphans/`
+   - Verify no critical functionality was lost
+   - Restore any incorrectly archived files
+
+3. **Cleanup Criteria**
+   - **File Utility Score** (minimum 0.5)
+     - Based on function count, class count, route count, docstring presence, and complexity
+   - **Duplicate Functions** (maximum 3 occurrences)
+     - Keeps the most complex implementation
+     - Archives others
+   - **Orphaned Files**
+     - Files not imported or referenced
+     - Moved to `archive/orphans/`
+   - **Complexity Threshold** (maximum 30)
+     - Files exceeding this are flagged for refactoring
+
+4. **Safety Measures**
+   - Files are archived rather than deleted
+   - All actions are logged in `cleanup_log.json`
+   - Archive directory serves as a safety net
+   - Files can be restored if needed
+
+#### When to Run Cleanup
+
+Run the cleanup protocol:
+- After major feature additions
+- Before releases
+- When project complexity increases
+- When requested by the team
+- As part of regular maintenance
+
+#### Documentation
+
+- Protocol implementation: `scripts/maintenance/project_cleanup_protocol.py`
+- Protocol guide: `scripts/maintenance/cleanup_agent_prompt.md`
+- Action log: `cleanup_log.json`
+
 # Onboarding & Training Protocols
 
 This section provides resources and guidelines for new contributors (human or agent) joining the project. It aims to provide a smooth ramp-up process, covering setup, core concepts, and initial tasks.
@@ -166,6 +228,9 @@ This section provides resources and guidelines for new contributors (human or ag
 - [ ] ✅ Add or update setup instructions (dev environment, dependencies, credentials).
 - [ ] ✅ Link to essential introductory documents (e.g., core architecture, key patterns).
 - [ ] ✅ Suggest initial 'good first issues' or training exercises.
+- [ ] ✅ Review and understand the cleanup protocol (`scripts/maintenance/project_cleanup_protocol.py`).
+- [ ] ✅ Familiarize with cleanup criteria and safety measures.
+- [ ] ✅ Know when to run cleanup (after features, before releases, etc.).
 
 ## 📎 Key Onboarding Resources
 
@@ -175,4 +240,5 @@ Make sure to review these additional guides located within the `ai_docs/onboardi
 - **`developer_guide.md`**: Essential for agents involved in developing or modifying Dream.OS components or other agents.
 - **`user_onboarding.md`**: Provides a guide for users on setting up, configuring, and running Dream.OS.
 - **`agent_operational_philosophy.md`**: Outlines core tenets and guiding principles for autonomous agent operation.
-- *(Example: [First Agent Task Guide](./onboarding/first_agent_task.md))* 
+- **`branch_management.md`**: Details the branch management strategy for agents, including branch naming conventions, workflows, and best practices.
+- *(Example: [First Agent Task Guide](./onboarding/first_agent_task.md))*

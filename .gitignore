@@ -98,3 +98,9 @@ r.py
 # Test output logs
 test_stdout.log
 test_stderr.log
+
+# Vendor directory
+/vendor/
+/vendor/*
+!vendor/reprism/
+!vendor/reprism/languages/

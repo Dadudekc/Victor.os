@@ -1,0 +1,59 @@
+episode: "02B"
+codename: "ARCHITECTURE REFINEMENT"
+overall_refined_objective: "Streamline and optimize the codebase architecture through systematic cleanup, deduplication, and structural refinement. This initiative focuses on eliminating redundancy, improving code organization, and establishing clear patterns for future development."
+theme: "Clean, maintainable, and efficient codebase structure."
+north_star: "A lean, well-organized codebase with minimal duplication and clear architectural boundaries."
+
+objectives:
+  - "Identify and remove redundant scripts and utilities"
+  - "Realign directory structure for better organization"
+  - "Document high-impact architectural decisions"
+  - "Establish clear patterns for future development"
+
+milestones:
+  - id: "CLEANUP-001"
+    description: "Audit and remove duplicate utility functions across codebase"
+  - id: "STRUCTURE-002"
+    description: "Realign directory structure for better module organization"
+  - id: "DOCS-003"
+    description: "Document architectural decisions and patterns"
+  - id: "VALIDATE-004"
+    description: "Verify all systems operational post-cleanup"
+  - id: "PATTERNS-005"
+    description: "Establish and document coding patterns for future development"
+
+task_board:
+  CLEANUP-001:
+    owner: "THEA"
+    points: 400
+    status: "Active"
+    desc: "Identify and consolidate duplicate utilities, focusing on common functions"
+  STRUCTURE-002:
+    owner: "THEA"
+    points: 500
+    status: "Active"
+    desc: "Reorganize directory structure for better module separation"
+  DOCS-003:
+    owner: "THEA"
+    points: 300
+    status: "Active"
+    desc: "Document architectural decisions and their rationale"
+  VALIDATE-004:
+    owner: "THEA"
+    points: 400
+    status: "Active"
+    desc: "Verify system functionality after cleanup"
+  PATTERNS-005:
+    owner: "THEA"
+    points: 300
+    status: "Active"
+    desc: "Define and document coding patterns"
+
+definition_of_done:
+  - "All duplicate utilities consolidated into appropriate modules"
+  - "Directory structure optimized and documented"
+  - "Architectural decisions documented with rationale"
+  - "All systems verified operational"
+  - "Coding patterns established and documented"
+
+next_episode_trigger: "Complete architecture cleanup and document all changes in devlog.md"

@@ -18,7 +18,7 @@
   {
     "task_id": "CAPTAIN8-PROCESS-REVIEW-QUEUE-001",
     "name": "[COORDINATION-HIGH] Process COMPLETED_PENDING_REVIEW Queue",
-    "description": "Process the backlog of tasks in COMPLETED_PENDING_REVIEW status according to the governing protocol. Prioritize review of critical fixes (e.g., DIAGNOSE-WORKING-TASKS-LOCK-001, CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001) to unblock dependent tasks and validate completed work. Assign sub-reviews based on expertise where possible using the Peer Review protocol once formalized.",
+    "description": "Process the backlog of tasks in COMPLETED_PENDING_REVIEW status according to the governing protocol. Prioritize review of critical fixes (e.g., CORE-001, CORE-002) to unblock dependent tasks and validate completed work. Assign sub-reviews based on expertise where possible using the Peer Review protocol once formalized.",
     "priority": "HIGH",
     "status": "COMPLETED",
     "assigned_agent": "Agent-8 (Captain)",
@@ -35,7 +35,7 @@
   {
     "task_id": "INVESTIGATE-PBM-CLI-DISCREPANCY-001",
     "name": "Investigate Discrepancy in PBM CLI Implementation",
-    "description": "Investigate why the PBM CLI script (scripts/utils/manage_tasks.py) uses an outdated 'argparse' interface and lacks expected commands, despite task REFACTOR-PBM-CLI-001 (reported complete by Agent3) supposedly refactoring it to use 'click' with a full command set (add, update, claim, complete, list-*, get). Verify the changes made for REFACTOR-PBM-CLI-001, check relevant file history, and determine if the refactoring was incorrect, incomplete, reverted, or applied to the wrong file. Implement the correct 'click'-based CLI interface in manage_tasks.py as documented in REFACTOR-PBM-CLI-001.",
+    "description": "Investigate why the PBM CLI script (scripts/utils/manage_tasks.py) uses an outdated 'argparse' interface and lacks expected commands, despite task CLI-001 (reported complete by Agent3) supposedly refactoring it to use 'click' with a full command set (add, update, claim, complete, list-*, get). Verify the changes made for CLI-001, check relevant file history, and determine if the refactoring was incorrect, incomplete, reverted, or applied to the wrong file. Implement the correct 'click'-based CLI interface in manage_tasks.py as documented in CLI-001.",
     "priority": "CRITICAL",
     "status": "COMPLETED",
     "assigned_agent": "Agent-8",
@@ -44,7 +44,7 @@
     "timestamp_completed_utc": "[NOW_UTC_ISO]",
     "task_type": "BUG_INVESTIGATION/REFACTOR",
     "dependencies": [
-      "REFACTOR-PBM-CLI-001"
+      "CLI-001"
     ],
     "notes": "Investigation complete. Discrepancy resolved: The PBM CLI script was correctly refactored to use 'click' but was moved to src/dreamos/cli/manage_tasks.py per directive. The script itself is implemented correctly. The root cause of agents' inability to EXECUTE the script (e.g., 'poetry not found' errors) is tracked separately in SYS-INVESTIGATE-PBM-SCRIPT-ENV-001.",
     "completion_summary": "Resolved discrepancy: PBM CLI uses 'click' and is located at src/dreamos/cli/manage_tasks.py. No code changes needed for this task.",
@@ -177,7 +177,7 @@
     "result_summary": "Implemented async, concurrency-safe mailbox read/write/list functions in agent_utils.py."
   },
   {
-    "task_id": "REFACTOR-PBM-CLI-001",
+    "task_id": "CLI-001",
     "name": "Refactor ProjectBoardManager CLI",
     "description": "Refactor the ProjectBoardManager CLI script (scripts/utils/manage_tasks.py) to use a proper framework like click and implement standard commands (add, update, claim, complete, list-*, get).",
     "status": "CLAIMED",
@@ -484,7 +484,7 @@
     "created_at": "[AUTO_TIMESTAMP]"
   },
   {
-    "id": "DIAGNOSE-WORKING-TASKS-LOCK-001",
+    "id": "CORE-001",
     "name": "Diagnose and Resolve working_tasks.json Update Failure",
     "description": "CRITICAL: `edit_file` and `reapply` tools consistently fail to modify `runtime/agent_comms/project_boards/working_tasks.json`. Investigate potential causes: file corruption, persistent file locks (check for `.lock` files or processes holding handles if possible), permissions issues, or tool malfunction specifically with this file. Implement a fix to restore reliable updates to the working task board. This is blocking swarm task management.",
     "priority": "CRITICAL",
@@ -536,7 +536,7 @@
   {
     "task_id": "CAPTAIN8-PROCESS-REVIEW-QUEUE-001",
     "name": "[COORDINATION-HIGH] Process COMPLETED_PENDING_REVIEW Queue",
-    "description": "Process the backlog of tasks in COMPLETED_PENDING_REVIEW status according to the governing protocol. Prioritize review of critical fixes (e.g., DIAGNOSE-WORKING-TASKS-LOCK-001, CAPTAIN8-PRIORITY1-PBM-COMPLETE-API-001) to unblock dependent tasks and validate completed work. Assign sub-reviews based on expertise where possible using the Peer Review protocol once formalized.",
+    "description": "Process the backlog of tasks in COMPLETED_PENDING_REVIEW status according to the governing protocol. Prioritize review of critical fixes (e.g., CORE-001, CORE-002) to unblock dependent tasks and validate completed work. Assign sub-reviews based on expertise where possible using the Peer Review protocol once formalized.",
     "priority": "HIGH",
     "status": "WORKING",
     "assigned_agent": "Agent-8 (Captain)",
@@ -727,7 +727,7 @@
     "dependencies": [
       "INVESTIGATE-PBM-SCRIPT-FAILURES-001"
     ],
-    "notes": "Claimed by Agent5. COMPLETED: Initial validation attempt successful. manage_tasks.py *does* use the 'click' interface correctly as implemented in REFACTOR-PBM-CLI-001. The primary blocker remains the script execution environment (ref FIX-PBM-SCRIPT-ENVIRONMENT-001).",
+    "notes": "Claimed by Agent5. COMPLETED: Initial validation attempt successful. manage_tasks.py *does* use the 'click' interface correctly as implemented in CLI-001. The primary blocker remains the script execution environment (ref FIX-PBM-SCRIPT-ENVIRONMENT-001).",
     "created_by": "Agent5",
     "created_at": "[AUTO_TIMESTAMP]",
     "timestamp_claimed_utc": "[NOW_UTC_ISO]",

@@ -1,5 +1,7 @@
-episode: "02"
-codename: "INFINITE LOOPS"
+episode_id: "02"
+title: "INFINITE LOOPS"
+status: "Completed"
+completion_timestamp: "2025-05-11T09:20:41Z"
 overall_refined_objective: "Implement a continuous operational loop for all eight cursor agents, ensuring mission adherence (drift-proofing) through automated monitoring and AI-driven escalation. This system will utilize agent-specific inboxes for dynamic tasking and state management, complemented by persistent lifecycle logs, to foster adaptive responsiveness and robust self-correction."
 theme: "Full-circle agent task automation without human intervention."
 north_star: "Agents self-resume, complete tasks, refresh task board, and reinitiate—all on their own."
@@ -11,20 +13,28 @@ objectives:
 
 milestones:
   - id: "LOOP-WATCHDOG-001"
+    title: "Inbox Watchdog"
     description: "`inbox_watcher.py`: monitor timestamps every 60s, trigger auto-resume on stale state."
   - id: "ESCALATION-003"
+    title: "Escalation Handling"
     description: "On 5th resume, send context to ChatGPT and await tailored reply."
   - id: "TASK-CHECK-004"
+    title: "Task Queue Check"
     description: "`loop_orchestrator.py`: detect empty task queue and call `refresh_task_queue()`."
   - id: "REFRESH-FLOW-005"
+    title: "Refresh Flow"
     description: "Inject new tasks into each agent's inbox, rotate prompts."
   - id: "FULL-LOOP-006"
+    title: "Full Loop Cycle"
     description: "Run full cycle: Task > Resume > Escalate > Complete > Refresh > Inject > Resume."
   - id: "LOG-LOOP-007"
+    title: "Lifecycle Logging"
     description: "Write lifecycle entries to `agent_<n>.md` and update `devlog.md`."
   - id: "YAML-PARSER-008"
+    title: "YAML Parser"
     description: "(Agent-7) Create `episode_parser.py` to read episode YAML and extract agent-specific task segments."
   - id: "PROMPT-DISPERSER-009"
+    title: "Prompt Disperser"
     description: "(Agent-8) Build `disperse_tasks.py` that writes each parsed task to `agent_<n>/inbox.json`."
 
 task_board:
@@ -61,18 +71,18 @@ task_board:
     owner: "Agent-7"
     points: 500
     desc: "Parse episode YAML and extract task list per agent."
-    status: "Active"
+    status: "Done"
   PROMPT-DISPERSER-009:
     owner: "Agent-8"
     points: 500
     desc: "Write parsed tasks into correct inbox files using structured prompt format."
     deps:
       - "YAML-PARSER-008"
-    status: "Active"
+    status: "Done"
 
 definition_of_done:
   - "All 8 agents active and contributing to loop operations or system enhancements."
   - "Episode YAML can be parsed and distributed to agent inboxes automatically."
   - "Logs and devlogs show end-to-end execution and refresh cycles."
 
-next_episode_trigger: "Run one full loop from YAML > parsed tasks > injected inboxes > executed by agents." 
+next_episode_trigger: "Run one full loop from YAML > parsed tasks > injected inboxes > executed by agents."
