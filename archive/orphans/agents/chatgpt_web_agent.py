@@ -83,11 +83,11 @@ class ChatGPTWebAgent:
         )  # Use getattr for safe access
         paths_settings = getattr(config, "paths", {})
 
-        # Inbox Directory (Example: config.paths.agent_inboxes)
+        # Inbox Directory (Example: config.paths.agent_mailboxes)
         inbox_root_config = getattr(
             paths_settings,
-            "agent_inboxes",
-            Path("runtime/agent_inboxes"),
+            "agent_mailboxes",
+            Path("runtime/agent_comms/agent_mailboxes"),
         )
         self.inbox_dir = Path(inbox_root_config) / agent_id  # Ensure Path object
         self.inbox_file = self.inbox_dir / "pending_responses.json"

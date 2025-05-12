@@ -235,3 +235,36 @@ three phases:
 - Run full test suite, bump test coverage, and document restored functionality.
 
 We'll document progress here and in `docs/restoration.md` as needed.
+
+## 🧰 Environment Integrity
+
+Dream.OS includes comprehensive environment validation to ensure reliable operation:
+
+### Automated Checks
+
+- ✅ **Agent Boot Validation**: Every agent run verifies the runtime environment
+- ✅ **Commit Protection**: Pre-commit hooks prevent commits with broken environments
+- ✅ **Live Status**: [Environment Health Report](docs/system/ENVIRONMENT_STATUS.md)
+
+### Manual Checks
+
+Run environment validation manually:
+```bash
+# Quick check
+python tools/env/check_env.py
+
+# Generate health report
+python tools/env/check_env.py --report-md > docs/system/ENVIRONMENT_STATUS.md
+
+# Using Makefile
+make env-check    # Check environment
+make env-report   # Update health report
+```
+
+### Environment Requirements
+
+- Python 3.11+
+- Git
+- NVIDIA GPU (optional, for GPU acceleration)
+- 10GB+ free disk space
+- See [requirements.dev.txt](requirements.dev.txt) for Python dependencies

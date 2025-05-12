@@ -1,4 +1,6 @@
 import sys
+import json
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -98,34 +100,21 @@ class AgentInboxDashboard(QMainWindow):
         self.load_agent_inboxes()
 
     def load_agent_inboxes(self):
-        self.statusBar().showMessage("Loading agent inboxes...")
-        self.agent_list.clear()
-        self.inbox_display.clear()
-        self.inbox_label.setText("Select an Agent to view Inbox")
-
-        # In a real app, replace get_agent_inbox_data() with actual data fetching
-        try:
-            self.agent_data = get_agent_inbox_data()
-            if not self.agent_data:
-                self.statusBar().showMessage("No agent data found.")
-                self.inbox_label.setText("No agents available.")
-                return
-
-            for agent_id in self.agent_data.keys():
-                item = QListWidgetItem(agent_id)
-                self.agent_list.addItem(item)
-
-            if self.agent_list.count() > 0:
-                self.agent_list.setCurrentRow(0)  # Select the first agent by default
-                self.display_agent_inbox(self.agent_list.item(0))
-
-            self.statusBar().showMessage(
-                f"Loaded inboxes for {len(self.agent_data)} agents."
-            )
-        except Exception as e:
-            self.statusBar().showMessage(f"Error loading inboxes: {e}")
-            self.inbox_label.setText("Error loading agent data.")
-            print(f"Error loading agent data: {e}")  # For console debugging
+        """Load agent mailboxes from the new location"""
+        mailbox_base = Path("runtime/agent_comms/agent_mailboxes")
+        if not mailbox_base.exists():
+            return
+        
+        for agent_dir in mailbox_base.iterdir():
+            if agent_dir.is_dir():
+                inbox_file = agent_dir / "inbox.json"
+                if inbox_file.exists():
+                    try:
+                        with open(inbox_file, 'r') as f:
+                            messages = json.load(f)
+                            self.update_agent_messages(agent_dir.name, messages)
+                    except Exception as e:
+                        print(f"Error loading inbox for {agent_dir.name}: {e}")
 
     def display_agent_inbox(self, item):
         agent_id = item.text()

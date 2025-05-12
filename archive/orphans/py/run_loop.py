@@ -8,6 +8,7 @@ from dreamos.agents.chatgpt_web_agent import ChatGPTWebAgent
 from dreamos.agents.cursor_worker import run as cursor_run
 from dreamos.agents.supervisor_agent import SupervisorAgent
 from dreamos.core.config import load_app_config
+from docs.development.guides.onboarding.utils.enforcement import check_agent_compliance, ComplianceError
 
 # Enforce using local blob channel for inter-agent communication
 # os.environ["USE_LOCAL_BLOB"] = "1"
@@ -89,22 +90,37 @@ def main():
             chatgpt_agent.run_cycle()
 
     # Launch Cursor workers (skip in simulation mode)
+    # EDIT START: Enforce agent compliance at boot
+    STRICT_COMPLIANCE = True  # Set to True to block noncompliant agents
+    ONBOARDING_BASE_PATH = "docs/development/guides/onboarding"
+    
     if not args.simulate:
         for i in range(1, args.workers + 1):
             worker_id = f"cursor_{i:03}"
-            # TODO: Does cursor_run need AppConfig or assets_dir? Yes, it needs config.
-            # REMOVED TODO
-            # Pass assets_dir if needed by cursor_run # No, pass config
-            # EDIT START: Pass config to cursor_run
+            agent_id = worker_id  # Use worker_id as agent_id for compliance check
+            try:
+                compliance_result = check_agent_compliance(
+                    agent_id=agent_id,
+                    base_path=ONBOARDING_BASE_PATH,
+                    strict=STRICT_COMPLIANCE,
+                    escalate_violations=True
+                )
+                if not compliance_result["compliant"]:
+                    logging.error(f"Agent {agent_id} failed compliance. Not launching worker.")
+                    continue  # Skip launching this agent
+            except ComplianceError as ce:
+                logging.error(f"Agent {agent_id} blocked by strict compliance: {ce}")
+                continue  # Skip launching this agent
+            # Launch agent worker if compliant
             threading.Thread(
                 target=cursor_run,
                 args=(config, worker_id),
                 daemon=True,
                 name=f"Cursor{worker_id}",
             ).start()
-            # EDIT END
     else:
         logging.info("Simulation mode enabled: skipping Cursor UI workers")
+    # EDIT END: Compliance enforcement at agent boot
 
     # Keep main thread alive
     try:
