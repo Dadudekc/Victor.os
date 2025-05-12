@@ -1,0 +1,9 @@
+{
+  "request_id": "terminal-test-001",
+  "timestamp": "2023-10-27T11:01:00Z",
+  "command_type": "run_terminal",
+  "parameters": {
+    "command": "echo 'Hello from GPT via Bridge!'",
+    "is_background": false
+  }
+} 
