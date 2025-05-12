@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timedelta
 import asyncio
 from .notifier import Notifier
+from apps.dashboard.core.autonomy.agent_autonomy_manager import AgentAutonomyManager
 
 # Theme configuration
 THEME = {
@@ -35,7 +36,7 @@ THEME = {
         "error": "#dc3545",
         "border": "#495057"
     }
-    }
+}
 
 class TaskActionMenu(QMenu):
     def __init__(self, parent=None):
@@ -52,14 +53,19 @@ class TaskActionMenu(QMenu):
         self.addAction(self.logs_action)
 
 class ResumeAutonomyAgentTab(QWidget):
-    def __init__(self, agent_id: str, inbox_base: Path, thea_handler, parent=None):
+    def __init__(self, agent_id: str, agent_status_dir: Path, bridge_file_path: Path, thea_handler, parent=None):
         super().__init__(parent)
         self.agent_id = agent_id
-        self.inbox_base = inbox_base
+        self.agent_status_dir = agent_status_dir
+        self.bridge_file_path = bridge_file_path
         self.thea_handler = thea_handler
         self.current_task = None
         self.notifier = None
+        self.manager = AgentAutonomyManager(agent_status_dir, bridge_file=bridge_file_path)
         self.setup_ui()
+        # Optionally, check for drift and enqueue resume if needed
+        if self.manager.should_resume_agent(self.agent_id):
+            self.manager.enqueue_resume_prompt(self.agent_id)
         
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -105,49 +111,18 @@ class ResumeAutonomyAgentTab(QWidget):
         
     async def check_drift(self):
         """Check for drift and trigger resume if needed"""
-        status_path = self.inbox_base / self.agent_id / "status.json"
-        if not status_path.exists():
-            return
-            
-        status = json.loads(status_path.read_text())
-        last_heartbeat = datetime.fromisoformat(status["last_heartbeat"])
-        
-        # Check if heartbeat is too old (5 minutes)
-        if datetime.utcnow() - last_heartbeat > timedelta(minutes=5):
+        if self.manager.detect_drift(self.agent_id):
             await self.notifier.send_alert(
                 level="warning",
                 title="Drift Detected",
                 message=f"Agent {self.agent_id} has drifted",
-                fields={"Agent": self.agent_id, "Last Heartbeat": last_heartbeat.isoformat()}
+                fields={"Agent": self.agent_id, "Last Heartbeat": self.manager._load_agent_status(self.agent_id)["last_heartbeat"]}
             )
-            
-            # Enqueue resume prompt
-            bridge_file = Path("runtime/bridge/queue/agent_prompts.jsonl")
-            bridge_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            prompt = {
-                "agent_id": self.agent_id,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-                "prompt": "resume autonomy",
-                "reason": "Drift detected"
-            }
-            
-            with open(bridge_file, "a", encoding="utf-8") as f:
-                f.write(json.dumps(prompt) + "\n")
+            self.manager.enqueue_resume_prompt(self.agent_id)
     
     async def resume_autonomy(self):
         """Resume the agent's autonomy loop"""
-        status_path = self.inbox_base / self.agent_id / "status.json"
-        if not status_path.exists():
-            return
-            
-        status = json.loads(status_path.read_text())
-        status["loop_active"] = True
-        status["compliance_score"] = 100
-        status["last_heartbeat"] = datetime.utcnow().isoformat()
-        
-        status_path.write_text(json.dumps(status))
-        
+        self.manager.mark_agent_resumed(self.agent_id)
         await self.notifier.send_alert(
             level="info",
             title="Autonomy Resumed",
@@ -157,24 +132,11 @@ class ResumeAutonomyAgentTab(QWidget):
     
     def update_status(self, current_task: str = None, compliance_score: int = None):
         """Update the agent's status file"""
-        status_path = self.inbox_base / self.agent_id / "status.json"
-        if not status_path.exists():
-            status = {
-                "agent_id": self.agent_id,
-                "current_task": current_task or "idle",
-                "loop_active": True,
-                "last_heartbeat": datetime.utcnow().isoformat(),
-                "compliance_score": compliance_score or 100
-            }
-        else:
-            status = json.loads(status_path.read_text())
-            if current_task:
-                status["current_task"] = current_task
-            if compliance_score is not None:
-                status["compliance_score"] = compliance_score
-            status["last_heartbeat"] = datetime.utcnow().isoformat()
-        
-        status_path.write_text(json.dumps(status))
+        self.manager.update_agent_status(
+            self.agent_id,
+            current_task=current_task,
+            compliance_score=compliance_score
+        )
         
     def show_context_menu(self, position):
         if self.current_task:
@@ -183,7 +145,7 @@ class ResumeAutonomyAgentTab(QWidget):
             
             if action == menu.resume_action:
                 from .task_manager import update_task_status
-                update_task_status(self.agent_id, self.current_task["id"], "completed", self.inbox_base)
+                update_task_status(self.agent_id, self.current_task["id"], "completed", self.agent_status_dir)
                 self.refresh_content()
             elif action == menu.stop_action:
                 # TODO: Show agent selection dialog
@@ -194,8 +156,8 @@ class ResumeAutonomyAgentTab(QWidget):
                 
     def refresh_content(self):
         from .task_manager import load_inbox, load_devlog
-        inbox = load_inbox(self.agent_id, self.inbox_base)
-        devlog = load_devlog(self.agent_id, self.inbox_base)
+        inbox = load_inbox(self.agent_id, self.agent_status_dir)
+        devlog = load_devlog(self.agent_id, self.agent_status_dir)
         
         # Format and display inbox messages
         if isinstance(inbox, list):
@@ -261,7 +223,7 @@ class ResumeAutonomyAgentTab(QWidget):
                 border-radius: 4px;
                 padding: 4px;
             }}
-        """) 
+        """)
 
 class MicLevelWidget(QWidget):
     """Widget to display microphone level"""
@@ -334,9 +296,9 @@ class CommandHistoryWidget(QWidget):
 class VoiceCommandWidget(QWidget):
     """Widget for voice command input"""
     
-    def __init__(self, inbox_base: Path, model_path: Path, parent=None):
+    def __init__(self, agent_status_dir: Path, model_path: Path, parent=None):
         super().__init__(parent)
-        self.voice_handler = VoiceCommandHandler(inbox_base, model_path, self)
+        self.voice_handler = VoiceCommandHandler(agent_status_dir, model_path, self)
         self.setup_ui()
         self.connect_signals()
         
