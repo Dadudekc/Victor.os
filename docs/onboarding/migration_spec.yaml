@@ -1,0 +1,118 @@
+# Dream.OS Onboarding Migration Specification
+# Last Updated: 2024-05-12
+# Status: Active
+
+version: "1.0"
+description: "Specification for consolidating onboarding artifacts into docs/onboarding/"
+
+# Directory Structure
+structure:
+  core:
+    description: "Essential contracts & validators"
+    required_files:
+      - agent_identity_primer.md
+      - agent_onboarding_contracts.yaml
+      - agent_onboarding_checklist.yaml
+  tools:
+    description: "CLI utilities for onboarding"
+    required_files:
+      - onboarding_message_injector.py
+      - onboarding_splitter.py
+  training:
+    description: "Agent test scripts & routers"
+    required_files:
+      - test_onboarding_utils.py
+  archive:
+    description: "Legacy stubs & prototypes"
+    required_files:
+      - agent_1_stub.py
+      - agent7_validation_test.py
+      - new_agent.py
+  manual_tests:
+    description: "Hand‑run scenarios"
+    required_files: []
+
+# File Migration Map
+migrations:
+  # Core Files
+  - source: runtime/agent_registry/agent_onboarding_contracts.yaml
+    destination: docs/onboarding/core/agent_onboarding_contracts.yaml
+    status: required
+    description: "Central agent contract registry"
+  
+  - source: runtime/governance/onboarding/agent_onboarding_checklist.yaml
+    destination: docs/onboarding/core/agent_onboarding_checklist.yaml
+    status: required
+    description: "Agent onboarding checklist"
+  
+  # Tools
+  - source: apps/examples/onboarding_message_injector.py
+    destination: docs/onboarding/tools/onboarding_message_injector.py
+    status: required
+    description: "Message injection utility"
+  
+  - source: tools/onboarding_splitter.py
+    destination: docs/onboarding/tools/onboarding_splitter.py
+    status: required
+    description: "Onboarding content splitter"
+  
+  # Training
+  - source: tests/core/utils/test_onboarding_utils.py
+    destination: docs/onboarding/training/test_onboarding_utils.py
+    status: required
+    description: "Onboarding utilities test suite"
+  
+  # Archive
+  - source: apps/examples/stubs/agent_1_stub.py
+    destination: docs/onboarding/archive/agent_1_stub.py
+    status: optional
+    description: "Legacy agent stub"
+  
+  - source: runtime/temp/agent7_validation_test.py
+    destination: docs/onboarding/archive/agent7_validation_test.py
+    status: optional
+    description: "Legacy validation test"
+
+# Dependencies
+dependencies:
+  - name: "onboarding_utils"
+    locations:
+      - src/dreamos/agents/utils/onboarding_utils.py
+      - src/dreamos/core/utils/onboarding_utils.py
+    status: "consolidation_needed"
+    description: "Multiple versions exist, need consolidation"
+
+# Validation Rules
+validation:
+  - rule: "no_duplicate_contracts"
+    description: "Ensure no duplicate agent contracts exist"
+    check: "agent_onboarding_contracts.yaml"
+  
+  - rule: "all_required_files_present"
+    description: "Verify all required files are in place"
+    check: "structure.core.required_files"
+  
+  - rule: "import_paths_updated"
+    description: "Ensure all import paths are updated to reflect new structure"
+    check: "*.py"
+
+# Post-Migration Tasks
+post_migration:
+  - task: "update_imports"
+    description: "Update import statements in all Python files"
+    priority: high
+  
+  - task: "validate_contracts"
+    description: "Verify agent contracts are valid"
+    priority: high
+  
+  - task: "update_documentation"
+    description: "Update documentation to reflect new structure"
+    priority: medium
+
+# Notes
+notes:
+  - "Some files may exist in multiple locations and need consolidation"
+  - "Import paths need careful updating to maintain functionality"
+  - "Consider creating symlinks for backward compatibility"
+  - "Validate all YAML files after migration" 
