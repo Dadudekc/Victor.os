@@ -50,21 +50,35 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-// Polyfill for getComputedStyle and style properties to fix React 18+ test errors
-if (!window.getComputedStyle) {
-  window.getComputedStyle = function() {
-    return {
-      getPropertyValue: () => ''
-    };
-  };
-}
+// Mock style properties for React 18+
+const styleProperties = [
+  'WebkitAppearance',
+  'WebkitAnimation',
+  'WebkitTransition',
+  'WebkitTransform',
+  'WebkitAnimationName',
+  'animation',
+  'transition',
+  'transform'
+];
 
+// Create a style object with all required properties
+const mockStyle = {};
+styleProperties.forEach(prop => {
+  mockStyle[prop] = '';
+});
+
+// Mock getComputedStyle
+window.getComputedStyle = jest.fn(() => mockStyle);
+
+// Ensure documentElement has style
 if (!window.document.documentElement.style) {
-  window.document.documentElement.style = {};
+  window.document.documentElement.style = mockStyle;
 }
 
-['WebkitAppearance', 'WebkitAnimation', 'WebkitTransition', 'WebkitTransform', 'WebkitAnimationName'].forEach(prop => {
-  if (!(prop in window.document.documentElement.style)) {
-    window.document.documentElement.style[prop] = '';
+// Add style properties to HTMLElement prototype
+Object.defineProperty(HTMLElement.prototype, 'style', {
+  get() {
+    return mockStyle;
   }
 }); 

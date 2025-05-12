@@ -1,0 +1,14 @@
+[
+    {
+        "prompt_id": "ESCALATION-003",
+        "type": "instruction",
+        "status": "Done",
+        "timestamp": "2024-03-10T12:00:00.000000Z",
+        "origin_episode": "EPISODE-02-INFINITE-LOOPS",
+        "content": "No description provided.",
+        "source_episode_task": "ESCALATION-003",
+        "id": "ESCALATION-003",
+        "owner": "Agent-2",
+        "points": 500
+    }
+] 

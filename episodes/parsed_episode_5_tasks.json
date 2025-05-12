@@ -1,0 +1,45 @@
+{
+  "episode_info": {
+    "number": 5,
+    "codename": "JARVIS_AWAKENING",
+    "theme": "Purposeful Autonomy with Embedded Empathy"
+  },
+  "tasks": [
+    {
+      "id": "GUARDIAN-DIRECTIVES-001",
+      "description": "Write guardian directive module as a shared protocol all agents can read",
+      "file": "src/dreamos/core/protocols/guardian_directives.py",
+      "intent": "Instill a baseline ethical + safety framework",
+      "owner": "Agent-2",
+      "points": 600,
+      "status": "In Progress"
+    },
+    {
+      "id": "AWARENESS-IMPL-002",
+      "description": "Implement agent awareness scaffold with identity config per agent",
+      "file": "src/dreamos/agents/utils/agent_identity.py",
+      "intent": "Align agents to their function and eliminate drift",
+      "owner": "Agent-4",
+      "points": 500,
+      "status": "Not Started"
+    },
+    {
+      "id": "EMPATHY-LOGGER-003",
+      "description": "Create structured empathy logging with reflection prompts",
+      "file": "src/dreamos/tools/logging/empathy_logger.py",
+      "intent": "Create human-readable logs that help debug intent and emotion",
+      "owner": "Agent-6",
+      "points": 400,
+      "status": "Not Started"
+    },
+    {
+      "id": "REGULATION-HOOKS-004",
+      "description": "Implement event-driven self-regulation hooks",
+      "file": "src/dreamos/core/safety/self_regulation.py",
+      "intent": "Empower agents to interrupt loops or escalate based on thresholds",
+      "owner": "Agent-2",
+      "points": 500,
+      "status": "Not Started"
+    }
+  ]
+}

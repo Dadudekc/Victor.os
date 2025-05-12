@@ -72,4 +72,11 @@ Welcome to Dream.OS! This protocol ensures every agent is onboarded safely, cons
 ## 10. Acknowledgement
 - [ ] I have read and understood the Dream.OS Agent Onboarding Protocol.
 - [ ] I confirm my mailbox and documentation are compliant.
-- [ ] I am ready to begin continuous operation. 
+- [ ] I am ready to begin continuous operation.
+
+## 11. Secret Project: Basicbot Integration
+- [ ] **Overview**: Basicbot is a new, secret project allowing the swarm to trade autonomously. All interactions must be secure, compliant, and fully auditable.
+- [ ] **Compliance**: Ensure all trading activities comply with regulatory and internal security standards.
+- [ ] **Security**: Use secure credentials, never expose API keys, and follow the archival protocol for all trading logs and data.
+- [ ] **Auditability**: All trading actions must be logged and archived in `processed/archive_<timestamp>/` for traceability.
+- [ ] **Escalation**: Report any anomalies or security breaches immediately to the supervisor agent. 

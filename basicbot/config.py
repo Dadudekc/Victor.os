@@ -109,7 +109,7 @@ class Config:
     # Execution Mode
     @property
     def TRADING_MODE(self):
-        return self.get_env("TRADING_MODE", "live")
+        return self.get_env("TRADING_MODE", "backtest")
 
     def validate(self):
         """Ensure critical configurations are properly set."""

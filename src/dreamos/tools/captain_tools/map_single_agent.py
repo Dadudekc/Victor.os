@@ -1,7 +1,7 @@
 """
-Dream.OS Coordinate Mapper
+Dream.OS Single Agent Coordinate Mapper
 
-Maps coordinates for all agent input boxes and copy buttons.
+Maps coordinates for a single agent's input box and copy button.
 """
 
 import json
@@ -114,71 +114,49 @@ def show_coordinates(coords: dict, agent_id: str):
     console.print(table)
 
 def main():
-    # Initialize coordinates
-    coords = {}
+    # Load existing coordinates
+    coords_path = Path("runtime/config/cursor_agent_coords.json")
+    if not coords_path.exists():
+        console.print("[red]❌ Coordinates file not found!")
+        return
     
-    # Map coordinates for all agents
-    for i in range(1, 9):
-        agent_id = f"Agent-{i}"
-        console.rule(f"[bold green]{agent_id}")
-        
-        while True:
-            try:
-                response = Prompt.ask(
-                    f"What would you like to do with {agent_id}?",
-                    choices=["map", "skip"],
-                    default="map"
-                )
-                break
-            except KeyboardInterrupt:
-                console.print("\n[yellow]Operation cancelled")
-                return
-        
-        if response == "map":
-            agent_coords = get_coordinates(agent_id)
-            if agent_coords:  # Not skipped
-                coords[agent_id] = agent_coords
-                console.print(f"\n[green]✓ {agent_id} mapped!")
-                
-                # Show coordinates
-                show_coordinates(coords, agent_id)
-                
-                # Final verification
-                try:
-                    if not Confirm.ask("Are these coordinates correct?"):
-                        console.print("[yellow]Retrying...")
-                        i -= 1  # Retry this agent
-                        continue
-                except KeyboardInterrupt:
-                    console.print("\n[yellow]Operation cancelled")
-                    return
-            else:
-                console.print(f"[yellow]⚠️ {agent_id} skipped")
-        
-        try:
-            if not Confirm.ask("\nContinue to next agent?"):
-                break
-        except KeyboardInterrupt:
-            console.print("\n[yellow]Operation cancelled")
-            break
+    with coords_path.open("r") as f:
+        coords = json.load(f)
     
-    # Save coordinates
-    if coords:
-        try:
-            if Confirm.ask("\nSave all coordinates?"):
-                coords_path = Path("runtime/config/cursor_agent_coords.json")
-                coords_path.parent.mkdir(parents=True, exist_ok=True)
-                with coords_path.open("w") as f:
-                    json.dump(coords, f, indent=4)
-                console.print("\n[green]✓ Coordinates saved!")
-            else:
-                console.print("\n[yellow]⚠️ Changes discarded")
-        except KeyboardInterrupt:
-            console.print("\n[yellow]Operation cancelled")
+    # Show current coordinates
+    console.print("\n[bold]Current coordinates:")
+    for agent_id in sorted(coords.keys()):
+        show_coordinates(coords, agent_id)
+    
+    # Get agent ID to map
+    agent_id = Prompt.ask(
+        "\nWhich agent would you like to map?",
+        choices=[f"Agent-{i}" for i in range(1, 9)],
+        default="Agent-5"
+    )
+    
+    console.rule(f"[bold green]{agent_id}")
+    
+    # Get new coordinates
+    new_coords = get_coordinates(agent_id)
+    if new_coords:
+        coords[agent_id] = new_coords
+        console.print(f"\n[green]✓ {agent_id} mapped!")
+        
+        # Show new coordinates
+        show_coordinates(coords, agent_id)
+        
+        # Save coordinates
+        if Confirm.ask("\nSave coordinates?"):
+            with coords_path.open("w") as f:
+                json.dump(coords, f, indent=4)
+            console.print("\n[green]✓ Coordinates saved!")
+        else:
+            console.print("\n[yellow]⚠️ Changes discarded")
     else:
-        console.print("\n[yellow]No coordinates to save")
+        console.print(f"\n[yellow]⚠️ {agent_id} mapping cancelled")
 
 if __name__ == "__main__":
-    console.print("[bold]Dream.OS Coordinate Mapper")
-    console.print("Map coordinates for all agent input boxes and copy buttons.")
+    console.print("[bold]Dream.OS Single Agent Coordinate Mapper")
+    console.print("Map coordinates for a single agent while preserving others.")
     main() 

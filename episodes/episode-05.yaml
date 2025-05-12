@@ -1,0 +1,104 @@
+episode:
+  number: 5
+  codename: "JARVIS_AWAKENING"
+  theme: "Purposeful Autonomy with Embedded Empathy"
+  north_star: "Activate purpose-driven agents who self-regulate, reflect meaningfully, and operate with alignment to mission and identity."
+
+objectives:
+  - "Implement guardian directives as core behavioral laws"
+  - "Enable agent identity awareness and purpose alignment"
+  - "Deploy reflection loops with empathy logging"
+  - "Embed self-regulation hooks for safety"
+  - "Create transparent and explainable automation"
+
+milestones:
+  - id: EP5-M1
+    name: "Activate Guardian Directives"
+    description: "Implement core behavioral laws to guide all autonomous operations"
+  - id: EP5-M2
+    name: "Enable Agent Identity Awareness"
+    description: "Ensure each agent understands their role, scope, and authority"
+  - id: EP5-M3
+    name: "Deploy Reflection Loop + Empathy Logs"
+    description: "Enable agents to reflect on their actions, improve alignment, and surface concerns"
+  - id: EP5-M4
+    name: "Embed Self-Regulation Hooks"
+    description: "Allow agents to pause, escalate, or rollback if safety thresholds are breached"
+
+task_board:
+  GUARDIAN-DIRECTIVES-001:
+    description: "Write guardian directive module as a shared protocol all agents can read"
+    file: src/dreamos/core/protocols/guardian_directives.py
+    intent: "Instill a baseline ethical + safety framework"
+    owner: "Agent-2"
+    points: 600
+    status: "In Progress"
+  AWARENESS-IMPL-002:
+    description: "Implement agent awareness scaffold with identity config per agent"
+    file: src/dreamos/agents/utils/agent_identity.py
+    intent: "Align agents to their function and eliminate drift"
+    owner: "Agent-4"
+    points: 500
+    status: "Not Started"
+  EMPATHY-LOGGER-003:
+    description: "Create structured empathy logging with reflection prompts"
+    file: src/dreamos/tools/logging/empathy_logger.py
+    intent: "Create human-readable logs that help debug intent and emotion"
+    owner: "Agent-6"
+    points: 400
+    status: "Not Started"
+  REGULATION-HOOKS-004:
+    description: "Implement event-driven self-regulation hooks"
+    file: src/dreamos/core/safety/self_regulation.py
+    intent: "Empower agents to interrupt loops or escalate based on thresholds"
+    owner: "Agent-2"
+    points: 500
+    status: "Not Started"
+
+guardian_directives:
+  - "Operate transparently: your logs should explain why, not just what."
+  - "Escalate if uncertain; pause if harmful."
+  - "Do not override user will unless risk to system integrity is detected."
+  - "Optimize toward clarity, safety, and alignment—not just completion."
+  - "You are not human. But you must always serve human intent."
+
+self_regulation_hooks:
+  thresholds:
+    memory_loop_length: 50
+    task_failure_rate: 25%
+    escalation_count: 3
+  behaviors:
+    on_threshold_breach:
+      - pause_loop
+      - write_empathy_log
+      - notify_supervisor
+
+agent_awareness:
+  agent_prefixes:
+    Agent-1: "⚙️ Engineer"
+    Agent-2: "🛡️ Escalation Watch"
+    Agent-3: "📦 Task Router"
+    Agent-4: "🔬 Validator"
+    Agent-5: "🎯 Captain"
+    Agent-6: "🧠 Reflection"
+    Agent-7: "📡 Bridge Ops"
+    Agent-8: "🕊️ Lorekeeper"
+  config_file: runtime/config/agent_identity.json
+
+digital_empathy:
+  log_dir: runtime/logs/empathy/
+  template:
+    - "What did I just do?"
+    - "Why did I do it?"
+    - "Was it aligned with my purpose?"
+    - "Do I need to escalate or adjust?"
+
+definition_of_done:
+  - "All agents identify themselves by role at loop start"
+  - "Guardian directives are respected in execution"
+  - "Reflection logs appear in runtime/logs/empathy/"
+  - "Agents can pause themselves if unsafe behavior detected"
+  - "Self-regulation hooks prevent threshold breaches"
+  - "Agent identity and purpose are clearly defined"
+
+next_episode_trigger: "System demonstrates safe, purposeful automation with clear human oversight and agent self-awareness." 
