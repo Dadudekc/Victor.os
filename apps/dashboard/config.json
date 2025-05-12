@@ -1,0 +1,23 @@
+{
+    "mailbox": {
+        "path": "runtime/mailbox"
+    },
+    "whisper": {
+        "model_path": "models/whisper/base.pt",
+        "language": "en",
+        "task": "transcribe"
+    },
+    "thea": {
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "max_tokens": 1000
+    },
+    "ui": {
+        "theme": "dark",
+        "refresh_interval": 5000,
+        "window": {
+            "width": 1200,
+            "height": 800
+        }
+    }
+} 
