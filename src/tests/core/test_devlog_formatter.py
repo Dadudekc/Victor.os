@@ -107,9 +107,9 @@ class TestDevlogFormatter:
         
         # Check required components
         assert "📊 ETHOS COMPLIANCE REPORT" in formatted
-        assert "human_agency: 85%" in formatted
-        assert "transparency: 92%" in formatted
-        assert "safety: 78%" in formatted
+        assert "human_agency: 85.00%" in formatted
+        assert "transparency: 92.00%" in formatted
+        assert "safety: 78.00%" in formatted
         assert "Increase safety compliance monitoring" in formatted
         
     def test_format_identity_update(self, formatter, sample_identity_update):
@@ -133,7 +133,7 @@ class TestDevlogFormatter:
         assert len(log_files) == 1
         
         # Check content
-        with open(log_files[0]) as f:
+        with open(log_files[0], 'r', encoding='utf-8') as f:
             assert f.read() == content
             
     def test_format_and_write_violation(self, formatter, temp_log_dir, sample_violation):
@@ -145,7 +145,7 @@ class TestDevlogFormatter:
         assert len(log_files) == 1
         
         # Check content
-        with open(log_files[0]) as f:
+        with open(log_files[0], 'r', encoding='utf-8') as f:
             content = f.read()
             assert "🛑 ETHOS VIOLATION" in content
             assert "human_agency" in content
@@ -154,7 +154,7 @@ class TestDevlogFormatter:
         """Test retrieving recent violations."""
         # Create test violation files
         for i in range(15):
-            with open(temp_log_dir / f"violation_20240101_{i:02d}0000.md", "w") as f:
+            with open(temp_log_dir / f"violation_20240101_{i:02d}0000.md", "w", encoding='utf-8') as f:
                 f.write(f"Test violation {i}")
                 
         # Test limit
@@ -170,7 +170,7 @@ class TestDevlogFormatter:
         base_time = datetime.now()
         for i in range(10):
             timestamp = (base_time - timedelta(days=i)).strftime("%Y%m%d_%H%M%S")
-            with open(temp_log_dir / f"compliance_{timestamp}.md", "w") as f:
+            with open(temp_log_dir / f"compliance_{timestamp}.md", "w", encoding='utf-8') as f:
                 f.write(f"Test compliance {i}")
                 
         # Test history retrieval
