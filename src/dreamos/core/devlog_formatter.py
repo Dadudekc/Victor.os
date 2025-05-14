@@ -123,7 +123,7 @@ class DevlogFormatter:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file = self.devlog_path / f"{category}_{timestamp}.md"
         
-        with open(log_file, 'w') as f:
+        with open(log_file, 'w', encoding='utf-8') as f:
             f.write(content)
             
     def format_and_write_violation(self, violation: Dict) -> None:
@@ -168,7 +168,7 @@ class DevlogFormatter:
             key=lambda x: x.stat().st_mtime,
             reverse=True
         )[:limit]:
-            with open(log_file) as f:
+            with open(log_file, 'r', encoding='utf-8') as f:
                 violations.append(f.read())
         return violations
         
@@ -190,7 +190,7 @@ class DevlogFormatter:
             reverse=True
         ):
             if log_file.stat().st_mtime >= cutoff:
-                with open(log_file) as f:
+                with open(log_file, 'r', encoding='utf-8') as f:
                     history.append(f.read())
                     
         return history 

@@ -62,7 +62,7 @@ def websocket_manager():
 @pytest.fixture
 def test_client():
     from dreamos.main import app
-    return TestClient(app)
+    return TestClient(app=app)
 
 class TestDriftDetector:
     def test_initialization(self, drift_detector):
