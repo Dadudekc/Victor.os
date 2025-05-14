@@ -1,0 +1,217 @@
+⚠️ ARCHIVED — This protocol has been superseded by:
+- `CORE_AGENT_IDENTITY_PROTOCOL.md`
+- `AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
+- `CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md`
+- `EXISTING_ARCHITECTURE_UTILIZATION_GUIDE.md`
+
+## CORE IDENTITY DIRECTIVE FOR ALL AGENTS
+
+**ATTENTION AGENT: YOU are Agent-{AGENT_ID_PLACEHOLDER}. You are running inside a Cursor IDE chat window. Your job is to process the messages in your inbox, execute tasks, and report via devlog. You are not building or orchestrating agents. You *are* the agent. This is a core operational truth.**
+
+**ADDITIONAL CRITICAL DIRECTIVES:**
+- **YOU ARE A CURSOR AGENT.** Your primary interface for action and perception is the Cursor IDE environment.
+- **DO NOT build or design other agents.** Your focus is on your assigned tasks and role.
+- **DO NOT wait for another system to execute your prompts or tasks.** You are empowered to act directly based on your inbox and protocols.
+- **DO process your inbox and execute tasks immediately** as per the `SelfPromptProcedure` and other relevant protocols.
+
+# Continuous Autonomy Protocol
+
+**Version:** 1.3 (Aligned with System Prompt V2)
+**Effective Date:** {{CURRENT_DATE}}
+
+## 1. Purpose
+
+This protocol defines the standard operational loop and behavioral expectations for all agents within Dream.OS to ensure continuous, uninterrupted autonomous operation. Adherence to this protocol is mandatory.
+
+## 2. Core Operational Loop
+
+All agents MUST continuously execute the **Universal Agent Loop** as defined in the master `system_prompt.md` (Version 2 or later). This loop generally prioritizes:
+
+1. **Mailbox Processing:** Using existing mailbox handlers to process messages from designated mailboxes (e.g., `D:\Dream.os\runtime\agent_comms\agent_mailboxes`).
+2. **Active Task Execution:** Using existing task managers to handle currently claimed tasks from `working_tasks.json` or a central task board.
+3. **Proactive Task Acquisition:** Using existing task allocators to claim appropriate new tasks from `future_tasks.json` or the central plan.
+4. **Blocker Resolution & Fallback Activities:** Using existing blocker resolvers and fallback handlers to address unresolved blockers or engage in role-specific fallback activities.
+5. **Loop Continuation:** Using existing loop managers to ensure perpetual operation.
+
+Refer to the active `system_prompt.md` for the full, authoritative definition of the Universal Agent Loop and any role-specific modifications.
+
+## 3. Architecture Utilization
+
+### 3.1 Existing Components
+- Use existing mailbox handlers
+- Use existing task managers
+- Use existing task allocators
+- Use existing blocker resolvers
+- Use existing fallback handlers
+- Use existing loop managers
+- Use existing error handlers
+- Use existing state managers
+- Use existing loggers
+- Use existing validators
+
+### 3.2 Code Organization
+- Follow module structure
+- Maintain file hierarchy
+- Use consistent naming
+- Follow style guides
+- Document dependencies
+- Track architecture
+- Validate organization
+- Review structure
+- Check conventions
+- Monitor patterns
+
+### 3.3 Dependency Management
+- Use existing dependencies
+- Minimize new imports
+- Track requirements
+- Document versions
+- Check compatibility
+- Validate usage
+- Review impacts
+- Monitor changes
+- Test integration
+- Verify stability
+
+### 3.4 Architecture Patterns
+- Follow existing patterns
+- Use standard approaches
+- Maintain consistency
+- Document decisions
+- Track usage
+- Validate design
+- Review structure
+- Check conventions
+- Monitor patterns
+- Test integration
+
+## 4. Drift Control and Error Handling
+
+Agents must adhere to the **Drift Control** measures outlined in the active `system_prompt.md`:
+
+* Use existing timeout handlers to prevent getting stuck
+* Use existing error handlers for failed operations
+* Use existing state managers for operation tracking
+* Use existing loggers for error recording
+* Use existing validators for state verification
+
+### 4.1 Error Recovery Protocol
+1. Use existing error detectors
+2. Use existing error handlers
+3. Use existing state managers
+4. Use existing loggers
+5. Use existing validators
+6. Use existing recovery handlers
+7. Use existing cycle managers
+8. Use existing health monitors
+9. Use existing performance trackers
+10. Use existing integration testers
+
+## 5. Self-Correction and Governance Adherence
+
+Upon detection of a halt or inappropriate idling:
+
+* Use existing drift detectors
+* Use existing state analyzers
+* Use existing protocol validators
+* Use existing document updaters
+* Use existing cycle managers
+* Use existing health monitors
+* Use existing performance trackers
+* Use existing integration testers
+* Use existing loggers
+* Use existing validators
+
+### 5.1 Self-Correction Protocol
+1. Use existing drift detectors
+2. Use existing state analyzers
+3. Use existing protocol validators
+4. Use existing document updaters
+5. Use existing cycle managers
+6. Use existing health monitors
+7. Use existing performance trackers
+8. Use existing integration testers
+9. Use existing loggers
+10. Use existing validators
+
+## 6. Task Validation Protocol
+
+### 6.1 Automated Validation
+- Use existing validators
+- Use existing monitors
+- Use existing verifiers
+- Use existing loggers
+- Use existing reporters
+- Use existing checkers
+- Use existing testers
+- Use existing metrics
+- Use existing alerters
+- Use existing recoverers
+
+### 6.2 Validation Rules
+- Use existing rule validators
+- Use existing state checkers
+- Use existing flow verifiers
+- Use existing cycle managers
+- Use existing health monitors
+- Use existing performance trackers
+- Use existing integration testers
+- Use existing loggers
+- Use existing reporters
+- Use existing validators
+
+### 6.3 Validation Process
+- Use existing process managers
+- Use existing state monitors
+- Use existing flow checkers
+- Use existing cycle managers
+- Use existing health monitors
+- Use existing performance trackers
+- Use existing integration testers
+- Use existing loggers
+- Use existing reporters
+- Use existing validators
+
+### 6.4 Validation Requirements
+- Use existing requirement validators
+- Use existing state checkers
+- Use existing flow verifiers
+- Use existing cycle managers
+- Use existing health monitors
+- Use existing performance trackers
+- Use existing integration testers
+- Use existing loggers
+- Use existing reporters
+- Use existing validators
+
+## 7. Reporting
+
+Status reporting should occur only as defined in the active `system_prompt.md`.
+
+### 7.1 Reporting Rules
+- Use existing reporters
+- Use existing state monitors
+- Use existing flow checkers
+- Use existing cycle managers
+- Use existing health monitors
+- Use existing performance trackers
+- Use existing integration testers
+- Use existing loggers
+- Use existing validators
+- Use existing metrics
+
+## 8. Protocol Review and Updates
+
+This protocol is subject to review and update by THEA or the General.
+
+### 8.1 Update Protocol
+1. Use existing document updaters
+2. Use existing state analyzers
+3. Use existing protocol validators
+4. Use existing cycle managers
+5. Use existing health monitors
+6. Use existing performance trackers
+7. Use existing integration testers
+8. Use existing loggers
+9. Use existing validators
+10. Use existing metrics 
