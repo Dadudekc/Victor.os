@@ -6,7 +6,7 @@ special formatting for ethos violations and compliance information.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -78,9 +78,12 @@ class DevlogFormatter:
         ]
         
         # Add metrics
-        for value, score in metrics.items():
-            status = "✅" if score >= 0.7 else "⚠️"
-            message.append(f"{status} {value}: {score:.2%}")
+        if isinstance(metrics, dict):
+            for value, score in metrics.items():
+                status = "✅" if score >= 0.7 else "⚠️"
+                message.append(f"{status} {value}: {score:.2%}")
+        else:
+            message.append("Metrics data is malformed or not a dictionary.")
             
         # Add recommendations
         if recommendations:
@@ -185,7 +188,9 @@ class DevlogFormatter:
         Returns:
             list: Compliance history
         """
-        cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)
+        # Get logs from today and the previous (days-1) days.
+        # So, if days = 1, get today's logs. If days = 7, get today and previous 6 days.
+        cutoff_date = datetime.now().date() - timedelta(days=days-1)
         history = []
         
         for log_file in sorted(
@@ -193,7 +198,8 @@ class DevlogFormatter:
             key=lambda x: x.stat().st_mtime,
             reverse=True
         ):
-            if log_file.stat().st_mtime >= cutoff:
+            log_file_date = datetime.fromtimestamp(log_file.stat().st_mtime).date()
+            if log_file_date >= cutoff_date:
                 with open(log_file, 'r', encoding='utf-8') as f:
                     history.append(f.read())
                     
