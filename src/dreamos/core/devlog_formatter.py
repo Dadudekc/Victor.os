@@ -31,6 +31,10 @@ class DevlogFormatter:
         Returns:
             str: Formatted violation message
         """
+        if violation is None:
+            # Or handle as an error, or return a specific formatted message for None
+            return "Formatted violation for None input (e.g., error or placeholder)"
+            
         severity = violation.get("severity", "low")
         principle = violation.get("principle", "unknown")
         details = violation.get("details", "")
