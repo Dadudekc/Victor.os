@@ -26,6 +26,8 @@ Any of the following conditions are considered an operational stop or a critical
 *   **Breaking Continuous Execution:** Any unexplained or unhandled interruption in the agent's operational loop.
 *   **Violation of Cycle Requirements:** Failure to complete the mandated minimum operational cycles (e.g., 25) between deliberate human-guided stops or after a self-correction event.
 
+_Note: For guidance on how to proactively avoid such stops by taking initiative on logical next steps within an approved goal, agents MUST refer to the 'Autonomous Next-Step Selection & Initiative' section within `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`._
+
 ### 3.1 Forbidden Phrases (Indicative of Potential Deviation)
 
 While not all uses are catastrophic, the following phrases often signal a deviation from autonomous operation and should be actively avoided. If their use leads to a stop as defined above, this protocol applies:
