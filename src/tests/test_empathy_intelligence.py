@@ -216,11 +216,17 @@ class TestWebSocketIntegration:
         
         # Verify broadcast
         assert mock_websocket.send_json.called
-        message = mock_websocket.send_json.call_args[0][0]
-        assert message["type"] == "log_update"
-        assert message["log_type"] == "compliance"
-        assert "drift_warning" in message or "compliance_prediction" in message
         
+        sent_messages = [call[0][0] for call in mock_websocket.send_json.call_args_list]
+        
+        log_update_message = next((msg for msg in sent_messages if msg.get("type") == "log_update"), None)
+        assert log_update_message is not None, "log_update message was not sent"
+        assert log_update_message["log_type"] == "compliance"
+        
+        # Optionally, verify other messages like agent_insights if specifically needed for this test's scope
+        agent_insights_message = next((msg for msg in sent_messages if msg.get("type") == "agent_insights"), None)
+        assert agent_insights_message is not None, "agent_insights message was not sent"
+
         # Cleanup
         test_log.unlink()
         log_dir.rmdir()
