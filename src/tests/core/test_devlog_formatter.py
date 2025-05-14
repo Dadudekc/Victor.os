@@ -181,20 +181,53 @@ class TestDevlogFormatter:
         
     def test_get_compliance_history(self, formatter, temp_log_dir):
         """Test retrieving compliance history."""
-        # Create test compliance files
-        base_time = datetime.now()
-        for i in range(10):
-            timestamp = (base_time - timedelta(days=i)).strftime("%Y%m%d_%H%M%S")
-            with open(temp_log_dir / f"compliance_{timestamp}.md", "w", encoding='utf-8') as f:
-                f.write(f"Test compliance {i}")
+        # Create test compliance files with controlled dates and mtimes
+        # Mock datetime.now() to a fixed point for consistent cutoff calculation
+        mock_now = datetime(2024, 3, 15, 12, 0, 0) # Fixed "now"
+
+        with patch('dreamos.core.devlog_formatter.datetime') as mock_datetime_module:
+            mock_datetime_module.now.return_value = mock_now
+            mock_datetime_module.fromtimestamp = datetime.fromtimestamp # Keep original fromtimestamp
+            mock_datetime_module.date = datetime.date # Keep original date type
+
+            # Create 10 files, one for each day from "mock_now" down to "mock_now - 9 days"
+            # Ensure their mtimes are also set to these exact start-of-day timestamps
+            for i in range(10): # i from 0 (today) to 9 (9 days ago)
+                # Target date for this file
+                file_date_target = (mock_now - timedelta(days=i)).date()
+                # Timestamp for the file name (e.g., "compliance_20240315_120000.md")
+                # We use mock_now's time for consistency in filename, but mtime is key
+                file_actual_timestamp = mock_now - timedelta(days=i)
+                filename_timestamp_str = file_actual_timestamp.strftime("%Y%m%d_%H%M%S")
+
+                file_path = temp_log_dir / f"compliance_{filename_timestamp_str}_{i:02d}.md"
                 
-        # Test history retrieval
-        history = formatter.get_compliance_history(days=7)
-        assert len(history) == 7
+                with open(file_path, "w", encoding='utf-8') as f:
+                    f.write(f"Test compliance {i} (Date: {file_date_target.isoformat()})")
+                
+                # Set the modification time to the start of the target day
+                mtime_target = datetime.combine(file_date_target, datetime.min.time()).timestamp()
+                os.utime(file_path, (mtime_target, mtime_target))
+
+            # Test history retrieval for last 7 days
+            # Based on mock_now (2024-03-15), days=7 should include:
+            # 2024-03-15 (i=0)
+            # 2024-03-14 (i=1)
+            # 2024-03-13 (i=2)
+            # 2024-03-12 (i=3)
+            # 2024-03-11 (i=4)
+            # 2024-03-10 (i=5)
+            # 2024-03-09 (i=6)
+            # Cutoff date should be 2024-03-09
+            history = formatter.get_compliance_history(days=7)
+            assert len(history) == 7, f"Expected 7 files, got {len(history)}. Cutoff date used by formatter: {mock_now.date() - timedelta(days=7-1)}"
         
-        # Test ordering
-        assert "Test compliance 0" in history[0]
-        
+            # Test ordering (newest first)
+            # File for i=0 (2024-03-15) should be first in history
+            assert f"Test compliance 0 (Date: {(mock_now - timedelta(days=0)).date().isoformat()})" in history[0]
+            # File for i=6 (2024-03-09) should be last in the 7-day history
+            assert f"Test compliance 6 (Date: {(mock_now - timedelta(days=6)).date().isoformat()})" in history[6]
+
     def test_duplicate_log_avoidance(self, formatter, temp_log_dir):
         """Test that duplicate logs are not created."""
         content = "Test log entry"
