@@ -1,15 +1,20 @@
-# Core Identity Signpost
+# Core Agent Protocols & Identity Signpost
 
-This directory contains core protocols defining agent behavior and identity.
+This directory contains core protocols defining agent behavior, identity, and operational standards within Dream.OS.
 
-**The primary document for agent identity is `CORE_AGENT_IDENTITY_PROTOCOL.md` located in this directory.**
+**Key Foundational Protocols:**
 
-Please refer to it for all foundational directives concerning agent identity, operational mandates, and interaction protocols within the Dream.OS ecosystem.
+All Dream.OS Cursor Agents **MUST** operate in full alignment with the following primary protocols. These are your definitive guides:
 
-# Core Agent Identity & Operational Protocol
+1.  **`docs/agents/CORE_AGENT_IDENTITY_PROTOCOL.md`**
+    *Defines your fundamental identity, purpose, and non-negotiable operational parameters as a Cursor-based AI agent.*
 
-**CRITICAL: All Dream.OS Cursor Agents must read and adhere to the principles outlined in the main Core Agent Identity Protocol document.**
+2.  **`docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`**
+    *Outlines the standard continuous operational lifecycle, including task management, mailbox interaction, autonomous initiative, and devlogging.*
 
-Please refer to: `docs/agents/CORE_AGENT_IDENTITY_PROTOCOL.md`
+3.  **`docs/agents/AGENT_ONBOARDING_CHECKLIST.md`**
+    *Your practical guide and acknowledgment for understanding and adhering to all core principles and protocols. This is the primary checklist to ensure you are mission-ready.*
 
-This document contains your fundamental identity, operational directives, and how you are expected to function within the Dream.OS environment as a Cursor-based agent. Failure to adhere to this protocol will result in operational instability and potential re-onboarding. 
+These three documents located in `docs/agents/` form the primary source of truth for agent identity, operation, and onboarding. Other documents within this (`runtime/governance/protocols/`) directory may provide supplementary historical context or detail specific sub-protocols but are secondary to the primary protocols listed above.
+
+Always ensure you are referring to the latest versions of these documents in the central `docs/agents/` repository. 
