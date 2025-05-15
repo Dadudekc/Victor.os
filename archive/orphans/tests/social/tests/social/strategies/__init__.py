@@ -4,5 +4,5 @@
 from . import base_strategy_test
 
 __all__ = [
-    "base_strategy_test",
+    'base_strategy_test',
 ]

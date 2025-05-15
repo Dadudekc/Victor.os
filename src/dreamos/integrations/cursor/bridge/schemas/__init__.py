@@ -1,5 +1,8 @@
-"""Schema package for THEA response validation."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .thea_response_schema import TheaResponse, ResponseType, ResponseStatus
+from . import thea_response_schema
 
-__all__ = ['TheaResponse', 'ResponseType', 'ResponseStatus'] 
+__all__ = [
+    'thea_response_schema',
+]

@@ -4,5 +4,5 @@
 from . import test_project_board
 
 __all__ = [
-    "test_project_board",
+    'test_project_board',
 ]

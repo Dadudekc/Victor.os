@@ -1,15 +1,10 @@
-"""
-DreamOS System Maintenance Tools
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-A collection of tools for maintaining system health and cleanliness:
-- Duplicate directory cleanup
-- Backup management
-- Log consolidation
-- Test directory management
-"""
+from . import cleanup_duplicates
+from . import maintenance_service
 
-from .cleanup_duplicates import DuplicatesCleaner
-from .maintenance_service import MaintenanceService
-
-__all__ = ['DuplicatesCleaner', 'MaintenanceService']
-__version__ = '1.0.0' 
+__all__ = [
+    'cleanup_duplicates',
+    'maintenance_service',
+]

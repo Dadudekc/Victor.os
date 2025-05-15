@@ -1,31 +1,12 @@
-"""Package automation."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import asyncio
-from . import dreamos.automation.cursor_orchestrator
-from . import dreamos.core.config
-from . import dreamos.core.coordination.agent_bus
-from . import dreamos.core.coordination.event_payloads
-from . import dreamos.core.coordination.event_types
-from . import dreamos.core.errors
-from . import dreamos.utils.decorators
-from . import dreamos.utils.gui_utils
-from . import json
-from . import logging
-from . import pathlib
-from . import pyautogui
-from . import pydantic
-from . import pygetwindow
-from . import pyperclip
-from . import tenacity
-from . import time
-from . import typing
-
+from . import bridge_loop
+from . import config
+from . import cursor_orchestrator
 
 __all__ = [
-
-    'CursorOrchestrator',
-    'CursorOrchestratorError',
-    'GuiAutomationConfig',
-    'TheaCopyConfig',
-    'injection_task',
+    'bridge_loop',
+    'config',
+    'cursor_orchestrator',
 ]

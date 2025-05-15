@@ -4,5 +4,5 @@
 from . import test_project_board_manager
 
 __all__ = [
-    "test_project_board_manager",
+    'test_project_board_manager',
 ]

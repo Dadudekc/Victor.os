@@ -1,5 +1,14 @@
-"""
-Dream.OS Core Package
-"""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-__version__ = "0.1.0" 
+from . import UnifiedDriverManager
+from . import cli
+from . import main
+from . import server
+
+__all__ = [
+    'UnifiedDriverManager',
+    'cli',
+    'main',
+    'server',
+]

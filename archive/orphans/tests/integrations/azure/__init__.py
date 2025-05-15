@@ -4,5 +4,5 @@
 from . import test_azure_blob_channel
 
 __all__ = [
-    "test_azure_blob_channel",
+    'test_azure_blob_channel',
 ]

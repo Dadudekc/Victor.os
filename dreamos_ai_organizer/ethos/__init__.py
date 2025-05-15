@@ -1,25 +1,14 @@
-"""
-Dream.OS Ethos Package
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package implements the core ethos validation and enforcement system,
-ensuring all agents operate within the defined ethical and operational boundaries.
-"""
-
-from .identity import AgentIdentity, create_agent
-from .validator import EthosValidator
-from .logger import EmpathyLogger
-from .compliance import (
-    ValueCompliance,
-    PrincipleCompliance,
-    SafeguardCompliance
-)
+from . import compliance
+from . import identity
+from . import logger
+from . import validator
 
 __all__ = [
-    'AgentIdentity',
-    'create_agent',
-    'EthosValidator',
-    'EmpathyLogger',
-    'ValueCompliance',
-    'PrincipleCompliance',
-    'SafeguardCompliance'
-] 
+    'compliance',
+    'identity',
+    'logger',
+    'validator',
+]

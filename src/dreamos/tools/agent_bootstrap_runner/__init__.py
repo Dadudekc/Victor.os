@@ -1,56 +1,38 @@
-"""
-Dream.OS Universal Agent Bootstrap Runner
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-A modular implementation of the agent bootstrap process that works with any agent (0-8).
-This runner handles:
-- Agent-specific configuration and validation
-- UI interaction (cursor injection and response retrieval)
-- Message processing and archiving
-- Logging and monitoring
-- Protocol enforcement
-- Autonomy management and monitoring
-- Dry-run simulation capabilities
+from . import __main__
+from . import agent_loop
+from . import agent_traits
+from . import config
+from . import cursor_messaging
+from . import dry_run_simulator
+from . import inbox_management
+from . import logging_setup
+from . import maintenance
+from . import messaging
+from . import onboard_all_agents
+from . import onboarding
+from . import resume_autonomy_loop
+from . import runner
+from . import ui_interaction
+from . import validation
 
-Usage:
-    from dreamos.tools.agent_bootstrap_runner import AgentConfig, agent_loop
-    
-    config = AgentConfig(agent_id="Agent-N")  # N = 0-8
-    await agent_loop(config)
-"""
-
-from .config import AgentConfig
-from .runner import AgentBootstrapRunner, agent_loop
-from .messaging import publish_event, archive_inbox, load_inbox
-from .validation import validate_coords, validate_json_file, validate_all_files, ValidationResult
-from .ui_interaction import CursorInjector, ResponseRetriever
-from .logging_setup import setup_logging
-from .dry_run_simulator import simulate_agent_bootstrap
-from .resume_autonomy_loop import AgentStatus, resume_agent, monitor_agent_status
-from .onboarding import AgentOnboardingManager
-from .cursor_messaging import CursorAgentMessenger
-from .inbox_management import create_seed_inbox, update_inbox_with_prompt
-
-__version__ = "1.0.0"
 __all__ = [
-    "AgentConfig",
-    "AgentBootstrapRunner",
-    "agent_loop",
-    "publish_event",
-    "archive_inbox",
-    "load_inbox",
-    "validate_coords",
-    "validate_json_file", 
-    "validate_all_files",
-    "ValidationResult",
-    "CursorInjector",
-    "ResponseRetriever",
-    "setup_logging",
-    "simulate_agent_bootstrap",
-    "AgentStatus",
-    "resume_agent",
-    "monitor_agent_status",
-    "AgentOnboardingManager",
-    "CursorAgentMessenger",
-    "create_seed_inbox",
-    "update_inbox_with_prompt"
-] 
+    '__main__',
+    'agent_loop',
+    'agent_traits',
+    'config',
+    'cursor_messaging',
+    'dry_run_simulator',
+    'inbox_management',
+    'logging_setup',
+    'maintenance',
+    'messaging',
+    'onboard_all_agents',
+    'onboarding',
+    'resume_autonomy_loop',
+    'runner',
+    'ui_interaction',
+    'validation',
+]

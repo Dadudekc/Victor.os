@@ -1,6 +1,8 @@
-"""Broadcasts coordination directives to agents via AgentBus."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import dreamos.core.coordination.agent_bus
-from . import dreamos.core.coordination.events
-from . import logging
-from . import typing
+from . import broadcast_directive
+
+__all__ = [
+    'broadcast_directive',
+]

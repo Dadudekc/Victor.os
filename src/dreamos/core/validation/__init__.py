@@ -1,7 +1,8 @@
-"""
-Dream.OS Validation Module
-"""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .validation_engine import ValidationEngine, ValidationResult
+from . import validation_engine
 
-__all__ = ["ValidationEngine", "ValidationResult"] 
+__all__ = [
+    'validation_engine',
+]

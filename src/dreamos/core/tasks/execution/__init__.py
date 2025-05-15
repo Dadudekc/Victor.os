@@ -1,5 +1,8 @@
-"""Task Execution module for Dream.OS."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .task_executor import TaskExecutor
+from . import task_executor
 
-__all__ = ["TaskExecutor"] 
+__all__ = [
+    'task_executor',
+]

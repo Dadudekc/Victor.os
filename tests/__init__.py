@@ -1,5 +1,26 @@
-"""Unit tests for Dream.OS. (Reconstructed __init__.py)
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-This package contains all unit tests.
-Note: Test infrastructure itself may be missing and require restoration.
-""" 
+from . import conftest
+from . import test_agent_loop
+from . import test_agent_utils
+from . import test_config_utils
+from . import test_dashboard
+from . import test_empathy_intelligence
+from . import test_jarvis_integration
+from . import test_promotion_system
+from . import test_task_utils
+from . import test_validation_utils
+
+__all__ = [
+    'conftest',
+    'test_agent_loop',
+    'test_agent_utils',
+    'test_config_utils',
+    'test_dashboard',
+    'test_empathy_intelligence',
+    'test_jarvis_integration',
+    'test_promotion_system',
+    'test_task_utils',
+    'test_validation_utils',
+]

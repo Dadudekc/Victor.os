@@ -1,34 +1,12 @@
-"""Agent Lore Writer - Minimal Scaffold
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-Generates narrative lore based on system events and mailbox instructions.
-Reconstructed after file corruption."""
-
-from . import asyncio
-from . import datetime
-from . import dreamos.core.agents.base_agent
-from . import dreamos.core.config
-from . import dreamos.core.coordination.agent_bus
-from . import dreamos.core.coordination.base_agent
-from . import dreamos.core.coordination.event_types
-from . import dreamos.core.coordination.project_board_manager
-from . import filelock
-from . import json
-from . import logging
-from . import pathlib
-from . import random
-from . import time
-from . import typing
-
+from . import agent_devlog
+from . import agent_lore_writer
+from . import task_promoter_agent
 
 __all__ = [
-
-    'AgentDevlog',
-    'AgentLoreWriter',
-    'TaskPromoterAgent',
-    'check_mailbox',
-    'generate_lore',
-    'promote_eligible_tasks',
-    'run_cycle',
-    'run_standalone',
-    'write_lore',
+    'agent_devlog',
+    'agent_lore_writer',
+    'task_promoter_agent',
 ]

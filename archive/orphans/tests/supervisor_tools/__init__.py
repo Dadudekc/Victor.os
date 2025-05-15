@@ -4,5 +4,5 @@
 from . import test_command_supervisor
 
 __all__ = [
-    "test_command_supervisor",
+    'test_command_supervisor',
 ]

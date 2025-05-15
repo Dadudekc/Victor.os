@@ -1,15 +1,8 @@
-"""Defines the abstract base class for all LLM Bridge Adapters."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import abc
-from . import dreamos.core.errors
-from . import logging
-from . import typing
-
+from . import base_adapter
 
 __all__ = [
-
-    'AdapterError',
-    'BaseAdapter',
-    'get_config_value',
-    'name',
+    'base_adapter',
 ]

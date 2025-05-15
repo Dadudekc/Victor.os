@@ -1,15 +1,8 @@
-"""Defines the base event structure for the AgentBus."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import coordination.event_types
-from . import datetime
-from . import pydantic
-from . import typing
-from . import uuid
-
+from . import base_event
 
 __all__ = [
-
-    'BaseDreamEvent',
-    'Config',
-    'get_utc_iso_timestamp',
+    'base_event',
 ]

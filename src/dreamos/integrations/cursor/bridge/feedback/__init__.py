@@ -1,5 +1,8 @@
-"""Feedback package for handling THEA responses."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .thea_response_handler import TheaResponseHandler
+from . import thea_response_handler
 
-__all__ = ['TheaResponseHandler'] 
+__all__ = [
+    'thea_response_handler',
+]

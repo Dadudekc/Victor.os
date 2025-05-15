@@ -4,5 +4,5 @@
 from . import test_find_todos
 
 __all__ = [
-    "test_find_todos",
+    'test_find_todos',
 ]

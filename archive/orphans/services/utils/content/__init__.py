@@ -1,17 +1,8 @@
-"""Package content."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import dreamos.core.logging.swarm_logger
-from . import dreamos.prompt_staging_service
-from . import governance_memory_engine
-from . import json
-from . import os
-from . import re
-from . import sys
-from . import template_engine
-from . import traceback
-
+from . import post_context_generator
 
 __all__ = [
-
-    'generate_context_from_governance',
+    'post_context_generator',
 ]

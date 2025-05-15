@@ -4,5 +4,5 @@
 from . import test_dashboard_ui
 
 __all__ = [
-    "test_dashboard_ui",
+    'test_dashboard_ui',
 ]

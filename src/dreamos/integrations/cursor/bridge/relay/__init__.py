@@ -1,5 +1,8 @@
-"""Relay package for dispatching responses to agent inboxes."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from .response_relay import ResponseRelay
+from . import response_relay
 
-__all__ = ['ResponseRelay'] 
+__all__ = [
+    'response_relay',
+]

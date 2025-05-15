@@ -4,5 +4,5 @@
 from . import test_config
 
 __all__ = [
-    "test_config",
+    'test_config',
 ]

@@ -1,34 +1,18 @@
-"""
-Project Scanner - A modular tool for analyzing project structure and dependencies.
-"""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-__version__ = "1.0.0"
-
-from .analyzers import FileAnalyzer, ImportAnalyzer, SizeAnalyzer
-from .constants import (
-    EXCLUDED_DIRS,
-    EXCLUDED_FILES,
-    LARGE_FILE_THRESHOLD_KB,
-    MAX_DIR_SIZE_MB,
-    MAX_FILE_SIZE_MB,
-    REPORT_DIR,
-    SCAN_DIRS,
-)
-from .reporters import JsonReporter, MarkdownReporter
-from .scanner import ProjectScanner
+from . import __main__
+from . import analyzers
+from . import constants
+from . import reporters
+from . import scanner
+from . import utils
 
 __all__ = [
-    "ProjectScanner",
-    "FileAnalyzer",
-    "ImportAnalyzer",
-    "SizeAnalyzer",
-    "MarkdownReporter",
-    "JsonReporter",
-    "REPORT_DIR",
-    "SCAN_DIRS",
-    "LARGE_FILE_THRESHOLD_KB",
-    "MAX_FILE_SIZE_MB",
-    "MAX_DIR_SIZE_MB",
-    "EXCLUDED_DIRS",
-    "EXCLUDED_FILES",
+    '__main__',
+    'analyzers',
+    'constants',
+    'reporters',
+    'scanner',
+    'utils',
 ]

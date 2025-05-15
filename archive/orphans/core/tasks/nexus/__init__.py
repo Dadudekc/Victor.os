@@ -1,59 +1,20 @@
-"""Implements the centralized Agent Capability Registry logic,
-integrated within the Task Nexus."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import asyncio
+from . import agent_registry_handler
 from . import capability_handler
 from . import capability_registry
-from . import collections
-from . import comms.project_board
-from . import datetime
 from . import db_task_nexus
-from . import dreamos.core.agents.capabilities.schema
-from . import dreamos.core.coordination.agent_bus
-from . import dreamos.core.coordination.event_payloads
-from . import dreamos.core.coordination.event_types
-from . import dreamos.core.db.sqlite_adapter
-from . import dreamos.utils.project_root
-from . import errors
-from . import json
-from . import logging
-from . import pathlib
-from . import pydantic
-from . import threading
-from . import time
-from . import typing
-from . import uuid
-
+from . import shadow_task_nexus
+from . import task_nexus
+from . import task_operations
 
 __all__ = [
-
-    'AgentRegistryHandler',
-    'CapabilityHandler',
-    'CapabilityRegistry',
-    'DbTaskNexus',
-    'ShadowTaskNexus',
-    'Task',
-    'TaskDict',
-    'TaskNexus',
-    'TaskOperationsHandler',
-    'add_task',
-    'find_agents_for_capability',
-    'find_capabilities',
-    'get_agent_capabilities',
-    'get_all_tasks',
-    'get_capability',
-    'get_next_task',
-    'get_pending_tasks',
-    'get_priority',
-    'get_task_by_id',
-    'get_tasks_by_tag',
-    'list_tasks',
-    'load_tasks',
-    'register_capability',
-    'stats',
-    'unregister_capability',
-    'update_capability_status',
-    'update_task',
-    'update_task_status',
-    'validate_shadow_backlog',
+    'agent_registry_handler',
+    'capability_handler',
+    'capability_registry',
+    'db_task_nexus',
+    'shadow_task_nexus',
+    'task_nexus',
+    'task_operations',
 ]

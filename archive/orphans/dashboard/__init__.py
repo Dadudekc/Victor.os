@@ -1,23 +1,10 @@
-"""Minimal Flask web application to display Dream.OS agent statuses."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import PyQt5.QtCore
-from . import PyQt5.QtWidgets
-from . import datetime
-from . import dreamos.core.coordination.agent_bus
-from . import dreamos.dashboard.models
-from . import flask
-from . import json
-from . import logging
-from . import os
-from . import pathlib
-from . import sys
-from . import threading
-
+from . import dashboard_app
+from . import dashboard_ui
 
 __all__ = [
-
-    'Dashboard',
-    'index',
-    'read_task_board',
-    'refresh',
+    'dashboard_app',
+    'dashboard_ui',
 ]

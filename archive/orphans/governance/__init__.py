@@ -1,22 +1,8 @@
-"""Manages the Agent Points System ledger."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import core.config
-from . import core.errors
-from . import filelock
-from . import json
-from . import logging
-from . import pathlib
-from . import sys
-from . import typing
-from . import utils.common_utils
-
+from . import agent_points_manager
 
 __all__ = [
-
-    'AgentPointsManager',
-    'adjust_points',
-    'determine_captain',
-    'get_agent_score',
-    'get_all_scores',
-    'get_points_for_reason',
+    'agent_points_manager',
 ]

@@ -8,8 +8,8 @@ including the bridge functionality for THEA interactions.
 from .bridge import BridgeLoop, bridge_service, cli, main_loop
 
 __all__ = [
-    'BridgeLoop',
-    'bridge_service',
-    'cli',
-    'main_loop',
+    "BridgeLoop",
+    "bridge_service",
+    "cli",
+    "main_loop",
 ]

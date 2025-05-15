@@ -1,18 +1,12 @@
-"""
-Dream.OS API Package
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-Provides API endpoints for the Dream.OS system.
-"""
+from . import empathy_logs
+from . import empathy_scoring
+from . import empathy_websocket
 
-from fastapi import FastAPI
-from .empathy_logs import router as empathy_logs_router
-from .empathy_scoring import router as empathy_scoring_router
-from .empathy_websocket import router as empathy_websocket_router
-
-app = FastAPI(title="Dream.OS API", version="1.0.0")
-
-app.include_router(empathy_logs_router)
-app.include_router(empathy_scoring_router)
-app.include_router(empathy_websocket_router)
-
-__all__ = ["app"] 
+__all__ = [
+    'empathy_logs',
+    'empathy_scoring',
+    'empathy_websocket',
+]

@@ -1,14 +1,8 @@
-"""Package dreamscape_generator."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import dreamos.core.config
-from . import logging
-from . import os
-from . import src.core.MemoryManager
-from . import src.story_generator
-from . import sys
-
+from . import main
 
 __all__ = [
-
-    'run_generation',
+    'main',
 ]

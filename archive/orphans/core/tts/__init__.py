@@ -1,23 +1,14 @@
-"""Package tts."""
+# AUTO-GENERATED __init__.py
+# DO NOT EDIT MANUALLY - changes may be overwritten
 
-from . import abc
-from . import elevenlabs
-from . import elevenlabs.client
-from . import logging
-from . import os
-from . import pyttsx3
-from . import typing
-
+from . import elevenlabs_tts
+from . import local_tts
+from . import tts_factory
+from . import tts_interface
 
 __all__ = [
-
-    'AppConfig',
-    'ElevenLabs',
-    'ElevenLabsTTS',
-    'LocalTTS',
-    'TTSInterface',
-    'get_tts_engine',
-    'is_available',
-    'save',
-    'synthesize',
+    'elevenlabs_tts',
+    'local_tts',
+    'tts_factory',
+    'tts_interface',
 ]
