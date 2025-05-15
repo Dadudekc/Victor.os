@@ -1,0 +1,60 @@
+{
+  "timestamp": "2024-03-19T10:00:00Z",
+  "merge_groups": [
+    {
+      "primary_dir": "src/dreamos/tools/agent_bootstrap_runner",
+      "duplicates": [
+        {
+          "path": "src/dreamos/tools/autonomy",
+          "files_to_merge": [
+            {
+              "source": "cursor_injector.py",
+              "target": "ui_interaction.py",
+              "action": "merge_functionality"
+            },
+            {
+              "source": "bridge_loop.py",
+              "target": "agent_loop.py",
+              "action": "merge_functionality"
+            },
+            {
+              "source": "self_prompt_loop.py",
+              "target": "agent_loop.py",
+              "action": "merge_functionality"
+            },
+            {
+              "source": "supervisor_loop.py",
+              "target": "agent_loop.py",
+              "action": "merge_functionality"
+            }
+          ],
+          "unique_files": [
+            {
+              "file": "dry_run_simulator.py",
+              "action": "move"
+            },
+            {
+              "file": "resume_autonomy_loop.py",
+              "action": "move"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "post_merge_actions": [
+    {
+      "action": "update_imports",
+      "description": "Update all imports to use agent_bootstrap_runner instead of autonomy"
+    },
+    {
+      "action": "remove_directory",
+      "path": "src/dreamos/tools/autonomy",
+      "description": "Remove autonomy directory after successful merge"
+    },
+    {
+      "action": "update_documentation",
+      "description": "Update documentation to reflect consolidated structure"
+    }
+  ]
+} 

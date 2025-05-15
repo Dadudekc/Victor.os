@@ -1,0 +1,16 @@
+codename: AUTONOMY LOOP RISING
+episode: 2
+milestones:
+- desc: Create episode_parser.py
+  id: YAML-PARSER-008
+  owner: Agent-7
+- desc: Build disperse_tasks.py
+  id: PROMPT-DISPERSER-009
+  owner: Agent-8
+task_board:
+  PROMPT-DISPERSER-009:
+    desc: Write parsed tasks into correct inbox files.
+    owner: Agent-8
+  YAML-PARSER-008:
+    desc: Parse episode YAML and extract task list per agent.
+    owner: Agent-7 

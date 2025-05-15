@@ -59,8 +59,12 @@ async def get_logs_endpoint(
         List of log entries
     """
     try:
-        return await get_logs(agent_id, log_type, start_date, end_date)
+        logs = await get_logs(agent_id, log_type, start_date, end_date)
+        return logs
     except Exception as e:
+        import traceback
+        print(f"Error in get_logs_endpoint: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/logs/export")

@@ -1,0 +1,579 @@
+2025-05-14 12:23:10,689 | INFO | Agent-2 | Seed inbox created @ runtime\agent_comms\agent_mailboxes\Agent-2\inbox\agent-2.json
+2025-05-14 12:23:10,690 | INFO | Agent-2 | Bootstrap runner init.
+2025-05-14 12:23:10,690 | INFO | dreamos.core.coordination.agent_bus | AgentBus initialized.
+2025-05-14 12:23:10,690 | ERROR | CursorInjector | Coordinates file not found: runtime\config\cursor_agent_coords.json
+2025-05-14 12:23:10,690 | ERROR | CursorInjector | Failed to load coordinates for any agent from runtime\config\cursor_agent_coords.json
+2025-05-14 12:23:10,691 | ERROR | CursorInjector | Cannot get specific agent coords: all_coords not loaded.
+2025-05-14 12:23:10,691 | WARNING | CursorInjector | Could not find/load coordinates for 'Agent-2' input_box_initial.
+2025-05-14 12:23:10,692 | ERROR | ResponseRetriever | Coordinates file not found: runtime\config\cursor_agent_coords.json
+2025-05-14 12:23:10,692 | ERROR | ResponseRetriever | Failed to load coordinates from runtime\config\cursor_agent_coords.json for agent_02
+2025-05-14 12:23:10,692 | ERROR | ResponseRetriever | Cannot get specific agent coords for 'copy_button': all_coords not loaded.
+2025-05-14 12:23:10,693 | WARNING | ResponseRetriever | Could not find/load coordinates for 'agent_02.copy_button'. Retrieval might fail.
+2025-05-14 12:23:10,693 | INFO | Agent-2 | Agent-2 bootstrap loop started. Using retriever agent_id: agent_02
+2025-05-14 12:23:10,702 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:10,709 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:10,710 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:10,711 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:15,711 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:15,715 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:15,716 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:15,716 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:20,717 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:20,721 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:20,722 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:20,722 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:25,723 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:25,727 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:25,728 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:25,728 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:30,730 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:30,734 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:30,734 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:30,735 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:35,735 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:35,739 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:35,739 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:35,739 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:40,741 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:40,745 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:40,746 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:40,746 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:45,747 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:45,751 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:45,752 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:45,752 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:50,753 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:50,757 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:50,757 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:50,758 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:23:55,758 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:23:55,762 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:23:55,763 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:23:55,763 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:00,763 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:00,767 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:00,768 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:00,768 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:05,769 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:05,773 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:05,774 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:05,774 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:10,774 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:10,778 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:10,778 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:10,778 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:15,780 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:15,784 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:15,784 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:15,785 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:20,785 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:20,789 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:20,789 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:20,790 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:25,791 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:25,795 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:25,795 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:25,795 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:30,796 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:30,801 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:30,801 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:30,802 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:35,802 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:35,806 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:35,807 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:35,807 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:40,808 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:40,812 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:40,812 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:40,813 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:45,813 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:45,817 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:45,818 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:45,818 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:50,819 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:50,823 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:50,823 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:50,824 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:24:55,824 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:24:55,828 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:24:55,828 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:24:55,829 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:00,829 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:00,833 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:00,833 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:00,834 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:05,835 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:05,839 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:05,839 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:05,840 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:10,840 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:10,844 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:10,845 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:10,845 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:15,847 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:15,852 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:15,852 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:15,853 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:20,853 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:20,857 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:20,858 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:20,858 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:25,859 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:25,863 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:25,864 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:25,864 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:30,864 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:30,868 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:30,869 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:30,869 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:35,871 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:35,875 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:35,875 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:35,876 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:40,877 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:40,882 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:40,883 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:40,883 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:45,884 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:45,888 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:45,889 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:45,889 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:50,890 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:50,894 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:50,895 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:50,895 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:25:55,895 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:25:55,899 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:25:55,899 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:25:55,900 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:00,900 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:00,904 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:00,905 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:00,905 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:05,906 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:05,910 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:05,911 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:05,911 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:10,911 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:10,915 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:10,916 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:10,917 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:15,917 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:15,921 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:15,921 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:15,921 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:20,923 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:20,927 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:20,927 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:20,928 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:25,928 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:25,932 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:25,932 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:25,933 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:30,934 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:30,938 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:30,938 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:30,939 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:35,940 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:35,944 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:35,944 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:35,945 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:40,945 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:40,962 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:40,964 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:40,965 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:45,966 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:45,972 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:45,972 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:45,973 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:50,974 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:50,978 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:50,978 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:50,979 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:26:55,979 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:26:55,983 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:26:55,983 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:26:55,984 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:00,985 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:00,990 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:00,991 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:00,991 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:05,991 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:05,995 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:05,996 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:05,996 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:10,998 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:11,003 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:11,003 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:11,004 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:16,004 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:16,009 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:16,009 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:16,010 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:21,010 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:21,015 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:21,016 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:21,016 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:26,016 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:26,020 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:26,020 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:26,021 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:31,022 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:31,026 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:31,027 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:31,027 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:36,027 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:36,031 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:36,031 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:36,032 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:41,033 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:41,037 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:41,037 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:41,037 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:46,038 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:46,045 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:46,046 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:46,046 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:51,048 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:51,052 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:51,052 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:51,053 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:27:56,053 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:27:56,057 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:27:56,058 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:27:56,058 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:01,058 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:01,062 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:01,062 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:01,062 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:06,064 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:06,070 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:06,071 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:06,071 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:11,072 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:11,076 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:11,076 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:11,077 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:16,078 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:16,082 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:16,083 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:16,083 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:21,084 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:21,090 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:21,091 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:21,091 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:26,091 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:26,095 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:26,096 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:26,096 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:31,098 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:31,102 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:31,103 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:31,104 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:36,104 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:36,108 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:36,109 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:36,109 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:41,110 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:41,114 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:41,114 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:41,115 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:46,115 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:46,119 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:46,120 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:46,120 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:51,121 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:51,125 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:51,126 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:51,126 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:28:56,126 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:28:56,130 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:28:56,131 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:28:56,131 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:01,131 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:01,135 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:01,136 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:01,136 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:06,137 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:06,141 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:06,141 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:06,142 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:11,142 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:11,146 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:11,147 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:11,147 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:16,148 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:16,152 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:16,153 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:16,153 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:21,153 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:21,157 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:21,158 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:21,158 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:26,159 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:26,163 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:26,163 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:26,164 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:31,164 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:31,168 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:31,168 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:31,169 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:36,169 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:36,173 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:36,174 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:36,174 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:41,175 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:41,179 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:41,180 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:41,180 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:46,180 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:46,184 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:46,185 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:46,185 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:51,186 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:51,190 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:51,191 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:51,191 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:29:56,191 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:29:56,195 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:29:56,195 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:29:56,196 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:01,197 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:01,201 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:01,201 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:01,202 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:06,202 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:06,206 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:06,207 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:06,207 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:11,208 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:11,212 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:11,212 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:11,213 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:16,213 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:16,217 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:16,217 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:16,218 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:21,219 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:21,228 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:21,228 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:21,229 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:26,229 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:26,234 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:26,235 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:26,235 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:31,235 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:31,239 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:31,240 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:31,240 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:36,241 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:36,245 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:36,246 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:36,247 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:41,248 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:41,252 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:41,253 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:41,253 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:46,255 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:46,259 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:46,259 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:46,260 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:51,267 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:51,273 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:51,275 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:51,275 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:30:56,276 | INFO | Agent-2 | Loaded inbox message SEED-Agent-2
+2025-05-14 12:30:56,280 | INFO | CursorInjector | Attempting to inject prompt for Agent-2: '**Agent-2 Activation**
+
+I am Agent-2. Systems nomi...'
+2025-05-14 12:30:56,280 | ERROR | CursorInjector | Cannot inject prompt: Input coordinates not loaded/found for Agent-2.
+2025-05-14 12:30:56,281 | ERROR | Agent-2 | Injection failure.
+2025-05-14 12:32:12,494 | INFO | Agent-2 | Bootstrap runner init.
+2025-05-14 12:32:12,495 | INFO | dreamos.core.coordination.agent_bus | AgentBus initialized.
+2025-05-14 12:32:12,495 | ERROR | Agent-2 | Coordinates file not found: runtime\config\cursor_agent_coords.json

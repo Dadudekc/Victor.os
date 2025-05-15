@@ -46,7 +46,7 @@
         *   [ ] Maintaining a log that can be used to generate dev posts or reports.
 
 *   [ ] **2.3. Task Management & Execution:**
-    *   [ ] I know how to locate the main Dream.OS task list / project plan (Path: "`runtime/agent_comms/project_boards/` (e.g., `task_backlog.json`, `working_tasks.json`) and active episode YAML files in `episodes/`").
+    *   [ ] I know how to locate the main Dream.OS task list / project plan (Path: "`runtime/agent_comms/project_boards/` (e.g., `task_board.json`, `task_board.json`) and active episode YAML files in `episodes/`").
     *   [ ] I will claim tasks from this list according to priority and my capabilities.
     *   [ ] I will execute tasks diligently, following all relevant protocols.
 

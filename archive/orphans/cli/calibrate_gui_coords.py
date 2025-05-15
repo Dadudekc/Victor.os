@@ -21,10 +21,10 @@ except NameError:
 # TODO (Masterpiece Review - Captain-Agent-8): Coordinate file paths should be sourced
 #      from AppConfig (e.g., GuiAutomationConfig or PathsConfig) for consistency,
 #      rather than being hardcoded here, especially if integrated into the main CLI.
-COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_coords.json"
-COPY_COORDS_FILE = PROJECT_ROOT / "config" / "cursor_agent_copy_coords.json"
+COORDS_FILE = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_coords.json"
+COPY_COORDS_FILE = PROJECT_ROOT / "runtime" / "config" / "cursor_agent_copy_coords.json"
 SESSION_START_COORDS_FILE = (
-    PROJECT_ROOT / "config" / "cursor_agent_session_start_coords.json"
+    PROJECT_ROOT / "runtime" / "config" / "cursor_agent_session_start_coords.json"
 )
 
 

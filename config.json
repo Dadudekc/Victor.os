@@ -1,0 +1,214 @@
+{
+    "input_device": "video=C270 HD WEBCAM",
+    "style": "Original",
+    "parameters": {
+        "Blur": {
+            "kernel_size": 5
+        },
+        "Solarize": {
+            "threshold": 128
+        },
+        "Threshold": {
+            "threshold": 128
+        },
+        "Advanced Cartoon": {
+            "bilateral_filter_diameter": 9,
+            "bilateral_filter_sigmaColor": 75,
+            "bilateral_filter_sigmaSpace": 75,
+            "edge_method": "Canny",
+            "edge_threshold1": 100,
+            "edge_threshold2": 200,
+            "sharpen_intensity": 1.5,
+            "enable_color_quantization": false,
+            "color_clusters": 8,
+            "enable_dynamic_lighting": false,
+            "enable_texture_overlay": false,
+            "texture_path": "textures/texture.png",
+            "texture_alpha": 0.2,
+            "custom_color_palette": false,
+            "color_palette": "vibrant",
+            "enable_ai_optimization": false
+        },
+        "Advanced Cartoon (Anime)": {
+            "anime_mode": true,
+            "bilateral_filter_diameter": 9,
+            "bilateral_filter_sigmaColor": 75,
+            "bilateral_filter_sigmaSpace": 75,
+            "edge_method": "Laplacian",
+            "edge_threshold1": 80,
+            "edge_threshold2": 160,
+            "outline_thickness": 2,
+            "posterization_levels": 4,
+            "saturation_boost": 1.4,
+            "brightness_boost": 1.1,
+            "sharpen_intensity": 1.8,
+            "enable_color_quantization": true,
+            "color_clusters": 8,
+            "enable_dynamic_lighting": true,
+            "enable_bloom_effect": true,
+            "bloom_intensity": 0.4
+        },
+        "Advanced Edge Detection": {
+            "method": "Canny",
+            "threshold1": 100,
+            "threshold2": 200,
+            "sobel_ksize": 3,
+            "blur": 3,
+            "overlay": true,
+            "glow": true,
+            "glow_intensity": 1.0,
+            "color_mode": "White",
+            "custom_r": 255,
+            "custom_g": 255,
+            "custom_b": 255
+        },
+        "Light Pencil Sketch (Color)": {
+            "lighten_background": true,
+            "lighten_threshold": 230,
+            "bilateral_filter_diameter": 7,
+            "bilateral_filter_sigmaColor": 50,
+            "bilateral_filter_sigmaSpace": 50,
+            "edge_method": "Laplacian",
+            "edge_threshold1": 60,
+            "edge_threshold2": 120,
+            "outline_thickness": 1,
+            "posterization_levels": 6,
+            "saturation_boost": 1.0,
+            "brightness_boost": 1.0,
+            "sharpen_intensity": 1.0,
+            "sketch_blend": 0.5
+        },
+        "Cartoon": {
+            "bilateral_filter_diameter": 9,
+            "bilateral_filter_sigmaColor": 75,
+            "bilateral_filter_sigmaSpace": 75,
+            "canny_threshold1": 100,
+            "canny_threshold2": 200,
+            "color_levels": 8
+        },
+        "Cartoon Whole Image": {
+            "bilateral_filter_diameter": 9,
+            "bilateral_filter_sigmaColor": 75,
+            "bilateral_filter_sigmaSpace": 75,
+            "enable_color_quantization": true,
+            "color_clusters": 8,
+            "edge_method": "Laplacian",
+            "edge_threshold1": 80,
+            "edge_threshold2": 160,
+            "edge_thickness": 1,
+            "sharpen_intensity": 1.0
+        },
+        "Edge Detection": {
+            "threshold1": 100,
+            "threshold2": 200
+        },
+        "Line Art": {
+            "threshold1": 50,
+            "threshold2": 150,
+            "aperture_size": 3
+        },
+        "Oil Painting": {
+            "size": 7,
+            "dyn_ratio": 1
+        },
+        "Pencil Sketch": {
+            "blur_intensity": 15,
+            "contrast": 1.5
+        },
+        "Sketch & Color": {
+            "blur_intensity": 21,
+            "color_strength": 0.5
+        },
+        "Stippling": {
+            "dot_density": 10,
+            "contrast_adjustment": 1.0
+        },
+        "Watercolor": {
+            "sigma_s": 60,
+            "sigma_r": 0.5
+        },
+        "Brightness Only": {
+            "brightness": 0
+        },
+        "Color Balance": {
+            "blue_shift": 0,
+            "green_shift": 0,
+            "red_shift": 0
+        },
+        "Contrast Only": {
+            "contrast": 1.0
+        },
+        "Sepia Vibrant": {
+            "sepia_intensity": 1.0,
+            "vibrance": 1.0
+        },
+        "Vibrant Color": {
+            "intensity": 1.5
+        },
+        "Bitwise AND": {
+            "mask_intensity": 128
+        },
+        "Bitwise OR": {
+            "mask_intensity": 128
+        },
+        "Bitwise XOR": {
+            "mask_intensity": 128
+        },
+        "Invert Colors": {},
+        "Invert Filter": {},
+        "Negative": {},
+        "Advanced Halftone": {
+            "dot_size": 5,
+            "threshold": 127
+        },
+        "Glitch": {
+            "max_shift": 10,
+            "num_shifts": 5
+        },
+        "Halftone": {
+            "dot_size": 3,
+            "threshold": 128
+        },
+        "Light Leak": {
+            "leak_intensity": 50,
+            "leak_color": "Red",
+            "leak_position": "Top Right"
+        },
+        "Mosaic": {
+            "tile_size": 10
+        },
+        "Black & White": {
+            "threshold": 128
+        },
+        "Motion Blur": {
+            "kernel_size": 15,
+            "angle": 0
+        },
+        "Color Quantization": {
+            "clusters": 8
+        },
+        "Emboss & Contrast": {
+            "kernel_size": 3,
+            "scale": 1.0,
+            "contrast": 1.0
+        },
+        "Glowing Edges": {
+            "edge_threshold": 100,
+            "blur_size": 7
+        },
+        "Canny Edge": {
+            "threshold1": 100,
+            "threshold2": 200,
+            "apertureSize": 3
+        },
+        "Hough Lines": {
+            "threshold": 150,
+            "minLineLength": 100,
+            "maxLineGap": 10
+        },
+        "Negative Vintage": {
+            "sepia_intensity": 1.0
+        },
+        "Original": {}
+    }
+}

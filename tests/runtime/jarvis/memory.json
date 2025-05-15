@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-05-14T14:07:30.634722",
+  "memory_items": [
+    {
+      "timestamp": "2025-05-14T14:04:16.483655",
+      "source": "user",
+      "input": "Hello",
+      "intent": "unknown",
+      "response": {
+        "content": "I'm not sure how to respond to that.",
+        "actions": []
+      }
+    },
+    {
+      "timestamp": "2025-05-14T14:04:16.483655",
+      "source": "user",
+      "input": "How are you?",
+      "intent": "status_request",
+      "response": {
+        "content": "I'm operational. System status: operational. 0 active tasks.",
+        "actions": []
+      }
+    },
+    {
+      "timestamp": "2025-05-14T14:07:30.633721",
+      "source": "user",
+      "input": "Hello",
+      "intent": "unknown",
+      "response": {
+        "content": "I'm not sure how to respond to that.",
+        "actions": []
+      }
+    },
+    {
+      "timestamp": "2025-05-14T14:07:30.633721",
+      "source": "user",
+      "input": "How are you?",
+      "intent": "status_request",
+      "response": {
+        "content": "I'm operational. System status: operational. 0 active tasks.",
+        "actions": []
+      }
+    }
+  ]
+}

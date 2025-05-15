@@ -1,64 +1,66 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
+  Alert,
+  AlertTitle,
   Box,
-  Typography,
+  Button,
+  Chip,
+  CircularProgress,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  Menu,
+  MenuItem,
   Paper,
+  Select,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  IconButton,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Grid,
-  Tooltip,
   Tabs,
-  Tab,
-  Button,
-  Menu,
-  Alert,
-  AlertTitle,
-  CircularProgress,
+  TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import {
-  Refresh as RefreshIcon,
-  FilterList as FilterIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  SwapHoriz as SwapHorizIcon,
-  Download as DownloadIcon,
-  MoreVert as MoreVertIcon,
-  TrendingDown as TrendingDownIcon,
-  Timeline as TimelineIcon,
-  Psychology as PsychologyIcon,
-  Insights as InsightsIcon
-} from '@mui/icons-material';
-import {
-  LineChart,
-  Line,
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
   Legend,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
+  Line,
+  LineChart,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
   Radar,
+  RadarChart,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
 } from 'recharts';
-import { EmpathyInsightsPanel } from './EmpathyInsightsPanel';
-import { EmpathyExportManager } from './EmpathyExportManager';
+import {
+  CheckCircle as CheckCircleIcon,
+  Download as DownloadIcon,
+  FilterList as FilterIcon,
+  Insights as InsightsIcon,
+  MoreVert as MoreVertIcon,
+  Psychology as PsychologyIcon,
+  Refresh as RefreshIcon,
+  SwapHoriz as SwapHorizIcon,
+  Timeline as TimelineIcon,
+  TrendingDown as TrendingDownIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import { AgentDNAInspector } from './AgentDNAInspector';
+import { EmpathyExportManager } from './EmpathyExportManager';
+import { EmpathyInsightsPanel } from './EmpathyInsightsPanel';
+import EmpathyScoresDashboard from './EmpathyScoresDashboard';
 import { useEmpathyStore } from '../store/empathyStore';
 
 interface DriftWarning {
@@ -704,14 +706,33 @@ const EmpathyLogsTab: React.FC<EmpathyLogsTabProps> = ({ onRefresh }) => {
   }
 
   return (
-    <Box>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="Logs" />
-          <Tab label="Insights" />
-          <Tab label="DNA Analysis" />
-        </Tabs>
-      </Box>
+    <Box sx={{ width: '100%' }}>
+      <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+        textColor="primary"
+        indicatorColor="primary"
+        variant="fullWidth"
+      >
+        <Tab 
+          icon={<FilterIcon />} 
+          label="Logs" 
+          id="empathy-tab-0"
+          aria-controls="empathy-tabpanel-0"
+        />
+        <Tab 
+          icon={<PsychologyIcon />} 
+          label="Empathy Scores" 
+          id="empathy-tab-1"
+          aria-controls="empathy-tabpanel-1" 
+        />
+        <Tab 
+          icon={<InsightsIcon />} 
+          label="Analytics" 
+          id="empathy-tab-2"
+          aria-controls="empathy-tabpanel-2" 
+        />
+      </Tabs>
 
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={2}>

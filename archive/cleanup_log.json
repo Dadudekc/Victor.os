@@ -1,0 +1,255 @@
+[
+  {
+    "timestamp": "2025-05-11T05:09:33.172414",
+    "file_path": "apps\\examples\\stubs\\agent_1_stub.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.178420",
+    "file_path": "apps\\sky_viewer\\sky_viewer.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.40"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.194435",
+    "file_path": "apps\\examples\\onboarding_message_injector.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.205447",
+    "file_path": "apps\\browser\\main.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.222460",
+    "file_path": "htmlcov\\coverage_html_cb_497bf287.js",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.236473",
+    "file_path": "setup.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.264499",
+    "file_path": "src\\dreamos\\utils\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.287519",
+    "file_path": "src\\dreamscape\\core\\content_models.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.40"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.302533",
+    "file_path": "src\\dreamscape\\events\\event_types.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.322551",
+    "file_path": "src\\dreamscape\\agents\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.340567",
+    "file_path": "src\\dreamscape\\events\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.360586",
+    "file_path": "src\\dreamscape\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.376602",
+    "file_path": "src\\dreamscape\\schemas\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.395617",
+    "file_path": "src\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.411632",
+    "file_path": "src\\dreamscape\\utils\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.428648",
+    "file_path": "src\\dreamscape\\core\\__init__.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.00"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.451669",
+    "file_path": "runtime\\temp\\agent7_validation_test.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.466682",
+    "file_path": "runtime\\agent_prototypes\\Agent-1\\visual_wait_prototype.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.484698",
+    "file_path": "analytics\\chrono_sentinel.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.504718",
+    "file_path": "analytics\\temporal_ledger_auditor.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.521732",
+    "file_path": "devtools\\dependency_extractor.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.542752",
+    "file_path": "scripts\\analyze_latency_trends.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.40"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.563770",
+    "file_path": "scripts\\bridge_health_report.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.584790",
+    "file_path": "scripts\\bridge_mutation_impact_report.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.604808",
+    "file_path": "scripts\\captain_ai_self_prompter.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.626829",
+    "file_path": "scripts\\capture_gui_snippet.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.649848",
+    "file_path": "scripts\\dreamscape_controller.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.40"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.696891",
+    "file_path": "scripts\\gpt_cursor_relay.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.716909",
+    "file_path": "scripts\\monitor_bridge.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.732924",
+    "file_path": "scripts\\mock_bridge_loop.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.752942",
+    "file_path": "scripts\\mutation_test_bridge.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:33.834016",
+    "file_path": "scripts\\run_bridge_service.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.188847",
+    "file_path": "scripts\\simulate_tool_timeout.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.247901",
+    "file_path": "scripts\\stress_test_bridge.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.273923",
+    "file_path": "scripts\\swarm_monitor.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.297946",
+    "file_path": "scripts\\task_flow_migration.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.317505",
+    "file_path": "scripts\\test_edit_file_failures.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.344530",
+    "file_path": "scripts\\test_file_integrity_recovery.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.368552",
+    "file_path": "scripts\\test_thea_bridge_pipeline.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.40"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.388571",
+    "file_path": "scripts\\test_points_config.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.10"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.407587",
+    "file_path": "scripts\\thea_to_cursor_agent.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.30"
+  },
+  {
+    "timestamp": "2025-05-11T05:09:34.434612",
+    "file_path": "tools\\generate_chatgpt_cookies.py",
+    "action": "archive",
+    "reason": "Low utility score: 0.20"
+  }
+  // ... (rest of the 1359 lines) ...
+] 

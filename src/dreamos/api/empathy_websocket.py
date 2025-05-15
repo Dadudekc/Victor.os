@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 import logging
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -97,7 +97,7 @@ class WebSocketManager:
             # Parse the log content
             log_data = parse_log_content(content)
             
-            # Always send a log_update message first
+            # Send log_update message first
             for websocket in self.active_connections:
                 try:
                     await websocket.send_json({
@@ -107,7 +107,8 @@ class WebSocketManager:
                         "agent_id": log_data["agent_id"],
                         "content": content
                     })
-                except Exception:
+                except Exception as e:
+                    logger.error(f"Error sending log update: {str(e)}")
                     continue
             
             # Process the log data
@@ -120,13 +121,10 @@ class WebSocketManager:
                 )
                 
                 if drift_warning:
-                    await self.broadcast_to_agent(
-                        log_data["agent_id"],
-                        {
-                            "type": "drift_warning",
-                            "data": drift_warning
-                        }
-                    )
+                    await self.broadcast({
+                        "type": "drift_warning",
+                        "data": drift_warning
+                    })
                 
                 # Get compliance prediction
                 prediction = self.predictive_model.predict_drift(
@@ -134,13 +132,10 @@ class WebSocketManager:
                     log_data["metrics"]
                 )
                 
-                await self.broadcast_to_agent(
-                    log_data["agent_id"],
-                    {
-                        "type": "compliance_prediction",
-                        "data": prediction
-                    }
-                )
+                await self.broadcast({
+                    "type": "compliance_prediction",
+                    "data": prediction
+                })
                 
             elif log_data["type"] == "violation":
                 # Check for violation patterns
@@ -150,35 +145,25 @@ class WebSocketManager:
                 )
                 
                 if pattern_warning:
-                    await self.broadcast_to_agent(
-                        log_data["agent_id"],
-                        {
-                            "type": "pattern_warning",
-                            "data": pattern_warning
-                        }
-                    )
+                    await self.broadcast({
+                        "type": "pattern_warning",
+                        "data": pattern_warning
+                    })
             
             # Get agent insights
             insights = self.predictive_model.get_agent_insights(log_data["agent_id"])
-            await self.broadcast_to_agent(
-                log_data["agent_id"],
-                {
-                    "type": "agent_insights",
-                    "data": insights
-                }
-            )
+            await self.broadcast({
+                "type": "agent_insights",
+                "data": insights
+            })
             
         except Exception as e:
             logger.error(f"Error processing log update: {str(e)}")
             # Broadcast error to all connected clients
-            for websocket in self.active_connections:
-                try:
-                    await websocket.send_json({
-                        "type": "log_update",
-                        "error": str(e)
-                    })
-                except Exception:
-                    continue
+            await self.broadcast({
+                "type": "log_update",
+                "error": str(e)
+            })
 
     def stop(self):
         """Stop the file system observer."""
@@ -265,13 +250,25 @@ class WebSocketManager:
 # Global WebSocket manager instance
 manager = WebSocketManager()
 
+# Create router
+router = APIRouter(prefix="/empathy/ws", tags=["empathy"])
+
+@router.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for log updates."""
-    await manager.connect(websocket)
+    """WebSocket endpoint for empathy log updates."""
     try:
+        await manager.connect(websocket)
         while True:
-            # Keep connection alive and handle client messages
-            data = await websocket.receive_text()
-            # Handle any client messages if needed
-    except WebSocketDisconnect:
-        manager.disconnect(websocket) 
+            try:
+                data = await websocket.receive_json()
+                if "log_path" in data:
+                    await manager.process_log_update(websocket, data["log_path"])
+            except WebSocketDisconnect:
+                manager.disconnect(websocket)
+                break
+            except Exception as e:
+                logger.error(f"Error in websocket connection: {str(e)}")
+                break
+    finally:
+        manager.disconnect(websocket)
+        manager.stop() 

@@ -1,0 +1,18 @@
+{
+    "Agent-7": [
+        {
+            "id": "YAML-PARSER-008",
+            "desc": "Parse episode YAML and extract task list per agent.",
+            "priority": "HIGH",
+            "deps": []
+        }
+    ],
+    "Agent-8": [
+        {
+            "id": "PROMPT-DISPERSER-009",
+            "desc": "Write parsed tasks into correct inbox files using structured prompt format.",
+            "priority": "HIGH",
+            "deps": ["YAML-PARSER-008"]
+        }
+    ]
+} 

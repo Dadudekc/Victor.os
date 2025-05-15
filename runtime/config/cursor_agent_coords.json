@@ -1,4 +1,18 @@
 {
+    "Agent-0": {
+        "input_box": {
+            "x": 643,
+            "y": 176
+        },
+        "copy_button": {
+            "x": 904,
+            "y": 299
+        },
+        "input_box_initial": {
+            "x": 681,
+            "y": 176
+        }
+    },
     "Agent-1": {
         "input_box": {
             "x": -1280,
@@ -7,6 +21,10 @@
         "copy_button": {
             "x": -1018,
             "y": 299
+        },
+        "input_box_initial": {
+            "x": -1263,
+            "y": 176
         }
     },
     "Agent-2": {
@@ -17,6 +35,10 @@
         "copy_button": {
             "x": -56,
             "y": 297
+        },
+        "input_box_initial": {
+            "x": -320,
+            "y": 176
         }
     },
     "Agent-3": {
@@ -27,6 +49,10 @@
         "copy_button": {
             "x": -1017,
             "y": 819
+        },
+        "input_box_initial": {
+            "x": -1273,
+            "y": 694
         }
     },
     "Agent-4": {
@@ -37,6 +63,10 @@
         "copy_button": {
             "x": -57,
             "y": 819
+        },
+        "input_box_initial": {
+            "x": -327,
+            "y": 698
         }
     },
     "Agent-6": {
@@ -47,6 +77,10 @@
         "copy_button": {
             "x": 1863,
             "y": 238
+        },
+        "input_box_initial": {
+            "x": 1636,
+            "y": 115
         }
     },
     "Agent-7": {
@@ -57,6 +91,10 @@
         "copy_button": {
             "x": 904,
             "y": 758
+        },
+        "input_box_initial": {
+            "x": 681,
+            "y": 638
         }
     },
     "Agent-8": {
@@ -67,6 +105,10 @@
         "copy_button": {
             "x": 1862,
             "y": 758
+        },
+        "input_box_initial": {
+            "x": 1643,
+            "y": 639
         }
     },
     "Agent-5": {
@@ -77,6 +119,14 @@
         "copy_button": {
             "x": 902,
             "y": 238
+        },
+        "input_box_initial": {
+            "x": 676,
+            "y": 116
         }
+    },
+    "agent_05": {
+        "input_box": [500, 500],
+        "submit_button": [600, 500]
     }
 }

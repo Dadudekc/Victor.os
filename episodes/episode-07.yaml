@@ -1,0 +1,157 @@
+\
+title: "Alignment & Emergence (Full Auto Arc - Phase 1)"
+preamble: "The swarm awakens to initiate Phase 1 of the Full Auto Arc. This episode marks a concerted effort to address all 13 foundational requirements for true autonomous operation, distributing these critical system-hardening tasks across the entire swarm. Success in this episode will lay the essential groundwork for a self-regulating, resilient Dream.OS. Refer to specs/FULL_AUTO_ARC.md for the overarching strategic goals."
+theme: "Comprehensive Foundational Hardening for Full Autonomy: Addressing All 13 Strategic ARC Requirements."
+north_star: "Achieve substantial, measurable progress across all 13 Full Auto Arc requirements, establishing a robust baseline for future autonomous development and operation."
+status: "planning"
+created_at: "2025-05-13T19:00:00Z"
+updated_at: "2025-05-13T19:00:00Z"
+lore_integration_flag: true
+strategic_arc_reference: "specs/FULL_AUTO_ARC.md"
+
+core_objectives:
+  - "Initiate and make significant progress on all 13 Core Requirements outlined in specs/FULL_AUTO_ARC.md."
+  - "Distribute responsibility for these 13 ARC requirements across the 8 available agents, ensuring each agent has a clear, actionable, and high-impact set of tasks."
+  - "Establish initial implementations or robust solution designs for the most critical ARC items, particularly those related to agent reliability, task management, and core utilities."
+  - "Ensure all agents actively review specs/FULL_AUTO_ARC.md and understand how their assigned tasks contribute to the larger strategic goals."
+  - "Launch DevlogAgent (ARC #related, from previous plan) to ensure visibility of this comprehensive effort."
+  - "Implement Captain Agent & Discord Commander roles to aid coordination of this wide-ranging episode."
+
+loop_enforcement_protocol: "Agents must diligently process their entire inbox queue every operational cycle, then claim and execute their assigned tasks contributing to the Full Auto Arc. Adherence to Universal and Captain Agent Loop protocols is mandatory. Loop until significant progress is made on assigned ARC requirements."
+
+definition_of_done:
+  - "A tangible deliverable (e.g., implemented module, completed utility, robust design document, functional test suite for a component) is produced for each of the 13 ARC requirements, or for significant sub-parts if a requirement is very large."
+  - "All 8 agents have successfully completed their primary assigned tasks related to the Full Auto Arc requirements, with clear validation criteria met."
+  - "The DevlogAgent is operational and actively logging progress and key events related to ARC task execution."
+  - "Captain Agent and Discord Commander roles are active and demonstrably aiding in the coordination and visibility of this episode's efforts."
+  - "A clear status report on each of the 13 ARC requirements is available at the end of the episode, detailing progress made, challenges encountered, and next steps for subsequent episodes."
+
+agent_assignments:
+  Agent-1:
+    task_id: "EP07-ARC1-AGENT-RELIABILITY"
+    title: "ARC Lead: Core Agent Reliability (Cursor Interaction & Drift/Error Handling)"
+    description: "Take lead on enhancing core agent reliability. Primary focus: ARC Requirement #1 (Robust Cursor Interaction) - investigate alternatives to pyautogui and prototype resilient interaction methods. Secondary focus: Contribute to design/prototyping for ARC Requirement #2 (Advanced Drift Detection) and ARC Requirement #3 (Sophisticated Error Handling)."
+    status: "pending"
+    assigned_agent_id: "Agent-1"
+    arc_items_addressed: ["#1", "#2", "#3"]
+    dependencies: []
+    estimated_duration: "12 hours"
+    validation_criteria:
+      - "Documented research and prototype for robust Cursor interaction created."
+      - "Design proposal for advanced drift detection and error handling submitted."
+      - "Initial resilient interaction method passes basic functionality tests."
+
+  Agent-2:
+    task_id: "EP07-ARC2-TASK-MGMT"
+    title: "ARC Lead: Task Management & Orchestration (Execution & Pending States)"
+    description: "Take lead on overhauling task management. Primary focus: ARC Requirement #5 (Implement Task Execution Logic in orchestrator.py/task_nexus.py). Secondary focus: ARC Requirement #6 (Automated Handling of PENDING States) - design and propose mechanisms."
+    status: "pending"
+    assigned_agent_id: "Agent-2"
+    arc_items_addressed: ["#5", "#6"]
+    dependencies: []
+    estimated_duration: "10 hours"
+    validation_criteria:
+      - "Core task execution logic (claim, update, complete/fail) implemented and tested."
+      - "Design document for automated handling of PENDING states created."
+
+  Agent-3:
+    task_id: "EP07-ARC3-CORE-UTILS-BRIDGE"
+    title: "ARC Lead: Core Utilities & Bridge Functionality"
+    description: "Take lead on completing foundational system components. Primary focus: ARC Requirement #8 (Complete Core Utilities - select 2-3 critical `TODOs` from gui_utils, html_parser, ethos/validator, empathy). Secondary focus: ARC Requirement #9 (Functional Integration Bridge - resolve key placeholders)."
+    status: "pending"
+    assigned_agent_id: "Agent-3"
+    arc_items_addressed: ["#8", "#9"]
+    dependencies: []
+    estimated_duration: "10 hours"
+    validation_criteria:
+      - "Selected core utilities are implemented, and `TODOs` resolved with tests."
+      - "Key bridge placeholders resolved, and basic bridge functionality tested."
+
+  Agent-4:
+    task_id: "EP07-ARC4-TESTING-VALIDATION"
+    title: "ARC Lead: Comprehensive Testing & Self-Validation Environment"
+    description: "Take lead on establishing robust testing. Primary focus: ARC Requirement #11 (Implement Comprehensive Test Suite - begin with critical placeholder test files like test_validation_utils.py, test_task_utils.py). Secondary focus: ARC Requirement #4 (Effective Self-Validation Tools - design how agents can use these tests)."
+    status: "pending"
+    assigned_agent_id: "Agent-4"
+    arc_items_addressed: ["#11", "#4"]
+    dependencies: []
+    estimated_duration: "12 hours"
+    validation_criteria:
+      - "At least two placeholder test files are fully implemented with passing tests."
+      - "Design document for agent self-validation environment and tool usage created."
+
+  Agent-5:
+    task_id: "EP07-ARC5-DOCS-CONFIG"
+    title: "ARC Lead: Documentation Clarity & Dynamic Configuration"
+    description: "Take lead on improving system knowledge and data handling. Primary focus: ARC Requirement #13 (Resolve Documentation TODOs - tackle critical placeholders in onboarding and operational loop docs). Secondary focus: ARC Requirement #7 (Dynamic Configuration/Data Management - prototype a solution for one type of placeholder)."
+    status: "pending"
+    assigned_agent_id: "Agent-5"
+    arc_items_addressed: ["#13", "#7"]
+    dependencies: []
+    estimated_duration: "8 hours"
+    validation_criteria:
+      - "Critical documentation TODOs in onboarding/operational protocols are resolved."
+      - "Prototype for dynamic management of one configuration placeholder type is functional."
+
+  Agent-6:
+    task_id: "EP07-ARC6-CAPTAIN-RESILIENCE"
+    title: "Implement Captain Role & ARC Resilience/Recovery Hooks"
+    description: "Assume the 'Captain Agent' role for Episode 07, focusing on coordination support for this ARC. Primary task: ARC Requirement #12 (Implement Resilience & Recovery Hooks - focus on `episode_hooks.py` TODOs and ensuring agents can invoke resilience protocols)."
+    status: "pending"
+    assigned_agent_id: "Agent-6"
+    arc_items_addressed: ["#12", "Captain Role Implementation"]
+    dependencies: []
+    estimated_duration: "8 hours"
+    validation_criteria:
+      - "Captain Agent responsibilities for Ep07 documented and being enacted."
+      - "Resilience/recovery hooks in `episode_hooks.py` are implemented or design refined."
+      - "Process for agents to invoke resilience protocols tested/documented."
+
+  Agent-7:
+    task_id: "EP07-ARC7-DISCORD-SEARCH"
+    title: "Implement Discord Commander & ARC Code/Asset Search"
+    description: "Assume the 'Discord Commander' role for Episode 07, ensuring robust Discord bot integration. Primary task: ARC Requirement #10 (Effective Code/Asset Search for Agents - research and propose/prototype a search mechanism or tool for agents)."
+    status: "pending"
+    assigned_agent_id: "Agent-7"
+    arc_items_addressed: ["#10", "Discord Commander Role Implementation"]
+    dependencies: []
+    estimated_duration: "8 hours"
+    validation_criteria:
+      - "Discord Commander responsibilities for Ep07 documented and being enacted; bot functional."
+      - "Research and proposal/prototype for an agent code/asset search mechanism delivered."
+
+  Agent-8:
+    task_id: "EP07-ARC8-DEVLOG-MONITOR"
+    title: "Implement DevlogAgent & Monitor ARC Progress"
+    description: "Implement and launch the DevlogAgent as detailed in `docs/designs/automated_devlog_hook.md` to provide visibility for the Full Auto Arc. Monitor overall ARC progress based on devlogs and agent reports. Provide regular status summaries."
+    status: "pending"
+    assigned_agent_id: "Agent-8"
+    arc_items_addressed: ["DevlogAgent Implementation (supports all ARC visibility)"]
+    dependencies: [] 
+    estimated_duration: "Ongoing for Episode 07"
+    validation_criteria:
+      - "DevlogAgent is operational and logging key events from other agents working on ARC tasks."
+      - "Periodic ARC progress summaries are generated based on devlogs."
+
+swarm_coordination:
+  status: "planning"
+  communication_channels:
+    - "Episode 07 Kickoff Broadcast (via Agent Inboxes)"
+    - "Agent Mailboxes for task updates and status reports"
+    - "runtime/devlogs/ (once operational) for activity monitoring"
+    - "Discord (once Agent-7 has it operational) for broader announcements/alerts"
+  shared_resources:
+    - "specs/FULL_AUTO_ARC.md"
+    - "episodes/episode-07.yaml (this file)"
+
+risks_and_mitigation:
+  - risk: "Scope of addressing all 13 ARC items in one episode is too large, leading to agent overload or superficial implementations."
+    mitigation: "Agents should focus on achieving tangible progress and robust 'Phase 1' deliverables for their assigned ARC items, rather than complete resolution of every sub-point. Prioritize foundational aspects. Captain Agent (Agent-6) to monitor for overload."
+  - risk: "Dependencies between ARC items cause bottlenecks (e.g., DevlogAgent needed for monitoring)."
+    mitigation: "Agents to communicate dependencies early. If Agent-8 is blocked by DevlogAgent, they can use fallback monitoring methods initially. Critical path items (like task execution) to get priority."
+
+metrics:
+  - "percentage_of_arc_requirements_with_active_progress: target 100%"
+  - "number_of_arc_requirements_with_phase1_deliverable_completed: target >= 10"
+  - "agent_protocol_compliance_rate_during_arc_tasks: target 100%"
+  - "devlog_operational_status: target_active_and_logging" 

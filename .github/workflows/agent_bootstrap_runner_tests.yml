@@ -1,0 +1,99 @@
+name: Agent Bootstrap Runner Tests
+
+on:
+  push:
+    paths:
+      - 'src/dreamos/tools/agent_bootstrap_runner/**'
+      - 'tests/tools/agent_bootstrap_runner/**'
+      - '.github/workflows/agent_bootstrap_runner_tests.yml'
+  pull_request:
+    paths:
+      - 'src/dreamos/tools/agent_bootstrap_runner/**'
+      - 'tests/tools/agent_bootstrap_runner/**'
+      - '.github/workflows/agent_bootstrap_runner_tests.yml'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+
+    - name: Run tests with coverage
+      run: |
+        pytest tests/tools/agent_bootstrap_runner/ \
+          --cov=src/dreamos/tools/agent_bootstrap_runner \
+          --cov-report=xml \
+          --cov-report=term-missing
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: agent-bootstrap-runner
+        name: codecov-umbrella
+        fail_ci_if_error: true
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+
+    - name: Run linters
+      run: |
+        flake8 src/dreamos/tools/agent_bootstrap_runner tests/tools/agent_bootstrap_runner
+        black --check src/dreamos/tools/agent_bootstrap_runner tests/tools/agent_bootstrap_runner
+        isort --check-only src/dreamos/tools/agent_bootstrap_runner tests/tools/agent_bootstrap_runner
+        mypy src/dreamos/tools/agent_bootstrap_runner
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+
+    - name: Run security checks
+      run: |
+        bandit -r src/dreamos/tools/agent_bootstrap_runner
+        safety check 

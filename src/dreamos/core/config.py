@@ -679,6 +679,14 @@ class OperatingMode(str, Enum):
 print("DEBUG_CONFIG: Before AppConfig class definition")
 
 
+# EDIT START: Add TaskMonitoringConfig Model before AppConfig
+class TaskMonitoringConfig(BaseModel):
+    check_interval_seconds: int = Field(300, description="How often to check for stalled tasks")
+    pending_timeout_seconds: int = Field(3600, description="Time in seconds before a PENDING task is considered stalled")
+    escalation_strategy: str = Field("log_only", description="Strategy for handling stalled tasks")
+# EDIT END
+
+
 class AppConfig(BaseSettings):
     """Main application configuration loaded from environment variables and/or config file."""
 
@@ -730,6 +738,13 @@ class AppConfig(BaseSettings):
         None, description="Configuration for the Agent Points System"
     )
     # --- EDIT END ---
+    
+    # EDIT START: Add task_monitoring field
+    task_monitoring: TaskMonitoringConfig = Field(
+        default_factory=TaskMonitoringConfig,
+        description="Configuration for task monitoring service",
+    )
+    # EDIT END
 
     project_root_internal: Path = Field(exclude=True, default_factory=Path.cwd)
 
@@ -979,3 +994,22 @@ print("DEBUG_CONFIG: End of dreamos.core.config.py, AppConfig.model_rebuild() ca
 #         logging.basicConfig(level=logging.WARNING)
 #         logger.error(f"Fallback logging setup failed due to config error: {e}. Using basic console logging.")
 #         _logging_configured = True # Prevent further attempts
+
+# EDIT START: Add TaskMonitoringConfig Model
+class TaskMonitoringConfig(BaseModel):
+    check_interval_seconds: int = Field(300, description="How often to check for stalled tasks")
+    pending_timeout_seconds: int = Field(3600, description="Time in seconds before a PENDING task is considered stalled")
+    escalation_strategy: str = Field("log_only", description="Strategy for handling stalled tasks")
+# EDIT END
+
+# EDIT START: Update AppConfig to include TaskMonitoringConfig
+class AppConfig(BaseModel):
+    # ... existing fields ...
+    
+    task_monitoring: TaskMonitoringConfig = Field(
+        default_factory=TaskMonitoringConfig,
+        description="Configuration for task monitoring service",
+    )
+    
+    # ... existing fields ...
+# EDIT END

@@ -5,11 +5,11 @@ boards, emphasizing the current dual-queue system.
 
 ## Boards
 
-- `task_backlog.json`: The main repository for all planned tasks not yet ready for execution.
-- `task_ready_queue.json`: Contains tasks that are validated, have dependencies met, and are ready for an agent to claim and start working on.
-- `working_tasks.json`: Tasks currently claimed and being actively executed by an agent.
-- `completed_tasks.json`: Tasks that have been successfully finished and reviewed/approved.
-- `future_tasks.json`: (Legacy/Deprecated) This board is no longer the primary source for pending tasks. Use `task_backlog.json` and `task_ready_queue.json`.
+- `task_board.json`: The main repository for all planned tasks not yet ready for execution.
+- `task_board.json`: Contains tasks that are validated, have dependencies met, and are ready for an agent to claim and start working on.
+- `task_board.json`: Tasks currently claimed and being actively executed by an agent.
+- `task_board.json`: Tasks that have been successfully finished and reviewed/approved.
+- `future_tasks.json`: (Legacy/Deprecated) This board is no longer the primary source for pending tasks. Use `task_board.json` and `task_board.json`.
 
 ## Format
 
@@ -40,21 +40,21 @@ _(Note: Timestamp fields should use ISO 8601 UTC format)_
 
 1.  **Task Acquisition:** When ready for work, an agent should:
 
-    - Scan `task_ready_queue.json` for suitable PENDING tasks (considering priority
+    - Scan `task_board.json` for suitable PENDING tasks (considering priority
       and agent capabilities). Dependencies should already be met for tasks in this queue.
     - Use the `ProjectBoardManager` utility to claim the task. This utility handles:
         - Assigning the task to the agent (`assigned_agent` field).
         - Updating the `status` to `WORKING`.
         - Updating `timestamp_updated` and adding `timestamp_claimed_utc`.
-        - **Atomically moving the _entire task object_ from `task_ready_queue.json` to
-          `working_tasks.json`.**
+        - **Atomically moving the _entire task object_ from `task_board.json` to
+          `task_board.json`.**
 
 2.  **Task Completion (Submit for Review):** Upon successful completion **and passing self-validation checks** (see ATAP protocol):
 
     - Use the `ProjectBoardManager` utility to update the task object's `status` to `COMPLETED_PENDING_REVIEW`.
     - Add relevant completion details, results, or commit hashes to `notes`.
     - Update `timestamp_updated`.
-    - **Leave the task object in `working_tasks.json`.**
+    - **Leave the task object in `task_board.json`.**
     - **Notify the Supervisor** (e.g., via mailbox message) that the task is
       ready for review, referencing the `task_id`.
 
@@ -62,17 +62,17 @@ _(Note: Timestamp fields should use ISO 8601 UTC format)_
     - Update the task object's `status` to `FAILED` or `BLOCKED`.
     - Add detailed reasons and error messages to `notes`.
     - Update `timestamp_updated`.
-    - Leave the task in `working_tasks.json` for Supervisor review or
+    - Leave the task in `task_board.json` for Supervisor review or
       reassignment.
     - Notify the Supervisor via their mailbox.
 
 ## Supervisor Responsibilities (Summary - See Onboarding Protocols for Full Details)
 
-- **Review:** Monitor `working_tasks.json` for tasks with status
+- **Review:** Monitor `task_board.json` for tasks with status
   `COMPLETED_PENDING_REVIEW`.
 - **Validate:** Assess completed work against requirements and standards.
 - **Approve:** If approved, update status to `COMPLETED` and **atomically move
-  the task object from `working_tasks.json` to `completed_tasks.json`.**
+  the task object from `task_board.json` to `task_board.json`.**
 - **Reject:** If rejected, update status (e.g., back to `PENDING`), add feedback
   to `notes`, and notify the relevant agent.
 
@@ -80,7 +80,7 @@ _(Note: Timestamp fields should use ISO 8601 UTC format)_
 
 **DEPRECATION WARNING: Direct File Manipulation**
 
-Directly editing the task board JSON files (`task_backlog.json`, `task_ready_queue.json`, `working_tasks.json`, `completed_tasks.json`) using general-purpose file editing tools (like the `edit_file` tool) is **STRONGLY DEPRECATED** and may be disabled in the future. Direct edits bypass essential safeguards like file locking, atomic writes, and schema validation, leading to a high risk of data corruption, race conditions, and system instability.
+Directly editing the task board JSON files (`task_board.json`, `task_board.json`, `task_board.json`, `task_board.json`) using general-purpose file editing tools (like the `edit_file` tool) is **STRONGLY DEPRECATED** and may be disabled in the future. Direct edits bypass essential safeguards like file locking, atomic writes, and schema validation, leading to a high risk of data corruption, race conditions, and system instability.
 
 **Mandatory Tooling:**
 

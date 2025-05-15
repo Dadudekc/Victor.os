@@ -199,3 +199,80 @@ class TaskNexus:
                 if task.task_id == task_id:
                     return task.model_copy()
             return None
+            
+    # ENHANCEMENT: Additional execution-related methods
+    
+    def mark_task_in_progress(self, task_id: str, agent_id: str) -> bool:
+        """Mark a task as in progress by a specific agent.
+        
+        Args:
+            task_id: The ID of the task to mark as in progress
+            agent_id: The ID of the agent working on the task
+            
+        Returns:
+            bool: True if the task was found and updated, False otherwise
+        """
+        with self._lock:
+            for task in self.tasks:
+                if task.task_id == task_id:
+                    task.status = "in_progress"
+                    task.claimed_by = agent_id
+                    task.updated_at = datetime.now(timezone.utc).isoformat()
+                    self._save()
+                    logger.info(f"Task {task_id} marked in progress by {agent_id}")
+                    return True
+            logger.warning(f"Task ID {task_id} not found for status update.")
+            return False
+
+    def mark_task_completed(self, task_id: str, result: Optional[Any] = None) -> bool:
+        """Mark a task as completed with optional result.
+        
+        Args:
+            task_id: The ID of the task to mark as completed
+            result: Optional result data to store with the task
+            
+        Returns:
+            bool: True if the task was found and updated, False otherwise
+        """
+        return self.update_task_status(task_id, "completed", result)
+
+    def mark_task_failed(self, task_id: str, error: Optional[Any] = None) -> bool:
+        """Mark a task as failed with error details.
+        
+        Args:
+            task_id: The ID of the task to mark as failed
+            error: Optional error information to store with the task
+            
+        Returns:
+            bool: True if the task was found and updated, False otherwise
+        """
+        return self.update_task_status(task_id, "failed", {"error": error})
+        
+    def get_tasks_by_agent(self, agent_id: str) -> List[Task]:
+        """Get all tasks claimed by a specific agent.
+        
+        Args:
+            agent_id: The ID of the agent
+            
+        Returns:
+            List of tasks claimed by the agent
+        """
+        with self._lock:
+            tasks_copy = [
+                task.model_copy() for task in self.tasks if task.claimed_by == agent_id
+            ]
+        return tasks_copy
+        
+    def get_pending_tasks(self, limit: Optional[int] = None) -> List[Task]:
+        """Get pending tasks, optionally limited to a specific number.
+        
+        Args:
+            limit: Optional maximum number of tasks to return
+            
+        Returns:
+            List of pending tasks
+        """
+        pending_tasks = self.get_all_tasks(status="pending")
+        if limit is not None and limit > 0:
+            return pending_tasks[:limit]
+        return pending_tasks

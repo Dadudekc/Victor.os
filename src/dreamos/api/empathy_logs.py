@@ -33,10 +33,26 @@ def parse_log_content(content: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing parsed log data
     """
+    # Handle empty content
+    if not content or not content.strip():
+        return {
+            "timestamp": None,
+            "agent_id": None,
+            "type": "compliance",  # Default type
+            "severity": "info",
+            "metrics": {
+                "loop_duration": 0.0,
+                "reflection_gap": 0.0,
+                "task_complexity": 0.0,
+                "compliance_score": 0.0
+            }
+        }
+    
     # Determine log type
-    if "# Violation Detected" in content or "VIOLATION" in content.splitlines()[0]:
+    first_line = content.splitlines()[0] if content.splitlines() else ""
+    if "# Violation Detected" in content or "VIOLATION" in first_line:
         log_type = "violation"
-    elif "# Compliance Check" in content or "COMPLIANCE" in content.splitlines()[0]:
+    elif "# Compliance Check" in content or "COMPLIANCE" in first_line:
         log_type = "compliance"
     else:
         log_type = "compliance"  # Default to compliance if not clear

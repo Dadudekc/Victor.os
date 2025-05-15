@@ -1,188 +1,295 @@
 """
-Agent Identity Management for Dream.OS
+Agent Identity Module
 
-This module handles agent identity verification and ethos compliance during initialization
-and runtime. It ensures that all agents maintain alignment with Dream.OS principles.
+This module handles agent identity initialization, validation against ethos principles,
+and integration with the empathy scoring system.
 """
 
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
 from .ethos_validator import EthosValidator
+from .empathy_scoring import EmpathyScorer
+from .devlog_formatter import DevlogFormatter
 
 logger = logging.getLogger(__name__)
 
 class AgentIdentity:
-    """Manages agent identity and ethos compliance."""
+    """Manages agent identity including ethos alignment and empathy metrics."""
     
-    def __init__(self, agent_id: str, identity_path: Optional[str] = None):
-        """Initialize agent identity manager.
+    def __init__(self, agent_id: str, ethos_path: Optional[str] = None):
+        """Initialize agent identity.
         
         Args:
             agent_id: Unique identifier for the agent
-            identity_path: Path to identity configuration. If None, uses default location.
+            ethos_path: Path to ethos.json. If None, uses default location.
         """
         self.agent_id = agent_id
-        self.identity_path = identity_path or str(
-            Path(__file__).parent.parent.parent / "config" / "agents" / f"{agent_id}.json"
-        )
-        self.ethos_validator = EthosValidator()
-        self.identity = self._load_identity()
-        self.devlog_path = Path(__file__).parent.parent.parent / "runtime" / "logs" / "empathy"
-        self.devlog_path.mkdir(parents=True, exist_ok=True)
+        self.ethos_path = ethos_path or str(Path(__file__).parent.parent.parent / "dreamos_ai_organizer" / "ethos.json")
+        self.validator = EthosValidator(self.ethos_path)
+        self.scorer = EmpathyScorer(self.ethos_path)
+        self.devlog = DevlogFormatter()
+        self.creation_time = datetime.now().isoformat()
+        self.last_validated = None
+        self.identity_data = self._initialize_identity()
+        self.previous_score = self.identity_data["empathy_score"]
+        self.score_history = []
         
-    def _load_identity(self) -> Dict:
-        """Load and validate agent identity configuration."""
+    def _initialize_identity(self) -> Dict:
+        """Initialize the agent's identity data."""
         try:
-            with open(self.identity_path, 'r') as f:
-                identity = json.load(f)
-            self._validate_identity_structure(identity)
+            # Load ethos
+            with open(self.ethos_path, 'r') as f:
+                ethos = json.load(f)
+                
+            # Create initial identity
+            identity = {
+                "agent_id": self.agent_id,
+                "created_at": self.creation_time,
+                "ethos_version": ethos.get("version", "unknown"),
+                "core_values": {value: 1.0 for value in ethos.get("core_values", {}).keys()},
+                "principles": {principle: 1.0 for principle in ethos.get("operational_principles", {}).keys()},
+                "empathy_score": 75.0,  # Default starting score
+                "empathy_status": "developing",
+                "validation_history": []
+            }
+            
+            # Log initialization
+            self._log_identity_update("Initialized agent identity with ethos version " + identity["ethos_version"])
+            
             return identity
         except Exception as e:
-            logger.error(f"Failed to load agent identity: {e}")
-            raise
+            logger.error(f"Failed to initialize agent identity: {e}")
+            # Create fallback identity
+            return {
+                "agent_id": self.agent_id,
+                "created_at": self.creation_time,
+                "ethos_version": "unknown",
+                "core_values": {},
+                "principles": {},
+                "empathy_score": 60.0,  # Lower default score for fallback case
+                "empathy_status": "needs_improvement",
+                "validation_history": []
+            }
             
-    def _validate_identity_structure(self, identity: Dict) -> None:
-        """Validate the structure of the identity configuration."""
-        required_sections = [
-            "version", "created_at", "agent_type", "capabilities",
-            "ethos_alignment", "personality_traits"
-        ]
-        for section in required_sections:
-            if section not in identity:
-                raise ValueError(f"Missing required section: {section}")
-                
-    def validate_ethos_compliance(self) -> Tuple[bool, Dict]:
-        """Validate agent's current state against ethos principles.
+    def validate(self) -> Tuple[bool, List[str]]:
+        """Validate agent identity against ethos principles.
         
         Returns:
-            Tuple[bool, Dict]: (is_compliant, validation_results)
+            Tuple[bool, List[str]]: (is_valid, list_of_violations)
         """
-        # Check current state alignment
-        alignment = self.ethos_validator.check_ethos_alignment(self.identity)
+        is_valid, violations = self.validator.validate_identity(self.identity_data)
         
-        # Log validation results
-        self._log_validation_results(alignment)
+        # Update validation history
+        self.last_validated = datetime.now().isoformat()
+        self.identity_data["validation_history"].append({
+            "timestamp": self.last_validated,
+            "valid": is_valid,
+            "violations": violations
+        })
         
-        # Determine compliance
-        is_compliant = all(score >= 0.7 for score in alignment["metrics"].values())
-        
-        return is_compliant, alignment
-        
-    def _log_validation_results(self, alignment: Dict) -> None:
-        """Log validation results to devlog."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = self.devlog_path / f"ethos_validation_{self.agent_id}_{timestamp}.json"
-        
-        with open(log_file, 'w') as f:
-            json.dump({
-                "agent_id": self.agent_id,
-                "timestamp": datetime.now().isoformat(),
-                "alignment": alignment
-            }, f, indent=2)
+        # Log validation result
+        if is_valid:
+            self._log_identity_update("Identity validated successfully against ethos")
+        else:
+            self._log_ethos_violation(violations)
             
-    def handle_violation(self, violation: Dict) -> None:
-        """Handle ethos violation.
+        return is_valid, violations
+        
+    def update_empathy_score(self) -> Dict:
+        """Update the agent's empathy score based on logs.
+        
+        Returns:
+            Dict containing updated empathy score metrics
+        """
+        # Store the previous score for delta calculation
+        self.previous_score = self.identity_data.get("empathy_score", 75.0)
+        
+        # Calculate current empathy score
+        score_data = self.scorer.calculate_agent_score(self.agent_id)
+        
+        # Update identity with new score
+        self.identity_data["empathy_score"] = score_data["score"]
+        self.identity_data["empathy_status"] = score_data["status"]
+        
+        # Calculate score delta and track history
+        score_delta = score_data["score"] - self.previous_score
+        score_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "score": score_data["score"],
+            "previous_score": self.previous_score,
+            "delta": score_delta,
+            "status": score_data["status"]
+        }
+        self.score_history.append(score_entry)
+        
+        # Limit history size to prevent unbounded growth
+        if len(self.score_history) > 100:
+            self.score_history = self.score_history[-100:]
+        
+        # Format delta for logging
+        delta_text = f"+{score_delta:.1f}" if score_delta >= 0 else f"{score_delta:.1f}"
+        
+        # Log score update with delta
+        self._log_identity_update(
+            f"Updated empathy score to {score_data['score']:.1f} ({score_data['status']}) [Δ {delta_text}]",
+            score_delta=score_delta,
+            score_history=self.score_history[-10:]  # Include recent history
+        )
+        
+        return score_data
+        
+    def _log_identity_update(self, message: str, **additional_data) -> None:
+        """Log an identity update event.
         
         Args:
-            violation: Dictionary containing violation details
+            message: The log message
+            **additional_data: Additional data to include in the log
         """
-        # Log violation
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = self.devlog_path / f"violation_{self.agent_id}_{timestamp}.json"
-        
-        with open(log_file, 'w') as f:
-            json.dump({
-                "agent_id": self.agent_id,
-                "timestamp": datetime.now().isoformat(),
-                "violation": violation
-            }, f, indent=2)
+        try:
+            # Create log entry with identity state
+            log_data = {
+                "identity_state": self.identity_data
+            }
             
-        # Escalate if needed
-        if violation.get("severity", "low") in ["high", "critical"]:
-            self._escalate_to_thea(violation)
+            # Add any additional data
+            if additional_data:
+                log_data.update(additional_data)
             
-    def _escalate_to_thea(self, violation: Dict) -> None:
-        """Escalate violation to THEA for review."""
-        # TODO: Implement THEA escalation
-        logger.warning(f"Escalating violation to THEA: {violation}")
-        
-    def update_identity(self, updates: Dict) -> None:
-        """Update agent identity with new information.
-        
-        Args:
-            updates: Dictionary containing identity updates
-        """
-        # Validate updates against ethos
-        if not self.ethos_validator.validate_action({
-            "type": "identity_update",
-            "context": self.identity,
-            "updates": updates
-        }):
-            raise ValueError("Updates violate ethos principles")
+            # Check if this is a score update
+            if "score_delta" in additional_data:
+                # Create a more detailed log for score changes
+                score_delta = additional_data["score_delta"]
+                
+                # Determine if this is significant based on the magnitude
+                is_significant = abs(score_delta) >= 5.0
+                
+                # Create a log file path that includes the agent ID
+                log_dir = Path("runtime/logs/agents")
+                log_dir.mkdir(parents=True, exist_ok=True)
+                
+                log_file = log_dir / f"{self.agent_id}_score_evolution.log"
+                
+                # Append to the dedicated score evolution log
+                try:
+                    with open(log_file, "a") as f:
+                        f.write(f"[{datetime.now().isoformat()}] {message}\n")
+                        f.write(f"  Previous: {self.previous_score:.1f}, Current: {self.identity_data['empathy_score']:.1f}, Delta: {score_delta:.1f}\n")
+                        f.write(f"  Status: {self.identity_data['empathy_status']}\n")
+                        
+                        # Add trending information if we have enough history
+                        if len(self.score_history) >= 3:
+                            recent_deltas = [entry["delta"] for entry in self.score_history[-3:]]
+                            avg_delta = sum(recent_deltas) / len(recent_deltas)
+                            trend = "improving" if avg_delta > 0 else "declining" if avg_delta < 0 else "stable"
+                            f.write(f"  Trend: {trend} (avg Δ: {avg_delta:.1f} over last 3 updates)\n")
+                            
+                        f.write("\n")
+                except Exception as e:
+                    logger.error(f"Failed to write to score evolution log: {e}")
             
-        # Apply updates
-        self.identity.update(updates)
-        self.identity["last_updated"] = datetime.now().isoformat()
-        
-        # Save updated identity
-        with open(self.identity_path, 'w') as f:
-            json.dump(self.identity, f, indent=2)
+            # Write to the main devlog
+            self.devlog.format_and_write_identity_update(
+                agent_id=self.agent_id,
+                message=message,
+                identity_state=self.identity_data,
+                **additional_data
+            )
             
+        except Exception as e:
+            logger.error(f"Failed to log identity update: {e}")
+            
+    def _log_ethos_violation(self, violations: List[str]) -> None:
+        """Log ethos violations."""
+        try:
+            self.devlog.format_and_write_violation(
+                agent_id=self.agent_id,
+                violation_type="ethos_identity_violation",
+                severity="high",
+                description=f"Identity validation failed with {len(violations)} violations",
+                details="\n".join(violations),
+                context={
+                    "identity_state": self.identity_data,
+                    "validation_time": self.last_validated
+                }
+            )
+            
+            # Check if violations are severe enough to escalate
+            if len(violations) > 3:
+                self._escalate_violations(violations)
+        except Exception as e:
+            logger.error(f"Failed to log ethos violation: {e}")
+            
+    def _escalate_violations(self, violations: List[str]) -> None:
+        """Escalate severe violations to THEA or other supervisory system."""
+        logger.warning(f"ESCALATING {len(violations)} ethos violations for agent {self.agent_id}")
+        
+        # This is a placeholder for actual escalation logic
+        # In a real implementation, this would:
+        # 1. Format a structured alert
+        # 2. Send it to THEA or another oversight system
+        # 3. Potentially trigger a human review or agent pause
+        
+        logger.warning(
+            f"ESCALATION ALERT - Agent: {self.agent_id}, "
+            f"Violations: {', '.join(violations[:3])}{'...' if len(violations) > 3 else ''}"
+        )
+        
     def get_identity_summary(self) -> Dict:
-        """Get a summary of the agent's identity and ethos alignment.
+        """Get a summary of the agent's identity.
         
         Returns:
             Dict containing identity summary
         """
         return {
-            "agent_id": self.agent_id,
-            "agent_type": self.identity["agent_type"],
-            "capabilities": self.identity["capabilities"],
-            "ethos_alignment": self.identity["ethos_alignment"],
-            "personality_traits": self.identity["personality_traits"],
-            "last_updated": self.identity["last_updated"]
+            "agent_id": self.identity_data["agent_id"],
+            "created_at": self.identity_data["created_at"],
+            "ethos_version": self.identity_data["ethos_version"],
+            "empathy_score": self.identity_data["empathy_score"],
+            "empathy_status": self.identity_data["empathy_status"],
+            "last_validated": self.last_validated,
+            "validation_status": self.identity_data["validation_history"][-1]["valid"] 
+                if self.identity_data["validation_history"] 
+                else None,
+            "score_history": self.score_history[-5:] if self.score_history else []
         }
-        
-    def enforce_identity(self, action: Dict) -> bool:
-        """Enforce identity constraints on an action.
+
+    def get_score_history(self, limit: int = 10) -> List[Dict]:
+        """Get the agent's empathy score history.
         
         Args:
-            action: Dictionary containing action details
+            limit: Maximum number of history entries to return
             
         Returns:
-            bool: True if action is allowed, False otherwise
+            List of score history entries
         """
-        # Check against capabilities
-        if not self._check_capabilities(action):
-            return False
-            
-        # Check against personality traits
-        if not self._check_personality_traits(action):
-            return False
-            
-        # Check against ethos alignment
-        if not self._check_ethos_alignment(action):
-            return False
-            
-        return True
+        return self.score_history[-limit:] if len(self.score_history) > limit else self.score_history
+
+
+def initialize_agent(agent_id: str) -> AgentIdentity:
+    """Initialize an agent with identity and ethos validation.
+    
+    Args:
+        agent_id: Unique identifier for the agent
         
-    def _check_capabilities(self, action: Dict) -> bool:
-        """Check if action is within agent's capabilities."""
-        required_capabilities = action.get("required_capabilities", [])
-        return all(
-            capability in self.identity["capabilities"]
-            for capability in required_capabilities
-        )
+    Returns:
+        AgentIdentity: Initialized agent identity
+    """
+    try:
+        # Create and validate agent identity
+        identity = AgentIdentity(agent_id)
+        is_valid, violations = identity.validate()
         
-    def _check_personality_traits(self, action: Dict) -> bool:
-        """Check if action aligns with agent's personality traits."""
-        # TODO: Implement personality trait validation
-        return True
+        if not is_valid:
+            logger.warning(f"Agent {agent_id} identity validation failed: {violations}")
+            
+        # Calculate initial empathy score
+        identity.update_empathy_score()
         
-    def _check_ethos_alignment(self, action: Dict) -> bool:
-        """Check if action aligns with agent's ethos alignment."""
-        return self.ethos_validator.validate_action(action) 
+        return identity
+    except Exception as e:
+        logger.error(f"Failed to initialize agent {agent_id}: {e}")
+        raise 
