@@ -1,11 +1,3 @@
-Got it. Here’s the corrected and clarified version of the Dream.OS Command Dashboard README, now precisely reflecting:
-	•	Agent inbox as a personal workspace, not a message receiver
-	•	Task claiming from project/task board
-	•	Validation protocol: Each task must define how others can verify it
-	•	All files must include runnable, testable material — no “theory-only” files
-
-⸻
-
 Dream.OS Command Dashboard
 
 A PyQt5-based mission control panel for supervising Cursor-based Dream.OS agents, verifying project progress, and enforcing system standards.
@@ -112,4 +104,3 @@ Final Notes
 	•	Agent workspaces are visible, shared, and subject to review
 	•	All contributions must be provably valid, not just theoretical
 	•	The devlog.md and inbox.json must be kept updated per agent loop cycle
-
