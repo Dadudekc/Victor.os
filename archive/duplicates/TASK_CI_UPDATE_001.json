@@ -1,0 +1,25 @@
+{
+    "task_id": "CI-UPDATE-001",
+    "title": "Update CI Script Paths",
+    "description": "Update CI workflow configuration to use new maintenance tool paths",
+    "assigned_to": "Agent-4",
+    "priority": "HIGH",
+    "status": "PENDING",
+    "details": {
+        "target_files": [
+            ".github/workflows/ci.yml"
+        ],
+        "required_changes": [
+            "Update script paths to use tools/maintenance/",
+            "Verify CI workflow still functions correctly",
+            "Update any related test configurations"
+        ],
+        "verification": [
+            "CI workflow runs successfully with new paths",
+            "All maintenance tools are properly referenced",
+            "No broken dependencies in CI pipeline"
+        ]
+    },
+    "dependencies": ["POST-RESTRUCTURE-FILESCAN-001"],
+    "estimated_effort": "MEDIUM"
+} 

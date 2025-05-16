@@ -27,8 +27,6 @@ def update_imports_in_file(filepath, dry_run=True):
         with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
 
-        original_content = content
-
         for pattern, replacement in PATTERNS_TO_REPLACE.items():
             content, num_subs = pattern.subn(replacement, content)
             if num_subs > 0:

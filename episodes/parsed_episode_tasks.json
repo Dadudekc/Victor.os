@@ -1,65 +1,194 @@
 {
   "metadata": {
-    "episode_id": "03",
-    "title": "Autonomy Reinforcement and Failure Analysis",
+    "episode_id": "EPISODE-LAUNCH-FINAL-LOCK",
+    "title": "Dream.OS: Swarm Lock Sequence",
     "status": "Planned",
     "timestamp": "{{iso_timestamp_utc()}}",
     "objectives": [
-      "Identify and analyze causes of overnight autonomy failures from Episode 2.",
-      "Refine agent protocols and feedback mechanisms.",
-      "Implement real-time monitoring and error detection.",
-      "Verify improvements with a controlled test run.",
-      "Document all changes and findings."
+      "Restore and activate core agent fleet with enhanced autonomy",
+      "Implement swarm intelligence and tool chain restoration",
+      "Enable comprehensive monitoring and feedback systems",
+      "Complete UI integration and external pipeline connections",
+      "Validate and prepare for launch"
     ]
   },
   "milestones": [
     {
-      "id": "ANALYZE-FAILURE-001",
-      "title": "Failure Analysis",
-      "description": "Conduct a thorough analysis of the factors that led to the failure of overnight autonomy runs in Episode 2.",
-      "tasks": []
+      "id": "CORE-LOOP-RESTORATION",
+      "title": "Core Loop Restoration",
+      "description": "Restore and enhance the core agent fleet with improved autonomy and feedback mechanisms",
+      "tasks": [
+        "RESTORE-AGENT-FLEET-001",
+        "ACTIVATE-CURSOR-ORCHESTRATOR-002",
+        "REWIRE-AGENT-BOOTSTRAP-003",
+        "REBOOT-BRIDGE-LOOP-004",
+        "RECONNECT-FEEDBACK-ENGINE-005"
+      ]
     },
     {
-      "id": "REFINE-PROTOCOLS-002",
-      "title": "Protocol Refinement",
-      "description": "Update agent protocols to incorporate more robust feedback loops and error handling mechanisms.",
-      "tasks": []
+      "id": "CONTEXT-RECOVERY",
+      "title": "Context and Recovery Systems",
+      "description": "Implement advanced context routing and recovery mechanisms for agent resilience",
+      "tasks": [
+        "ENABLE-AUTONOMY-RECOVERY-006",
+        "ACTIVATE-SHADOW-NEXUS-007",
+        "ENABLE-CONTEXT-ROUTER-008"
+      ]
     },
     {
-      "id": "IMPLEMENT-MONITORING-003",
-      "title": "Enhanced Monitoring",
-      "description": "Set up enhanced monitoring to track agent activity and detect lapses in real time.",
-      "tasks": []
+      "id": "SWARM-INTELLIGENCE",
+      "title": "Swarm Intelligence and Tools",
+      "description": "Deploy swarm controller and restore essential tool chain components",
+      "tasks": [
+        "LAUNCH-SWARM-CONTROLLER-009",
+        "BOOT-UP-TOOL-CHAIN-010",
+        "ACTIVATE-AGENT-DEVLOG-011",
+        "ACTIVATE-AGENT-LOREWRITER-012"
+      ]
     },
     {
-      "id": "TEST-RUN-004",
-      "title": "Test Run",
-      "description": "Conduct a test run with updated protocols to verify improved overnight autonomy.",
-      "tasks": []
+      "id": "UI-INTEGRATION",
+      "title": "UI and External Pipeline Integration",
+      "description": "Complete dashboard integration and external communication systems",
+      "tasks": [
+        "COMPLETE-DASHBOARD-HOOKS-013",
+        "ACTIVATE-DISCORD-BRIDGE-014",
+        "INTEGRATE-VOTING-MIXIN-015"
+      ]
     },
     {
-      "id": "REPORT-FINDINGS-005",
-      "title": "Findings Report",
-      "description": "Compile a report summarizing the findings and improvements from the test run.",
-      "tasks": []
-    },
-    {
-      "id": "OPTIMIZE-SCRIPTS-006",
-      "title": "Script Optimization",
-      "description": "Optimize and streamline the scripts used for agent execution to reduce latency and errors.",
-      "tasks": []
-    },
-    {
-      "id": "DOCUMENT-CHANGES-007",
-      "title": "Documentation",
-      "description": "Document all changes made during the refinement process for future reference and onboarding.",
-      "tasks": []
+      "id": "LAUNCH-PREPARATION",
+      "title": "Launch Preparation and Validation",
+      "description": "Final validation and launch preparation activities",
+      "tasks": [
+        "RUN-SWARM-CYCLE-TEST-016",
+        "RECORD-DEMO-SCENE-017",
+        "DEPLOY-LANDING-PAGE-018"
+      ]
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "RESTORE-AGENT-FLEET-001": {
+      "type": "migration",
+      "priority": "high",
+      "status": "pending"
+    },
+    "ACTIVATE-CURSOR-ORCHESTRATOR-002": {
+      "type": "automation",
+      "priority": "high",
+      "status": "pending"
+    },
+    "REWIRE-AGENT-BOOTSTRAP-003": {
+      "type": "infrastructure",
+      "priority": "high",
+      "status": "pending"
+    },
+    "REBOOT-BRIDGE-LOOP-004": {
+      "type": "integration",
+      "priority": "high",
+      "status": "pending"
+    },
+    "RECONNECT-FEEDBACK-ENGINE-005": {
+      "type": "resilience",
+      "priority": "critical",
+      "status": "pending"
+    },
+    "ENABLE-AUTONOMY-RECOVERY-006": {
+      "type": "monitoring",
+      "priority": "high",
+      "status": "pending"
+    },
+    "ACTIVATE-SHADOW-NEXUS-007": {
+      "type": "task-system",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "ENABLE-CONTEXT-ROUTER-008": {
+      "type": "routing",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "LAUNCH-SWARM-CONTROLLER-009": {
+      "type": "orchestrator",
+      "priority": "critical",
+      "status": "pending"
+    },
+    "BOOT-UP-TOOL-CHAIN-010": {
+      "type": "execution",
+      "priority": "high",
+      "status": "pending"
+    },
+    "ACTIVATE-AGENT-DEVLOG-011": {
+      "type": "telemetry",
+      "priority": "high",
+      "status": "pending"
+    },
+    "ACTIVATE-AGENT-LOREWRITER-012": {
+      "type": "narrative",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "COMPLETE-DASHBOARD-HOOKS-013": {
+      "type": "UX",
+      "priority": "high",
+      "status": "pending"
+    },
+    "ACTIVATE-DISCORD-BRIDGE-014": {
+      "type": "comms",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "INTEGRATE-VOTING-MIXIN-015": {
+      "type": "governance",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "RUN-SWARM-CYCLE-TEST-016": {
+      "type": "validation",
+      "priority": "critical",
+      "status": "pending"
+    },
+    "RECORD-DEMO-SCENE-017": {
+      "type": "marketing",
+      "priority": "medium",
+      "status": "pending"
+    },
+    "DEPLOY-LANDING-PAGE-018": {
+      "type": "growth",
+      "priority": "medium",
+      "status": "pending"
+    }
+  },
   "dependencies": [],
-  "success_criteria": [],
-  "rollout_plan": {},
-  "monitoring": {},
-  "parsed_at": "2025-05-11T08:50:03.600373"
+  "success_criteria": [
+    "All core agents restored and operational",
+    "Swarm controller successfully coordinating agent activities",
+    "Feedback engine capturing and analyzing agent loops",
+    "UI dashboard fully integrated with agent metrics",
+    "Successful completion of full swarm cycle test"
+  ],
+  "rollout_plan": {
+    "phase1": "Core Loop Restoration",
+    "phase2": "Context and Recovery Systems",
+    "phase3": "Swarm Intelligence and Tools",
+    "phase4": "UI and External Pipeline Integration",
+    "phase5": "Launch Preparation and Validation"
+  },
+  "monitoring": {
+    "metrics": [
+      "Agent uptime and performance",
+      "Swarm coordination efficiency",
+      "Feedback loop response times",
+      "UI dashboard responsiveness",
+      "External pipeline latency"
+    ],
+    "alerts": [
+      "Critical agent failures",
+      "Swarm coordination breakdowns",
+      "Feedback engine errors",
+      "UI integration issues",
+      "External pipeline disruptions"
+    ]
+  },
+  "parsed_at": "{{iso_timestamp_utc()}}"
 }

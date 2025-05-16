@@ -4,11 +4,15 @@ import logging
 import threading
 import time
 
+from docs.development.guides.onboarding.utils.enforcement import (
+    ComplianceError,
+    check_agent_compliance,
+)
+
 from dreamos.agents.chatgpt_web_agent import ChatGPTWebAgent
 from dreamos.agents.cursor_worker import run as cursor_run
 from dreamos.agents.supervisor_agent import SupervisorAgent
 from dreamos.core.config import load_app_config
-from docs.development.guides.onboarding.utils.enforcement import check_agent_compliance, ComplianceError
 
 # Enforce using local blob channel for inter-agent communication
 # os.environ["USE_LOCAL_BLOB"] = "1"
@@ -72,7 +76,9 @@ def main():
             simulate=args.simulate,
         )
 
-        chatgpt_thread = threading.Thread(target=chatgpt_loop, args=(chatgpt_agent,))  # noqa: F821
+        chatgpt_thread = threading.Thread(
+            target=chatgpt_loop, args=(chatgpt_agent,)
+        )  # noqa: F821
         chatgpt_thread.daemon = True
         chatgpt_thread.start()
         logging.info("ChatGPT Agent thread started.")
@@ -93,7 +99,7 @@ def main():
     # EDIT START: Enforce agent compliance at boot
     STRICT_COMPLIANCE = True  # Set to True to block noncompliant agents
     ONBOARDING_BASE_PATH = "docs/development/guides/onboarding"
-    
+
     if not args.simulate:
         for i in range(1, args.workers + 1):
             worker_id = f"cursor_{i:03}"
@@ -103,10 +109,12 @@ def main():
                     agent_id=agent_id,
                     base_path=ONBOARDING_BASE_PATH,
                     strict=STRICT_COMPLIANCE,
-                    escalate_violations=True
+                    escalate_violations=True,
                 )
                 if not compliance_result["compliant"]:
-                    logging.error(f"Agent {agent_id} failed compliance. Not launching worker.")
+                    logging.error(
+                        f"Agent {agent_id} failed compliance. Not launching worker."
+                    )
                     continue  # Skip launching this agent
             except ComplianceError as ce:
                 logging.error(f"Agent {agent_id} blocked by strict compliance: {ce}")

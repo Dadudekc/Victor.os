@@ -2,11 +2,12 @@ import alpaca_trade_api as tradeapi
 
 # ✅ Dynamic Import Handling (Supports module & standalone execution)
 try:
-    from basicbot.logger import setup_logging  
-    from basicbot.config import config  
+    from basicbot.config import config
+    from basicbot.logger import setup_logging
 except ImportError:
-    from logger import setup_logging  
-    from config import config  
+    from config import config
+    from logger import setup_logging
+
 
 class TradingAPI:
     """
@@ -18,19 +19,21 @@ class TradingAPI:
         """Initialize the Alpaca API client and logger."""
         # ✅ Setup logger early in __init__
         self.logger = setup_logging("trading_api_alpaca")
-        
+
         # ✅ Check API credentials
         if not config.ALPACA_API_KEY or not config.ALPACA_SECRET_KEY:
-            self.logger.error("🚨 Missing Alpaca API credentials! Check your `.env` file.")
+            self.logger.error(
+                "🚨 Missing Alpaca API credentials! Check your `.env` file."
+            )
             raise ValueError("❌ Alpaca API credentials not found!")
 
         # ✅ Initialize the API connection
         try:
             self.api = tradeapi.REST(
-                config.ALPACA_API_KEY, 
-                config.ALPACA_SECRET_KEY, 
-                config.ALPACA_BASE_URL, 
-                api_version="v2"
+                config.ALPACA_API_KEY,
+                config.ALPACA_SECRET_KEY,
+                config.ALPACA_BASE_URL,
+                api_version="v2",
             )
             self.logged_in = True
             self.logger.info("✅ Alpaca TradingAPI initialized successfully.")
@@ -54,13 +57,11 @@ class TradingAPI:
 
         try:
             order = self.api.submit_order(
-                symbol=symbol,
-                qty=qty,
-                side=side,
-                type="market",
-                time_in_force="gtc"
+                symbol=symbol, qty=qty, side=side, type="market", time_in_force="gtc"
             )
-            self.logger.info(f"✅ Order Executed: {side.upper()} {qty} shares of {symbol}")
+            self.logger.info(
+                f"✅ Order Executed: {side.upper()} {qty} shares of {symbol}"
+            )
             return {"id": order.id, "state": order.status}
         except Exception as e:
             self.logger.error(f"❌ Order Failed: {e}")
@@ -73,7 +74,9 @@ class TradingAPI:
         :return: Dictionary with "buying_power" and "equity", or None if failed.
         """
         if not self.logged_in:
-            self.logger.error("🚫 Cannot fetch account details. TradingAPI is logged out!")
+            self.logger.error(
+                "🚫 Cannot fetch account details. TradingAPI is logged out!"
+            )
             return None
 
         try:
@@ -109,11 +112,12 @@ class TradingAPI:
         self.logged_in = False
         self.logger.info("🛑 Logged out from Alpaca TradingAPI.")
 
+
 # ✅ Run standalone for quick testing.
 if __name__ == "__main__":
     try:
         api = TradingAPI()
-        
+
         # ✅ Fetch account info
         account_info = api.get_account()
         api.logger.info(f"📊 Account Info: {account_info}")

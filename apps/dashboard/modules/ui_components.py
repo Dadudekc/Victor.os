@@ -1,19 +1,30 @@
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QTextEdit, QComboBox, QMenu,
-    QAction, QStyleFactory, QProgressBar, QWidget,
-    QGroupBox, QGridLayout
-)
-from PyQt5.QtCore import Qt, QTimer, pyqtSlot, QSize
-from PyQt5.QtGui import QPainter, QColor, QPen
-from typing import Dict, Any, List, Optional
+import asyncio
 import json
-from pathlib import Path
-from .voice_commands import VoiceCommandHandler
 import time
 from datetime import datetime
-import asyncio
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from PyQt5.QtCore import QSize, Qt, QTimer, pyqtSlot
+from PyQt5.QtGui import QColor, QPainter, QPen
+from PyQt5.QtWidgets import (
+    QAction,
+    QComboBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMenu,
+    QProgressBar,
+    QPushButton,
+    QStyleFactory,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
 from .notifier import Notifier
+from .voice_commands import VoiceCommandHandler
 
 # Theme configuration
 THEME = {
@@ -124,7 +135,7 @@ AgentTab(QWidget):
                 self.refresh_content()
                 
     def refresh_content(self):
-        from .task_manager import load_inbox, load_devlog
+        from .task_manager import load_devlog, load_inbox
         inbox = load_inbox(self.agent_id, self.inbox_base)
         devlog = load_devlog(self.agent_id, self.inbox_base)
         

@@ -210,5 +210,54 @@
             "sepia_intensity": 1.0
         },
         "Original": {}
+    },
+    "alerting": {
+        "enabled": true,
+        "discord": {
+            "enabled": false,
+            "token": "",
+            "channel_id": ""
+        },
+        "severity_levels": {
+            "DRIFT": "warning",
+            "RECOVERY": "info",
+            "ERROR": "error"
+        },
+        "rate_limits": {
+            "global": {
+                "max_alerts_per_hour": 100,
+                "max_alerts_per_minute": 20
+            },
+            "per_agent": {
+                "cooldown_seconds": 300,
+                "max_alerts_per_hour": 30
+            },
+            "alert_type": {
+                "cooldown_seconds": 60
+            }
+        },
+        "aggregation": {
+            "enabled": true,
+            "window_seconds": 600,
+            "min_alerts_for_aggregation": 2,
+            "alert_types": ["DRIFT", "ERROR", "RECOVERY"],
+            "include_details": true,
+            "cleanup_interval_seconds": 60
+        },
+        "trend_detection": {
+            "window_days": 7,
+            "fatigue_threshold": 0.2,
+            "cluster_threshold": 3,
+            "regression_threshold": 0.15
+        },
+        "retention": {
+            "max_alerts": 1000,
+            "max_age_days": 30
+        }
+    },
+    "gui_automation": {
+        "cursor_window_title": "Cursor",
+        "input_coords_file_path": "runtime/config/cursor_agent_coords.json",
+        "copy_coords_file_path": "runtime/config/copy_coords.json"
     }
 }

@@ -1,1667 +1,3368 @@
 {
+    "jest.config.js": {
+        "hash": "41c77841f1c9a27dad5b3e9f70a45b84"
+    },
+    "jest.setup.js": {
+        "hash": "f8140a60da33c189879b5b98fe7a4a77"
+    },
+    "jest.env.js": {
+        "hash": "c9c8e5505d77083897925904d25de942"
+    },
+    "apps\\dashboard\\__init__.py": {
+        "hash": "4d63678e9781a5b086f5b4a91f838211"
+    },
+    "test_monitoring.py": {
+        "hash": "4e8f1efba1d1e08865208cd0bbcdeb93"
+    },
     "setup.py": {
-        "hash": "9e62f1234467913301d5671541cd67be"
+        "hash": "12549d3901c70b55e7c71578a15129b1"
     },
-    "src\\__init__.py": {
-        "hash": "9fb2a3a32f7cd814efbd079e4c411c85"
+    "apps\\dashboard\\modules\\notifier.py": {
+        "hash": "b9b1c5fdae1bdcce099a43dd6e774279"
     },
-    "src\\dreamscape\\__init__.py": {
-        "hash": "1ac13ef99d34252c923c0966279aeced"
+    "apps\\dashboard\\modules\\task_manager.py": {
+        "hash": "986353389f2591108e0828d29414ae3f"
     },
-    "src\\dreamscape\\agents\\__init__.py": {
-        "hash": "613d457d3f63cb9e231d793d8641bbfc"
+    "test_jarvis.py": {
+        "hash": "cfac0355bdd3a51cf95f7bd356631d1a"
     },
-    "src\\dreamscape\\core\\__init__.py": {
-        "hash": "0d4e9733a5df55da87c9390d28c66935"
+    "apps\\dashboard\\modules\\thea_handler.py": {
+        "hash": "3bfbdee24702c40d7a15f8ce852dd9ad"
     },
-    "src\\dreamscape\\events\\__init__.py": {
-        "hash": "28cf293013bde769a3bd31a42dbfe2c6"
+    "apps\\dashboard\\modules\\__init__.py": {
+        "hash": "71dddc1c21e4a4e733dfbf091b24c1bf"
     },
-    "src\\dreamscape\\schemas\\__init__.py": {
-        "hash": "3ad0c280e36dd10b1787c226183be217"
+    "apps\\dashboard\\tests\\run_tests.py": {
+        "hash": "2e40531972e4933256235d76bdf49570"
     },
-    "src\\dreamscape\\utils\\__init__.py": {
-        "hash": "4842b6415cc7b48102b72f085e0b450f"
+    "apps\\dashboard\\tests\\test_agent_autonomy_manager.py": {
+        "hash": "b8922d3c552b16885647228541229063"
     },
-    "sandbox\\analysis\\__init__.py": {
-        "hash": "f91c6f47cccf47e86ba07f1e7ab6366e"
+    "apps\\dashboard\\tests\\test_dashboard.py": {
+        "hash": "fc8fd25177cf207114137aba04673a0e"
     },
-    "archive\\orphans\\services\\utils\\chatgpt_scraper.py": {
-        "hash": "aa3ab77c07b3f4b7edb3a839512efc9c"
+    "apps\\dashboard\\tests\\test_voice_commands.py": {
+        "hash": "37a52105718032f752113c046d19a94f"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\rust\\build.rs": {
-        "hash": "0b2cbd48303c3b143e77897d7e83da39"
+    "apps\\dashboard\\tests\\test_notifier.py": {
+        "hash": "ce74b9afc856a8ef8cd28d7c95a98fec"
     },
-    "scripts\\bridge_mutation_impact_report.py": {
-        "hash": "83e90b16d3f463904e73b9cfab65e998"
+    "apps\\dashboard\\tests\\test_resume_autonomy.py": {
+        "hash": "5466a2d630bd442d2af9bb791055393f"
     },
-    "archive\\orphans\\tests\\core\\coordination\\tasks\\test_project_board_manager.py": {
-        "hash": "30e3214fbf8e9fe93a8f5af1086b780e"
-    },
-    "archive\\orphans\\tests\\tools\\test_base.py": {
-        "hash": "d9351cf6d0c53c935c592100a6abf86f"
-    },
-    "archive\\orphans\\automation\\execution\\virtual_desktop_runner.py": {
-        "hash": "f3a099a0deb2c15e9ea2fab55a87228f"
-    },
-    "sandbox\\utils\\__init__.py": {
-        "hash": "b2f743269580fb3ab3f898894d9ba7d6"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tree_sitter_rust\\__init__.py": {
-        "hash": "808af18ee977a05a329820baf32a83da"
-    },
-    "src\\dreamscape\\agents\\planner_agent.py": {
-        "hash": "c39c93bdda8a9995ce07c4b1937272ac"
-    },
-    "sandbox\\bridge\\gpt_cursor_relay.py": {
-        "hash": "7ba7d572ff26bec7ebe61778487deb24"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\db_task_nexus.py": {
-        "hash": "4d54aeb361891cf2adf5722b26fcf63e"
-    },
-    "devtools\\__init__.py": {
-        "hash": "67eb14412139ca7ced1320cdef3e7138"
-    },
-    "archive\\orphans\\tests\\memory\\test_memory_compaction.py": {
-        "hash": "2a26ee8e924688c9182ab2086864eb69"
-    },
-    "archive\\orphans\\modules\\scraper\\chatgpt_scraper\\__init__.py": {
-        "hash": "37e8e18ed1b99d1f1f020d5424ae8dbd"
-    },
-    "sandbox\\ironvale_stream_watcher\\summary_stream_watch.py": {
-        "hash": "e1b6974d050f5d78ae2f51b2713a3fd4"
-    },
-    "archive\\orphans\\utils\\schema_validator.py": {
-        "hash": "45af1fe675377a9b3a658ca798726667"
-    },
-    "archive\\orphans\\memory\\memory_manager.py": {
-        "hash": "f419d425b57219d6f2a3d59542c64c4b"
-    },
-    "archive\\orphans\\tests\\social\\tests\\social\\strategies\\__init__.py": {
-        "hash": "0c8dd997e1a4dfeb1382cb628afc24fb"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\conftest.py": {
-        "hash": "23d9ee47843d03350a759ed907aab571"
-    },
-    "archive\\orphans\\core\\health_checks\\cursor_status_check.py": {
-        "hash": "6a1b37a6841aded09a919662ec7c5d1e"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\examples\\text-editor-component.js": {
-        "hash": "403e5e6020475626ee86934bcd0c9971"
-    },
-    "archive\\orphans\\tests\\coordination\\dispatchers\\test_base_dispatcher.py": {
-        "hash": "548f1522f18b7e742f5a274d46738a92"
-    },
-    "archive\\orphans\\tests\\tools\\__init__.py": {
-        "hash": "0632b445761de3f143362994aaed37a1"
-    },
-    "archive\\orphans\\services\\utils\\devlog_dispatcher.py": {
-        "hash": "1c65615e1800cb5104ba54233b49206f"
-    },
-    "archive\\orphans\\chat_engine\\prompt_execution_service.py": {
-        "hash": "72eed0f2b38bb437dc8c1d7637b16039"
-    },
-    "archive\\orphans\\core\\awareness\\context_manager.py": {
-        "hash": "a458b62375e40d67aa0bfa911daff051"
-    },
-    "archive\\orphans\\tests\\memory\\test_compaction_utils.py": {
-        "hash": "019958156151df8120e9e5ce489c3c68"
-    },
-    "archive\\orphans\\cli\\run_e2e_bridge_test.py": {
-        "hash": "c35eef25af48050238b8d84744c48f27"
+    "apps\\dashboard\\tests\\__init__.py": {
+        "hash": "3a1a8dd68071ecfd87ee1d79c51da58f"
     },
     "archive\\orphans\\agents\\chatgpt_web_agent.py": {
-        "hash": "2edf8efb614d15ec12f4015f875d3952"
+        "hash": "166124da51a8a6e6c242480dd0c7dddb"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\grammar.js": {
-        "hash": "09e80f9a7f34e4da29a537e2a85cffa9"
+    "apps\\dashboard\\core\\autonomy\\agent_autonomy_manager.py": {
+        "hash": "4e6047b09049ffc0aac15065e2ed652d"
     },
-    "archive\\orphans\\utils\\ai_output_logger.py": {
-        "hash": "d567ed997dc036b4d8cc56ef576111a3"
+    "apps\\dashboard\\modules\\voice_commands.py": {
+        "hash": "c34a14de8d5cf30087c5be15d30e080d"
     },
-    "tools\\generate_chatgpt_cookies.py": {
-        "hash": "9d38fbe9559ab6278c493bcda3b999c7"
+    "apps\\dashboard\\modules\\resume_autonomy.py": {
+        "hash": "bda0fdb930d41208e470a6a9dfc016f1"
     },
-    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_task_handling.py": {
-        "hash": "156fb22334e8e70d1759540577ab3a17"
+    "apps\\dashboard\\agent_dashboard.py": {
+        "hash": "b476190a3edcb2530824c341c03d6dfb"
     },
-    "archive\\orphans\\chat_engine\\feedback_engine.py": {
-        "hash": "ba40aa74641c94ce5aa37d6b09787480"
+    "archive\\orphans\\agents\\agent9_response_injector.py": {
+        "hash": "4e91316963f466f4dcca69df82312d4e"
     },
-    "archive\\orphans\\tests\\dashboard\\test_dashboard_ui.py": {
-        "hash": "43efd9b36f7f10608f14b3df0f4c1282"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\schema.py": {
-        "hash": "86140e5326f84abd802c2c65e0fbb097"
-    },
-    "archive\\orphans\\governance\\agent_points_manager.py": {
-        "hash": "6b06f989dadb16b2435dacb9ddcaaef5"
-    },
-    "archive\\orphans\\identity\\store.py": {
-        "hash": "4c8136ab10a939b7443d8321a55f8217"
-    },
-    "scripts\\test_thea_bridge_pipeline.py": {
-        "hash": "0ffab71ea25d6db40403535c921cdf98"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\agent_registry_handler.py": {
-        "hash": "a3b1fe615386f2494343cfb7c96172d5"
-    },
-    "archive\\orphans\\tests\\coordination\\dispatchers\\__init__.py": {
-        "hash": "dd84e56c25b5dbcbc3a06f5f45bdc7c6"
-    },
-    "archive\\orphans\\tests\\core\\test_config.py": {
-        "hash": "bab259bafb9652cf1ccd5b581d4b80f2"
-    },
-    "archive\\orphans\\tests\\dreamscape\\agents\\test_planner_agent.py": {
-        "hash": "9129d8aabea527a772c029c9bd60a649"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\grammar.js": {
-        "hash": "da089402534b292a76fe2078d23942fe"
-    },
-    "archive\\orphans\\core\\events\\base_event.py": {
-        "hash": "4d58a7c267f707e9debc2631160c698d"
-    },
-    "archive\\orphans\\tests\\coordination\\__init__.py": {
-        "hash": "fb0cf51fa4e95d181c28bb229e65fcf7"
-    },
-    "archive\\orphans\\tools\\maintenance\\validate_onboarding_prompts.py": {
-        "hash": "d57710c0b050a446241f913af3f74e9c"
-    },
-    "devtools\\dependency_extractor.py": {
-        "hash": "640eb896d73c58c7b6aeff7087ed3d14"
-    },
-    "archive\\orphans\\tests\\core\\utils\\__init__.py": {
-        "hash": "a4e5338a4b990162195fb7d56e3a16de"
-    },
-    "tools\\__init__.py": {
-        "hash": "52ff9d722616e5ca41c7dd521686cd0c"
-    },
-    "runtime\\temp\\edit_test_files\\test.py": {
-        "hash": "d41d8cd98f00b204e9800998ecf8427e"
-    },
-    "archive\\orphans\\tests\\cli\\__init__.py": {
-        "hash": "eab744c85482a2528d486b37f1b9c43a"
-    },
-    "archive\\orphans\\core\\feedback\\thea_feedback_ingestor.py": {
-        "hash": "e8b23f796cc56c9c18c328ae5e29bc53"
-    },
-    "archive\\orphans\\channels\\local_blob_channel.py": {
-        "hash": "00c2574bb60db343b2c6180ca1d8c48e"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\rust\\lib.rs": {
-        "hash": "c0e5d6c0132f21cd92e5fdab8f8e0e90"
-    },
-    "analytics\\scripts\\__init__.py": {
-        "hash": "d9c4fe5073eb17bbe9574a3d812a15f7"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\variables.js": {
-        "hash": "9eab3f5d208701bbaed045f45f33542d"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\setup.py": {
-        "hash": "c1fd9cb3c4c1d500c5fbde59b9894131"
-    },
-    "sandbox\\bridge_validator\\__init__.py": {
-        "hash": "0b9b1fbd08938ac3f72d84f40d4731d0"
-    },
-    "archive\\orphans\\automation\\cursor_orchestrator.py": {
-        "hash": "b66b7786b41870a5d0629d434aa28820"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\index.d.ts": {
-        "hash": "4e9d45333836de075092e97363b8bea4"
-    },
-    "archive\\orphans\\tests\\supervisor_tools\\__init__.py": {
-        "hash": "7e8dafc804a3e3e30683441314dd5554"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tests\\test_binding.py": {
-        "hash": "0701565ea245d018760bc7c5d4a37b13"
-    },
-    "bridge\\relay\\__init__.py": {
-        "hash": "75250e4ea30b9b4e72d150943e727ab5"
-    },
-    "archive\\orphans\\core\\db\\sqlite_adapter.py": {
-        "hash": "ef6335f914d4379ccc222abbc5c191fb"
-    },
-    "archive\\orphans\\chat_engine\\discord_dispatcher.py": {
-        "hash": "945ccfca523ab4667adac63eecc9623a"
-    },
-    "archive\\orphans\\cli\\main.py": {
-        "hash": "e3369382c6f7c2f362ad5afa408cc6d0"
-    },
-    "archive\\orphans\\tests\\hooks\\__init__.py": {
-        "hash": "e23f0a84d1193fae7a3991a13a375978"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\index.js": {
-        "hash": "886e5a59402476e224a7fe2dc2823591"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\tasks\\__init__.py": {
-        "hash": "6564cedd3bda4d5d7f0ce6ea454aded9"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\tabs.py": {
-        "hash": "be2faba3f4c62119ee8932896b5ea5ef"
-    },
-    "archive\\orphans\\tools\\maintenance\\archive_agent_comms.py": {
-        "hash": "23e85bb2b4a6b082979573b74d895056"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\examples\\jquery.js": {
-        "hash": "7403060950f4a13be3b3dfde0490ee05"
-    },
-    "archive\\archived_tests\\tests\\social\\tests\\utils\\__init__.py": {
-        "hash": "5694ed1d85010a105daa66f109c3b70e"
-    },
-    "archive\\orphans\\services\\failed_prompt_archive.py": {
-        "hash": "4c3ea62da9ea3eab211a20bdf775676b"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\imports.js": {
-        "hash": "4d520bca495f998b6721f59fc05c6c43"
-    },
-    "analytics\\__init__.py": {
-        "hash": "333d74bdb692db1f6732ffbf21a11234"
-    },
-    "apps\\browser\\main.py": {
-        "hash": "0f1cc5c101a05ea5b83f7ae3f2d1ca9a"
-    },
-    "scripts\\analysis\\run_vulture.py": {
-        "hash": "1b709fa48f967cf58d9e3c74de841a32"
-    },
-    "archive\\orphans\\agents\\context_router_agent.py": {
-        "hash": "e9e7889a6430c0daba354fa7adac1e9a"
-    },
-    "archive\\orphans\\hooks\\stats_logger.py": {
-        "hash": "42c4ba5894308a8cbcc48721f7a49b4d"
-    },
-    "scripts\\dreamscape_controller.py": {
-        "hash": "1a20e2cdcc5862f911a91dfc4364e823"
-    },
-    "archive\\orphans\\utils\\protocol_compliance_utils.py": {
-        "hash": "fff85baa1c5e5a1bb2cd7c1f5d15e909"
-    },
-    "archive\\orphans\\tests\\__init__.py": {
-        "hash": "9745011528802c6c6ecdc18c6a800611"
-    },
-    "archive\\orphans\\coordination\\dispatcher.py": {
-        "hash": "739d4b2b2456ecae63134200559483b0"
-    },
-    "bridge\\tests\\test_payload_handler.py": {
-        "hash": "b459aaae8b1bf74dea2d93b983b6ccb6"
-    },
-    "runtime\\agent_prototypes\\Agent-1\\visual_wait_prototype.py": {
-        "hash": "be3f8e3e33d3ba0659028a39b136a474"
-    },
-    "archive\\orphans\\core\\coordination\\event_payloads.py": {
-        "hash": "f426b1d8d550cb034b136bff46e1967e"
-    },
-    "archive\\orphans\\services\\utils\\cursor.py": {
-        "hash": "001fa7111556a62782ef7970daaf90f3"
-    },
-    "archive\\orphans\\tests\\utils\\test_protocol_compliance_utils.py": {
-        "hash": "2fda6b607e04b887f1b50a305153b885"
-    },
-    "archive\\orphans\\tests\\core\\__init__.py": {
-        "hash": "4b06741507b5f0be835dba3d09a38e36"
-    },
-    "archive\\orphans\\chat_engine\\chat_scraper_service.py": {
-        "hash": "560974e76afec932032ca1b34af67635"
-    },
-    "archive\\orphans\\utils\\search.py": {
-        "hash": "1204813e74c98c594def2dea94441004"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\injection.js": {
-        "hash": "7f1f66ebbd1e934e925e98b34d60d0a7"
-    },
-    "archive\\orphans\\agents\\agents\\tool_executor_agent.py": {
-        "hash": "83baf705a5141f212dc5f2e5af62873a"
-    },
-    "archive\\orphans\\tests\\tools\\cursor_bridge\\__init__.py": {
-        "hash": "7dd49f3b8d7ac3edb124a13ae7a653e2"
-    },
-    "archive\\orphans\\core\\coordination\\base_agent_lifecycle.py": {
-        "hash": "d4a634fc44af52545eccc09e1e97070f"
-    },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\project_scanner.py": {
-        "hash": "9282878112200e4951b4d1cb4cc2e1a2"
-    },
-    "src\\dreamscape\\agents\\writer_agent.py": {
-        "hash": "8a1c183636d8b405d01df42db54c2b5b"
-    },
-    "dreamos_ai_organizer\\core\\__init__.py": {
-        "hash": "d6a67e09e21533d16ddcd049a5b49073"
-    },
-    "archive\\orphans\\agents\\recovery_coordinator.py": {
-        "hash": "618fe638e519a43e34ab054fb4bd7d08"
-    },
-    "scripts\\mock_bridge_loop.py": {
-        "hash": "a0fe024435f342bb37d2328e52e93566"
-    },
-    "archive\\orphans\\core\\coordination\\message_patterns.py": {
-        "hash": "e11674f43507ab290170ccc391d24df4"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\library\\task_rewrite.py": {
-        "hash": "069d8d1f1cdbb704f770afa97101f192"
-    },
-    "archive\\orphans\\tests\\core\\utils\\test_agent_utils.py": {
-        "hash": "5bfb556d33f5e513ccdd2b0aff6fef3a"
-    },
-    "archive\\orphans\\tests\\hooks\\test_stats_logger.py": {
-        "hash": "b3f0313debab640fe1653c49882e8eb5"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\setup.py": {
-        "hash": "06ae007876fec7d42abcbab6bafec56e"
-    },
-    "scripts\\agents\\__init__.py": {
-        "hash": "854e01f4dc707ab7f984abfab914e2b2"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\rust\\build.rs": {
-        "hash": "9cab27e59d3b5d0cc6cdfd83ee4d5235"
-    },
-    "scripts\\captain_ai_self_prompter.py": {
-        "hash": "e7a8ffb7eb93d4ed741a737291083076"
-    },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\report_generator.py": {
-        "hash": "ace0c84815a5a41e56b92055827e783c"
-    },
-    "archive\\orphans\\memory\\compaction_utils.py": {
-        "hash": "48b36974020e137a0e99292398489ef2"
-    },
-    "archive\\orphans\\agents\\agents\\task_executor_agent.py": {
-        "hash": "7f0fc16f825d4302d96f5d61aacffe68"
-    },
-    "archive\\orphans\\tools\\read_file.py": {
-        "hash": "a6aba6264152c68f9d881b6d6cba8f88"
-    },
-    "archive\\orphans\\services\\utils\\content\\post_context_generator.py": {
-        "hash": "2aa8ca7c25c52e77d686ec10c66d6864"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tests\\test_binding.py": {
-        "hash": "63bc5274ca3545f78c45d47515a78547"
-    },
-    "archive\\orphans\\core\\narrative\\lore_parser.py": {
-        "hash": "db9b8555b4e0b7e639cd6c93332bb4b5"
-    },
-    "archive\\legacy_automation\\extract_cursor_response.py": {
-        "hash": "37ffd78945a16622f722324adb03a02d"
-    },
-    "archive\\orphans\\bridge\\run_bridge_loop.py": {
-        "hash": "e702e5dff7ccd300665a756df0af3d27"
-    },
-    "archive\\orphans\\coordination\\governance_utils.py": {
-        "hash": "28937cb9873f097a31f5739a6298374c"
-    },
-    "bridge\\relay\\command_listener.py": {
-        "hash": "89e5dc7b9058a6cb693b72aef0a973f2"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tree_sitter_python\\__init__.py": {
-        "hash": "6ae8ca1b41c5c2b76bf5687db956b02f"
-    },
-    "archive\\orphans\\services\\utils\\devlog_generator.py": {
-        "hash": "059fc3d8aba88c8e457b29bac21abc8c"
-    },
-    "archive\\orphans\\agents\\shadow_task_nexus.py": {
-        "hash": "6c59ba71520e78f07712d3885d103c1f"
-    },
-    "archive\\orphans\\chat_engine\\driver_manager.py": {
-        "hash": "d302842029cfb65689d587fdbea117cc"
-    },
-    "archive\\orphans\\llm_bridge\\bridge_adapters\\base_adapter.py": {
-        "hash": "6605ddb53433f43828c09bb48f2b7a6c"
-    },
-    "archive\\orphans\\tests\\social\\tests\\strategies\\base_test.py": {
-        "hash": "fe2203dde680b40dbd5c214bb04d05fa"
-    },
-    "archive\\orphans\\core\\health_checks\\cursor_window_check.py": {
-        "hash": "b1892239db5e34d61a0f25e198d98d62"
-    },
-    "archive\\legacy_automation\\response_retriever.py": {
-        "hash": "1f1280e43033f114b3fb79ea14545da9"
-    },
-    "archive\\orphans\\integrations\\azure_blob_client.py": {
-        "hash": "7bc654d2eff2da0a3cccd36b14893ec0"
-    },
-    "archive\\legacy_automation\\__init__.py": {
-        "hash": "a1c12e7c75fabd425d879616e062c64c"
-    },
-    "archive\\orphans\\tools\\validation\\check_dependencies.py": {
-        "hash": "056e1f93e880f9f341a80a7199783474"
-    },
-    "archive\\orphans\\core\\swarm_sync.py": {
-        "hash": "30624f0ebdeb56db67d78e416f19c1cf"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\prompt_renderer.py": {
-        "hash": "49eaff832154047190b347f50f079b34"
-    },
-    "archive\\orphans\\services\\utils\\selenium_utils.py": {
-        "hash": "91f41946074b8ae2f4054b83a7650027"
-    },
-    "archive\\orphans\\tests\\memory\\test_database_manager.py": {
-        "hash": "d8e1526baeaf0568461e4d81756a4508"
-    },
-    "archive\\orphans\\hooks\\conversation_logger.py": {
-        "hash": "9594fbd6bc68510ab3513a7ee2c0a69e"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\functions.js": {
-        "hash": "94c509c33dfb694f124948d8bee4366b"
-    },
-    "sandbox\\tests\\__init__.py": {
-        "hash": "05c3dfd820f474d6c63d159d54fc660b"
-    },
-    "dev_sandbox\\__init__.py": {
-        "hash": "f8d1207257dd8bb17cc06ad437b9e01f"
-    },
-    "archive\\orphans\\automation\\execution\\agent_factory.py": {
-        "hash": "5b58c174c8513b6b881e69b7e4ab7f5d"
-    },
-    "archive\\orphans\\tests\\integrations\\azure\\test_azure_blob_channel.py": {
-        "hash": "d3ba5694e5cf255aa5eb8a5e0d7c58c6"
-    },
-    "archive\\orphans\\tests\\memory\\test_summarizer.py": {
-        "hash": "a675756150225990035df08b041bb8bb"
-    },
-    "archive\\orphans\\core\\identity\\agent_identity.py": {
-        "hash": "4bccea019de6a91bdf1fce9c8bcaaa28"
+    "archive\\orphans\\agents\\base_agent.py": {
+        "hash": "729665482b4cd74e30e7cb968db590a4"
     },
     "archive\\orphans\\agents\\autonomy_recovery_patch.py": {
         "hash": "cf54763714aef0855c4bdf3da3646152"
     },
-    "scripts\\migration_helpers\\move_application_content.py": {
-        "hash": "4d337346b31b396571e387f4558160c5"
+    "archive\\orphans\\agents\\cursor_worker.py": {
+        "hash": "cc3d00352e1d40147cdb20c46f437107"
     },
-    "tools\\test_read_file_diagnostics.py": {
-        "hash": "20cd05258db2d285d06c7dcd78429849"
+    "archive\\orphans\\agents\\context_router_agent.py": {
+        "hash": "e9e7889a6430c0daba354fa7adac1e9a"
     },
-    "runtime\\temp\\__init__.py": {
-        "hash": "2a40292d5cf79bf8c823b7733d2f0be2"
+    "archive\\orphans\\agents\\recovery_coordinator.py": {
+        "hash": "323c81edc49af86a911218daa2c1b0c9"
     },
-    "apps\\examples\\stubs\\__init__.py": {
-        "hash": "f808c081e6f5e2f57e6331561c419e37"
-    },
-    "archive\\orphans\\tools\\maintenance\\archive_agent_mailboxes.py": {
-        "hash": "b7c87647d2753ceaa98819b61eb50d65"
-    },
-    "archive\\orphans\\tools\\_core\\registry.py": {
-        "hash": "25cebd304c33348aa73c54af3018763d"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_lifecycle.py": {
-        "hash": "7da22f5898086824191c75165847596b"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\task_nexus.py": {
-        "hash": "f4c0c4cc87cd49f15442bfbc6211c23e"
-    },
-    "sandbox\\analysis\\fault_inspector.py": {
-        "hash": "d9f5eb496c5b2bd130c2aa836f384add"
-    },
-    "archive\\orphans\\cli\\manage_tasks.py": {
-        "hash": "85decf6e738940b0036e39c50017403b"
-    },
-    "scripts\\analyze_latency_trends.py": {
-        "hash": "bce78e323507a00ed31e994c642da5a1"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tree_sitter_javascript\\__init__.py": {
-        "hash": "1a8590ab5b5b165c05ee8430ecba36f7"
-    },
-    "archive\\orphans\\hooks\\devlog_hook.py": {
-        "hash": "21a9cf8c9da35e164b8a0948d4ec690c"
-    },
-    "archive\\orphans\\automation\\execution\\swarm_controller.py": {
-        "hash": "0417f8611e46ec98ae99bc9e1a14cb93"
-    },
-    "archive\\orphans\\tests\\social\\tests\\conftest.py": {
-        "hash": "db2016450c501d9403e38b82f8998db4"
-    },
-    "archive\\orphans\\tests\\coordination\\test_agent_bus.py": {
-        "hash": "629e21929100cb7fb6cab96e37f2bbf8"
-    },
-    "archive\\orphans\\agents\\mixins\\voting.py": {
-        "hash": "3db9d885c20b54fe762de4078ee34649"
-    },
-    "archive\\orphans\\tests\\hooks\\test_chatgpt_responder.py": {
-        "hash": "7467f759a784ed38d9210eb3d22cc810"
-    },
-    "archive\\orphans\\cli\\calibrate_gui_coords.py": {
-        "hash": "45d055fb9602b3905fe1e76d679861e9"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\tags\\__init__.py": {
-        "hash": "afa1fcf0e3905752f39cb2826962a872"
-    },
-    "archive\\orphans\\tools\\task_editor.py": {
-        "hash": "1bf30db3a4eb192bcf82c5045c8961a1"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\cursor_session_manager.py": {
-        "hash": "1f482208646c1cd44420312cd0b4d2ba"
-    },
-    "archive\\orphans\\tests\\utils\\test_spec_parser.py": {
-        "hash": "c334935a530101256d66a3d204907408"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tests\\__init__.py": {
-        "hash": "140cff8665220cf53fefc69aca62555b"
-    },
-    "archive\\orphans\\tests\\dashboard\\__init__.py": {
-        "hash": "0868b409eac5dbb8924da144c26d9959"
-    },
-    "scripts\\test_edit_file_failures.py": {
-        "hash": "26d5a20e998297a58e71a28700308f7f"
-    },
-    "archive\\orphans\\tests\\social\\tests\\strategies\\base_strategy_test.py": {
-        "hash": "a40fb5372b9570a47658299d9554b146"
-    },
-    "archive\\orphans\\tests\\services\\__init__.py": {
-        "hash": "dab02eb7d5d2f0c3ca9376c90da5769f"
-    },
-    "archive\\orphans\\utils\\autonomy_governor.py": {
-        "hash": "d28ce01254a402a3e2c5369c20eb0f50"
-    },
-    "archive\\orphans\\tests\\social\\tests\\tools\\__init__.py": {
-        "hash": "bff3ebcbf827783afd80cbb55d077cc0"
-    },
-    "archive\\orphans\\tests\\coordination\\test_voting_coordinator.py": {
-        "hash": "4353cfeb9688064623144b737f562ed2"
-    },
-    "archive\\orphans\\agents\\agent9_response_injector.py": {
-        "hash": "2bcc848538cb9884b6c1bce8bce1b396"
-    },
-    "archive\\orphans\\cli\\bridge_diagnostic.py": {
-        "hash": "6b7e38c6e9e4c20d4361eedce1af72bf"
-    },
-    "archive\\orphans\\services\\utils\\logging_utils.py": {
-        "hash": "2b1128e78df2708f4f9b75eb8f63bc44"
-    },
-    "bridge\\tests\\__init__.py": {
-        "hash": "287dad3710ebd14064115ac01d24e1bf"
-    },
-    "archive\\orphans\\tests\\skills\\test_pyautogui_control_module.py": {
-        "hash": "5e404ebd4655b05260d2ea972b3060bb"
-    },
-    "archive\\orphans\\utils\\gui_utils.py": {
-        "hash": "43e134e221afdb511995bf19a4fb1b73"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\tags\\classes.js": {
-        "hash": "2e4bbe328499e0732bf252be16910218"
-    },
-    "archive\\orphans\\monitoring\\correlation_validator.py": {
-        "hash": "770c1859974dbe206c955b628a6d14a0"
-    },
-    "archive\\orphans\\tools\\functional\\gui_interaction.py": {
-        "hash": "bd54b851a3fe97d05fe7618dcfd9ddc5"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\test_message_patterns.py": {
-        "hash": "2561ba42085caaa084b36e0a1291d518"
-    },
-    "archive\\orphans\\core\\identity\\agent_identity_manager.py": {
-        "hash": "b6d6463fad8cfb31e4463d1a8d27e337"
-    },
-    "archive\\orphans\\identity\\models.py": {
-        "hash": "147a5432bdbb49eea2cd360638440a21"
-    },
-    "archive\\orphans\\tests\\tools\\cursor_bridge\\bridge_bootstrap_test.py": {
-        "hash": "b6405fa666dc6f68d0ddd36df05fbe55"
-    },
-    "archive\\orphans\\tests\\core\\utils\\test_onboarding_utils.py": {
-        "hash": "5f7d7611f2a906d126603399eb1631b6"
-    },
-    "archive\\orphans\\services\\utils\\feedback_processor.py": {
-        "hash": "0bf6534230d1717b787dc4b9ba090ce4"
-    },
-    "archive\\orphans\\tools\\dreamos_utils\\check_agent_pulse.py": {
-        "hash": "d8ee5e3f9a30a83266591cabc6006d88"
-    },
-    "archive\\orphans\\tests\\scripts\\utils\\test_simple_task_updater.py": {
-        "hash": "fd0e9ad8879b7f57de279c6e942480f6"
-    },
-    "archive\\orphans\\utils\\spec_parser.py": {
-        "hash": "ffb2e7aca117852acb02874d985853d3"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\capability_handler.py": {
-        "hash": "627a628bcde4c4bfd147bc60a6e97dee"
-    },
-    "bridge\\tests\\test_status_pusher.py": {
-        "hash": "96772ac9a32f9c91769b3bdfcfb2e145"
-    },
-    "archive\\orphans\\tests\\memory\\__init__.py": {
-        "hash": "4883b695b22d18af21d959b4c12d7532"
-    },
-    "sandbox\\ironvale_injector\\injector.py": {
-        "hash": "c0d8fd315dd773a174b72f4b18683d07"
-    },
-    "archive\\orphans\\agents\\utils\\agent_utils.py": {
-        "hash": "d13f780a54c8dcb0cfabd48a39d56a42"
-    },
-    "sandbox\\ironvale_injector\\__init__.py": {
-        "hash": "7a63430df8c13b37521a82fa7bd42a59"
-    },
-    "archive\\orphans\\integrations\\cursor\\utils.py": {
-        "hash": "00ec4c3421039308bc57a4f3dca15a51"
-    },
-    "app\\automation\\automation_interface.py": {
-        "hash": "6e01b24cb51fea5bf94c52af956b8885"
-    },
-    "sandbox\\ironvale_summarizer\\summarizer.py": {
-        "hash": "69f00aaa847d52ce290b59a1ac76ae95"
-    },
-    "scripts\\migration_helpers\\move_archived_content.py": {
-        "hash": "df801ff96b6d6c6ebebe5052c066b000"
-    },
-    "archive\\orphans\\integrations\\openai_client.py": {
-        "hash": "e3e07b0f4a68223f76e2db1a4046f1fb"
-    },
-    "archive\\orphans\\integrations\\discord_bot.py": {
-        "hash": "a840f7622fae7c7b97776a3ea4a8c785"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\python3-grammar-crlf.py": {
-        "hash": "d322aadc8791134ec6c2552a39fe296c"
-    },
-    "archive\\orphans\\cli\\safe_edit_json_list.py": {
-        "hash": "a36c2821068b7989209f804bd4f171af"
-    },
-    "archive\\orphans\\integrations\\cursor\\cursor_prompt_controller.py": {
-        "hash": "bfd6cc4bb9459fff0ca77061cee86731"
-    },
-    "archive\\orphans\\chat_engine\\base_chat_adapter.py": {
-        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
-    },
-    "app\\automation\\gui_controller.py": {
-        "hash": "3400ffaa48304f6e90c6dc353fef8251"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\binding_test.js": {
-        "hash": "3058616d1d281ab61fa4a50fe0e3dca4"
-    },
-    "archive\\orphans\\cli\\state_cmds.py": {
-        "hash": "64fa19f33656cf9afed74721d504de22"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\__init__.py": {
-        "hash": "3daef35d8423b7ecbf341998692ce0d9"
-    },
-    "archive\\orphans\\channels\\azure_blob_channel.py": {
-        "hash": "c35f9e1be7ad960e40489b4291f77f12"
-    },
-    "archive\\orphans\\core\\errors\\exceptions.py": {
-        "hash": "835fc719e5ca1e1928560153a29ea922"
-    },
-    "apps\\examples\\onboarding_message_injector.py": {
-        "hash": "53302b99b9d0d08af40c1831ca4f1abb"
-    },
-    "archive\\orphans\\automation\\config.py": {
-        "hash": "0a6a45173a272e452e52664705ff758e"
-    },
-    "archive\\orphans\\agents\\utils.py": {
-        "hash": "fcc6b48adbb598f61a7e857671fbc02b"
-    },
-    "archive\\orphans\\tests\\utils\\__init__.py": {
-        "hash": "3086914eb4e21f961c97989196164f7e"
-    },
-    "archive\\orphans\\core\\coordination\\project_board_manager.py": {
-        "hash": "ce9e0a05ea52c3b8793c04811bd66ef8"
-    },
-    "archive\\orphans\\tests\\conftest.py": {
-        "hash": "b947338bf44b4e4015fd9edf451d75d7"
-    },
-    "htmlcov\\coverage_html_cb_497bf287.js": {
-        "hash": "5d92da3d422f7f6f43e1bec7cb6cab4f"
-    },
-    "archive\\orphans\\tests\\bridge\\test_http_bridge_service.py": {
-        "hash": "2f8aa8fa71d75cd4bca75f11a4e0713a"
-    },
-    "archive\\orphans\\coordination\\dispatchers\\base_dispatcher.py": {
-        "hash": "ce9c532f97940e3d3cb0cd091a160672"
-    },
-    "archive\\orphans\\memory\\summarizer.py": {
-        "hash": "014aeed8ed8cd83bade5caa5bcd52f9a"
-    },
-    "archive\\legacy_automation\\run_loop.py": {
-        "hash": "bf6fac22ab70305456334ccbfb486b67"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\examples\\ast.rs": {
-        "hash": "1ba404b0bd6695e11d68cd29442316b8"
-    },
-    "archive\\orphans\\core\\utils\\file_utils.py": {
-        "hash": "a95472843890f2ee34be374214e870d2"
-    },
-    "archive\\orphans\\tests\\memory\\test_governance_memory_engine.py": {
-        "hash": "c26b0b87932c484a9f7e6070931d78a2"
-    },
-    "scripts\\mutation_test_bridge.py": {
-        "hash": "b3a9ab2f5218369250302abf6958985f"
-    },
-    "archive\\orphans\\tests\\integrations\\azure\\__init__.py": {
-        "hash": "0641217dc2cd1ed82986ca0d5f076bce"
-    },
-    "scripts\\migration_helpers\\move_sandbox_content.py": {
-        "hash": "8031f6a2a53e0720cd6d96f9d0ddd762"
-    },
-    "runtime\\validation\\__init__.py": {
-        "hash": "04db75d8a82558da595b9d99a317cdd0"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\__init__.py": {
-        "hash": "d3fde01545d5e51d2989a96a6d2e3d46"
-    },
-    "archive\\orphans\\integrations\\agent_services\\cursor_shadow_controller.py": {
-        "hash": "9f83019c96c7d28c57a5b649428a7699"
-    },
-    "scripts\\capture_gui_snippet.py": {
-        "hash": "46176865fa9009a4bfa0a97218c06c20"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\keywords.py": {
-        "hash": "1b9324a15c4ce3f1f54e6d322dffcd62"
-    },
-    "archive\\orphans\\core\\tts\\tts_factory.py": {
-        "hash": "36ab2055bb755c191db44523634bfff4"
-    },
-    "archive\\orphans\\utils\\decorators.py": {
-        "hash": "12bb9962924a68761a459d766a554ae4"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\python3-grammar.py": {
-        "hash": "92bb11ba95d77614ebe8bb33ccb31b65"
-    },
-    "scripts\\thea_to_cursor_agent.py": {
-        "hash": "9511f74a49fad7c8948f7f81b17dc1a5"
-    },
-    "scripts\\agents\\new_agent.py": {
-        "hash": "437fc7275afde71d770cfc327938b7fa"
-    },
-    "archive\\orphans\\tools\\functional\\context_planner_tool.py": {
-        "hash": "2bfd5a95a2943e8dafec03eeeea8f420"
-    },
-    "archive\\orphans\\tools\\thea_relay_agent.py": {
-        "hash": "ba256b1de67f99049d0ea9833a5b796c"
-    },
-    "archive\\orphans\\coordination\\project_board_manager.py": {
-        "hash": "ad0911d92c41fb8b0740498d831f2183"
-    },
-    "sandbox\\bridge\\feedback_trace_verifier.py": {
-        "hash": "ad703aa5130140577166e962d8700676"
-    },
-    "archive\\orphans\\bridge\\bridge_loop.py": {
-        "hash": "a60ac40025ff66f1d4df55f9bc682839"
-    },
-    "archive\\orphans\\tools\\_core\\base.py": {
-        "hash": "ce28e657b11e8fda7f4ebe598be478bb"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\capability_registry.py": {
-        "hash": "c59d90455d6fb8e231d16f9a4290b34e"
-    },
-    "archive\\orphans\\agents\\library\\task_promoter_agent.py": {
-        "hash": "44a5a57e16d7be64aa974aba9cc1b7da"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\channel_loader.py": {
-        "hash": "aa514355236f0f6f49b87cf2739d1550"
-    },
-    "archive\\orphans\\tests\\run_e2e_bridge_test.py": {
-        "hash": "204b1e9e604c6e9af2f31177266d17b3"
-    },
-    "archive\\orphans\\tests\\memory\\test_memory_manager.py": {
-        "hash": "34b9bacdb036815bb18eb48d97bdfc47"
-    },
-    "archive\\orphans\\tests\\utils\\test_logging_utils.py": {
-        "hash": "46bec7dac8ea7881124f20df7d728ba2"
-    },
-    "scripts\\migration_helpers\\__init__.py": {
-        "hash": "76529012eee1c0cea4be2bb447e22161"
-    },
-    "bridge\\feedback\\__init__.py": {
-        "hash": "8a4ff8943f10270611cc905ea57cbc1b"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\parameters.py": {
-        "hash": "15d9791d94e497e1bd67f08d3b867a0e"
-    },
-    "archive\\orphans\\tests\\monitoring\\test_correlation_validator.py": {
-        "hash": "56b38c8b40cf99ad3ab65986913531d1"
-    },
-    "runtime\\analytics\\bridge_fault_inspector.py": {
-        "hash": "4cc111df422a3fc03e496ed93218a73f"
-    },
-    "archive\\orphans\\modules\\scraper\\chatgpt_scraper\\scraper.py": {
-        "hash": "826ea225c22b392f6c16221c53eae7ab"
-    },
-    "archive\\orphans\\utils\\text.py": {
-        "hash": "ea004aab0a2e9ea991ff7b4b0d42f072"
-    },
-    "archive\\orphans\\cli\\dreamscape_controller.py": {
-        "hash": "f52211b5f81fd93cb70632d0739b7de5"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\html_parser.py": {
-        "hash": "1c38cc250b56550115c938594b1cf287"
-    },
-    "archive\\orphans\\coordination\\tasks\\task_utils.py": {
-        "hash": "4ad3a65b7dcaa65848800bd75915770c"
-    },
-    "archive\\orphans\\utils\\common_utils.py": {
-        "hash": "d241c08d8cc570887acf38c5acd9b9a7"
-    },
-    "archive\\orphans\\tools\\cursor_bridge\\mock_cursor_bridge.py": {
-        "hash": "00a7eda2a979e020f3b7aab4e70bcc22"
-    },
-    "src\\dreamscape\\compile_devlog.py": {
-        "hash": "9486242d08c355d573af9b22aa2f8269"
-    },
-    "archive\\orphans\\rendering\\template_engine.py": {
-        "hash": "265fecd8383ef09c201b4d0f8dcd8e15"
-    },
-    "archive\\orphans\\tests\\services\\test_memory_maintenance_service.py": {
-        "hash": "1bf6ceef11fb36b9716185797bd0d74b"
-    },
-    "archive\\orphans\\tests\\coordination\\test_project_board_manager.py": {
-        "hash": "e2343f068a8b710c1e411735375f5132"
-    },
-    "archive\\orphans\\agents\\base_agent.py": {
-        "hash": "630a1c5d2b1c0200655b11341bb5fb17"
-    },
-    "archive\\orphans\\tests\\rendering\\__init__.py": {
-        "hash": "41307d70043b340fd7302f344854d46d"
-    },
-    "src\\dreamscape\\schemas\\event_schemas.py": {
-        "hash": "bf8c0ed645ed3af6f9090e1ed52f2d08"
-    },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\analyzer.py": {
-        "hash": "f54a1f42e470dfcf629699116aa6c55b"
-    },
-    "archive\\orphans\\core\\tts\\local_tts.py": {
-        "hash": "fbc57f0081e1fb68bffdb7abccbf5dd0"
-    },
-    "scripts\\gpt_cursor_relay.py": {
-        "hash": "e6b2debccd4488689ec1b47df29911c4"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\rust\\build.rs": {
-        "hash": "555ae5f5aadf13a4e69ff750eb5177b2"
-    },
-    "sandbox\\bridge\\cursor_gpt_feedback.py": {
-        "hash": "68c30730ac95157f2b500a3b4a3cda23"
-    },
-    "sandbox\\bridge\\__init__.py": {
-        "hash": "cbbca292539c200ea9bed8e7bb366c5e"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\browser.py": {
-        "hash": "9f9b73d3a63919feee49069579b2ee91"
-    },
-    "archive\\orphans\\dashboard\\dashboard_app.py": {
-        "hash": "d4a5731eb512a9ae953803d9f3cf3e19"
-    },
-    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\main.py": {
-        "hash": "c8148318c30c20f2eb1fc097676c0c44"
-    },
-    "archive\\orphans\\tests\\bridge\\__init__.py": {
-        "hash": "5943ebcaf43fcf8d47130adbc3312055"
-    },
-    "scripts\\test_file_integrity_recovery.py": {
-        "hash": "87ff11291d9777a7797dc2e30bd259e9"
-    },
-    "archive\\orphans\\core\\identity\\agent_identity_store.py": {
-        "hash": "398c9b33372d8efc9b1bd775c11f9430"
-    },
-    "archive\\orphans\\tests\\social\\tests\\core\\__init__.py": {
-        "hash": "32049ba438b3e55fac875731e787ba57"
-    },
-    "archive\\orphans\\monitoring\\prompt_execution_monitor.py": {
-        "hash": "f672feeaa82b5d70d7d48a17dc01cae2"
-    },
-    "archive\\legacy_automation\\prompt_dispatcher.py": {
-        "hash": "a2ebebbdb046ea23b0ec626071bdd56b"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\keywords.js": {
-        "hash": "39e4385bd0c7568ea98fff2137dec323"
-    },
-    "scripts\\monitor_bridge.py": {
-        "hash": "5dcfb005c51486a248b964eb87d93342"
-    },
-    "archive\\orphans\\tests\\hooks\\test_chronicle_logger.py": {
-        "hash": "2f202d8f49077d2c2fedde8f3faba550"
-    },
-    "archive\\orphans\\memory\\layers\\task_memory_layer.py": {
-        "hash": "807bf6cf71c0b3f53793e2f80020cb63"
-    },
-    "archive\\orphans\\core\\coordination\\enums.py": {
-        "hash": "7a4dbb06daa8db312e615dca3e626cfa"
-    },
-    "archive\\orphans\\tests\\memory\\test_summarization_utils.py": {
-        "hash": "be15758cef8f17d91edff6ac99907297"
-    },
-    "archive\\orphans\\tools\\discovery\\find_defunct_tests.py": {
-        "hash": "82b2aeffee0948b24697dab6b5699120"
-    },
-    "archive\\orphans\\coordination\\voting_coordinator.py": {
-        "hash": "3abfd7f9e550b474db1f96fbcfe8cf67"
-    },
-    "src\\dreamscape\\core\\content_models.py": {
-        "hash": "f20eea8956d3de81b81426a2de31dd91"
-    },
-    "archive\\orphans\\tests\\unit\\test_bridge_fault_inspector.py": {
-        "hash": "1ecbd06623d9d34f037df9b7acf472ce"
-    },
-    "archive\\orphans\\utils\\dream_mode_utils\\task_parser.py": {
-        "hash": "45906b1b06dc1723c365cef45143489b"
-    },
-    "archive\\orphans\\core\\coordination\\agent_bus.py": {
-        "hash": "0e2c50d05102c838d5f3b0d42f3bf2bd"
-    },
-    "archive\\orphans\\feedback\\feedback_engine_v2.py": {
-        "hash": "11434cb10c70c0e327ca54fdae872747"
-    },
-    "archive\\orphans\\reporting\\devlog_utils.py": {
-        "hash": "234613537693fda427464532fd59be29"
-    },
-    "archive\\orphans\\tests\\services\\test_failed_prompt_archive.py": {
-        "hash": "cdefc9b41efac9eaf1fbe0a92ef97fee"
-    },
-    "archive\\orphans\\tests\\tools\\discovery\\test_find_todos.py": {
-        "hash": "ef2b143264bb078d612d25ee53fb2355"
-    },
-    "apps\\examples\\stubs\\agent_1_stub.py": {
-        "hash": "cb9d36187543c08d3d42888616150ead"
+    "archive\\orphans\\agents\\shadow_task_nexus.py": {
+        "hash": "6c59ba71520e78f07712d3885d103c1f"
     },
     "archive\\orphans\\agents\\task_feedback_router.py": {
         "hash": "c0e7b7ed681879d3810c5b063f73c7e1"
     },
-    "ai_docs\\examples_and_tutorials\\from_old_docs\\examples\\fix_tenacity_example.py": {
-        "hash": "cb8479e6669490e3d6c6f2aa76567c73"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\setup.py": {
-        "hash": "345fdde798caa5676d4e84cebad5f5ec"
-    },
-    "sandbox\\tests\\test_drift_detection.py": {
-        "hash": "9508dc75203d6dfa2bd63e8cd5922a99"
-    },
-    "archive\\orphans\\agents\\cursor_worker.py": {
-        "hash": "cc3d00352e1d40147cdb20c46f437107"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\grammar.js": {
-        "hash": "4ed1ad6f1dde8591870f26f7dacd01eb"
-    },
-    "archive\\orphans\\tests\\tools\\discovery\\__init__.py": {
-        "hash": "9eb674b8ce127f38ef668061621b2f8c"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\__init__.py": {
-        "hash": "f16ab79a2d0f016785bdff9031599ba1"
-    },
-    "archive\\orphans\\tools\\tests\\circular_import_probe.py": {
-        "hash": "34db815a33c5d4f8dc346d38feec168e"
-    },
-    "archive\\orphans\\tools\\command_supervisor.py": {
-        "hash": "2fb8d73ad1fc56cb869fe73603ff993b"
-    },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\concurrency.py": {
-        "hash": "0bf47d70159daf1a96730be3316080a3"
-    },
-    "sandbox\\ironvale_stream_watcher\\__init__.py": {
-        "hash": "2ff388429cd08a9b044330c2f8e37dfc"
-    },
-    "archive\\orphans\\tests\\dreamscape\\agents\\test_writer_agent.py": {
-        "hash": "42ab91597b8c69e151803f306ee367e2"
-    },
-    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_event_helpers.py": {
-        "hash": "c7e85e3fbca39352bf24f9f7315b1235"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\rust\\lib.rs": {
-        "hash": "b39d8d7d0f1230c41e2bca9ebe041a4d"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\library\\meeting_management.py": {
-        "hash": "dd332a881f72624233dca13b615a03a4"
-    },
-    "archive\\orphans\\tests\\unit\\test_task_flow_migration.py": {
-        "hash": "4b8e025e5205c87a95f08943351699b9"
-    },
-    "app\\automation\\__init__.py": {
-        "hash": "438b987e6766da465cb2a782fb580f6f"
-    },
-    "archive\\orphans\\chat_engine\\gui_event_handler.py": {
-        "hash": "dc65c6bfb60107b0e4e12bd0ed671dea"
-    },
-    "sandbox\\bridge\\feedback_sentinel.py": {
-        "hash": "2a0ba117c0c68691d133ad104104c38b"
-    },
-    "analytics\\scripts\\process_logs.py": {
-        "hash": "44225fa18ffdbca65f3a4c4108a01d74"
-    },
-    "archive\\orphans\\tests\\social\\tests\\social\\strategies\\base_strategy_test.py": {
-        "hash": "e933b5441d83bc5ba1c2264b9cad2a88"
-    },
-    "archive\\orphans\\tools\\coordination\\broadcast_directive.py": {
-        "hash": "e3393da07cd48429179a2698ba104e7d"
-    },
-    "archive\\orphans\\tests\\core\\comms\\__init__.py": {
-        "hash": "1a9f84e8a05009e53475b1c98227b937"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\index.js": {
-        "hash": "85fa7fa5414e0a966435dfd8ad76fdea"
-    },
-    "sandbox\\ironvale_feedback\\__init__.py": {
-        "hash": "242bd11da15ab54992770165eafb137d"
-    },
-    "sandbox\\veindrill_envtelemetry\\__init__.py": {
-        "hash": "8c323b13e43a0ef3b591ee1f10bb1033"
-    },
-    "archive\\orphans\\services\\utils\\retry_utils.py": {
-        "hash": "6303288f9949a8534cba1525c84b30cd"
-    },
-    "scripts\\test_points_config.py": {
-        "hash": "21c8611d5cf6a36aa461c848ceb3446c"
-    },
-    "archive\\orphans\\core\\tts\\tts_interface.py": {
-        "hash": "604d9c09529a4a741b968f48dd603f18"
-    },
-    "archive\\orphans\\services\\memory_maintenance_service.py": {
-        "hash": "a1d83feeb9aba06b29e1f902cc844806"
-    },
-    "scripts\\migration_helpers\\update_python_imports.py": {
-        "hash": "7efb4fc9ef6a28164aeeaaf6926b395a"
-    },
-    "scripts\\swarm_monitor.py": {
-        "hash": "675e5fe202917e703bcdb31b60c60f0d"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tests\\test_binding.py": {
-        "hash": "661bb211377f88906ddeacd077756870"
-    },
-    "archive\\orphans\\tools\\maintenance\\augment_task_tags.py": {
-        "hash": "1da1a88a674183d319568679eaf0e488"
-    },
-    "archive\\orphans\\cli\\cursor_injector.py": {
-        "hash": "d2c7accf91b289f0855896f427d7947c"
-    },
-    "archive\\orphans\\tests\\skills\\__init__.py": {
-        "hash": "f8d1f4f5f4d207e1d1bc4f97cf9782f1"
-    },
-    "archive\\orphans\\tests\\social\\tests\\utils\\__init__.py": {
-        "hash": "de356af3656f5c54c5f62c57a9effe44"
-    },
-    "sandbox\\scripts\\__init__.py": {
-        "hash": "d7d4036fe768ce82f1c15cc727b7d475"
-    },
-    "dev_sandbox\\agent_file_manager_stub.py": {
-        "hash": "6cd28a87f429a545b0c2eb5fabf35cd4"
-    },
-    "archive\\orphans\\tools\\discovery\\archive_defunct_tests.py": {
-        "hash": "8275f27865268535cd19c2dad3ff19c9"
-    },
-    "archive\\orphans\\memory\\summarization_utils.py": {
-        "hash": "3e858d3cff78335462deb25cf815a67d"
-    },
-    "archive\\orphans\\utils\\safe_json_editor_template.py": {
-        "hash": "df05fab0d955b9db73b012e85ddbc916"
-    },
-    "archive\\orphans\\chat_engine\\chat_cycle_controller.py": {
-        "hash": "b44a73caaa913c9c47925400106f314f"
-    },
-    "archive\\orphans\\utils\\logging_utils.py": {
-        "hash": "75e2ebaae3ebbfe5eb852ae9f1cc974a"
-    },
-    "archive\\orphans\\automation\\execution\\dream_mode_sleep.py": {
-        "hash": "267526a40e2ee398d6de7aef0272dfb6"
-    },
-    "archive\\orphans\\tests\\social\\tests\\__init__.py": {
-        "hash": "77b0b8ceaa026c7a22321ad12bcadf18"
-    },
-    "app\\automation\\task_trigger.py": {
-        "hash": "d480cc8e7ed9eac935a264373e2bf716"
-    },
-    "apps\\sky_viewer\\sky_viewer.py": {
-        "hash": "f68f77c1fa4ee0b6f23caa9579c0d1db"
-    },
-    "archive\\orphans\\core\\coordination\\base_agent.py": {
-        "hash": "6b5ea75b8cd8154f80c05702b01e0be5"
-    },
-    "archive\\orphans\\tests\\social\\tests\\integration\\__init__.py": {
-        "hash": "f5189f75cdde418abc62752ef4854c60"
-    },
-    "sandbox\\ironvale_summarizer\\__init__.py": {
-        "hash": "efd1bd8df7d22c4ba87f3219b3bb9337"
-    },
-    "archive\\orphans\\tests\\cli\\test_safe_edit_json_list.py": {
-        "hash": "74284c960794ad4890ad499dcf881870"
-    },
-    "archive\\orphans\\agents\\library\\agent_devlog.py": {
-        "hash": "a4cd8ec3d647a8d7d7f0dcd1f114c3c5"
-    },
-    "archive\\orphans\\integrations\\cursor\\swarm_bootloader.py": {
-        "hash": "adb7d46012b9e4eccce896d1185223b3"
-    },
-    "scripts\\migration_helpers\\update_markdown_links.py": {
-        "hash": "add26a1a4b14a2acfe545eb5793bb4b4"
-    },
-    "archive\\orphans\\core\\tools\\script_runner.py": {
-        "hash": "fa73cb524a58930e9b6f82cbf62cd6f8"
-    },
-    "apps\\examples\\reflection_agent.py": {
-        "hash": "40c02f018017a4889fe1315face81cdc"
-    },
-    "archive\\orphans\\gui\\main_window.py": {
-        "hash": "eb868bbc1c87ac6867eea449d774082d"
-    },
-    "scripts\\task_flow_migration.py": {
-        "hash": "ca2e837ef1275ba520d44b4fd86b349c"
-    },
-    "apps\\examples\\__init__.py": {
-        "hash": "e46409256df94517c9704cc34555abe3"
-    },
-    "archive\\orphans\\tests\\skills\\test_pyautogui_control_module_part2.py": {
-        "hash": "ed2d94a1af75593548df461e1608d30e"
-    },
-    "archive\\orphans\\automation\\bridge_loop.py": {
-        "hash": "511ed87bc90a1c00fdb5398a58041bd6"
-    },
-    "archive\\orphans\\core\\comms\\debate_schemas.py": {
-        "hash": "3d82cfb238813d62375e11250f5f6605"
-    },
-    "archive\\orphans\\reporting\\scoring_analyzer.py": {
-        "hash": "cde75d60bf100ba8eacb6c21412aefa1"
-    },
-    "src\\dreamscape\\events\\event_types.py": {
-        "hash": "68fd7d3dcb732cfbc17182f141e6acdc"
-    },
-    "archive\\orphans\\tests\\services\\test_event_logger.py": {
-        "hash": "e1f0662ee903c84b70744539b676d7fe"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\library\\debate_management.py": {
-        "hash": "4c82bf73ebccd52b30b156c780c250f8"
-    },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\file_processor.py": {
-        "hash": "4dceb275d7faf379fd4ba22cc81c1e01"
-    },
-    "scripts\\bridge_integrity_monitor.py": {
-        "hash": "ec1df8f076b14ea9dfd8670a7d688066"
-    },
-    "archive\\orphans\\tools\\analysis\\dead_code.py": {
-        "hash": "60c394000d35e9cddf969992f043e13d"
-    },
-    "runtime\\analytics\\__init__.py": {
-        "hash": "47f61c825a8cf2cd8abbc385b003b2f9"
-    },
-    "archive\\orphans\\tests\\social\\tests\\strategies\\__init__.py": {
-        "hash": "78e2016c43d60d41fb30ba810c23c11c"
-    },
-    "sandbox\\scripts\\drift_generator.py": {
-        "hash": "f6751df92c2a9caaa58f48ba301016ca"
-    },
-    "archive\\orphans\\bridge\\http_bridge_service.py": {
-        "hash": "e39bd368eebbdeec2bdb66acc5149266"
-    },
-    "archive\\orphans\\core\\comms\\mailbox_utils.py": {
-        "hash": "e194bddbdffdea826548008c5fc236d1"
-    },
-    "archive\\orphans\\tests\\utils\\test_terminal_execution.py": {
-        "hash": "fbaa31787f46658c810fb65efbc4bc3d"
-    },
-    "archive\\orphans\\tests\\integrations\\__init__.py": {
-        "hash": "4aaa9d59a0d4c98c7b8ded8a11814028"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\index.js": {
-        "hash": "78c8f0df38ac9ba57d78d1674a0ab246"
-    },
-    "archive\\orphans\\utils\\import_debugger.py": {
-        "hash": "fc455a8fa93d5fe69931423fb9248b11"
-    },
-    "archive\\orphans\\hooks\\chatgpt_responder.py": {
-        "hash": "6f0dbc1a85b7c1553fc7a5aeb50d88b5"
-    },
-    "archive\\orphans\\core\\tts\\elevenlabs_tts.py": {
-        "hash": "db63a69c53ed7a59e637a674084c770f"
-    },
-    "sandbox\\ironvale_feedback\\parser.py": {
-        "hash": "6fd1e7739547f97ad5fb7a8aec4dc76a"
-    },
-    "runtime\\temp\\agent7_validation_test.py": {
-        "hash": "e75f61637129ee2d98768856f0e71401"
-    },
-    "archive\\orphans\\tests\\rendering\\test_template_engine.py": {
-        "hash": "e7fb1df8286a725413b70124cf0ad020"
-    },
-    "runtime\\agent_prototypes\\Agent-1\\__init__.py": {
-        "hash": "4365cdae59e07836f20cf2d765843912"
-    },
-    "archive\\orphans\\tests\\unit\\__init__.py": {
-        "hash": "2c004a6664175bc7be30433209df16d1"
-    },
-    "devtools\\module_mapper.py": {
-        "hash": "07b90185d44a179655c6eaf1b63ee1a9"
-    },
-    "dreamos_ai_organizer\\core\\state.py": {
-        "hash": "b6bc9f491ac83375b99814df051b6af3"
-    },
-    "runtime\\temp\\edit_test_files\\__init__.py": {
-        "hash": "af21219fd4191b982f7c7081c8456d91"
-    },
-    "archive\\orphans\\services\\event_logger.py": {
-        "hash": "f88624a80547324b136d56f23b8ba752"
-    },
-    "archive\\orphans\\tools\\discovery\\find_todos.py": {
-        "hash": "0e60113ae7fb2d21566e12a576168f3f"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\tags\\functions.js": {
-        "hash": "7fc70b3011493a42f36567a456338dd3"
-    },
-    "archive\\orphans\\tests\\core\\comms\\test_project_board.py": {
-        "hash": "ae463b235aca285d7e7775c3646d2ebb"
-    },
     "archive\\orphans\\agents\\supervisor_agent.py": {
         "hash": "1122b0e8879517e00025b67f0d2365e3"
     },
-    "scripts\\simulate_tool_timeout.py": {
-        "hash": "6cbe100fa84c77e29f72df3b058c586e"
+    "archive\\orphans\\agents\\utils.py": {
+        "hash": "fcc6b48adbb598f61a7e857671fbc02b"
     },
-    "archive\\orphans\\core\\tasks\\nexus\\shadow_task_nexus.py": {
-        "hash": "e02c12015b64047369d8ed6726f2ed13"
+    "archive\\orphans\\agents\\__init__.py": {
+        "hash": "7154bea467d0d94815337f74510155eb"
     },
-    "archive\\orphans\\core\\comms\\meeting_schemas.py": {
-        "hash": "6ca6dfb64871428ae1423bf9908a3143"
+    "archive\\orphans\\agents\\agents\\task_executor_agent.py": {
+        "hash": "7f0fc16f825d4302d96f5d61aacffe68"
     },
-    "scripts\\migration_helpers\\robust_move_and_git_track.py": {
-        "hash": "3a349a5026fd2017cc92b9107e9902f1"
+    "archive\\orphans\\agents\\agents\\tool_executor_agent.py": {
+        "hash": "83baf705a5141f212dc5f2e5af62873a"
     },
-    "src\\dreamscape\\chronicle_conversations.py": {
-        "hash": "e7b0a2c10768feaef2176348387572d4"
-    },
-    "sandbox\\utils\\normalize_time.py": {
-        "hash": "06b1935cc6822f5a56be3ac8d8ddad7d"
-    },
-    "sandbox\\scripts\\drift_injector.py": {
-        "hash": "a93750b5b9f3b36e5f14127f2c98695c"
-    },
-    "archive\\orphans\\hooks\\chronicle_logger.py": {
-        "hash": "f0e4b43502c0a1983e62d5e4ee92ab8d"
-    },
-    "archive\\orphans\\cli\\safe_writer_cli.py": {
-        "hash": "eebc1587a00cd0df41a2177438f2e3a5"
-    },
-    "analytics\\temporal_ledger_auditor.py": {
-        "hash": "92d35e64463365b0527b170538277734"
-    },
-    "archive\\orphans\\core\\comms\\mailbox.py": {
-        "hash": "1fc05a292cf870e2017f512da4233ce2"
-    },
-    "archive\\orphans\\core\\coordination\\event_types.py": {
-        "hash": "07dc826bdcf7f78edecfba96178bc864"
-    },
-    "scripts\\__init__.py": {
-        "hash": "1faa709c21291a471038921b8721f228"
-    },
-    "archive\\orphans\\cli\\__init__.py": {
-        "hash": "90b11beded8f6e5a4ce91112da01e270"
-    },
-    "sandbox\\parser\\__init__.py": {
-        "hash": "2928689b4e530b022c18e281b39d0985"
-    },
-    "sandbox\\bridge\\feedback_patch.py": {
-        "hash": "e67ac60811681b4b9716534e97700c8e"
-    },
-    "archive\\orphans\\core\\state\\snapshot_manager.py": {
-        "hash": "54b05ce2a3087fb33c16b386ab0bb647"
-    },
-    "archive\\orphans\\tests\\utils\\test_json_io.py": {
-        "hash": "46249222c61b73e68cf31452e05c26ed"
-    },
-    "scripts\\analysis\\__init__.py": {
-        "hash": "93b3ddb5aee83683201e1c9c88cf8a5e"
-    },
-    "archive\\orphans\\tests\\scripts\\utils\\__init__.py": {
-        "hash": "7064b4e1fb92acb0d3b705247092cc9c"
-    },
-    "archive\\orphans\\dashboard\\dashboard_ui.py": {
-        "hash": "1273073d858408a5f1f9693eb7e5cff6"
-    },
-    "analytics\\chrono_sentinel.py": {
-        "hash": "7c0780375ee71f011a03e3fe73a0315f"
-    },
-    "archive\\orphans\\services\\utils\\devlog_analyzer.py": {
-        "hash": "9c41d69435209e84bb5fd92058d2c8e6"
+    "archive\\orphans\\agents\\library\\agent_devlog.py": {
+        "hash": "94be5b380f9e92666c1b6ec06dadea62"
     },
     "archive\\orphans\\agents\\library\\agent_lore_writer.py": {
         "hash": "fefc2ede78731c04ee0d2988b060b0a0"
     },
-    "archive\\orphans\\monitoring\\performance_logger.py": {
-        "hash": "7ebb2871822a43d47ac7c2405d6ce22f"
+    "archive\\orphans\\agents\\library\\task_promoter_agent.py": {
+        "hash": "44a5a57e16d7be64aa974aba9cc1b7da"
     },
-    "scripts\\run_bridge_service.py": {
-        "hash": "54bd54a236f43b9511891b9938b992bf"
+    "archive\\orphans\\agents\\mixins\\voting.py": {
+        "hash": "3db9d885c20b54fe762de4078ee34649"
     },
-    "archive\\orphans\\tests\\monitoring\\__init__.py": {
-        "hash": "267e4a64ce68b57417ecf8ae59d1f94e"
+    "archive\\orphans\\agents\\utils\\agent_utils.py": {
+        "hash": "440f6cd8fa1470907ce9a1053d87b37c"
     },
-    "archive\\orphans\\utils\\project_root.py": {
-        "hash": "109a37e87924b01326554a9e7378fc82"
+    "archive\\orphans\\agents\\utils\\__init__.py": {
+        "hash": "0b1b8ad4ac75c4b35e4219793e776f8f"
     },
-    "archive\\orphans\\chat_engine\\feedback_engine_v2.py": {
-        "hash": "175a26bd87b1fc013f217de51ce44867"
-    },
-    "scripts\\stress_test_bridge.py": {
-        "hash": "ed02f8fc53eb0caa1dd40f96f1fdde0c"
-    },
-    "archive\\orphans\\core\\tasks\\nexus\\task_operations.py": {
-        "hash": "6e45d4e0bdacc9e329238b2e9f8890a2"
-    },
-    "ai_docs\\examples_and_tutorials\\from_old_docs\\examples\\__init__.py": {
-        "hash": "8c5332551109487b20b96958c5840cac"
-    },
-    "archive\\orphans\\integrations\\browser_client.py": {
-        "hash": "0b83bab1f02c7a501d23799e4dba85f6"
-    },
-    "archive\\orphans\\integrations\\discord_client.py": {
-        "hash": "aae489eb29b76107584a459bcc1b334e"
-    },
-    "scripts\\bridge_health_report.py": {
-        "hash": "9bc9999f9ef54e4a85e7d4b0b8c48d41"
-    },
-    "sandbox\\veindrill_envtelemetry\\anomaly_detector.py": {
-        "hash": "9ba2fa0d460ff52024ba4512dd7c6dc2"
-    },
-    "sandbox\\bridge_validator\\validator.py": {
-        "hash": "5e8c26503d44a02d9c943c3054e41873"
-    },
-    "archive\\orphans\\integrations\\cursor\\window_controller.py": {
-        "hash": "54daaa5a023c9b1313d69f74571116fa"
-    },
-    "archive\\orphans\\gui\\supervisor_alert_viewer.py": {
-        "hash": "27d46a38ef31a0faceb4ad2503380e10"
-    },
-    "archive\\orphans\\utils\\coords.py": {
-        "hash": "3a88b067dca9488b179065fa3d495ac9"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\library\\narrative_generate.py": {
-        "hash": "32fe93705ad100c002827fb190d37073"
-    },
-    "archive\\orphans\\tools\\maintenance\\validate_logs.py": {
-        "hash": "7d676f3975c745c2340f4fecbd62ee18"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\rust\\lib.rs": {
-        "hash": "ba2e53c5d6e6bcb74dc47c2fd41016b7"
-    },
-    "archive\\orphans\\core\\logging\\swarm_logger.py": {
-        "hash": "a7091b7b9f3417dc8e78caedc3541cb2"
-    },
-    "archive\\orphans\\tools\\calibration\\recalibrate_coords.py": {
-        "hash": "7ba87e8b1a021b29dc32c9fcebf3bc91"
-    },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\examples\\weird-exprs.rs": {
-        "hash": "3e5092b34a69c25d2f91512c462e792f"
-    },
-    "tools\\test_scraper_interactively.py": {
-        "hash": "2ad2e545c501544f0e6fa635e7a4fa72"
+    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\main.py": {
+        "hash": "af3b37ff83e1dccbf7586fdd485885ed"
     },
     "archive\\orphans\\agents\\validation\\offline_validation_agent.py": {
         "hash": "a3a36a9fc4f270171f44cf27b89afe30"
     },
-    "archive\\orphans\\tests\\dreamscape\\agents\\__init__.py": {
-        "hash": "6acd60ff88aaeb58dcd6465e81bb0b40"
+    "archive\\orphans\\automation\\bridge_loop.py": {
+        "hash": "4edf52aa9462dfcbffe93eeabe28f587"
     },
-    "bridge\\feedback\\status_pusher.py": {
-        "hash": "fa8ffcc2b2ea118cf0fbcc0d56924982"
+    "archive\\orphans\\automation\\config.py": {
+        "hash": "fb0d8dc73e1290f08ef4e8e352f8d059"
+    },
+    "archive\\orphans\\automation\\cursor_orchestrator.py": {
+        "hash": "5ce29e45cf04b179180ae22eaae013b9"
+    },
+    "archive\\orphans\\automation\\execution\\agent_factory.py": {
+        "hash": "4f93fab2c0ad4c8f623f975f7a1e3f3f"
+    },
+    "archive\\orphans\\automation\\execution\\swarm_controller.py": {
+        "hash": "84eb8e17def2007d20a56fbacf2e6a98"
+    },
+    "archive\\orphans\\automation\\execution\\dream_mode_sleep.py": {
+        "hash": "267526a40e2ee398d6de7aef0272dfb6"
+    },
+    "archive\\orphans\\bridge\\bridge_loop.py": {
+        "hash": "8af902fcb89e2ab3080c10f3921f3be5"
+    },
+    "archive\\orphans\\automation\\execution\\virtual_desktop_runner.py": {
+        "hash": "f3a099a0deb2c15e9ea2fab55a87228f"
+    },
+    "archive\\orphans\\automation\\execution\\__init__.py": {
+        "hash": "46075c6de970ed76a8e071633c700447"
+    },
+    "archive\\orphans\\channels\\azure_blob_channel.py": {
+        "hash": "c35f9e1be7ad960e40489b4291f77f12"
+    },
+    "archive\\orphans\\bridge\\run_bridge_loop.py": {
+        "hash": "e702e5dff7ccd300665a756df0af3d27"
+    },
+    "archive\\orphans\\bridge\\http_bridge_service.py": {
+        "hash": "5b5ad1ef4d27320e909b5c5df90ade13"
+    },
+    "archive\\orphans\\channels\\local_blob_channel.py": {
+        "hash": "00c2574bb60db343b2c6180ca1d8c48e"
+    },
+    "archive\\orphans\\chat_engine\\base_chat_adapter.py": {
+        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
+    },
+    "archive\\orphans\\chat_engine\\chat_cycle_controller.py": {
+        "hash": "b44a73caaa913c9c47925400106f314f"
+    },
+    "archive\\orphans\\chat_engine\\discord_dispatcher.py": {
+        "hash": "945ccfca523ab4667adac63eecc9623a"
+    },
+    "archive\\orphans\\chat_engine\\chat_scraper_service.py": {
+        "hash": "560974e76afec932032ca1b34af67635"
+    },
+    "archive\\orphans\\chat_engine\\feedback_engine.py": {
+        "hash": "2fb4ae14af7b571ce7abf341cccb7a3f"
+    },
+    "archive\\orphans\\chat_engine\\driver_manager.py": {
+        "hash": "d302842029cfb65689d587fdbea117cc"
+    },
+    "archive\\orphans\\chat_engine\\feedback_engine_v2.py": {
+        "hash": "175a26bd87b1fc013f217de51ce44867"
+    },
+    "archive\\orphans\\chat_engine\\gui_event_handler.py": {
+        "hash": "dc65c6bfb60107b0e4e12bd0ed671dea"
+    },
+    "archive\\orphans\\chat_engine\\prompt_execution_service.py": {
+        "hash": "72eed0f2b38bb437dc8c1d7637b16039"
+    },
+    "archive\\orphans\\cli\\bridge_diagnostic.py": {
+        "hash": "215ca7921f4d53f0304f0af5fb9b3427"
+    },
+    "archive\\orphans\\cli\\calibrate_gui_coords.py": {
+        "hash": "48f2c7ad0621be21ddbd2d56e23a36d1"
+    },
+    "archive\\orphans\\cli\\dreamscape_controller.py": {
+        "hash": "f52211b5f81fd93cb70632d0739b7de5"
+    },
+    "archive\\orphans\\cli\\cursor_injector.py": {
+        "hash": "35d66e89745ac1b85a2bea41409c9d5d"
+    },
+    "archive\\orphans\\cli\\main.py": {
+        "hash": "97314059bd10fb0063143c328790c7f3"
+    },
+    "archive\\orphans\\cli\\run_e2e_bridge_test.py": {
+        "hash": "c35eef25af48050238b8d84744c48f27"
+    },
+    "archive\\orphans\\cli\\manage_tasks.py": {
+        "hash": "85decf6e738940b0036e39c50017403b"
+    },
+    "archive\\orphans\\cli\\safe_writer_cli.py": {
+        "hash": "eebc1587a00cd0df41a2177438f2e3a5"
+    },
+    "archive\\orphans\\cli\\state_cmds.py": {
+        "hash": "64fa19f33656cf9afed74721d504de22"
+    },
+    "archive\\orphans\\cli\\safe_edit_json_list.py": {
+        "hash": "a36c2821068b7989209f804bd4f171af"
+    },
+    "archive\\orphans\\cli\\__init__.py": {
+        "hash": "60a52892e75e500080c7f6923f706087"
+    },
+    "archive\\orphans\\coordination\\governance_utils.py": {
+        "hash": "28937cb9873f097a31f5739a6298374c"
+    },
+    "archive\\orphans\\coordination\\dispatcher.py": {
+        "hash": "80c72ce16768c5b329626f6fe6fa6561"
+    },
+    "archive\\orphans\\coordination\\voting_coordinator.py": {
+        "hash": "52c2d49b8e596e0073695d3e7da89fe3"
+    },
+    "archive\\orphans\\coordination\\project_board_manager.py": {
+        "hash": "26341b2b9cf1d3abadd8e6765ffa2f72"
+    },
+    "archive\\orphans\\coordination\\dispatchers\\base_dispatcher.py": {
+        "hash": "ce9c532f97940e3d3cb0cd091a160672"
+    },
+    "archive\\orphans\\coordination\\tasks\\task_utils.py": {
+        "hash": "55ac3bbf5c0a472d69db9622cc77bad6"
+    },
+    "archive\\orphans\\core\\swarm_sync.py": {
+        "hash": "e250bd9263f785b1f49bacf6e9bce31b"
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\schema.py": {
+        "hash": "86140e5326f84abd802c2c65e0fbb097"
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\library\\debate_management.py": {
+        "hash": "0d9f598d1314d3215f80f103acfad54c"
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\library\\narrative_generate.py": {
+        "hash": "32fe93705ad100c002827fb190d37073"
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\library\\meeting_management.py": {
+        "hash": "cdd751c32c83279a237529810809af3e"
+    },
+    "archive\\orphans\\core\\agents\\capabilities\\library\\task_rewrite.py": {
+        "hash": "069d8d1f1cdbb704f770afa97101f192"
+    },
+    "archive\\orphans\\core\\awareness\\context_manager.py": {
+        "hash": "a458b62375e40d67aa0bfa911daff051"
+    },
+    "archive\\orphans\\core\\comms\\debate_schemas.py": {
+        "hash": "3d82cfb238813d62375e11250f5f6605"
+    },
+    "archive\\orphans\\core\\comms\\mailbox.py": {
+        "hash": "1fc05a292cf870e2017f512da4233ce2"
+    },
+    "archive\\orphans\\core\\comms\\mailbox_utils.py": {
+        "hash": "642927b271c9556ab5062de75c60234e"
+    },
+    "archive\\orphans\\core\\comms\\meeting_schemas.py": {
+        "hash": "6ca6dfb64871428ae1423bf9908a3143"
+    },
+    "archive\\orphans\\core\\coordination\\agent_bus.py": {
+        "hash": "835333b217a7ecc5100f641c3d1eb9ae"
+    },
+    "archive\\orphans\\core\\coordination\\base_agent.py": {
+        "hash": "c494b04458c4d05618697ff77dde43ff"
+    },
+    "archive\\orphans\\core\\coordination\\base_agent_lifecycle.py": {
+        "hash": "a15190edc0d0ebfc825bd8022c6f8dd2"
+    },
+    "archive\\orphans\\core\\coordination\\enums.py": {
+        "hash": "7a4dbb06daa8db312e615dca3e626cfa"
+    },
+    "archive\\orphans\\core\\coordination\\event_payloads.py": {
+        "hash": "f426b1d8d550cb034b136bff46e1967e"
+    },
+    "archive\\orphans\\core\\coordination\\event_types.py": {
+        "hash": "07dc826bdcf7f78edecfba96178bc864"
+    },
+    "archive\\orphans\\core\\coordination\\message_patterns.py": {
+        "hash": "e11674f43507ab290170ccc391d24df4"
+    },
+    "archive\\orphans\\core\\coordination\\project_board_manager.py": {
+        "hash": "6bde09b44e0c068e6266a31f33745097"
+    },
+    "archive\\orphans\\core\\coordination\\__init__.py": {
+        "hash": "06d3a9f4d45f632e2d15fc3e26dee808"
     },
     "archive\\orphans\\core\\coordination\\schemas\\voting_patterns.py": {
         "hash": "24190dc2ecfe29d152fb521899cea947"
     },
-    "archive\\orphans\\utils\\file_io.py": {
-        "hash": "c8fe0dbfb0f169cee3e60edc8240785f"
+    "archive\\orphans\\core\\db\\sqlite_adapter.py": {
+        "hash": "521010d6ab0f01c91365bcb622cb061a"
     },
-    "archive\\orphans\\tests\\supervisor_tools\\test_command_supervisor.py": {
-        "hash": "33ea62e04e9df989386e8482bcc9086c"
+    "archive\\orphans\\core\\errors\\exceptions.py": {
+        "hash": "0b61fd7325f43a1e7bbd7d1ba954a7e2"
     },
-    "archive\\orphans\\tests\\integrations\\test_discord_client.py": {
-        "hash": "6007123ce2ec3a104403d689563df814"
+    "archive\\orphans\\core\\events\\base_event.py": {
+        "hash": "4d58a7c267f707e9debc2631160c698d"
     },
-    "src\\dreamscape\\config.py": {
-        "hash": "0ae7b78c528b2bd0e84e00d70b87fab6"
+    "archive\\orphans\\core\\feedback\\thea_feedback_ingestor.py": {
+        "hash": "e8b23f796cc56c9c18c328ae5e29bc53"
     },
-    "bridge\\relay\\payload_handler.py": {
+    "archive\\orphans\\core\\health_checks\\cursor_status_check.py": {
+        "hash": "191dffb6eb5b1fb1c5e8d624031ed59b"
+    },
+    "archive\\orphans\\core\\health_checks\\cursor_window_check.py": {
+        "hash": "b1892239db5e34d61a0f25e198d98d62"
+    },
+    "archive\\orphans\\core\\identity\\agent_identity.py": {
+        "hash": "4bccea019de6a91bdf1fce9c8bcaaa28"
+    },
+    "archive\\orphans\\core\\identity\\agent_identity_manager.py": {
+        "hash": "b6d6463fad8cfb31e4463d1a8d27e337"
+    },
+    "archive\\orphans\\core\\identity\\agent_identity_store.py": {
+        "hash": "398c9b33372d8efc9b1bd775c11f9430"
+    },
+    "archive\\orphans\\core\\logging\\swarm_logger.py": {
+        "hash": "45e88f3dc4f53a4a728e4ec05b17e16a"
+    },
+    "archive\\orphans\\core\\narrative\\lore_parser.py": {
+        "hash": "db9b8555b4e0b7e639cd6c93332bb4b5"
+    },
+    "archive\\orphans\\core\\state\\snapshot_manager.py": {
+        "hash": "5f9785ec7d4dcdbecfa7a96b1a8adbf4"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\agent_registry_handler.py": {
+        "hash": "da857f69b4bcb828b1533c92779cc75b"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\capability_handler.py": {
+        "hash": "627a628bcde4c4bfd147bc60a6e97dee"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\capability_registry.py": {
+        "hash": "3fcc2ec799f69e3780c60dd2c380f81a"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\db_task_nexus.py": {
+        "hash": "4d54aeb361891cf2adf5722b26fcf63e"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\shadow_task_nexus.py": {
+        "hash": "e02c12015b64047369d8ed6726f2ed13"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\task_operations.py": {
+        "hash": "6e45d4e0bdacc9e329238b2e9f8890a2"
+    },
+    "archive\\orphans\\core\\tasks\\nexus\\task_nexus.py": {
+        "hash": "19e69920ce973d620d9563dc72d288cb"
+    },
+    "archive\\orphans\\core\\tts\\elevenlabs_tts.py": {
+        "hash": "db63a69c53ed7a59e637a674084c770f"
+    },
+    "archive\\orphans\\core\\tts\\local_tts.py": {
+        "hash": "fbc57f0081e1fb68bffdb7abccbf5dd0"
+    },
+    "archive\\orphans\\core\\tts\\tts_factory.py": {
+        "hash": "36ab2055bb755c191db44523634bfff4"
+    },
+    "archive\\orphans\\core\\tts\\tts_interface.py": {
+        "hash": "604d9c09529a4a741b968f48dd603f18"
+    },
+    "archive\\orphans\\core\\tools\\script_runner.py": {
+        "hash": "fa73cb524a58930e9b6f82cbf62cd6f8"
+    },
+    "archive\\orphans\\core\\utils\\file_utils.py": {
+        "hash": "9f100579178cd0ac8c2f2ec58c8f70e3"
+    },
+    "archive\\orphans\\dashboard\\dashboard_app.py": {
+        "hash": "d4a5731eb512a9ae953803d9f3cf3e19"
+    },
+    "archive\\orphans\\dashboard\\dashboard_ui.py": {
+        "hash": "9f2aba8a30847df44002b04cbe4918f7"
+    },
+    "archive\\orphans\\feedback\\feedback_engine_v2.py": {
+        "hash": "11434cb10c70c0e327ca54fdae872747"
+    },
+    "archive\\orphans\\gui\\main_window.py": {
+        "hash": "b130c3b034f185dac1b9b1fe53219487"
+    },
+    "archive\\orphans\\governance\\agent_points_manager.py": {
+        "hash": "52f80685136f090ce441a5997b15d723"
+    },
+    "archive\\orphans\\gui\\supervisor_alert_viewer.py": {
+        "hash": "8d514ace2a85efaa418486bf17ebb45a"
+    },
+    "archive\\orphans\\hooks\\chatgpt_responder.py": {
+        "hash": "6f0dbc1a85b7c1553fc7a5aeb50d88b5"
+    },
+    "archive\\orphans\\hooks\\chronicle_logger.py": {
+        "hash": "1f46f16a46330edccf921cd6427cf0ea"
+    },
+    "archive\\orphans\\hooks\\conversation_logger.py": {
+        "hash": "9594fbd6bc68510ab3513a7ee2c0a69e"
+    },
+    "archive\\orphans\\hooks\\devlog_hook.py": {
+        "hash": "38ff7283d5b2555c2ba613b1d6defbc0"
+    },
+    "archive\\orphans\\hooks\\stats_logger.py": {
+        "hash": "42c4ba5894308a8cbcc48721f7a49b4d"
+    },
+    "archive\\orphans\\identity\\models.py": {
+        "hash": "147a5432bdbb49eea2cd360638440a21"
+    },
+    "archive\\orphans\\identity\\store.py": {
+        "hash": "4c8136ab10a939b7443d8321a55f8217"
+    },
+    "archive\\orphans\\integrations\\azure_blob_client.py": {
+        "hash": "2c5b32285705d0c67500c137406cba28"
+    },
+    "archive\\orphans\\integrations\\discord_bot.py": {
+        "hash": "59d33823b361be02b0169e86a5f595d1"
+    },
+    "archive\\orphans\\integrations\\browser_client.py": {
+        "hash": "05a9c63fd8223e1de44a5750e8457e27"
+    },
+    "archive\\orphans\\integrations\\discord_client.py": {
+        "hash": "93aa33fdedbec83dfa8a80aac798ebf5"
+    },
+    "archive\\orphans\\integrations\\openai_client.py": {
+        "hash": "2e49798645a9797021f2bc2486a7a29b"
+    },
+    "archive\\orphans\\integrations\\agent_services\\cursor_shadow_controller.py": {
+        "hash": "9f83019c96c7d28c57a5b649428a7699"
+    },
+    "archive\\orphans\\integrations\\cursor\\cursor_prompt_controller.py": {
+        "hash": "bfd6cc4bb9459fff0ca77061cee86731"
+    },
+    "archive\\orphans\\integrations\\cursor\\utils.py": {
+        "hash": "00ec4c3421039308bc57a4f3dca15a51"
+    },
+    "archive\\orphans\\integrations\\cursor\\swarm_bootloader.py": {
+        "hash": "adb7d46012b9e4eccce896d1185223b3"
+    },
+    "archive\\orphans\\integrations\\cursor\\window_controller.py": {
+        "hash": "54daaa5a023c9b1313d69f74571116fa"
+    },
+    "archive\\orphans\\js\\binding_test.js": {
+        "hash": "3058616d1d281ab61fa4a50fe0e3dca4"
+    },
+    "archive\\orphans\\js\\coverage_html_cb_497bf287.js": {
+        "hash": "5d92da3d422f7f6f43e1bec7cb6cab4f"
+    },
+    "archive\\orphans\\llm_bridge\\bridge_adapters\\base_adapter.py": {
+        "hash": "6605ddb53433f43828c09bb48f2b7a6c"
+    },
+    "archive\\orphans\\memory\\compaction_utils.py": {
+        "hash": "4f86ce85f1b321f35bac8d94cb34d263"
+    },
+    "archive\\orphans\\memory\\memory_manager.py": {
+        "hash": "e6d53bbcc753d62c28e94bb35880956b"
+    },
+    "archive\\orphans\\memory\\summarization_utils.py": {
+        "hash": "c2a6554b3615258847d4ae59e2ff3bf9"
+    },
+    "archive\\orphans\\memory\\summarizer.py": {
+        "hash": "014aeed8ed8cd83bade5caa5bcd52f9a"
+    },
+    "archive\\orphans\\memory\\layers\\task_memory_layer.py": {
+        "hash": "807bf6cf71c0b3f53793e2f80020cb63"
+    },
+    "archive\\orphans\\modules\\scraper\\chatgpt_scraper\\scraper.py": {
+        "hash": "cb7bf8f365aee4a277d03de080d62c89"
+    },
+    "archive\\orphans\\modules\\scraper\\chatgpt_scraper\\__init__.py": {
+        "hash": "a2d219e485b62199fad54e41709ab8f4"
+    },
+    "archive\\orphans\\monitoring\\correlation_validator.py": {
+        "hash": "770c1859974dbe206c955b628a6d14a0"
+    },
+    "archive\\orphans\\monitoring\\performance_logger.py": {
+        "hash": "bff6148a84f13c977ddcb4567f147061"
+    },
+    "archive\\orphans\\monitoring\\prompt_execution_monitor.py": {
+        "hash": "ad99ea1ce7fce841857007a7ee75c7b5"
+    },
+    "archive\\orphans\\py\\agent1_taskboard_workaround.py": {
+        "hash": "4c26678b4d86e124e7fa11b89a831bea"
+    },
+    "archive\\orphans\\py\\agent2_infra_surgeon.py": {
+        "hash": "51807f7289f96a5cd432dccd770f7f53"
+    },
+    "archive\\orphans\\py\\agent7_validation_test.py": {
+        "hash": "e75f61637129ee2d98768856f0e71401"
+    },
+    "archive\\orphans\\py\\agent_1_stub.py": {
+        "hash": "cb9d36187543c08d3d42888616150ead"
+    },
+    "archive\\orphans\\py\\analyze_latency_trends.py": {
+        "hash": "bce78e323507a00ed31e994c642da5a1"
+    },
+    "archive\\orphans\\py\\agent_file_manager_stub.py": {
+        "hash": "6cd28a87f429a545b0c2eb5fabf35cd4"
+    },
+    "archive\\orphans\\py\\anomaly_detector.py": {
+        "hash": "9ba2fa0d460ff52024ba4512dd7c6dc2"
+    },
+    "archive\\orphans\\py\\azure_eventhub_channel.py": {
+        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
+    },
+    "archive\\orphans\\py\\bloat_watcher.py": {
+        "hash": "7c7f378a83596798407517620c471841"
+    },
+    "archive\\orphans\\py\\automation_interface.py": {
+        "hash": "61b71dc5dfd9e2e660c3e2f28454ac60"
+    },
+    "archive\\orphans\\py\\bridge_health_report.py": {
+        "hash": "9bc9999f9ef54e4a85e7d4b0b8c48d41"
+    },
+    "archive\\orphans\\py\\bridge_fault_inspector.py": {
+        "hash": "6f3964d633384a7b2fa9a79ad61d95b1"
+    },
+    "archive\\orphans\\py\\bridge_expansion.py": {
+        "hash": "2c596f7d8206ecd49df531ae347c8ee1"
+    },
+    "archive\\orphans\\py\\bridge_mutation_impact_report.py": {
+        "hash": "83e90b16d3f463904e73b9cfab65e998"
+    },
+    "archive\\orphans\\py\\bridge_integrity_monitor.py": {
+        "hash": "ec1df8f076b14ea9dfd8670a7d688066"
+    },
+    "archive\\orphans\\py\\calibrate_agent_gui.py": {
+        "hash": "07fcd453926bf0ad69a7107d50ff6e73"
+    },
+    "archive\\orphans\\py\\capture_gui_snippet.py": {
+        "hash": "46176865fa9009a4bfa0a97218c06c20"
+    },
+    "archive\\orphans\\py\\captain_ai_self_prompter.py": {
+        "hash": "e7a8ffb7eb93d4ed741a737291083076"
+    },
+    "archive\\orphans\\py\\channel_loader.py": {
+        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
+    },
+    "archive\\orphans\\py\\check_imports.py": {
+        "hash": "73d6c222468fb8e4ec8d244157a62f80"
+    },
+    "archive\\orphans\\py\\chronicle_conversations.py": {
+        "hash": "7f62aebe3e643caa0cc5e956a894ce9e"
+    },
+    "archive\\orphans\\py\\chrono_sentinel.py": {
+        "hash": "7c0780375ee71f011a03e3fe73a0315f"
+    },
+    "archive\\orphans\\py\\command_supervisor.py": {
+        "hash": "7a88dc1efdb8e212d53e711f8f64d42d"
+    },
+    "archive\\orphans\\py\\command_listener.py": {
+        "hash": "32ab7ce319f16843a4af37b552963243"
+    },
+    "archive\\orphans\\py\\compile_devlog.py": {
+        "hash": "7642cc50c5fa01798759ca087010476f"
+    },
+    "archive\\orphans\\py\\content_models.py": {
+        "hash": "f20eea8956d3de81b81426a2de31dd91"
+    },
+    "archive\\orphans\\py\\config.py": {
+        "hash": "d3e941c16fcd7c933653d5f958ff3af8"
+    },
+    "archive\\orphans\\py\\context_injector.py": {
+        "hash": "efd586807b9b1861ce68bba6fffe2156"
+    },
+    "archive\\orphans\\py\\cursor_dispatcher.py": {
+        "hash": "920469ecde7e87e9a3aa1d6f5a98d1a3"
+    },
+    "archive\\orphans\\py\\cursor_bridge.py": {
+        "hash": "cb17a0b7a9b9f9fd6eb8b254dd23c05f"
+    },
+    "archive\\orphans\\py\\dependency_extractor.py": {
+        "hash": "640eb896d73c58c7b6aeff7087ed3d14"
+    },
+    "archive\\orphans\\py\\cursor_fleet_launcher.py": {
+        "hash": "2025d8987b1c8afb09c76daaf64836ac"
+    },
+    "archive\\orphans\\py\\disperse_tasks.py": {
+        "hash": "c3d4972e979b736a9a334482e605c037"
+    },
+    "archive\\orphans\\py\\cursor_gpt_feedback.py": {
+        "hash": "cd64366201d7ee5d43a7340ea0d4a5d1"
+    },
+    "archive\\orphans\\py\\dreamscape_controller.py": {
+        "hash": "dc0dfe96338cae2a7cfa058f3476c76e"
+    },
+    "archive\\orphans\\py\\edit_file.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "archive\\orphans\\py\\drift_generator.py": {
+        "hash": "f6751df92c2a9caaa58f48ba301016ca"
+    },
+    "archive\\orphans\\py\\drift_injector.py": {
+        "hash": "a93750b5b9f3b36e5f14127f2c98695c"
+    },
+    "archive\\orphans\\py\\episode_index_builder.py": {
+        "hash": "50f33c08ab9656abfe4eecb2882beb4f"
+    },
+    "archive\\orphans\\py\\episode_parser.py": {
+        "hash": "84715563646716c48fd089eeb8199d56"
+    },
+    "archive\\orphans\\py\\episode_status_sync.py": {
+        "hash": "d1dee36a9044aba635e3b1b8ec3f85ba"
+    },
+    "archive\\orphans\\py\\event_schemas.py": {
+        "hash": "bf8c0ed645ed3af6f9090e1ed52f2d08"
+    },
+    "archive\\orphans\\py\\event_types.py": {
+        "hash": "68fd7d3dcb732cfbc17182f141e6acdc"
+    },
+    "archive\\orphans\\py\\extract_cursor_response.py": {
+        "hash": "2813bd27fb5ecf659d3b0cb2e8b1fe6c"
+    },
+    "archive\\orphans\\py\\fault_inspector.py": {
+        "hash": "d9f5eb496c5b2bd130c2aa836f384add"
+    },
+    "archive\\orphans\\py\\feedback_patch.py": {
+        "hash": "e67ac60811681b4b9716534e97700c8e"
+    },
+    "archive\\orphans\\py\\feedback_sentinel.py": {
+        "hash": "2a0ba117c0c68691d133ad104104c38b"
+    },
+    "archive\\orphans\\py\\find_duplicate_tasks.py": {
+        "hash": "e942ef1be0f33960db25ec2a913aa8a1"
+    },
+    "archive\\orphans\\py\\file_locking.py": {
+        "hash": "7c599a4a0e6af8c638723d5c19569941"
+    },
+    "archive\\orphans\\py\\feedback_trace_verifier.py": {
+        "hash": "7972203818f04c881b4f83bfaea59c30"
+    },
+    "archive\\orphans\\py\\generate_chatgpt_cookies.py": {
+        "hash": "9d38fbe9559ab6278c493bcda3b999c7"
+    },
+    "archive\\orphans\\py\\fix_tenacity_example.py": {
+        "hash": "cb8479e6669490e3d6c6f2aa76567c73"
+    },
+    "archive\\orphans\\py\\gpt_cursor_relay.py": {
+        "hash": "7ba7d572ff26bec7ebe61778487deb24"
+    },
+    "archive\\orphans\\py\\gui_controller.py": {
+        "hash": "3400ffaa48304f6e90c6dc353fef8251"
+    },
+    "archive\\orphans\\py\\injector.py": {
+        "hash": "948e12ffe1d74f1ded980c1f6857c6f5"
+    },
+    "archive\\orphans\\py\\midnight_runner.py": {
+        "hash": "07208d6d65b5dc7935b7ff579e9715a0"
+    },
+    "archive\\orphans\\py\\main.py": {
+        "hash": "e2a7aad107c1104de49d963740c817f2"
+    },
+    "archive\\orphans\\py\\mock_bridge_loop.py": {
+        "hash": "a0fe024435f342bb37d2328e52e93566"
+    },
+    "archive\\orphans\\py\\monitor_bridge.py": {
+        "hash": "5dcfb005c51486a248b964eb87d93342"
+    },
+    "archive\\orphans\\py\\module_mapper.py": {
+        "hash": "07b90185d44a179655c6eaf1b63ee1a9"
+    },
+    "archive\\orphans\\py\\move_application_content.py": {
+        "hash": "4d337346b31b396571e387f4558160c5"
+    },
+    "archive\\orphans\\py\\move_archived_content.py": {
+        "hash": "df801ff96b6d6c6ebebe5052c066b000"
+    },
+    "archive\\orphans\\py\\move_bloat.py": {
+        "hash": "36d688dc2bf93be3c0c7e85b2ce3c1b4"
+    },
+    "archive\\orphans\\py\\move_orphans.py": {
+        "hash": "505aed7786fbe60207bd59aed549be5e"
+    },
+    "archive\\orphans\\py\\move_sandbox_content.py": {
+        "hash": "8031f6a2a53e0720cd6d96f9d0ddd762"
+    },
+    "archive\\orphans\\py\\mutation_test_bridge.py": {
+        "hash": "8fcd52c0583c78984a26d3b579279c1e"
+    },
+    "archive\\orphans\\py\\normalize_time.py": {
+        "hash": "61ddee1fe21bcad3eef31ccf62920451"
+    },
+    "archive\\orphans\\py\\onboarding_message_injector.py": {
+        "hash": "53302b99b9d0d08af40c1831ca4f1abb"
+    },
+    "archive\\orphans\\py\\new_agent.py": {
+        "hash": "437fc7275afde71d770cfc327938b7fa"
+    },
+    "archive\\orphans\\py\\onboarding_utils.py": {
+        "hash": "1a2d558a0ea18e1f0143a832a30419f5"
+    },
+    "archive\\orphans\\py\\parser.py": {
+        "hash": "6fd1e7739547f97ad5fb7a8aec4dc76a"
+    },
+    "archive\\orphans\\py\\payload_handler.py": {
         "hash": "09f7f155c3cdfbbdf7cda848bd685e15"
     },
-    "archive\\legacy_automation\\run_orchestrator.py": {
+    "archive\\orphans\\py\\planner_agent.py": {
+        "hash": "df944386382c980070027953152c9b66"
+    },
+    "archive\\orphans\\py\\process_logs.py": {
+        "hash": "44225fa18ffdbca65f3a4c4108a01d74"
+    },
+    "archive\\orphans\\py\\prompt_dispatcher.py": {
+        "hash": "a2ebebbdb046ea23b0ec626071bdd56b"
+    },
+    "archive\\orphans\\py\\pyqt_dashboard.py": {
+        "hash": "173aa1f25e29239a1891914d21b64747"
+    },
+    "archive\\orphans\\py\\refactor_task_ids.py": {
+        "hash": "3ccf2205d8aecd011fbcaa9da03e5597"
+    },
+    "archive\\orphans\\py\\regenerate_init_files.py": {
+        "hash": "ac1f3edc64a4f5a8a39c089ecfd99038"
+    },
+    "archive\\orphans\\py\\reflection_agent.py": {
+        "hash": "1f556df0e144c0f43f9ca99fc6ed0f8a"
+    },
+    "archive\\orphans\\py\\response_retriever.py": {
+        "hash": "1f1280e43033f114b3fb79ea14545da9"
+    },
+    "archive\\orphans\\py\\robust_move_and_git_track.py": {
+        "hash": "9a446c0bd11659f1cc5099aab3aace2a"
+    },
+    "archive\\orphans\\py\\run_bridge_service.py": {
+        "hash": "54bd54a236f43b9511891b9938b992bf"
+    },
+    "archive\\orphans\\py\\run_loop.py": {
+        "hash": "34754dcabc65f06156f0b640600e199d"
+    },
+    "archive\\orphans\\py\\run_orchestrator.py": {
         "hash": "57b2e3c5955059f1fb88850aa165d6eb"
     },
-    "test_night_cycle.py": {
-        "hash": "69af3e6b20d30f61dd214794cdf52240"
+    "archive\\orphans\\py\\run_vulture.py": {
+        "hash": "4b56b72240d328db4639f3bc32e0a0cc"
     },
-    "midnight_runner.py": {
-        "hash": "906173b1a75246dfcaedcc2a502db858"
+    "archive\\orphans\\py\\safe_file_writer.py": {
+        "hash": "947ac173dabec2326b37a87021ebbd29"
     },
-    "bridge_expansion.py": {
-        "hash": "a27b01b5f441106769cc18b107b384da"
+    "archive\\orphans\\py\\scan_for_orphans.py": {
+        "hash": "94fb6cc1e12f1d7c98cf5282bbb228d5"
     },
-    "archive\\archived_tests\\tests\\social\\tests\\utils\\test_browser_utils.py": {
+    "archive\\orphans\\py\\scan_for_rogue_files.py": {
+        "hash": "92321f9819a0a8db7618c020499a153a"
+    },
+    "archive\\orphans\\py\\setup.py": {
+        "hash": "9e62f1234467913301d5671541cd67be"
+    },
+    "archive\\orphans\\py\\sky_viewer.py": {
+        "hash": "f68f77c1fa4ee0b6f23caa9579c0d1db"
+    },
+    "archive\\orphans\\py\\simulate_tool_timeout.py": {
+        "hash": "6cbe100fa84c77e29f72df3b058c586e"
+    },
+    "archive\\orphans\\py\\state.py": {
+        "hash": "1f14118c68b21b9052bd318e666ceb5d"
+    },
+    "archive\\orphans\\py\\status_pusher.py": {
+        "hash": "fa8ffcc2b2ea118cf0fbcc0d56924982"
+    },
+    "archive\\orphans\\py\\stress_test_bridge.py": {
+        "hash": "b09e3b26ec1110253176ae28d936579e"
+    },
+    "archive\\orphans\\py\\summarizer.py": {
+        "hash": "bec4cb329822f04ecfa932d46cb36864"
+    },
+    "archive\\orphans\\py\\summary_stream_watch.py": {
+        "hash": "e1b6974d050f5d78ae2f51b2713a3fd4"
+    },
+    "archive\\orphans\\py\\sync_episode_status.py": {
+        "hash": "21fc722730a3ec72ef4e5e7c4c718118"
+    },
+    "archive\\orphans\\py\\swarm_monitor.py": {
+        "hash": "9c4c258481071e02df339a5b5016f8e9"
+    },
+    "archive\\orphans\\py\\task_trigger.py": {
+        "hash": "d480cc8e7ed9eac935a264373e2bf716"
+    },
+    "archive\\orphans\\py\\test.py": {
         "hash": "d41d8cd98f00b204e9800998ecf8427e"
     },
-    "archive\\orphans\\__init__.py": {
-        "hash": "f6f13ab03164011140ba9984ae24632a"
+    "archive\\orphans\\py\\task_editor.py": {
+        "hash": "5535e0ccbd81e382e105eda31cde23f1"
     },
-    "archive\\orphans\\agents\\cursor_dispatcher.py": {
-        "hash": "e64721945e46028074c620e492bc5204"
+    "archive\\orphans\\py\\task_flow_migration.py": {
+        "hash": "ca2e837ef1275ba520d44b4fd86b349c"
     },
-    "archive\\orphans\\agents\\agent2_infra_surgeon.py": {
-        "hash": "99d1b858e59525687c592c5993448447"
-    },
-    "archive\\orphans\\agents\\utils\\agent1_taskboard_workaround.py": {
-        "hash": "789b2405592bfc1b6656a0634a5f9f3f"
-    },
-    "archive\\orphans\\apps\\dreamscape\\__init__.py": {
-        "hash": "d642189469da66b4cb3b5f49f4ce4f82"
-    },
-    "archive\\orphans\\agents\\validation\\__init__.py": {
-        "hash": "e910b18c6776b8ce391a28e994009a01"
-    },
-    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\__init__.py": {
-        "hash": "7963f0e32f472dc371570a2a15de89f4"
-    },
-    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\core\\__init__.py": {
-        "hash": "967a6eb4c9764333f74e84ab4d12702b"
-    },
-    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\src\\core\\monitoring\\__init__.py": {
-        "hash": "246f1eb43745bf3cb1caf700edb9476d"
-    },
-    "archive\\orphans\\apps\\dreamscape\\dreamscape_generator\\threads\\__init__.py": {
-        "hash": "c747bff870da2928d4400ac4ee9fcaaa"
-    },
-    "archive\\orphans\\automation\\execution\\cursor_fleet_launcher.py": {
-        "hash": "635eea28781342e4309db583fa9b0d34"
-    },
-    "archive\\orphans\\channels\\azure_eventhub_channel.py": {
-        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
-    },
-    "archive\\orphans\\channels\\channel_loader.py": {
-        "hash": "1a1025b41c8ef16c8fcb585f85a5b38a"
-    },
-    "archive\\orphans\\channels\\__init__.py": {
-        "hash": "0892fa7cb961fefa8af0df8a227145f8"
-    },
-    "archive\\orphans\\cli\\command_supervisor.py": {
-        "hash": "6f9e629da4b11d39d4344ef3fd9fa576"
-    },
-    "archive\\orphans\\cli\\disperse_tasks.py": {
-        "hash": "24ff44694e03cbe56f06bc746f82d8d4"
-    },
-    "archive\\orphans\\cli\\episode_parser.py": {
-        "hash": "f8d144bf8bd6b66b9a11e7532b48e67c"
-    },
-    "archive\\orphans\\cli\\pyqt_dashboard.py": {
-        "hash": "b77d0c48364b39d25edda7ac96cbd1c2"
-    },
-    "archive\\orphans\\cli\\sync_episode_status.py": {
-        "hash": "421c917067f41a9ea600d4a0af83798c"
-    },
-    "archive\\orphans\\cli\\task_editor.py": {
-        "hash": "89cf81767b4320d6b8227b2658599f7e"
-    },
-    "archive\\orphans\\cli\\test_runner.py": {
-        "hash": "955db9ba1e3b43fec2637fbf36700498"
-    },
-    "archive\\orphans\\cli\\__main__.py": {
-        "hash": "adb273b5c293133ae9790d3fa9b0da17"
-    },
-    "archive\\orphans\\coordination\\dispatchers\\__init__.py": {
-        "hash": "d091ab4879a10e3814aea023259cc15d"
-    },
-    "archive\\orphans\\core\\config.py": {
-        "hash": "dd827d12733258b364a9d3e59c037bce"
-    },
-    "archive\\orphans\\core\\__init__.py": {
-        "hash": "64d3cbe5de7ae387c2847829ef54770c"
-    },
-    "archive\\orphans\\core\\agents\\__init__.py": {
-        "hash": "8121335b2b0daa4109695a38f003733d"
-    },
-    "archive\\orphans\\core\\agents\\capabilities\\__init__.py": {
-        "hash": "fa59b2149d7656a0b9c4921cfd1e7ca0"
-    },
-    "archive\\orphans\\core\\awareness\\__init__.py": {
-        "hash": "a602149ffc1e396eea1a9557fc4d027d"
-    },
-    "archive\\orphans\\core\\coordination\\utils.py": {
-        "hash": "979bffb61f43373e772803bc847b5649"
-    },
-    "archive\\orphans\\core\\coordination\\schemas\\__init__.py": {
-        "hash": "740375a24dcc59ce176a5c6d8bd977a5"
-    },
-    "archive\\orphans\\core\\errors\\__init__.py": {
-        "hash": "65c5681e8b3fc08d6f0b6ceac5b42b3a"
-    },
-    "archive\\orphans\\core\\db\\__init__.py": {
-        "hash": "37e2449e41e58c7842c1947b3f68af53"
-    },
-    "archive\\orphans\\core\\narrative\\__init__.py": {
-        "hash": "e1441f59bd74ce4d07e12463f3c82246"
-    },
-    "archive\\orphans\\core\\tasks\\__init__.py": {
-        "hash": "5756f30be6496d174adddffc27095762"
-    },
-    "archive\\orphans\\core\\tools\\__init__.py": {
-        "hash": "f49339b2f892e2ed56f272dcc6d6480b"
-    },
-    "archive\\orphans\\core\\utils\\__init__.py": {
-        "hash": "adf2420dbb55732591672e72b6a2ae04"
-    },
-    "archive\\orphans\\feedback\\__init__.py": {
-        "hash": "65b967aa83a5ca7d0fec3d0d120386fd"
-    },
-    "archive\\orphans\\identity\\__init__.py": {
-        "hash": "dbfbae50a2e6b307b6fd37a6dd128e80"
-    },
-    "archive\\orphans\\integrations\\agent_services\\__init__.py": {
-        "hash": "db2ec0a106b8a2a80de7223f1fc5a0ba"
-    },
-    "archive\\orphans\\integrations\\cursor\\coordination\\__init__.py": {
-        "hash": "3821dd1237959982a11bc179febdba91"
-    },
-    "archive\\orphans\\integrations\\social\\core\\__init__.py": {
-        "hash": "967a6eb4c9764333f74e84ab4d12702b"
-    },
-    "archive\\orphans\\memory\\layers\\__init__.py": {
-        "hash": "a9d7e5ee207197342fe28658c177f354"
-    },
-    "archive\\orphans\\rendering\\__init__.py": {
-        "hash": "18a7a6c9da8202c1abdb99224ce221df"
-    },
-    "archive\\orphans\\schemas\\__init__.py": {
-        "hash": "05f31697fba5a026775faaf1b3c34a67"
-    },
-    "archive\\orphans\\skills\\__init__.py": {
-        "hash": "a135977ba8cd99fe9e82816bdfa4cbae"
-    },
-    "archive\\orphans\\social\\exceptions\\__init__.py": {
-        "hash": "7472d0cb7ed3b5a1c27e87c80f7b1883"
-    },
-    "archive\\orphans\\social\\__init__.py": {
-        "hash": "0c9ad9e2c0f18d5688fea78303e02f12"
-    },
-    "archive\\orphans\\social\\utils\\__init__.py": {
-        "hash": "4842b6415cc7b48102b72f085e0b450f"
-    },
-    "archive\\orphans\\tests\\test_cli.py": {
-        "hash": "be9bd46f1570c08b4b461025328013f3"
-    },
-    "archive\\orphans\\tests\\social\\tests\\social\\__init__.py": {
+    "archive\\orphans\\py\\test_browser_utils.py": {
         "hash": "d41d8cd98f00b204e9800998ecf8427e"
     },
-    "archive\\orphans\\tools\\edit_file.py": {
-        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    "archive\\orphans\\py\\temporal_ledger_auditor.py": {
+        "hash": "6e0f04e1a8e49c7f62199be62e874947"
     },
-    "archive\\orphans\\tools\\regenerate_init_files.py": {
-        "hash": "2c3364a1b5ce08400755508404270ecb"
+    "archive\\orphans\\py\\test_drift_detection.py": {
+        "hash": "91313893bbce420030751ae2c483a6e4"
     },
-    "archive\\orphans\\tools\\validate_imports.py": {
-        "hash": "cdddfbada4afa862057d85fd85d5f6b3"
+    "archive\\orphans\\py\\test_cli.py": {
+        "hash": "16da8f33a84a6cd04bbcb98df91a1210"
     },
-    "archive\\orphans\\tools\\analysis\\__init__.py": {
-        "hash": "8e3437d34a6de270a1e692c611cb7206"
+    "archive\\orphans\\py\\test_edit_file_failures.py": {
+        "hash": "26d5a20e998297a58e71a28700308f7f"
     },
-    "archive\\orphans\\tools\\analysis\\project_scanner\\main.py": {
-        "hash": "3eb090135a62cf073016dde658bc34ae"
+    "archive\\orphans\\py\\test_file_integrity_recovery.py": {
+        "hash": "87ff11291d9777a7797dc2e30bd259e9"
     },
-    "archive\\orphans\\tools\\calibration\\calibrate_agent_gui.py": {
-        "hash": "c9bbfb1ea894010bfac341cb92eb593d"
+    "archive\\orphans\\py\\test_night_cycle.py": {
+        "hash": "5ac549bf2e1c25c6f8b30cd4d81876fe"
     },
-    "archive\\orphans\\tools\\cursor_bridge\\cursor_bridge.py": {
-        "hash": "a4117becf876e7f33f1090056e7e57d8"
+    "archive\\orphans\\py\\test_read_file_diagnostics.py": {
+        "hash": "20cd05258db2d285d06c7dcd78429849"
     },
-    "archive\\orphans\\tools\\maintenance\\find_duplicate_tasks.py": {
-        "hash": "02a957b862c4a2312a4e1991f23f8be7"
+    "archive\\orphans\\py\\test_runner.py": {
+        "hash": "f7d8e61d6500a897e73b0a2c2c08fc3b"
     },
-    "archive\\orphans\\tools\\maintenance\\refactor_task_ids.py": {
-        "hash": "4183aa4858c5e1662012cc43d52ee16f"
+    "archive\\orphans\\py\\test_status_pusher.py": {
+        "hash": "96772ac9a32f9c91769b3bdfcfb2e145"
     },
-    "archive\\orphans\\tools\\validation\\check_imports.py": {
-        "hash": "e986437b571fedf871998a34cb2b3465"
+    "archive\\orphans\\py\\test_points_config.py": {
+        "hash": "21c8611d5cf6a36aa461c848ceb3446c"
     },
-    "archive\\orphans\\tools\\validation\\validate_gui_coords.py": {
-        "hash": "380001837303a5c8bca8b2abec568387"
+    "archive\\orphans\\py\\test_payload_handler.py": {
+        "hash": "b459aaae8b1bf74dea2d93b983b6ccb6"
     },
-    "archive\\orphans\\tools\\_core\\__init__.py": {
-        "hash": "515c802e4f37683ba64a287573e58840"
+    "archive\\orphans\\py\\test_scraper_interactively.py": {
+        "hash": "2ad2e545c501544f0e6fa635e7a4fa72"
     },
-    "archive\\orphans\\utils\\episode_status_sync.py": {
-        "hash": "18c372e7350e63af8b6a25712af76c04"
+    "archive\\orphans\\py\\test_thea_bridge_pipeline.py": {
+        "hash": "c360f2a506925319c235867fae1a504a"
     },
-    "archive\\orphans\\utils\\file_locking.py": {
-        "hash": "b35e8d64add8a20ccfe0a60cac4fa62b"
+    "archive\\orphans\\py\\update_python_imports.py": {
+        "hash": "5cd68863cb5405298fd964d161e5d17b"
     },
-    "archive\\orphans\\utils\\onboarding_utils.py": {
-        "hash": "ea27896d73a2cb2f41ee3debbc46b3b0"
+    "archive\\orphans\\py\\thea_to_cursor_agent.py": {
+        "hash": "25489c39bfd531ae255403e3dff2b9c2"
     },
-    "archive\\orphans\\utils\\safe_file_writer.py": {
-        "hash": "359d5198a3b3e805879d9ce67114b2ed"
+    "archive\\orphans\\py\\update_markdown_links.py": {
+        "hash": "25cf01c295523dbeef89d8ec76f60230"
     },
-    "archive\\orphans\\utils\\summarizer.py": {
-        "hash": "ab7770039586e26ce70f3923c1201811"
+    "archive\\orphans\\py\\utils.py": {
+        "hash": "145a68800c0db1ec3f15c0882cf2f0e4"
     },
-    "archive\\orphans\\utils\\__init__.py": {
-        "hash": "18a648d3ca367ed56036f49fda8eb8a9"
+    "archive\\orphans\\py\\validate_gui_coords.py": {
+        "hash": "5023fcf16aa4acc19464c41e4dee3e8d"
     },
-    "episodes\\episode_index_builder.py": {
-        "hash": "fcef59aa06d7f7112d71745878b4c38b"
+    "archive\\orphans\\py\\validate_imports.py": {
+        "hash": "1fae3ae366cce366fa16d7b69cecd7ff"
     },
-    "scripts\\scan_for_rogue_files.py": {
-        "hash": "eca349306c8d958437d06f74b70ab14f"
+    "archive\\orphans\\py\\validator.py": {
+        "hash": "424833356453523a495aaaa0c4420842"
     },
-    "scripts\\maintenance\\bloat_watcher.py": {
-        "hash": "584cd0c3c56ad3d2decf30cdf877bd43"
+    "archive\\orphans\\py\\visual_wait_prototype.py": {
+        "hash": "be3f8e3e33d3ba0659028a39b136a474"
     },
-    "scripts\\maintenance\\move_bloat.py": {
-        "hash": "6b7b0f6c62c923afa9dfde093f2caf73"
+    "archive\\orphans\\py\\zero_value_sweep.py": {
+        "hash": "624fba03af15019aa7456bb952ac6cdd"
     },
-    "scripts\\maintenance\\move_orphans.py": {
-        "hash": "dd8d0c5fcb6f7e53e3c12e3c84a9e78a"
+    "archive\\orphans\\py\\writer_agent.py": {
+        "hash": "c107d2fcc1af3b89692e6dbe66e6b5f2"
     },
-    "scripts\\maintenance\\scan_for_orphans.py": {
-        "hash": "e26b1a13a9eb6488cd095d41f55b469d"
+    "archive\\orphans\\py\\__init__.py": {
+        "hash": "10013ab5dfd92170867ff8527432eb42"
     },
-    "scripts\\maintenance\\zero_value_sweep.py": {
-        "hash": "f0ffbebdb270d0c02473ccce1a6d1c3b"
+    "archive\\orphans\\py\\__main__.py": {
+        "hash": "0a8c01059cfeb33b5180d9440c2e99f9"
     },
-    "src\\dreamos\\utils\\context_injector.py": {
-        "hash": "1e38cec73150561bd01860499ecf117f"
+    "archive\\orphans\\rendering\\template_engine.py": {
+        "hash": "265fecd8383ef09c201b4d0f8dcd8e15"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\__init__.py": {
-        "hash": "3daef35d8423b7ecbf341998692ce0d9"
+    "archive\\orphans\\reporting\\devlog_utils.py": {
+        "hash": "d806bf287f9109e1abcc567deb764fb2"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tests\\__init__.py": {
-        "hash": "140cff8665220cf53fefc69aca62555b"
+    "archive\\orphans\\reporting\\scoring_analyzer.py": {
+        "hash": "cde75d60bf100ba8eacb6c21412aefa1"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\binding_test.js": {
-        "hash": "3058616d1d281ab61fa4a50fe0e3dca4"
+    "archive\\orphans\\services\\event_logger.py": {
+        "hash": "f88624a80547324b136d56f23b8ba752"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\index.d.ts": {
+    "archive\\orphans\\services\\memory_maintenance_service.py": {
+        "hash": "19da2995f5807c31fdf05aae868b1273"
+    },
+    "archive\\orphans\\services\\failed_prompt_archive.py": {
+        "hash": "4c3ea62da9ea3eab211a20bdf775676b"
+    },
+    "archive\\orphans\\services\\utils\\cursor.py": {
+        "hash": "001fa7111556a62782ef7970daaf90f3"
+    },
+    "archive\\orphans\\services\\utils\\chatgpt_scraper.py": {
+        "hash": "8c9bc69767c88f5f93a79c44effc0c23"
+    },
+    "archive\\orphans\\services\\utils\\devlog_analyzer.py": {
+        "hash": "3bc8235c4ba8193f74850336913ee9b5"
+    },
+    "archive\\orphans\\services\\utils\\devlog_dispatcher.py": {
+        "hash": "9fb09e5de7a5917f43b2486538d02fa9"
+    },
+    "archive\\orphans\\services\\utils\\logging_utils.py": {
+        "hash": "2b1128e78df2708f4f9b75eb8f63bc44"
+    },
+    "archive\\orphans\\services\\utils\\devlog_generator.py": {
+        "hash": "6efda735f28cd681415a8cc11f9405ae"
+    },
+    "archive\\orphans\\services\\utils\\feedback_processor.py": {
+        "hash": "b4d28130fb93d0a98a76d2f562356fa5"
+    },
+    "archive\\orphans\\services\\utils\\retry_utils.py": {
+        "hash": "6303288f9949a8534cba1525c84b30cd"
+    },
+    "archive\\orphans\\services\\utils\\selenium_utils.py": {
+        "hash": "3acefd2dfdd1472e1cb725761609ba44"
+    },
+    "archive\\orphans\\tests\\run_e2e_bridge_test.py": {
+        "hash": "204b1e9e604c6e9af2f31177266d17b3"
+    },
+    "archive\\orphans\\services\\utils\\content\\post_context_generator.py": {
+        "hash": "446212011304ff604bf4d54b0d5b187a"
+    },
+    "archive\\orphans\\tests\\conftest.py": {
+        "hash": "b947338bf44b4e4015fd9edf451d75d7"
+    },
+    "archive\\orphans\\tests\\bridge\\test_http_bridge_service.py": {
+        "hash": "2f8aa8fa71d75cd4bca75f11a4e0713a"
+    },
+    "archive\\orphans\\tests\\test_legacy_empty.py": {
+        "hash": "5c9f73af83da4c95de488605c62762e3"
+    },
+    "archive\\orphans\\tests\\coordination\\test_agent_bus.py": {
+        "hash": "629e21929100cb7fb6cab96e37f2bbf8"
+    },
+    "archive\\orphans\\tests\\cli\\test_safe_edit_json_list.py": {
+        "hash": "2a58d6fbc8d5e17baeae3fc654f18de7"
+    },
+    "archive\\orphans\\tests\\coordination\\test_voting_coordinator.py": {
+        "hash": "4353cfeb9688064623144b737f562ed2"
+    },
+    "archive\\orphans\\tests\\coordination\\dispatchers\\test_base_dispatcher.py": {
+        "hash": "b628c0f783da756bdb547bee0becc0dd"
+    },
+    "archive\\orphans\\tests\\coordination\\test_project_board_manager.py": {
+        "hash": "9a1ba50872541ea089087059c0e94f41"
+    },
+    "archive\\orphans\\tests\\core\\test_config.py": {
+        "hash": "7f4d475ea954a82899cfc01f3fdb1f5a"
+    },
+    "archive\\orphans\\tests\\core\\__init__.py": {
+        "hash": "4b06741507b5f0be835dba3d09a38e36"
+    },
+    "archive\\orphans\\tests\\core\\comms\\__init__.py": {
+        "hash": "1a9f84e8a05009e53475b1c98227b937"
+    },
+    "archive\\orphans\\tests\\core\\comms\\test_project_board.py": {
+        "hash": "475b513a01538403d2cc79d49cb73679"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_event_helpers.py": {
+        "hash": "0b62929f1b0c150dc3b5cd78657565ab"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\conftest.py": {
+        "hash": "17d8b8c922c5aa557d639e62f8b2a01c"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_lifecycle.py": {
+        "hash": "7dc7b6dc8bbdb81e855f6584322a3059"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\test_message_patterns.py": {
+        "hash": "aef4d8596ffe1917268405cdeb2e2d2d"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\test_base_agent_task_handling.py": {
+        "hash": "d71013cac47069d1017c6f0aef5c03d7"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\tasks\\test_project_board_manager.py": {
+        "hash": "4828bd5f2561396189da26809f834fc5"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\__init__.py": {
+        "hash": "f16ab79a2d0f016785bdff9031599ba1"
+    },
+    "archive\\orphans\\tests\\core\\coordination\\tasks\\__init__.py": {
+        "hash": "6564cedd3bda4d5d7f0ce6ea454aded9"
+    },
+    "archive\\orphans\\tests\\core\\utils\\test_agent_utils.py": {
+        "hash": "f1d62875d72deef37dc7c7ec60534728"
+    },
+    "archive\\orphans\\tests\\core\\utils\\test_onboarding_utils.py": {
+        "hash": "0b755293f1cd3d47eb9c5497f397f0b8"
+    },
+    "archive\\orphans\\tests\\core\\utils\\__init__.py": {
+        "hash": "a4e5338a4b990162195fb7d56e3a16de"
+    },
+    "archive\\orphans\\tests\\dashboard\\test_dashboard_ui.py": {
+        "hash": "43efd9b36f7f10608f14b3df0f4c1282"
+    },
+    "archive\\orphans\\tests\\dashboard\\__init__.py": {
+        "hash": "0868b409eac5dbb8924da144c26d9959"
+    },
+    "archive\\orphans\\tests\\dreamscape\\agents\\test_planner_agent.py": {
+        "hash": "daed39f72a0075dde9eb814a22544d8e"
+    },
+    "archive\\orphans\\tests\\hooks\\test_chronicle_logger.py": {
+        "hash": "f509033ed00d9f87748a9d972439e992"
+    },
+    "archive\\orphans\\tests\\dreamscape\\agents\\__init__.py": {
+        "hash": "6acd60ff88aaeb58dcd6465e81bb0b40"
+    },
+    "archive\\orphans\\tests\\dreamscape\\agents\\test_writer_agent.py": {
+        "hash": "6ae8e0cd865780cfccd2173a581a3963"
+    },
+    "archive\\orphans\\tests\\hooks\\test_chatgpt_responder.py": {
+        "hash": "b903bf6d7bae99e3f8dba6292e4752be"
+    },
+    "archive\\orphans\\tests\\hooks\\test_stats_logger.py": {
+        "hash": "5c21fe56c48322d32fe074c01d1aef17"
+    },
+    "archive\\orphans\\tests\\hooks\\__init__.py": {
+        "hash": "e23f0a84d1193fae7a3991a13a375978"
+    },
+    "archive\\orphans\\tests\\integrations\\azure\\test_azure_blob_channel.py": {
+        "hash": "d3ba5694e5cf255aa5eb8a5e0d7c58c6"
+    },
+    "archive\\orphans\\tests\\integrations\\azure\\__init__.py": {
+        "hash": "0641217dc2cd1ed82986ca0d5f076bce"
+    },
+    "archive\\orphans\\tests\\memory\\test_compaction_utils.py": {
+        "hash": "721a934541a4e8ec980abf6ef2c6d849"
+    },
+    "archive\\orphans\\tests\\memory\\test_database_manager.py": {
+        "hash": "d8e1526baeaf0568461e4d81756a4508"
+    },
+    "archive\\orphans\\tests\\memory\\test_memory_compaction.py": {
+        "hash": "2a26ee8e924688c9182ab2086864eb69"
+    },
+    "archive\\orphans\\tests\\memory\\test_memory_manager.py": {
+        "hash": "34b9bacdb036815bb18eb48d97bdfc47"
+    },
+    "archive\\orphans\\tests\\memory\\test_summarization_utils.py": {
+        "hash": "e0603217d40e954d18dd10519be72c81"
+    },
+    "archive\\orphans\\tests\\memory\\test_governance_memory_engine.py": {
+        "hash": "c26b0b87932c484a9f7e6070931d78a2"
+    },
+    "archive\\orphans\\tests\\memory\\__init__.py": {
+        "hash": "4883b695b22d18af21d959b4c12d7532"
+    },
+    "archive\\orphans\\tests\\memory\\test_summarizer.py": {
+        "hash": "6ab5cbcc1db044221d3d9ca7c05f4f03"
+    },
+    "archive\\orphans\\tests\\monitoring\\test_correlation_validator.py": {
+        "hash": "56b38c8b40cf99ad3ab65986913531d1"
+    },
+    "archive\\orphans\\tests\\monitoring\\__init__.py": {
+        "hash": "267e4a64ce68b57417ecf8ae59d1f94e"
+    },
+    "archive\\orphans\\tests\\rendering\\__init__.py": {
+        "hash": "41307d70043b340fd7302f344854d46d"
+    },
+    "archive\\orphans\\tests\\rendering\\test_template_engine.py": {
+        "hash": "681b33319280e6c2eae34dc9605a0d42"
+    },
+    "archive\\orphans\\tests\\scripts\\utils\\test_simple_task_updater.py": {
+        "hash": "3b87338291d0ed844383afe4ea0c158a"
+    },
+    "archive\\orphans\\tests\\scripts\\utils\\__init__.py": {
+        "hash": "7064b4e1fb92acb0d3b705247092cc9c"
+    },
+    "archive\\orphans\\tests\\skills\\test_pyautogui_control_module_part2.py": {
+        "hash": "d56b30785fc130dd092ff699738d91a3"
+    },
+    "archive\\orphans\\tests\\services\\test_memory_maintenance_service.py": {
+        "hash": "9b7f079dfe0f2e0b72515b1d05b981c0"
+    },
+    "archive\\orphans\\tests\\social\\tests\\conftest.py": {
+        "hash": "db2016450c501d9403e38b82f8998db4"
+    },
+    "archive\\orphans\\tests\\social\\tests\\__init__.py": {
+        "hash": "77b0b8ceaa026c7a22321ad12bcadf18"
+    },
+    "archive\\orphans\\tests\\social\\tests\\core\\__init__.py": {
+        "hash": "32049ba438b3e55fac875731e787ba57"
+    },
+    "archive\\orphans\\tests\\social\\tests\\integration\\__init__.py": {
+        "hash": "f5189f75cdde418abc62752ef4854c60"
+    },
+    "archive\\orphans\\tests\\social\\tests\\social\\strategies\\base_strategy_test.py": {
+        "hash": "3ead41ab3f0f35393f0b216dded80a07"
+    },
+    "archive\\orphans\\tests\\social\\tests\\strategies\\base_strategy_test.py": {
+        "hash": "5e472621c8114acab89f9997a21ec53e"
+    },
+    "archive\\orphans\\tests\\social\\tests\\social\\strategies\\__init__.py": {
+        "hash": "0c8dd997e1a4dfeb1382cb628afc24fb"
+    },
+    "archive\\orphans\\tests\\social\\tests\\strategies\\base_test.py": {
+        "hash": "fe2203dde680b40dbd5c214bb04d05fa"
+    },
+    "archive\\orphans\\tests\\social\\tests\\strategies\\__init__.py": {
+        "hash": "78e2016c43d60d41fb30ba810c23c11c"
+    },
+    "archive\\orphans\\tests\\social\\tests\\tools\\__init__.py": {
+        "hash": "bff3ebcbf827783afd80cbb55d077cc0"
+    },
+    "archive\\orphans\\tests\\social\\tests\\utils\\__init__.py": {
+        "hash": "de356af3656f5c54c5f62c57a9effe44"
+    },
+    "archive\\orphans\\tests\\supervisor_tools\\__init__.py": {
+        "hash": "7e8dafc804a3e3e30683441314dd5554"
+    },
+    "archive\\orphans\\tests\\supervisor_tools\\test_command_supervisor.py": {
+        "hash": "ebfcddd057d1306be36cf30c4dbbf11a"
+    },
+    "archive\\orphans\\tests\\tools\\test_base.py": {
+        "hash": "61ffb72ed3a9009c50239c82b269a08e"
+    },
+    "archive\\orphans\\tests\\tools\\__init__.py": {
+        "hash": "0632b445761de3f143362994aaed37a1"
+    },
+    "archive\\orphans\\tests\\tools\\cursor_bridge\\__init__.py": {
+        "hash": "7dd49f3b8d7ac3edb124a13ae7a653e2"
+    },
+    "archive\\orphans\\tests\\tools\\cursor_bridge\\bridge_bootstrap_test.py": {
+        "hash": "50ce83a2962af1732218b7688553f0b6"
+    },
+    "archive\\orphans\\tests\\tools\\discovery\\test_find_todos.py": {
+        "hash": "15bd731d752f606040e6d144230e4721"
+    },
+    "archive\\orphans\\tests\\tools\\discovery\\__init__.py": {
+        "hash": "9eb674b8ce127f38ef668061621b2f8c"
+    },
+    "archive\\orphans\\tests\\unit\\test_bridge_fault_inspector.py": {
+        "hash": "1ecbd06623d9d34f037df9b7acf472ce"
+    },
+    "archive\\orphans\\tests\\unit\\test_task_flow_migration.py": {
+        "hash": "4b8e025e5205c87a95f08943351699b9"
+    },
+    "archive\\orphans\\tests\\unit\\__init__.py": {
+        "hash": "2c004a6664175bc7be30433209df16d1"
+    },
+    "archive\\orphans\\tests\\utils\\test_json_io.py": {
+        "hash": "46249222c61b73e68cf31452e05c26ed"
+    },
+    "archive\\orphans\\tests\\utils\\test_logging_utils.py": {
+        "hash": "46bec7dac8ea7881124f20df7d728ba2"
+    },
+    "archive\\orphans\\tests\\utils\\test_protocol_compliance_utils.py": {
+        "hash": "86d484837bb00ec3b8e05852c12ec7e1"
+    },
+    "archive\\orphans\\tests\\utils\\test_spec_parser.py": {
+        "hash": "c334935a530101256d66a3d204907408"
+    },
+    "archive\\orphans\\tests\\utils\\test_terminal_execution.py": {
+        "hash": "ed30478ebb2193c07db4146966d02f9a"
+    },
+    "archive\\orphans\\tests\\utils\\__init__.py": {
+        "hash": "3086914eb4e21f961c97989196164f7e"
+    },
+    "archive\\orphans\\tools\\command_supervisor.py": {
+        "hash": "82e9b9f783c8151876e4b43b5d97ecaa"
+    },
+    "archive\\orphans\\tools\\read_file.py": {
+        "hash": "a6aba6264152c68f9d881b6d6cba8f88"
+    },
+    "archive\\orphans\\tools\\task_editor.py": {
+        "hash": "9d5473cfc0584869be99a52db8359c6d"
+    },
+    "archive\\orphans\\tools\\thea_relay_agent.py": {
+        "hash": "bd97576317ca2259471cca11e7706367"
+    },
+    "archive\\orphans\\tools\\__init__.py": {
+        "hash": "c63d7fc76f6343b9a0343f7cb79ffdd4"
+    },
+    "archive\\orphans\\tools\\analysis\\dead_code.py": {
+        "hash": "60c394000d35e9cddf969992f043e13d"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\concurrency.py": {
+        "hash": "854a1426f1d0b699f77d94a9bf34ef8c"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\analyzer.py": {
+        "hash": "c09c5719c909138d879ae336310d5711"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\file_processor.py": {
+        "hash": "4dceb275d7faf379fd4ba22cc81c1e01"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\report_generator.py": {
+        "hash": "df4a58c1b3e804969036b56707bb30e2"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\__init__.py": {
+        "hash": "3ccc61afb0a698f8986916d3e6083bb7"
+    },
+    "archive\\orphans\\tools\\analysis\\project_scanner\\project_scanner.py": {
+        "hash": "09858c31c9226127a931d7f8f9a30089"
+    },
+    "archive\\orphans\\tools\\calibration\\__init__.py": {
+        "hash": "b02e2041243309e19f83481c45e1dea3"
+    },
+    "archive\\orphans\\tools\\calibration\\recalibrate_coords.py": {
+        "hash": "7ba87e8b1a021b29dc32c9fcebf3bc91"
+    },
+    "archive\\orphans\\tools\\coordination\\broadcast_directive.py": {
+        "hash": "e3393da07cd48429179a2698ba104e7d"
+    },
+    "archive\\orphans\\tools\\cursor_bridge\\mock_cursor_bridge.py": {
+        "hash": "00a7eda2a979e020f3b7aab4e70bcc22"
+    },
+    "archive\\orphans\\tools\\cursor_bridge\\__init__.py": {
+        "hash": "020173b1c0160f775f782d19fdb025a2"
+    },
+    "archive\\orphans\\tools\\discovery\\archive_defunct_tests.py": {
+        "hash": "8275f27865268535cd19c2dad3ff19c9"
+    },
+    "archive\\orphans\\tools\\discovery\\find_defunct_tests.py": {
+        "hash": "82b2aeffee0948b24697dab6b5699120"
+    },
+    "archive\\orphans\\tools\\discovery\\find_todos.py": {
+        "hash": "0e60113ae7fb2d21566e12a576168f3f"
+    },
+    "archive\\orphans\\tools\\dreamos_utils\\check_agent_pulse.py": {
+        "hash": "d8ee5e3f9a30a83266591cabc6006d88"
+    },
+    "archive\\orphans\\tools\\functional\\context_planner_tool.py": {
+        "hash": "9fc826a1e290f2f6b8056a3b34335dda"
+    },
+    "archive\\orphans\\tools\\functional\\gui_interaction.py": {
+        "hash": "d9972b9b7ac60581b2c65cf25e6165df"
+    },
+    "archive\\orphans\\tools\\maintenance\\archive_agent_comms.py": {
+        "hash": "398b38d008fd14ebfd0aceb67fa5231a"
+    },
+    "archive\\orphans\\tools\\maintenance\\archive_agent_mailboxes.py": {
+        "hash": "b7c87647d2753ceaa98819b61eb50d65"
+    },
+    "archive\\orphans\\tools\\maintenance\\validate_logs.py": {
+        "hash": "7d676f3975c745c2340f4fecbd62ee18"
+    },
+    "archive\\orphans\\tools\\maintenance\\augment_task_tags.py": {
+        "hash": "b2dc440936889045c6d102e5f9c9ed51"
+    },
+    "archive\\orphans\\tools\\maintenance\\validate_onboarding_prompts.py": {
+        "hash": "c07321d49491a544bf692dbfbf53fe14"
+    },
+    "archive\\orphans\\tools\\maintenance\\__init__.py": {
+        "hash": "ac3a60fd56e5c892576ec72d53e7822e"
+    },
+    "archive\\orphans\\tools\\tests\\circular_import_probe.py": {
+        "hash": "4f31d2133c29627d894cccdd7c3617bc"
+    },
+    "archive\\orphans\\tools\\validation\\check_dependencies.py": {
+        "hash": "014a53aa50bcdb8e924bc5c228f35517"
+    },
+    "archive\\orphans\\tools\\validation\\__init__.py": {
+        "hash": "1e04822ce54b2b1a3219509b714d1363"
+    },
+    "archive\\orphans\\tools\\_core\\base.py": {
+        "hash": "ce28e657b11e8fda7f4ebe598be478bb"
+    },
+    "archive\\orphans\\tools\\_core\\registry.py": {
+        "hash": "25cebd304c33348aa73c54af3018763d"
+    },
+    "archive\\orphans\\utils\\ai_output_logger.py": {
+        "hash": "d567ed997dc036b4d8cc56ef576111a3"
+    },
+    "archive\\orphans\\ts\\index.d.ts": {
         "hash": "4e9d45333836de075092e97363b8bea4"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\__init__.py": {
-        "hash": "3daef35d8423b7ecbf341998692ce0d9"
+    "archive\\orphans\\utils\\autonomy_governor.py": {
+        "hash": "7e2a5f03b87c1a4ab0eeb6b0cb7aeee7"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\binding_test.js": {
-        "hash": "3058616d1d281ab61fa4a50fe0e3dca4"
+    "archive\\orphans\\utils\\common_utils.py": {
+        "hash": "d241c08d8cc570887acf38c5acd9b9a7"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\index.d.ts": {
+    "archive\\orphans\\utils\\coords.py": {
+        "hash": "3a88b067dca9488b179065fa3d495ac9"
+    },
+    "archive\\orphans\\utils\\decorators.py": {
+        "hash": "12bb9962924a68761a459d766a554ae4"
+    },
+    "archive\\orphans\\utils\\file_io.py": {
+        "hash": "c0317ff643ad5724ea51b6a6141a106b"
+    },
+    "archive\\orphans\\utils\\gui_utils.py": {
+        "hash": "fcb2637ad01fcfdb1fab0802f4aa9b20"
+    },
+    "archive\\orphans\\utils\\import_debugger.py": {
+        "hash": "87ca9a2f415fc5290fefd5424d956934"
+    },
+    "archive\\orphans\\utils\\logging_utils.py": {
+        "hash": "8c59828777656de824085abed7002f18"
+    },
+    "archive\\orphans\\utils\\project_root.py": {
+        "hash": "cee44ccadc32a6adc4d9292d81655741"
+    },
+    "archive\\orphans\\utils\\protocol_compliance_utils.py": {
+        "hash": "fff85baa1c5e5a1bb2cd7c1f5d15e909"
+    },
+    "archive\\orphans\\utils\\safe_json_editor_template.py": {
+        "hash": "df05fab0d955b9db73b012e85ddbc916"
+    },
+    "archive\\orphans\\utils\\schema_validator.py": {
+        "hash": "45af1fe675377a9b3a658ca798726667"
+    },
+    "archive\\orphans\\utils\\search.py": {
+        "hash": "1204813e74c98c594def2dea94441004"
+    },
+    "archive\\orphans\\utils\\spec_parser.py": {
+        "hash": "ffb2e7aca117852acb02874d985853d3"
+    },
+    "archive\\orphans\\utils\\text.py": {
+        "hash": "ea004aab0a2e9ea991ff7b4b0d42f072"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\browser.py": {
+        "hash": "9f9b73d3a63919feee49069579b2ee91"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\cursor_session_manager.py": {
+        "hash": "1f482208646c1cd44420312cd0b4d2ba"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\channel_loader.py": {
+        "hash": "f995b664701bf73bcc6b9672f85c96b1"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\html_parser.py": {
+        "hash": "1c38cc250b56550115c938594b1cf287"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\prompt_renderer.py": {
+        "hash": "49eaff832154047190b347f50f079b34"
+    },
+    "archive\\orphans\\utils\\dream_mode_utils\\task_parser.py": {
+        "hash": "45906b1b06dc1723c365cef45143489b"
+    },
+    "basicbot\\ai_models.py": {
+        "hash": "72a55494f149259f570f2e50c96e464c"
+    },
+    "basicbot\\backtest.py": {
+        "hash": "88f42d2dc5bd0c0106d55c50ebe61101"
+    },
+    "basicbot\\backtester.py": {
+        "hash": "c5cb93381c0475606872fe3e4501c32b"
+    },
+    "basicbot\\config.py": {
+        "hash": "cd83b39dd8cb2fabecb52f9247116c68"
+    },
+    "basicbot\\db_handler.py": {
+        "hash": "0f000141ff309539b0ff266503124867"
+    },
+    "basicbot\\data_fetcher.py": {
+        "hash": "38af45d71f35505eaca03a5f6ba139ed"
+    },
+    "basicbot\\discord_notifier.py": {
+        "hash": "d5a2bcab6bf8b9ce78ca3ace06dff50d"
+    },
+    "basicbot\\logger.py": {
+        "hash": "99e30ea92a47000ad54012aaf02f48a9"
+    },
+    "basicbot\\main.py": {
+        "hash": "4554ee201431cfadf7997bec05fb1a3d"
+    },
+    "basicbot\\model_training_utils.py": {
+        "hash": "6a06838b218e7b9d7205dd0c8086929d"
+    },
+    "basicbot\\post_scraper.py": {
+        "hash": "041e750c3729cca887a34b745c77dc31"
+    },
+    "basicbot\\setup.py": {
+        "hash": "6472a583567cbf152690a580fc828490"
+    },
+    "basicbot\\social_scraper.py": {
+        "hash": "9ea364bb4ad000d7c2835d89c82622d9"
+    },
+    "basicbot\\social_storage.py": {
+        "hash": "8c1def80d72cf8fb9dbdbfcef3945717"
+    },
+    "basicbot\\strategy.py": {
+        "hash": "140efce1065970a2d939e14dd34535fc"
+    },
+    "basicbot\\trading_api_alpaca.py": {
+        "hash": "9b4d404407dfd6eccabbfff89a3a0753"
+    },
+    "basicbot\\trading_bot.py": {
+        "hash": "5a682808e111aaf3a511776a27d235bc"
+    },
+    "basicbot\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "basicbot\\utils.py": {
+        "hash": "43f2c5540a6e99ff0f1c51ede7722177"
+    },
+    "basicbot\\archive\\1.py": {
+        "hash": "c21351ab65b5f89746208e34ff8d9ac5"
+    },
+    "basicbot\\archive\\test_backtest.py": {
+        "hash": "21d427b374c3234045fe3591b27b2af6"
+    },
+    "basicbot\\archive\\test_data_fetcher.py": {
+        "hash": "0999d9a882203f87f18749bedfd93100"
+    },
+    "basicbot\\archive\\test_trader_api.py": {
+        "hash": "940f43994bfb45984db6698dce1b6b28"
+    },
+    "basicbot\\archive\\test_trader.py": {
+        "hash": "a9997072c0dde44a8ed6bd5538491e70"
+    },
+    "basicbot\\archive\\test_trading_api_alpaca.py": {
+        "hash": "9c0bc4b844c8396defa60ca1f85d0df7"
+    },
+    "basicbot\\archive\\test_trading_api_robinhood.py": {
+        "hash": "3ec58e81b401be312cc40fddf6576cc0"
+    },
+    "basicbot\\archive\\trader.py": {
+        "hash": "ce0e24e0dff9f974ffd2a635f80f6ecd"
+    },
+    "basicbot\\archive\\test_trading_bot.py": {
+        "hash": "ba62cf5f77eafe90d110894f9dc7ddd4"
+    },
+    "basicbot\\archive\\trading_api_robinhood.py": {
+        "hash": "190e8a0f01370da072f0aad284b85b73"
+    },
+    "basicbot\\tests\\test_backtester.py": {
+        "hash": "40c8419718cde7bc6b9a5f607492a415"
+    },
+    "basicbot\\tests\\test_data_fetcher.py": {
+        "hash": "011947ac35692c359c15610b77df6f94"
+    },
+    "basicbot\\tests\\test_config.py": {
+        "hash": "b8b800e82f2c82c493c97d5bd1152d33"
+    },
+    "basicbot\\tests\\test_discord_notifier.py": {
+        "hash": "be73ffe877d8f34cfee9ea35d820009f"
+    },
+    "basicbot\\tests\\test_logger.py": {
+        "hash": "0584a4d06b895de6afacf3ceb5dc5723"
+    },
+    "basicbot\\tests\\test_strategy.py": {
+        "hash": "a09677d1dc4cf54e73d860c4fe528d12"
+    },
+    "basicbot\\tests\\test_trading_api.py": {
+        "hash": "1e604e35eb3d92885777b05a587e534f"
+    },
+    "basicbot\\tests\\test_utils.py": {
+        "hash": "3d4af621062f7c67c43d6641b1741f8c"
+    },
+    "basicbot\\tests\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "core\\agents\\io\\agent_supervisor.py": {
+        "hash": "cc5fded421f64fd8b83035059b06e51c"
+    },
+    "dreamos\\tools\\agent_bootstrap_runner\\config.py": {
+        "hash": "4a2231e022138845a31ebd82ef00323b"
+    },
+    "dreamos\\tools\\agent_bootstrap_runner\\onboard_all_agents.py": {
+        "hash": "52bd0d251598aad29f78996c440b8922"
+    },
+    "dreamos\\tools\\agent_bootstrap_runner\\validation.py": {
+        "hash": "ead207815945def8ec040b54abc07a89"
+    },
+    "dreamos_ai_organizer\\agent_identity.py": {
+        "hash": "ac022ec048d430321c810df80ea0647c"
+    },
+    "dreamos_ai_organizer\\ethos\\identity.py": {
+        "hash": "920685e0ba59aa278bbb67e0539c6ba4"
+    },
+    "dreamos_ai_organizer\\validate_ethos.py": {
+        "hash": "4ef2f814ad8e371926bf1a71d7ed7dcb"
+    },
+    "dreamos_ai_organizer\\ethos\\compliance.py": {
+        "hash": "6262fe588f807df079a5faa68fbfec58"
+    },
+    "dreamos_ai_organizer\\ethos\\logger.py": {
+        "hash": "cb9b9d51e517613374f4bc3f6f94a2ca"
+    },
+    "dreamos_ai_organizer\\ethos\\validator.py": {
+        "hash": "dba858a23ffb9669a7bf8103d43992f4"
+    },
+    "dreamos_ai_organizer\\ethos\\__init__.py": {
+        "hash": "2484fb87070d696eb75523f897a6266d"
+    },
+    "episodes\\__init__.py": {
+        "hash": "410ef6c72c4eaa80416500f56f426808"
+    },
+    "runtime\\agent_comms\\validators\\checklist_parser.py": {
+        "hash": "2b9ac9a2d449c624f7f3a126b5ed07f4"
+    },
+    "runtime\\agent_comms\\agent_mailboxes\\Agent-1\\state\\state_manager.py": {
+        "hash": "89dc12c4dca3bf1b5a7662cc0dc39198"
+    },
+    "runtime\\bridge\\mock_bridge_loop.py": {
+        "hash": "1598fd28e2c2978f53367f80ef2784b4"
+    },
+    "runtime\\agent_comms\\agent_mailboxes\\Agent-1\\state\\continuous_operation.py": {
+        "hash": "88a325da75f09841302591a2f9e2f35f"
+    },
+    "runtime\\agent_comms\\agent_mailboxes\\Agent-1\\state\\__init__.py": {
+        "hash": "421c8a635560b345cbd9e16f3072c14e"
+    },
+    "runtime\\agent_comms\\agent_mailboxes\\Agent-1\\autonomy_loop.py": {
+        "hash": "80e68d6533c5efc824f5f2b25f33c55f"
+    },
+    "runtime\\bridge\\queue\\run_all.py": {
+        "hash": "ec3f3d1c92a56c9a4bd244159ebb8ff5"
+    },
+    "runtime\\bridge\\queue\\monitor_health.py": {
+        "hash": "0cce509d7c725a8f9d88a7df25606105"
+    },
+    "runtime\\bridge\\queue\\continuous_operation.py": {
+        "hash": "5c5f947d3202762c1cdc23e7e6ae018e"
+    },
+    "runtime\\autonomy\\engine.py": {
+        "hash": "c3285c0b0468caaa60735799f0d3472a"
+    },
+    "runtime\\agent_comms\\validators\\inbox_message_validator.py": {
+        "hash": "6bd63dee80997a09c2cd5c734e703097"
+    },
+    "runtime\\bridge\\queue\\run_system.py": {
+        "hash": "a7ed83af87bac1c7ba6088b14a92ce35"
+    },
+    "runtime\\bridge\\queue\\run_validations.py": {
+        "hash": "803da1bed532846557c5d3370d68d1f9"
+    },
+    "runtime\\bridge\\queue\\test_continuous_operation.py": {
+        "hash": "cad002f76a0cab26f854ff5ea3f1cae8"
+    },
+    "runtime\\bridge\\queue\\run_continuous_operation.py": {
+        "hash": "236efa11cbb1471b62959d5311d2e9e5"
+    },
+    "runtime\\bridge\\queue\\validate_continuous_operation.py": {
+        "hash": "03e3e31f1c676853eab9d7462fff49f0"
+    },
+    "runtime\\bridge\\queue\\monitor_continuous_operation.py": {
+        "hash": "843f6549c9910f1c1a1b79f6097e3706"
+    },
+    "runtime\\dashboard\\api\\agent_metrics.py": {
+        "hash": "009ec3661c26f467f9c9b689ddf9d703"
+    },
+    "runtime\\governance\\onboarding\\run_tests.py": {
+        "hash": "776c2c599856da91c6422a8dc592b5a7"
+    },
+    "runtime\\governance\\onboarding\\scoreboard_monitor.py": {
+        "hash": "a7aef44cf8a13c5942188bc44ce53957"
+    },
+    "runtime\\bridge\\queue\\validate_tasks.py": {
+        "hash": "82c063fab0863e3840b6d5b1ecdacf45"
+    },
+    "runtime\\governance\\onboarding\\scoreboard_test_runner.py": {
+        "hash": "f1013e8b8704d672949bbaaf5853f11b"
+    },
+    "runtime\\governance\\onboarding\\utils\\agent_startup.py": {
+        "hash": "55201ca1f2c04c480484d4b87c61e2fd"
+    },
+    "runtime\\governance\\onboarding\\scoreboard_update_tool.py": {
+        "hash": "611970aa508207c366d2bd963559d04e"
+    },
+    "runtime\\governance\\onboarding\\utils\\onboarding_utils.py": {
+        "hash": "90f275cd43b003a9202c85321730b26a"
+    },
+    "runtime\\governance\\onboarding\\utils\\protocol_compliance.py": {
+        "hash": "96f90acb437545846aef230cde320982"
+    },
+    "runtime\\scripts\\create_missing_agent_dirs.py": {
+        "hash": "26199dbdf144d000b6e78748fc30031d"
+    },
+    "runtime\\governance\\onboarding\\utils\\validation_utils.py": {
+        "hash": "630aab0ccd48bba3094e7af85a594c4b"
+    },
+    "runtime\\governance\\onboarding\\utils\\validate_migration.py": {
+        "hash": "a156e8bcca6caf2bdb1dad92f9725061"
+    },
+    "runtime\\scripts\\flatten_agent_directories.py": {
+        "hash": "b28674faa419325126a3bd70131034aa"
+    },
+    "runtime\\scripts\\setup_dream_os.py": {
+        "hash": "fc39a7bbc1c19c8ff19567bc221bf0ae"
+    },
+    "runtime\\scripts\\initialize_agent_manifests.py": {
+        "hash": "7c9419ddbb33cf5eaeba09ef2e08fd25"
+    },
+    "runtime\\scripts\\update_scoreboard.py": {
+        "hash": "af164cc59cfc24cd474b533eaf0a9bae"
+    },
+    "runtime\\scripts\\verify_agent_mailboxes.py": {
+        "hash": "8930a47ea7e41bcb788511fae0d7b473"
+    },
+    "runtime\\services\\governance_service.py": {
+        "hash": "3d3d8f86da51f3e6c210c6c1328d4183"
+    },
+    "runtime\\scripts\\update_system_memory.py": {
+        "hash": "7ddac21ce5cdb43362ebb43843af422d"
+    },
+    "runtime\\services\\service_manager.py": {
+        "hash": "ebfbd4c5642291b7b12db31319e6cb3b"
+    },
+    "runtime\\services\\sync_service.py": {
+        "hash": "719b14f98d97003b40bc25178506bc38"
+    },
+    "runtime\\tools\\direct_inject.py": {
+        "hash": "ccc7a2dec51c28f9a7746e78e5e21d94"
+    },
+    "runtime\\tools\\direct_inbox_prompt.py": {
+        "hash": "3a6c7b3732c45af82db37d58be55d1c6"
+    },
+    "runtime\\tools\\inbox_loop_prompt.py": {
+        "hash": "8855e41502619e06450734ef13f5ec9c"
+    },
+    "runtime\\tools\\simple_resume.py": {
+        "hash": "fd7f9f39cb147cb150f3ab93c6d14330"
+    },
+    "runtime\\tools\\inject_onboarding_prompts.py": {
+        "hash": "cd4cd54b510dce42960fe653712372c9"
+    },
+    "scripts\\auto_onboard_agents.py": {
+        "hash": "9996cff8a114ee21cc5491ff0ab76021"
+    },
+    "scripts\\auto_onboard_agents_test.py": {
+        "hash": "eefffb7332e2f9ecb00125cb81bfa011"
+    },
+    "scripts\\cleanup_duplicate_dirs.py": {
+        "hash": "0b7b4b7a835102b0f704dc6ab571f6c7"
+    },
+    "scripts\\check_repo_integrity.py": {
+        "hash": "73e0b987d03aec5bfbd5f9ac642909d8"
+    },
+    "scripts\\centralize_task_lists.py": {
+        "hash": "e0194142ddb74a475a6832ff67b7dc4b"
+    },
+    "scripts\\debug_midnight_runner.py": {
+        "hash": "2ee3f45c0dda765856644ccdfc742a76"
+    },
+    "scripts\\flatten_tools.py": {
+        "hash": "230bd27123915fd7ce3d450e42be46a0"
+    },
+    "scripts\\merge_duplicate_dirs.py": {
+        "hash": "fa60c9d483bf4cc081ac3dd9e51834fc"
+    },
+    "scripts\\project_scanner.py": {
+        "hash": "25bc01dd0eebcf679ceddf388245b7ba"
+    },
+    "scripts\\update_tool_imports.py": {
+        "hash": "6f2b35894574d9049881d994327a2b75"
+    },
+    "scripts\\run_tests.py": {
+        "hash": "6d19e181851f98d7f63a97dfb6c4176e"
+    },
+    "scripts\\auditing\\scan_project.py": {
+        "hash": "362d92e8a7647684b8cd3b0b75ab1bc8"
+    },
+    "scripts\\maintenance\\cleanup_duplicates.py": {
+        "hash": "de6c211de0001d3108a35392f342fef2"
+    },
+    "scripts\\maintenance\\cleanup_runtime.py": {
+        "hash": "4e40ec718c73765eab98af3e2b760de2"
+    },
+    "scripts\\maintenance\\merge_duplicate_dirs.py": {
+        "hash": "e418b871d052de7829ae9a6034836c0b"
+    },
+    "scripts\\maintenance\\fix_orphans.py": {
+        "hash": "25687f72219f25fcd7d68ae977144904"
+    },
+    "scripts\\maintenance\\project_cleanup_protocol.py": {
+        "hash": "34d3fa322b69c865680fdba84bf2e69b"
+    },
+    "scripts\\maintenance\\project_scanner.py": {
+        "hash": "22b6df2ca5817d77d904c0de78dd6346"
+    },
+    "scripts\\maintenance\\scan_duplicate_dirs.py": {
+        "hash": "c0af83c8fb6c5af57257347dec20e605"
+    },
+    "scripts\\maintenance\\__init__.py": {
+        "hash": "30a3eb1031038ea99d530e1c77b4759a"
+    },
+    "scripts\\maintenance\\project_scanner\\analyzers.py": {
+        "hash": "356a38154b689ba4527b3a0982bbcdf8"
+    },
+    "scripts\\maintenance\\project_scanner\\constants.py": {
+        "hash": "cdf42eaf91692c18843c87cf15564b66"
+    },
+    "scripts\\maintenance\\project_scanner\\reporters.py": {
+        "hash": "2ab3645fe4176619a77314121b93549a"
+    },
+    "scripts\\maintenance\\project_scanner\\scanner.py": {
+        "hash": "8373fdca06b1612aa6a16a94ad6a6ec5"
+    },
+    "scripts\\maintenance\\project_scanner\\__init__.py": {
+        "hash": "c6c13ac93ecb602b32fbeb140e1a707a"
+    },
+    "scripts\\maintenance\\project_scanner\\utils.py": {
+        "hash": "9c950deff224ec75a9bae6d67893d324"
+    },
+    "scripts\\maintenance\\project_scanner\\__main__.py": {
+        "hash": "f5a20eb2811b82c8569ebc76ea3051c5"
+    },
+    "src\\core\\utils\\agent_utils.py": {
+        "hash": "4e567adc9a379b72fa0fba3d3256a515"
+    },
+    "src\\core\\utils\\cache_provider.py": {
+        "hash": "93fbd694e997503dfbd10a60f9c939d5"
+    },
+    "src\\core\\utils\\common_utils.py": {
+        "hash": "c7f53c1bb628600d1972526230ffcec4"
+    },
+    "src\\core\\utils\\config_utils.py": {
+        "hash": "aebedcfa733f28bdd5e302a799fd44b9"
+    },
+    "src\\core\\utils\\file_utils.py": {
+        "hash": "8b04e237974bd38700ca714604983f91"
+    },
+    "src\\core\\utils\\logging_utils.py": {
+        "hash": "029d3e97bd16b54cfb071b9fe049bccb"
+    },
+    "src\\core\\utils\\task_utils.py": {
+        "hash": "ecf60104ccb775d72c295a055a0aa996"
+    },
+    "src\\core\\utils\\__init__.py": {
+        "hash": "35db35175449b5fb72f22bdde6ce88e3"
+    },
+    "src\\core\\utils\\validation_utils.py": {
+        "hash": "c1017e4eac7b689f1d8689380ceb7db1"
+    },
+    "src\\dreamos\\cli.py": {
+        "hash": "0b6d54813d43beca90e53f5c80875de1"
+    },
+    "src\\dreamos\\main.py": {
+        "hash": "1ad26771adaa0e44510c00a95accd92f"
+    },
+    "src\\dreamos\\server.py": {
+        "hash": "424212ecd7aa4fedc8bd3c0b3f1560a7"
+    },
+    "src\\dreamos\\__init__.py": {
+        "hash": "e137e7c4d7b161a9e96df73ff4c0bf48"
+    },
+    "src\\dreamos\\UnifiedDriverManager.py": {
+        "hash": "8ae09e38a4fe543e641c659c3ff5ad8d"
+    },
+    "src\\dreamos\\agents\\__init__.py": {
+        "hash": "b46818f8b8963cfd7ff60e10d38f98a8"
+    },
+    "src\\dreamos\\agents\\chatgpt_web_agent.py": {
+        "hash": "166124da51a8a6e6c242480dd0c7dddb"
+    },
+    "src\\dreamos\\agents\\cursor\\cursor_coordinator.py": {
+        "hash": "10f7c9d336056002269385c4fc15340d"
+    },
+    "src\\dreamos\\agents\\cursor\\test_cursor_coordinator.py": {
+        "hash": "513d39a245a871bcdf5236db0822d74a"
+    },
+    "src\\dreamos\\agents\\cursor\\__init__.py": {
+        "hash": "dc111f7fb0e0ab7b674322da60a9cfed"
+    },
+    "src\\dreamos\\agents\\loop\\agent_loop.py": {
+        "hash": "2ebaac06947514c1ab67942a6006f17f"
+    },
+    "src\\dreamos\\agents\\utils\\agent_identity.py": {
+        "hash": "a31ea5f2eda7af388ca88e20fc766966"
+    },
+    "src\\dreamos\\agents\\utils\\agent_status_utils.py": {
+        "hash": "5d2f13f2052c5426f6bbb242152c0737"
+    },
+    "src\\dreamos\\agents\\utils\\agent_utils.py": {
+        "hash": "b3bc39ff56dbb2677d6482bbed94f2a7"
+    },
+    "src\\dreamos\\agents\\utils\\error_utils.py": {
+        "hash": "33344b322759d67d35132f4b1b71e587"
+    },
+    "src\\dreamos\\agents\\utils\\cursor_monitor_utils.py": {
+        "hash": "9a09d7ff68ab3cf327f2ad6edc6b8b4e"
+    },
+    "src\\dreamos\\agents\\utils\\reporting_utils.py": {
+        "hash": "7b65b669de0c9d90b0e7e4db1d017aa6"
+    },
+    "src\\dreamos\\agents\\utils\\performance_utils.py": {
+        "hash": "6d26bf75f25f3e5ec4e5bd7ae44801d6"
+    },
+    "src\\dreamos\\agents\\utils\\task_utils.py": {
+        "hash": "b418f565a1e616246714f0e628bbf5de"
+    },
+    "src\\dreamos\\agents\\utils\\supervisor_utils.py": {
+        "hash": "e3c0f931871d189c4e792ee4ccd4f177"
+    },
+    "src\\dreamos\\api\\empathy_scoring.py": {
+        "hash": "a0a45444d504ea3bc44591f46d22662b"
+    },
+    "src\\dreamos\\agents\\utils\\__init__.py": {
+        "hash": "c09176cbf353afdac39d029c344134b7"
+    },
+    "src\\dreamos\\api\\empathy_logs.py": {
+        "hash": "7a906531de530b0c9a4c6d97147de225"
+    },
+    "src\\dreamos\\api\\empathy_websocket.py": {
+        "hash": "9bcb6c52ab28ff368ce9946fc5ab6a7b"
+    },
+    "src\\dreamos\\api\\__init__.py": {
+        "hash": "bf78a566d9c6105571c514f05ed167f9"
+    },
+    "src\\dreamos\\api\\routes\\dna_routes.py": {
+        "hash": "e665c27cfb411dc01bb486ae7a11775d"
+    },
+    "src\\dreamos\\automation\\cli.py": {
+        "hash": "70407c5d75ccbdc5c113680553ccb6e0"
+    },
+    "src\\dreamos\\automation\\disperse_tasks.py": {
+        "hash": "419442b0cf0c9ae76579cf8f6f9e85c5"
+    },
+    "src\\dreamos\\automation\\empathy.py": {
+        "hash": "c2a8ebf3504dc2892da10fdb86e75a70"
+    },
+    "src\\dreamos\\automation\\episode.py": {
+        "hash": "423d9f9c037d09e46f74d8afac5d00d7"
+    },
+    "src\\dreamos\\automation\\episode5_autonomy_loop.py": {
+        "hash": "6b49c186448c3a59cfd1d035edbcde4b"
+    },
+    "src\\dreamos\\automation\\episode5_integration.py": {
+        "hash": "4e3de4d06709e26cac948d287ad8a4fa"
+    },
+    "src\\dreamos\\automation\\episode_hooks.py": {
+        "hash": "b912ebf2ad7fb073a1d146ad9a55f2dc"
+    },
+    "src\\dreamos\\automation\\episode_parser.py": {
+        "hash": "e1f64d402440726d305bcceb1f9a7c01"
+    },
+    "src\\dreamos\\automation\\generate_episode_docs.py": {
+        "hash": "60bc899f2ec740ff92a405cde2c2bea7"
+    },
+    "src\\dreamos\\automation\\identity.py": {
+        "hash": "116f867350c18d8b6c0dd9a1ae05cd90"
+    },
+    "src\\dreamos\\automation\\interaction.py": {
+        "hash": "492b0f100113e04b2859ff360070adf3"
+    },
+    "src\\dreamos\\automation\\midnight_runner.py": {
+        "hash": "4cd2a42ee1d811f64f3732d4400bef55"
+    },
+    "src\\dreamos\\automation\\jarvis_core.py": {
+        "hash": "09a41caea739ef1f7608a964b1a1cf42"
+    },
+    "src\\dreamos\\automation\\orchestrator.py": {
+        "hash": "de00ce4df44981ea70a763ef58794f60"
+    },
+    "src\\dreamos\\automation\\promotion.py": {
+        "hash": "ac57bd065dc8d6daf735d01c6e595cc5"
+    },
+    "src\\dreamos\\automation\\reflection.py": {
+        "hash": "1864d0311c934e4165f6743a4b0d725d"
+    },
+    "src\\dreamos\\automation\\validation_utils.py": {
+        "hash": "54d23013d67280491fe2edeebe8e7d17"
+    },
+    "src\\dreamos\\automation\\tasks.py": {
+        "hash": "c971fa88a37aaf72b5c9273323b0bccb"
+    },
+    "src\\dreamos\\automation\\__init__.py": {
+        "hash": "9d4b40f1e2098881c14907768bd54c82"
+    },
+    "src\\dreamos\\coordination\\project_board_manager.py": {
+        "hash": "a2cf5dd71b970613eb9a3d979176a7c5"
+    },
+    "src\\dreamos\\coordination\\__init__.py": {
+        "hash": "ea99e6f9bbc56fb63f9b0bbfcae62916"
+    },
+    "src\\dreamos\\core\\agent_identity.py": {
+        "hash": "cea8697a4c096c0e03d8998a8a027ee2"
+    },
+    "src\\dreamos\\core\\config.py": {
+        "hash": "680617dcffe01258e0b3aed0f3b275cd"
+    },
+    "src\\dreamos\\core\\devlog_formatter.py": {
+        "hash": "a373e7c27e70af547e46d02f3d5d43d8"
+    },
+    "src\\dreamos\\core\\drift_detector.py": {
+        "hash": "35bddc2a66771a857080432378be395d"
+    },
+    "src\\dreamos\\core\\errors.py": {
+        "hash": "c92fbaa4aae51905fe066f9f097defb2"
+    },
+    "src\\dreamos\\core\\empathy_scoring.py": {
+        "hash": "3f4961255d857293f31599fc88f840c7"
+    },
+    "src\\dreamos\\core\\ethos_validator.py": {
+        "hash": "86904e6a04b1e1a2a43b70fc8ca1cf65"
+    },
+    "src\\dreamos\\core\\predictive_model.py": {
+        "hash": "e0c422b11bc775941b6252760f529327"
+    },
+    "src\\dreamos\\core\\project_board.py": {
+        "hash": "73df29d0536502293616d5fa09641439"
+    },
+    "src\\dreamos\\core\\__init__.py": {
+        "hash": "b8fe4fae9d8767feb4e6702ddc3a0fe1"
+    },
+    "src\\dreamos\\core\\agents\\dna_analyzer.py": {
+        "hash": "14f831b2d89a5857a2da9846762de1b8"
+    },
+    "src\\dreamos\\core\\coordination\\base_agent.py": {
+        "hash": "ae7325b7af3fc863a6c482a72b8ebff2"
+    },
+    "src\\dreamos\\core\\coordination\\agent_bus.py": {
+        "hash": "6c4f6420197609a49067af039c75a0a9"
+    },
+    "src\\dreamos\\core\\coordination\\event_bus.py": {
+        "hash": "858ffd0d7316e342849222034556a639"
+    },
+    "src\\dreamos\\core\\coordination\\event_payloads.py": {
+        "hash": "b72149af5a76a30de5b53342d0e10d34"
+    },
+    "src\\dreamos\\core\\coordination\\message_patterns.py": {
+        "hash": "fd22bb7112b289a4c80c1f1fa136ef2c"
+    },
+    "src\\dreamos\\core\\empathy\\empathy_engine.py": {
+        "hash": "cb943118426182169d338f3588d417c8"
+    },
+    "src\\dreamos\\core\\coordination\\__init__.py": {
+        "hash": "55d188493716b5f509534bc722b47db7"
+    },
+    "src\\dreamos\\core\\empathy\\empathy_logger.py": {
+        "hash": "94b12707bac98b693e8630d81d3135a0"
+    },
+    "src\\dreamos\\core\\empathy\\empathy_metrics.py": {
+        "hash": "8435f8e73c1dfcd555478aac41ac03e2"
+    },
+    "src\\dreamos\\core\\empathy\\empathy_validator.py": {
+        "hash": "ec16d824466b7aab55e3cf54eda4a9d4"
+    },
+    "src\\dreamos\\core\\empathy\\__init__.py": {
+        "hash": "ccbd508c2ae8663842ec26f0a3fc11e8"
+    },
+    "src\\dreamos\\core\\ethos\\validator.py": {
+        "hash": "4943ca78a66c2bceaba6e95a51c0122a"
+    },
+    "src\\dreamos\\core\\ethos\\identity.py": {
+        "hash": "e55927d50edc338b4378089e4df4ca5c"
+    },
+    "src\\dreamos\\core\\ethos\\__init__.py": {
+        "hash": "5ea713a3d98114d236054ddceec91c39"
+    },
+    "src\\dreamos\\core\\services\\dna_websocket.py": {
+        "hash": "3159a8d97363dfdb8c968d99492f1cef"
+    },
+    "src\\dreamos\\core\\tasks\\models.py": {
+        "hash": "a330333a51eedec925af9267efb6f5a5"
+    },
+    "src\\dreamos\\core\\tasks\\execution\\__init__.py": {
+        "hash": "3d408d0b12e48754ec14d6127ffff27a"
+    },
+    "src\\dreamos\\core\\tasks\\execution\\task_executor.py": {
+        "hash": "aef1d6614bad1c5f326c8e5f1dbdc4f1"
+    },
+    "src\\dreamos\\core\\tasks\\monitoring\\pending_monitor.py": {
+        "hash": "7ed48f5ff288af99becd9e087cf0dfb2"
+    },
+    "src\\dreamos\\core\\tasks\\monitoring\\start_monitoring_service.py": {
+        "hash": "53b65c995fa5481aa2afc43d4a0c2c0c"
+    },
+    "src\\dreamos\\core\\tasks\\monitoring\\task_monitoring_service.py": {
+        "hash": "9e1c485a439f2895e9984074e4dfaa34"
+    },
+    "src\\dreamos\\core\\tasks\\monitoring\\__init__.py": {
+        "hash": "7595eac20a254bc3183aa52e5a43ae60"
+    },
+    "src\\dreamos\\core\\utils\\class_utils.py": {
+        "hash": "b8b11e120c33be726579a9772dadfdca"
+    },
+    "src\\dreamos\\core\\tasks\\nexus\\task_nexus.py": {
+        "hash": "a8424b064d22c4e54b33a3e677eec5a7"
+    },
+    "src\\dreamos\\core\\utils\\config.py": {
+        "hash": "5f50f3dd66bafc2578fe6b9f2270c5f0"
+    },
+    "src\\dreamos\\core\\utils\\config_utils.py": {
+        "hash": "f3e0257611222ff0e3ec07d6a912f595"
+    },
+    "src\\dreamos\\core\\utils\\dict_utils.py": {
+        "hash": "d94cb786f4bddb6773a4d4c5f075318a"
+    },
+    "src\\dreamos\\core\\utils\\enum_utils.py": {
+        "hash": "831cb0ac5063e3ea914251e1920b3d3e"
+    },
+    "src\\dreamos\\core\\utils\\error_utils.py": {
+        "hash": "edb013860a248a23e8b88b3ce23793e4"
+    },
+    "src\\dreamos\\core\\utils\\file_utils.py": {
+        "hash": "63756b5afd2ac71fecebf39878b532a6"
+    },
+    "src\\dreamos\\core\\utils\\json_utils.py": {
+        "hash": "e89e1c7fe59b12707ac7b4a5a7c7f207"
+    },
+    "src\\dreamos\\core\\utils\\function_utils.py": {
+        "hash": "491137b96341d786ce5b075a2ea433ea"
+    },
+    "src\\dreamos\\core\\utils\\list_utils.py": {
+        "hash": "7127dc598ce12947fa6f6a2526a8b9b7"
+    },
+    "src\\dreamos\\core\\utils\\path_utils.py": {
+        "hash": "c06ceba859f52db82d2570a86a7a80e4"
+    },
+    "src\\dreamos\\core\\utils\\logging_utils.py": {
+        "hash": "99a56442cd89fe2d55af17241220f431"
+    },
+    "src\\dreamos\\core\\utils\\set_utils.py": {
+        "hash": "03e77d640e9255dce089246ad72b24f5"
+    },
+    "src\\dreamos\\core\\utils\\time_utils.py": {
+        "hash": "ac0b0d1deaf053dab4f6564707497043"
+    },
+    "src\\dreamos\\core\\utils\\string_utils.py": {
+        "hash": "2d2a5d4f91dc9a45297213e8e2aa07dd"
+    },
+    "src\\dreamos\\core\\utils\\tuple_utils.py": {
+        "hash": "a33089395a6d8c0b558cb64a8312ff52"
+    },
+    "src\\dreamos\\core\\utils\\validation.py": {
+        "hash": "44eb8c28464b8f9cbfc85e939028b3a9"
+    },
+    "src\\dreamos\\core\\utils\\__init__.py": {
+        "hash": "da91660e36a116fa155de4bbfe241216"
+    },
+    "src\\dreamos\\core\\validation\\__init__.py": {
+        "hash": "2848cc6b092921d89db91512ab1dad45"
+    },
+    "src\\dreamos\\core\\validation\\validation_engine.py": {
+        "hash": "12f0b757905eb1f78d041403a0940db5"
+    },
+    "src\\dreamos\\integrations\\cursor\\__init__.py": {
+        "hash": "80f2ada1069de7efe9ebed2f6318d3b4"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\bridge_loop.py": {
+        "hash": "747407d37f49d43eb0fcfc4bb8f71e6f"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\http_bridge_service.py": {
+        "hash": "269726fee9613ce787068625895027c6"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\feedback\\thea_response_handler.py": {
+        "hash": "a8aadb2abdc2adab9cc362c48e15c075"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\run_bridge_loop.py": {
+        "hash": "1c60ba8a474be17288450f3964ad96b7"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\feedback\\__init__.py": {
+        "hash": "e09bf03561290133910a15da65cf01ca"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\__init__.py": {
+        "hash": "a09131db468fc79f4e6540967549573b"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\relay\\response_relay.py": {
+        "hash": "f9dac593fc108c6e0de02f0097e20bc2"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\relay\\__init__.py": {
+        "hash": "45dfe29a1f441115064225f9dca36c74"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\schemas\\thea_response_schema.py": {
+        "hash": "bb2c0d8c9b6c4a937c8adf493da3f9ae"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\schemas\\__init__.py": {
+        "hash": "2d2a714dc7b833ba5ffa1a5ec8af0e1d"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\tests\\test_bridge_pipeline.py": {
+        "hash": "ce15d299d7d3d0cf0ce5ff82009be628"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\tests\\test_bridge_e2e.py": {
+        "hash": "37eb4e042567629336078bb722311343"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\tests\\simulate_bridge_loop.py": {
+        "hash": "c4d54f4d972fa18ef5a6b2f5b2e5d72a"
+    },
+    "src\\dreamos\\integrations\\cursor\\bridge\\tests\\__init__.py": {
+        "hash": "0ea71fc4d10861060bf1c3c4ec985a04"
+    },
+    "src\\dreamos\\integrations\\cursor\\utils\\cursor_injector.py": {
+        "hash": "aef2263e54e24dd7f36028dcb01cb0c7"
+    },
+    "src\\dreamos\\tools\\agent0_bootstrap_runner.py": {
+        "hash": "3dc6301c3bb84e159f7b42d18ab6d695"
+    },
+    "src\\dreamos\\tools\\advanced_project_scanner.py": {
+        "hash": "b9de34bb2de313671238da3b806895c6"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner.py": {
+        "hash": "8cc4aae1b2f5e03fcad066aaf992053e"
+    },
+    "src\\dreamos\\tools\\launch_all_agents.py": {
+        "hash": "dd86ae9f186fcbe9490a233b59275897"
+    },
+    "src\\dreamos\\tools\\shutdown_all_agents.py": {
+        "hash": "f865048930106faca00b85ee53a769db"
+    },
+    "src\\dreamos\\tools\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "src\\dreamos\\tools\\run_agent2.py": {
+        "hash": "3de333b3d1f59e26aa868b9a8c6243e3"
+    },
+    "src\\dreamos\\tools\\status_all_agents.py": {
+        "hash": "ab6c4a6abf614ba7287db33a3e245373"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\agent_traits.py": {
+        "hash": "2e8b33f218b1e0dc313e4331cb639238"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\config.py": {
+        "hash": "984e45dd7729aa8eb109a220d88efd55"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\agent_loop.py": {
+        "hash": "16f58b6fecb5a69578b8dee61ff4a3c9"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\cursor_messaging.py": {
+        "hash": "e2bb42cc19bfcae06860a8b0de783bef"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\dry_run_simulator.py": {
+        "hash": "1b76d6864d5b1a841f855cb33d9f069e"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\inbox_management.py": {
+        "hash": "cee7e420487b8a198a71ea2fd15dcec8"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\logging_setup.py": {
+        "hash": "01b48faa0f90ac4f28aad12e7cf1aea8"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\maintenance.py": {
+        "hash": "d99bb26d10af6b31f5a672ae4587995b"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\messaging.py": {
+        "hash": "1ccedc58d44a1f3025bde98423f48974"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\onboarding.py": {
+        "hash": "b1cb257a377fb1959ea54337c1e175eb"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\onboard_all_agents.py": {
+        "hash": "fc28b8e9a4270ddef9c5391eca05ee8a"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\resume_autonomy_loop.py": {
+        "hash": "28883a1a15d81c1301104643176bfb85"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\runner.py": {
+        "hash": "496446b8012114a31ef3f8cd8c166ceb"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\ui_interaction.py": {
+        "hash": "74cfaea594745c14c09560a11e877a60"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\validation.py": {
+        "hash": "32de744d6db960ebff2d519bab562684"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\__init__.py": {
+        "hash": "55f0164180bb594eab44e9eca08124e2"
+    },
+    "src\\dreamos\\tools\\agent_bootstrap_runner\\__main__.py": {
+        "hash": "4ec77cee73a91e03582dc36cfd83678b"
+    },
+    "src\\dreamos\\tools\\captain_tools\\env_check_env.py": {
+        "hash": "f040f1a0f9f2e35fbc367cd5faea910e"
+    },
+    "src\\dreamos\\tools\\captain_tools\\map_single_agent.py": {
+        "hash": "004967e67325ea34a7910d262f88aeae"
+    },
+    "src\\dreamos\\tools\\captain_tools\\map_all_coords.py": {
+        "hash": "fb092fb164817cd8fbfe6e0fb0e0d7f8"
+    },
+    "src\\dreamos\\tools\\captain_tools\\onboarding_enforcer.py": {
+        "hash": "c215a808445ef238732c0c1addf73d3d"
+    },
+    "src\\dreamos\\tools\\captain_tools\\onboarding_enforcer_async.py": {
+        "hash": "785b4a33fbb0d3b8bfe7bdbd10aba2fe"
+    },
+    "src\\dreamos\\tools\\captain_tools\\remap_coords.py": {
+        "hash": "3d65b6dfa620a5f669b9ef49942472ca"
+    },
+    "src\\dreamos\\tools\\captain_tools\\onboarding_enforcer_hardened.py": {
+        "hash": "560d4a45d32fd0f822291f40ab85b761"
+    },
+    "src\\dreamos\\tools\\captain_tools\\system_reset.py": {
+        "hash": "232bca6793104ce524a820c849216ade"
+    },
+    "src\\dreamos\\tools\\captain_tools\\validate_coords.py": {
+        "hash": "9be1404caff9deff13518c512c668781"
+    },
+    "src\\dreamos\\tools\\captain_tools\\__init__.py": {
+        "hash": "032fcdfa13deb70509d50e76c40881a9"
+    },
+    "src\\dreamos\\tools\\system_maintenance\\cleanup_duplicates.py": {
+        "hash": "a9e8134957600960a100655c204172f6"
+    },
+    "src\\dreamos\\tools\\system_maintenance\\__init__.py": {
+        "hash": "402ecb7a48c11df5d9c8912876ca10e4"
+    },
+    "src\\dreamos\\tools\\system_maintenance\\maintenance_service.py": {
+        "hash": "1c2aa6ee79eabf8d01dce6f665b25a32"
+    },
+    "src\\dreamos\\ui\\store\\empathyStore.ts": {
+        "hash": "f3a49fd981446f63080af3b02a3b71a8"
+    },
+    "src\\dreamos\\utils\\config.py": {
+        "hash": "5430e13ae4eca96e87dfedc446101064"
+    },
+    "src\\dreamos\\utils\\gui_utils.py": {
+        "hash": "63c0b5dbb3e16a59fe2e25ec5f489e8f"
+    },
+    "src\\dreamos\\utils\\memory_manager.py": {
+        "hash": "9afc95bbd9ebf4afff69b8df50f601f3"
+    },
+    "src\\dreamos\\utils\\__init__.py": {
+        "hash": "33b873b3d397291a2865b135e7affa4d"
+    },
+    "src\\dreamos\\utils\\dream_mode_utils\\browser.py": {
+        "hash": "9f9b73d3a63919feee49069579b2ee91"
+    },
+    "src\\dreamos\\utils\\dream_mode_utils\\html_parser.py": {
+        "hash": "49a8bb3072ffc09a29321bf7b9ee88ee"
+    },
+    "src\\dreamos\\utils\\dream_mode_utils\\task_parser.py": {
+        "hash": "20a7be8b2c2e81e18e9ac7e0977b30a6"
+    },
+    "src\\dreamos\\utils\\gui\\retriever.py": {
+        "hash": "76a5d31099db70ef24b9a77f2dedc0f5"
+    },
+    "src\\dreamos\\utils\\gui\\__init__.py": {
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "src\\dreamos\\utils\\gui\\injector.py": {
+        "hash": "cf408324fb8f5cd468022de1631e98ec"
+    },
+    "src\\dreamos\\utils\\validation\\inbox_message_validator.py": {
+        "hash": "355a41166339d15c0da5c2faa109c9ee"
+    },
+    "src\\tests\\test_agent_loop.py": {
+        "hash": "1c366d4b1ab188d190d55505559e0701"
+    },
+    "src\\dreamscape\\__init__.py": {
+        "hash": "8e22b4928dec075338dd2f4e86ceb234"
+    },
+    "src\\tests\\test_agent_utils.py": {
+        "hash": "b5d46e7b1f75e917207540007afd1a22"
+    },
+    "src\\tests\\test_config_utils.py": {
+        "hash": "ebbe28bda98cad4655e51bc482f708b6"
+    },
+    "src\\tests\\test_dashboard.py": {
+        "hash": "0fcc444e96f2fcee2ae010c19598d286"
+    },
+    "src\\tests\\test_empathy_intelligence.py": {
+        "hash": "6050e483b5828588f3b015fd53b43337"
+    },
+    "src\\tests\\test_promotion_system.py": {
+        "hash": "53d24b514e4032b252e2fd209de42318"
+    },
+    "src\\tests\\test_task_utils.py": {
+        "hash": "3132a4cffc05e0109f15cba165d85102"
+    },
+    "src\\tests\\test_validation_utils.py": {
+        "hash": "0512719bf355d8e8553182fad1f3bcfb"
+    },
+    "src\\tests\\__init__.py": {
+        "hash": "1cff1ebf546b2838ba713b4f1a72dbd1"
+    },
+    "src\\tests\\agents\\utils\\test_agent_identity.py": {
+        "hash": "2a9a41fce87fa74989459798cd56bf23"
+    },
+    "src\\tests\\core\\test_devlog_formatter.py": {
+        "hash": "ed4dde5d5738b09d6ed3050367d69c66"
+    },
+    "src\\tests\\core\\test_ethos.py": {
+        "hash": "45438cf72c1097752f4e7399722732d8"
+    },
+    "src\\tests\\core\\validation\\test_validation_engine.py": {
+        "hash": "7779def6667d61e484a098baf10e3831"
+    },
+    "tests\\test_agent_utils.py": {
+        "hash": "b5d46e7b1f75e917207540007afd1a22"
+    },
+    "tests\\conftest.py": {
+        "hash": "59891dd6808c482f1c9edd967698b0be"
+    },
+    "tests\\test_agent_loop.py": {
+        "hash": "1c366d4b1ab188d190d55505559e0701"
+    },
+    "tests\\test_config_utils.py": {
+        "hash": "ebbe28bda98cad4655e51bc482f708b6"
+    },
+    "tests\\test_dashboard.py": {
+        "hash": "0fcc444e96f2fcee2ae010c19598d286"
+    },
+    "tests\\test_empathy_intelligence.py": {
+        "hash": "3e0e9915d2dece731dc23a2d4fd1fb93"
+    },
+    "tests\\test_jarvis_integration.py": {
+        "hash": "0eb50f70ac5e88ea7e70818075c61bb5"
+    },
+    "tests\\test_task_utils.py": {
+        "hash": "3132a4cffc05e0109f15cba165d85102"
+    },
+    "tests\\test_promotion_system.py": {
+        "hash": "53d24b514e4032b252e2fd209de42318"
+    },
+    "tests\\test_validation_utils.py": {
+        "hash": "0512719bf355d8e8553182fad1f3bcfb"
+    },
+    "tests\\__init__.py": {
+        "hash": "1cff1ebf546b2838ba713b4f1a72dbd1"
+    },
+    "tests\\agents\\utils\\test_agent_identity.py": {
+        "hash": "2a9a41fce87fa74989459798cd56bf23"
+    },
+    "tests\\api\\test_empathy_scoring_api.py": {
+        "hash": "793e5bab12e66758c0c000f47544b672"
+    },
+    "tests\\core\\test_agent_identity.py": {
+        "hash": "6d8c5fc802c8ed888a65a78fe86e388c"
+    },
+    "tests\\core\\test_devlog_formatter.py": {
+        "hash": "ed4dde5d5738b09d6ed3050367d69c66"
+    },
+    "tests\\core\\test_empathy_scoring.py": {
+        "hash": "0e2bdfa0747b3d2dbb718d8ce69a2924"
+    },
+    "tests\\core\\test_ethos.py": {
+        "hash": "45438cf72c1097752f4e7399722732d8"
+    },
+    "tests\\core\\tasks\\execution\\test_task_executor.py": {
+        "hash": "9e09fe7eb02542dcf5b207f1fbd70f14"
+    },
+    "tests\\core\\tasks\\monitoring\\test_pending_monitor.py": {
+        "hash": "1c65870ee5528098cda954ebc4a8aa86"
+    },
+    "tests\\core\\validation\\test_validation_engine.py": {
+        "hash": "7779def6667d61e484a098baf10e3831"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\conftest.py": {
+        "hash": "85e0fd69370a81b41cc73f93f0bcf513"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_agent_loop.py": {
+        "hash": "e9543f4c41e7ee32e741994de78bf7c4"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_agent_traits.py": {
+        "hash": "a6cd27402c4db378978ba3f997b28def"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_config.py": {
+        "hash": "43d9beb4ff43694510b97f71ed7359cb"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_main.py": {
+        "hash": "47bf2c32ecea8e89885cf448ff78ef2f"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_messaging.py": {
+        "hash": "18037da7ca9fc9d980294d0dc1b82741"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_runner.py": {
+        "hash": "6dac8147fbc34cd6bf2accdbef962187"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_ui_interaction.py": {
+        "hash": "162ba450c79b8c29f8d211537d20582c"
+    },
+    "tests\\tools\\agent_bootstrap_runner\\test_validation.py": {
+        "hash": "b7ac26a0c20032527dc988f5a6823ab5"
+    },
+    "test_migration\\src\\example.py": {
+        "hash": "192f6a6319a7192e4d72fb057b6fbadc"
+    },
+    "test_migration\\src\\test_example.py": {
+        "hash": "b91503b1f474fa513fd4f12ed81ec25d"
+    },
+    "tools\\calibrate_initial_agent_coords.py": {
+        "hash": "d051b5a9e797376f1ff5484c037914cf"
+    },
+    "vendor\\reprism\\languages\\arff.js": {
+        "hash": "97ab22bcf52e5b1d0956cfd98f3e71f7"
+    },
+    "vendor\\reprism\\languages\\arduino.js": {
+        "hash": "1774c91214bb56a727970d0ba9db7c85"
+    },
+    "vendor\\reprism\\languages\\applescript.js": {
+        "hash": "66a23b6677ef09a559308ba0626be028"
+    },
+    "vendor\\reprism\\languages\\abap.js": {
+        "hash": "ed5ae1cf128201ef0561aaf636e3a92b"
+    },
+    "vendor\\reprism\\languages\\asciidoc.js": {
+        "hash": "ef0fae3025990423d3056c27d9ee0e84"
+    },
+    "vendor\\reprism\\languages\\ada.js": {
+        "hash": "65a228daadf5e5b53ed18905496dec3c"
+    },
+    "vendor\\reprism\\languages\\bash.js": {
+        "hash": "c2981c6e5a3d0c6ab7ddf7a94b4818d2"
+    },
+    "vendor\\reprism\\languages\\autoit.js": {
+        "hash": "fecca7e0d281a17591470a09936b107e"
+    },
+    "vendor\\reprism\\languages\\basic.js": {
+        "hash": "4f8731be248662b23bb51841053acb53"
+    },
+    "vendor\\reprism\\languages\\asm6502.js": {
+        "hash": "a4da7598c60be4b386d80a3c62f1e25e"
+    },
+    "vendor\\reprism\\languages\\brainfuck.js": {
+        "hash": "375c45a982ecf6e1dae1f75dcb196c4c"
+    },
+    "vendor\\reprism\\languages\\batch.js": {
+        "hash": "49610529541e633741a055bdfc51915b"
+    },
+    "vendor\\reprism\\languages\\autohotkey.js": {
+        "hash": "10fc76a13acf1bf908285ee26a5fee75"
+    },
+    "vendor\\reprism\\languages\\bison.js": {
+        "hash": "f4d0b3a70f1e24dd0167468d416bd132"
+    },
+    "vendor\\reprism\\languages\\actionscript.js": {
+        "hash": "508147c20a4fe86ceb4227c7588591af"
+    },
+    "vendor\\reprism\\languages\\apacheconf.js": {
+        "hash": "fe43c2545afa774f021bcb0325fb9f64"
+    },
+    "vendor\\reprism\\languages\\clojure.js": {
+        "hash": "439e436f7aa2991c52d9be77c0c92c1d"
+    },
+    "vendor\\reprism\\languages\\aspnet.js": {
+        "hash": "74a33524e44e6cf7e287b40a4b7a857c"
+    },
+    "vendor\\reprism\\languages\\clike.js": {
+        "hash": "d25bbc927aa40aae94fcda195a82c41d"
+    },
+    "vendor\\reprism\\languages\\c.js": {
+        "hash": "70149b6c97c41089e68f80e16e609087"
+    },
+    "vendor\\reprism\\languages\\coffeescript.js": {
+        "hash": "f9751c5a5355f6154056b15921b07513"
+    },
+    "vendor\\reprism\\languages\\bro.js": {
+        "hash": "70a63eb7d6ad4174991e655bfcef1976"
+    },
+    "vendor\\reprism\\languages\\cpp.js": {
+        "hash": "eea7515cc7c5893f315b92d012f9db15"
+    },
+    "vendor\\reprism\\languages\\crystal.js": {
+        "hash": "4019655f30d9f9187427e975407d4cab"
+    },
+    "vendor\\reprism\\languages\\css-extras.js": {
+        "hash": "b9b327ee5112c621a2d45ddb6e28beb3"
+    },
+    "vendor\\reprism\\languages\\apl.js": {
+        "hash": "415da62ae8412bb9bad226ba80f3c280"
+    },
+    "vendor\\reprism\\languages\\csp.js": {
+        "hash": "1c8225832283d762cb3115dafe0f5c8d"
+    },
+    "vendor\\reprism\\languages\\docker.js": {
+        "hash": "d0719e1ebe1947be127e78920c75eb43"
+    },
+    "vendor\\reprism\\languages\\dart.js": {
+        "hash": "b44972b6d2ead28f5a566e4728560f22"
+    },
+    "vendor\\reprism\\languages\\csharp.js": {
+        "hash": "97ac2bb01378793ffd0b527ef834973c"
+    },
+    "vendor\\reprism\\languages\\css.js": {
+        "hash": "eed053490793a9df5ba9c629a5f4aafa"
+    },
+    "vendor\\reprism\\languages\\d.js": {
+        "hash": "88a053e071688906a30301a66485dc29"
+    },
+    "vendor\\reprism\\languages\\diff.js": {
+        "hash": "66b4223714fdeca213844c532fc90e76"
+    },
+    "vendor\\reprism\\languages\\fsharp.js": {
+        "hash": "99a8130772ac20842a086a1ce5621ba9"
+    },
+    "vendor\\reprism\\languages\\elixir.js": {
+        "hash": "2313a2e2c1404ba429c8acacfaa3c0f2"
+    },
+    "vendor\\reprism\\languages\\erb.js": {
+        "hash": "67e98437db7698f24cb2786d8e43016d"
+    },
+    "vendor\\reprism\\languages\\django.js": {
+        "hash": "0248a85ee7efb8904bf73dadd4922f8e"
+    },
+    "vendor\\reprism\\languages\\gherkin.js": {
+        "hash": "02d34b9caa3e7680ff4f9bbd0a706144"
+    },
+    "vendor\\reprism\\languages\\flow.js": {
+        "hash": "00a9c987cb950a8f66080a5d9ab93f54"
+    },
+    "vendor\\reprism\\languages\\fortran.js": {
+        "hash": "f3e993a02e2b9c6bc4ef8bd9e6d91591"
+    },
+    "vendor\\reprism\\languages\\erlang.js": {
+        "hash": "067df7ff6ed44e0e420f08628ea20cc2"
+    },
+    "vendor\\reprism\\languages\\eiffel.js": {
+        "hash": "7547da52dbd9deabf83521a096eeebe0"
+    },
+    "vendor\\reprism\\languages\\gedcom.js": {
+        "hash": "85492397e833370b5c50f4eb804c53b5"
+    },
+    "vendor\\reprism\\languages\\git.js": {
+        "hash": "e04ff3dc536c2a125d6d559b6e59fc77"
+    },
+    "vendor\\reprism\\languages\\graphql.js": {
+        "hash": "4606f12aff511911731a8f001bb653ab"
+    },
+    "vendor\\reprism\\languages\\go.js": {
+        "hash": "c331a6dea3ef5d4cb72655b571846c00"
+    },
+    "vendor\\reprism\\languages\\groovy.js": {
+        "hash": "5b7e2190445630a9fc2ec79a7b335068"
+    },
+    "vendor\\reprism\\languages\\haml.js": {
+        "hash": "1df576754d2d9646fc496e11bcf63365"
+    },
+    "vendor\\reprism\\languages\\hpkp.js": {
+        "hash": "c043fa021f5de5f53207792ebac0932b"
+    },
+    "vendor\\reprism\\languages\\glsl.js": {
+        "hash": "8d301604c8fa0a49ebd193c001235fa9"
+    },
+    "vendor\\reprism\\languages\\haskell.js": {
+        "hash": "37b57aeec21c36b31f04d31c69ab2fe5"
+    },
+    "vendor\\reprism\\languages\\haxe.js": {
+        "hash": "d1445c7e04db5f8b033c0a318d6db751"
+    },
+    "vendor\\reprism\\languages\\handlebars.js": {
+        "hash": "5e4b747167cfad344c252fc0b09c2c08"
+    },
+    "vendor\\reprism\\languages\\http.js": {
+        "hash": "461210ce64d4e3a216a8f72ea23463e0"
+    },
+    "vendor\\reprism\\languages\\ichigojam.js": {
+        "hash": "199e6c7415be9d4cff9a7bda3320e0ef"
+    },
+    "vendor\\reprism\\languages\\hsts.js": {
+        "hash": "09aa90b92d69ff820beaa90023aab6f5"
+    },
+    "vendor\\reprism\\languages\\icon.js": {
+        "hash": "4aa26ede974890195156555c6802b1b5"
+    },
+    "vendor\\reprism\\languages\\io.js": {
+        "hash": "a2084b25565e3cbc5ce8fe04b315dc3e"
+    },
+    "vendor\\reprism\\languages\\java.js": {
+        "hash": "032b12dddad9d4827196713a90c767a4"
+    },
+    "vendor\\reprism\\languages\\ini.js": {
+        "hash": "a9f1029fff57fdc16b40c5cb1ee9721d"
+    },
+    "vendor\\reprism\\languages\\j.js": {
+        "hash": "a804f1b7a5fdc48bf15656296183593b"
+    },
+    "vendor\\reprism\\languages\\inform7.js": {
+        "hash": "893be23f887e893c90b1f47679815b9e"
+    },
+    "vendor\\reprism\\languages\\jolie.js": {
+        "hash": "8c57ce94a94243e7941e05a07b572640"
+    },
+    "vendor\\reprism\\languages\\json.js": {
+        "hash": "7e1bedf32e2163f461c6aee56c6e480b"
+    },
+    "vendor\\reprism\\languages\\keyman.js": {
+        "hash": "4fdc6dffc7f3a91c2418a6eda6a7c2b1"
+    },
+    "vendor\\reprism\\languages\\kotlin.js": {
+        "hash": "06e37ed2f4774ef586acd5af30a277f9"
+    },
+    "vendor\\reprism\\languages\\lisp.js": {
+        "hash": "dfb89c3ee8081493d9a8b75fd9920b3e"
+    },
+    "vendor\\reprism\\languages\\julia.js": {
+        "hash": "38f5f1732d2ed51794dc40a071b9d417"
+    },
+    "vendor\\reprism\\languages\\latex.js": {
+        "hash": "deecb5a53c263b0661556cf98329ed20"
+    },
+    "vendor\\reprism\\languages\\jsx.js": {
+        "hash": "01ccbc065f3a1b43dd411ebbf9a13eb7"
+    },
+    "vendor\\reprism\\languages\\liquid.js": {
+        "hash": "1cd84adb0ff209cf536c8e007c0ed7ca"
+    },
+    "vendor\\reprism\\languages\\lolcode.js": {
+        "hash": "285a0887c3b9d0f6ee4851b7ce0d580b"
+    },
+    "vendor\\reprism\\languages\\livescript.js": {
+        "hash": "6f6af4345338793128f468050d620d44"
+    },
+    "vendor\\reprism\\languages\\makefile.js": {
+        "hash": "e65855820a478a33dc6097201d581570"
+    },
+    "vendor\\reprism\\languages\\lua.js": {
+        "hash": "0579e8baf41f6aeca557fecea63228de"
+    },
+    "vendor\\reprism\\languages\\less.js": {
+        "hash": "fe294c5e6a2b017613eeac8ba50c0c1e"
+    },
+    "vendor\\reprism\\languages\\monkey.js": {
+        "hash": "14d4d877312cd3aa3d8c2c5158a988a5"
+    },
+    "vendor\\reprism\\languages\\mizar.js": {
+        "hash": "dad86c91fb008c2321a09e1ff015f712"
+    },
+    "vendor\\reprism\\languages\\javascript.js": {
+        "hash": "24fecd0920dc8d8fbcd4216e89c7323b"
+    },
+    "vendor\\reprism\\languages\\markdown.js": {
+        "hash": "52e4d581864b5a392155e52753b8f007"
+    },
+    "vendor\\reprism\\languages\\markup-templating.js": {
+        "hash": "4c01801adc7d5abf91c70012c555e267"
+    },
+    "vendor\\reprism\\languages\\nasm.js": {
+        "hash": "22376da459042d6a85dad61f105e9f46"
+    },
+    "vendor\\reprism\\languages\\matlab.js": {
+        "hash": "41b6f7545ecab32e15de90c489b2ed0a"
+    },
+    "vendor\\reprism\\languages\\nginx.js": {
+        "hash": "1f1e012d7a813d517189184bdeac89b6"
+    },
+    "vendor\\reprism\\languages\\n4js.js": {
+        "hash": "8948262798183fd39fd9514c8fc90642"
+    },
+    "vendor\\reprism\\languages\\mel.js": {
+        "hash": "7cfe2a21a8f05fba03bc0d9e67891fbe"
+    },
+    "vendor\\reprism\\languages\\nix.js": {
+        "hash": "84629a4edb10ba0b1e8661fab9bcee52"
+    },
+    "vendor\\reprism\\languages\\nim.js": {
+        "hash": "55b8b5747d17666ea44767d27410d148"
+    },
+    "vendor\\reprism\\languages\\nsis.js": {
+        "hash": "671ae1513b4b03776690beca8515aaef"
+    },
+    "vendor\\reprism\\languages\\oz.js": {
+        "hash": "fefc03835b496bbc6d868e7f39bbe885"
+    },
+    "vendor\\reprism\\languages\\parser.js": {
+        "hash": "1ba41a93920fe2f8193fea9e3a1376ab"
+    },
+    "vendor\\reprism\\languages\\opencl.js": {
+        "hash": "606a1f85a294db60b3168b5bff1b9d7b"
+    },
+    "vendor\\reprism\\languages\\objectivec.js": {
+        "hash": "cbf14e126bff8e3f4ee682cf7b5945f8"
+    },
+    "vendor\\reprism\\languages\\pascal.js": {
+        "hash": "4ee52fc97462df5105af4913852d1008"
+    },
+    "vendor\\reprism\\languages\\php-extras.js": {
+        "hash": "fa68be013dd60921a20f1556d93e7edb"
+    },
+    "vendor\\reprism\\languages\\markup.js": {
+        "hash": "954cce4356836bdab7e6029a625fd87c"
+    },
+    "vendor\\reprism\\languages\\parigp.js": {
+        "hash": "e28840046845a2371cb1ac9d0b15726b"
+    },
+    "vendor\\reprism\\languages\\protobuf.js": {
+        "hash": "443111e1e7079df4254e9399c234cddc"
+    },
+    "vendor\\reprism\\languages\\properties.js": {
+        "hash": "b5b3231018d55a67f786e628b4bd3808"
+    },
+    "vendor\\reprism\\languages\\ocaml.js": {
+        "hash": "d41662d6a2218e4632f6e3a839d60f69"
+    },
+    "vendor\\reprism\\languages\\perl.js": {
+        "hash": "6653a06711f9968802cd7a77a687b019"
+    },
+    "vendor\\reprism\\languages\\prolog.js": {
+        "hash": "83a4a3a42c631ed3566708665c6534e6"
+    },
+    "vendor\\reprism\\languages\\plsql.js": {
+        "hash": "b4ead18fe70d9c4af46f90aca4e9d74a"
+    },
+    "vendor\\reprism\\languages\\processing.js": {
+        "hash": "381ad5a2b166a43d16f93aaa05fb3ade"
+    },
+    "vendor\\reprism\\languages\\pug.js": {
+        "hash": "596e0154d61b621ad399d3a7301baaad"
+    },
+    "vendor\\reprism\\languages\\powershell.js": {
+        "hash": "e78ce13a621bb78de851b1d8b04d1740"
+    },
+    "vendor\\reprism\\languages\\puppet.js": {
+        "hash": "57f1a08431633a4fe247f6101340e161"
+    },
+    "vendor\\reprism\\languages\\php.js": {
+        "hash": "0caf97b678fbdf2cc0b4a68f33bd3100"
+    },
+    "vendor\\reprism\\languages\\pure.js": {
+        "hash": "4173f09b6b04d97cbc5d87ae200f9437"
+    },
+    "vendor\\reprism\\languages\\r.js": {
+        "hash": "5833783f8e55534e66e375a79e34f60d"
+    },
+    "vendor\\reprism\\languages\\python.js": {
+        "hash": "ae96b0ac92967b9459fca8e40a18b2be"
+    },
+    "vendor\\reprism\\languages\\reason.js": {
+        "hash": "44b48af92efad02a33fd280238c160e8"
+    },
+    "vendor\\reprism\\languages\\qore.js": {
+        "hash": "323f765c4e47a7717780fd97c68d21c3"
+    },
+    "vendor\\reprism\\languages\\q.js": {
+        "hash": "decaed3606529b66abf0974b2401b501"
+    },
+    "vendor\\reprism\\languages\\rip.js": {
+        "hash": "7849f2c932e1fbdab5f2e5cb9cdff1a3"
+    },
+    "vendor\\reprism\\languages\\renpy.js": {
+        "hash": "f2c3c8d35d2e0b0ef59c69a2dd65b1ae"
+    },
+    "vendor\\reprism\\languages\\sass.js": {
+        "hash": "8c286aaaae4fb49d0e845f3097869809"
+    },
+    "vendor\\reprism\\languages\\rest.js": {
+        "hash": "19961e3b5e2433eab3a052413f9f9fcb"
+    },
+    "vendor\\reprism\\languages\\roboconf.js": {
+        "hash": "6287473211c7a118446012a1d08efe58"
+    },
+    "vendor\\reprism\\languages\\ruby.js": {
+        "hash": "0d8af87b5ef9fa39978a90c267b22b7c"
+    },
+    "vendor\\reprism\\languages\\sas.js": {
+        "hash": "6b78cb1f4fc1be15748bef2bf472b808"
+    },
+    "vendor\\reprism\\languages\\rust.js": {
+        "hash": "d0de998698162224029f8704a973bff8"
+    },
+    "vendor\\reprism\\languages\\smalltalk.js": {
+        "hash": "59682679575fd63d74ccf7d3754e2cf4"
+    },
+    "vendor\\reprism\\languages\\scheme.js": {
+        "hash": "c879cd29d8a7869c9168da57232b525e"
+    },
+    "vendor\\reprism\\languages\\scala.js": {
+        "hash": "383b6700495f12f89a10e50729322f8a"
+    },
+    "vendor\\reprism\\languages\\smarty.js": {
+        "hash": "ff338b94102aa197bba5ef6ad974c8ec"
+    },
+    "vendor\\reprism\\languages\\scss.js": {
+        "hash": "05a8dc7fb6af3236baf15db1ca5cffbb"
+    },
+    "vendor\\reprism\\languages\\stylus.js": {
+        "hash": "774d5108615ffbfef0e8eb0f61aff075"
+    },
+    "vendor\\reprism\\languages\\tsx.js": {
+        "hash": "a7a3a52e640cd3f0df16f9d65b0a449f"
+    },
+    "vendor\\reprism\\languages\\soy.js": {
+        "hash": "0d0f217bfea2631ba0b527852dd310b5"
+    },
+    "vendor\\reprism\\languages\\swift.js": {
+        "hash": "c80e3aca74466e1c417ae2ad7fc1a599"
+    },
+    "vendor\\reprism\\languages\\twig.js": {
+        "hash": "6b233feffe61db318c4bff9b09c1a88c"
+    },
+    "vendor\\reprism\\languages\\textile.js": {
+        "hash": "683e529f662b6ca1be6a632cbd336100"
+    },
+    "vendor\\reprism\\languages\\tcl.js": {
+        "hash": "1b1d915cab2170e88bfad36eb891d232"
+    },
+    "vendor\\reprism\\languages\\velocity.js": {
+        "hash": "5f5e2e672e33551eec6adfed92f97c71"
+    },
+    "vendor\\reprism\\languages\\vbnet.js": {
+        "hash": "9d3e61d54412afa3fb6ceb8cd84eae25"
+    },
+    "vendor\\reprism\\languages\\typescript.js": {
+        "hash": "31a31a8cea89388e627b00a367d66bd0"
+    },
+    "vendor\\reprism\\languages\\languages\\ada.js": {
+        "hash": "65a228daadf5e5b53ed18905496dec3c"
+    },
+    "vendor\\reprism\\languages\\wasm.js": {
+        "hash": "f451bea8a34ff2a21b108b2754b8d398"
+    },
+    "vendor\\reprism\\languages\\verilog.js": {
+        "hash": "54e940f21a7163df8b7acb5ce9227634"
+    },
+    "vendor\\reprism\\languages\\languages\\actionscript.js": {
+        "hash": "508147c20a4fe86ceb4227c7588591af"
+    },
+    "vendor\\reprism\\languages\\languages\\applescript.js": {
+        "hash": "66a23b6677ef09a559308ba0626be028"
+    },
+    "vendor\\reprism\\languages\\vim.js": {
+        "hash": "0d65736ae4ce59e6478583ab1759717e"
+    },
+    "vendor\\reprism\\languages\\languages\\apl.js": {
+        "hash": "415da62ae8412bb9bad226ba80f3c280"
+    },
+    "vendor\\reprism\\languages\\wiki.js": {
+        "hash": "3308a095a0619e39569feee035d53cd5"
+    },
+    "vendor\\reprism\\languages\\languages\\arff.js": {
+        "hash": "97ab22bcf52e5b1d0956cfd98f3e71f7"
+    },
+    "vendor\\reprism\\languages\\languages\\arduino.js": {
+        "hash": "1774c91214bb56a727970d0ba9db7c85"
+    },
+    "vendor\\reprism\\languages\\xeora.js": {
+        "hash": "98f0e4792e93877958d516bc7b0ccc41"
+    },
+    "vendor\\reprism\\languages\\vhdl.js": {
+        "hash": "2a1397b78da9d199b8ecf90ca5bcc6ab"
+    },
+    "vendor\\reprism\\languages\\languages\\asm6502.js": {
+        "hash": "a4da7598c60be4b386d80a3c62f1e25e"
+    },
+    "vendor\\reprism\\languages\\yaml.js": {
+        "hash": "173a534739058f11b68ccb4f5e5b1524"
+    },
+    "vendor\\reprism\\languages\\visual-basic.js": {
+        "hash": "54e08eec3374c621264c35a486e64c78"
+    },
+    "vendor\\reprism\\languages\\languages\\aspnet.js": {
+        "hash": "74a33524e44e6cf7e287b40a4b7a857c"
+    },
+    "vendor\\reprism\\languages\\languages\\autoit.js": {
+        "hash": "fecca7e0d281a17591470a09936b107e"
+    },
+    "vendor\\reprism\\languages\\languages\\bash.js": {
+        "hash": "c2981c6e5a3d0c6ab7ddf7a94b4818d2"
+    },
+    "vendor\\reprism\\languages\\languages\\brainfuck.js": {
+        "hash": "375c45a982ecf6e1dae1f75dcb196c4c"
+    },
+    "vendor\\reprism\\languages\\languages\\batch.js": {
+        "hash": "49610529541e633741a055bdfc51915b"
+    },
+    "vendor\\reprism\\languages\\languages\\basic.js": {
+        "hash": "4f8731be248662b23bb51841053acb53"
+    },
+    "vendor\\reprism\\languages\\languages\\bison.js": {
+        "hash": "f4d0b3a70f1e24dd0167468d416bd132"
+    },
+    "vendor\\reprism\\languages\\languages\\bro.js": {
+        "hash": "70a63eb7d6ad4174991e655bfcef1976"
+    },
+    "vendor\\reprism\\languages\\languages\\c.js": {
+        "hash": "70149b6c97c41089e68f80e16e609087"
+    },
+    "vendor\\reprism\\languages\\xojo.js": {
+        "hash": "2de961e23198f2b11ce04d0d2ec22a32"
+    },
+    "vendor\\reprism\\languages\\languages\\abap.js": {
+        "hash": "ed5ae1cf128201ef0561aaf636e3a92b"
+    },
+    "vendor\\reprism\\languages\\languages\\clojure.js": {
+        "hash": "439e436f7aa2991c52d9be77c0c92c1d"
+    },
+    "vendor\\reprism\\languages\\languages\\clike.js": {
+        "hash": "d25bbc927aa40aae94fcda195a82c41d"
+    },
+    "vendor\\reprism\\languages\\languages\\cpp.js": {
+        "hash": "eea7515cc7c5893f315b92d012f9db15"
+    },
+    "vendor\\reprism\\languages\\languages\\crystal.js": {
+        "hash": "4019655f30d9f9187427e975407d4cab"
+    },
+    "vendor\\reprism\\languages\\languages\\csharp.js": {
+        "hash": "97ac2bb01378793ffd0b527ef834973c"
+    },
+    "vendor\\reprism\\languages\\languages\\css-extras.js": {
+        "hash": "b9b327ee5112c621a2d45ddb6e28beb3"
+    },
+    "vendor\\reprism\\languages\\languages\\coffeescript.js": {
+        "hash": "f9751c5a5355f6154056b15921b07513"
+    },
+    "vendor\\reprism\\languages\\languages\\css.js": {
+        "hash": "eed053490793a9df5ba9c629a5f4aafa"
+    },
+    "vendor\\reprism\\languages\\languages\\d.js": {
+        "hash": "88a053e071688906a30301a66485dc29"
+    },
+    "vendor\\reprism\\languages\\languages\\django.js": {
+        "hash": "0248a85ee7efb8904bf73dadd4922f8e"
+    },
+    "vendor\\reprism\\languages\\languages\\docker.js": {
+        "hash": "d0719e1ebe1947be127e78920c75eb43"
+    },
+    "vendor\\reprism\\languages\\languages\\erb.js": {
+        "hash": "67e98437db7698f24cb2786d8e43016d"
+    },
+    "vendor\\reprism\\languages\\languages\\eiffel.js": {
+        "hash": "7547da52dbd9deabf83521a096eeebe0"
+    },
+    "vendor\\reprism\\languages\\languages\\erlang.js": {
+        "hash": "067df7ff6ed44e0e420f08628ea20cc2"
+    },
+    "vendor\\reprism\\languages\\languages\\elixir.js": {
+        "hash": "2313a2e2c1404ba429c8acacfaa3c0f2"
+    },
+    "vendor\\reprism\\languages\\languages\\flow.js": {
+        "hash": "00a9c987cb950a8f66080a5d9ab93f54"
+    },
+    "vendor\\reprism\\languages\\languages\\apacheconf.js": {
+        "hash": "fe43c2545afa774f021bcb0325fb9f64"
+    },
+    "vendor\\reprism\\languages\\languages\\fortran.js": {
+        "hash": "f3e993a02e2b9c6bc4ef8bd9e6d91591"
+    },
+    "vendor\\reprism\\languages\\languages\\fsharp.js": {
+        "hash": "99a8130772ac20842a086a1ce5621ba9"
+    },
+    "vendor\\reprism\\languages\\languages\\gedcom.js": {
+        "hash": "85492397e833370b5c50f4eb804c53b5"
+    },
+    "vendor\\reprism\\languages\\languages\\git.js": {
+        "hash": "e04ff3dc536c2a125d6d559b6e59fc77"
+    },
+    "vendor\\reprism\\languages\\languages\\glsl.js": {
+        "hash": "8d301604c8fa0a49ebd193c001235fa9"
+    },
+    "vendor\\reprism\\languages\\languages\\go.js": {
+        "hash": "c331a6dea3ef5d4cb72655b571846c00"
+    },
+    "vendor\\reprism\\languages\\languages\\asciidoc.js": {
+        "hash": "ef0fae3025990423d3056c27d9ee0e84"
+    },
+    "vendor\\reprism\\languages\\languages\\dart.js": {
+        "hash": "b44972b6d2ead28f5a566e4728560f22"
+    },
+    "vendor\\reprism\\languages\\languages\\groovy.js": {
+        "hash": "5b7e2190445630a9fc2ec79a7b335068"
+    },
+    "vendor\\reprism\\languages\\languages\\haml.js": {
+        "hash": "1df576754d2d9646fc496e11bcf63365"
+    },
+    "vendor\\reprism\\languages\\languages\\diff.js": {
+        "hash": "66b4223714fdeca213844c532fc90e76"
+    },
+    "vendor\\reprism\\languages\\languages\\graphql.js": {
+        "hash": "4606f12aff511911731a8f001bb653ab"
+    },
+    "vendor\\reprism\\languages\\languages\\handlebars.js": {
+        "hash": "5e4b747167cfad344c252fc0b09c2c08"
+    },
+    "vendor\\reprism\\languages\\languages\\hpkp.js": {
+        "hash": "c043fa021f5de5f53207792ebac0932b"
+    },
+    "vendor\\reprism\\languages\\languages\\hsts.js": {
+        "hash": "09aa90b92d69ff820beaa90023aab6f5"
+    },
+    "vendor\\reprism\\languages\\languages\\ini.js": {
+        "hash": "a9f1029fff57fdc16b40c5cb1ee9721d"
+    },
+    "vendor\\reprism\\languages\\languages\\haxe.js": {
+        "hash": "d1445c7e04db5f8b033c0a318d6db751"
+    },
+    "vendor\\reprism\\languages\\languages\\autohotkey.js": {
+        "hash": "10fc76a13acf1bf908285ee26a5fee75"
+    },
+    "vendor\\reprism\\languages\\languages\\csp.js": {
+        "hash": "1c8225832283d762cb3115dafe0f5c8d"
+    },
+    "vendor\\reprism\\languages\\languages\\haskell.js": {
+        "hash": "37b57aeec21c36b31f04d31c69ab2fe5"
+    },
+    "vendor\\reprism\\languages\\languages\\http.js": {
+        "hash": "461210ce64d4e3a216a8f72ea23463e0"
+    },
+    "vendor\\reprism\\languages\\languages\\icon.js": {
+        "hash": "4aa26ede974890195156555c6802b1b5"
+    },
+    "vendor\\reprism\\languages\\languages\\j.js": {
+        "hash": "a804f1b7a5fdc48bf15656296183593b"
+    },
+    "vendor\\reprism\\languages\\languages\\ichigojam.js": {
+        "hash": "199e6c7415be9d4cff9a7bda3320e0ef"
+    },
+    "vendor\\reprism\\languages\\languages\\javascript.js": {
+        "hash": "24fecd0920dc8d8fbcd4216e89c7323b"
+    },
+    "vendor\\reprism\\languages\\languages\\jolie.js": {
+        "hash": "8c57ce94a94243e7941e05a07b572640"
+    },
+    "vendor\\reprism\\languages\\languages\\inform7.js": {
+        "hash": "893be23f887e893c90b1f47679815b9e"
+    },
+    "vendor\\reprism\\languages\\languages\\io.js": {
+        "hash": "a2084b25565e3cbc5ce8fe04b315dc3e"
+    },
+    "vendor\\reprism\\languages\\languages\\java.js": {
+        "hash": "032b12dddad9d4827196713a90c767a4"
+    },
+    "vendor\\reprism\\languages\\languages\\json.js": {
+        "hash": "7e1bedf32e2163f461c6aee56c6e480b"
+    },
+    "vendor\\reprism\\languages\\languages\\jsx.js": {
+        "hash": "01ccbc065f3a1b43dd411ebbf9a13eb7"
+    },
+    "vendor\\reprism\\languages\\languages\\julia.js": {
+        "hash": "38f5f1732d2ed51794dc40a071b9d417"
+    },
+    "vendor\\reprism\\languages\\languages\\kotlin.js": {
+        "hash": "06e37ed2f4774ef586acd5af30a277f9"
+    },
+    "vendor\\reprism\\languages\\languages\\keyman.js": {
+        "hash": "4fdc6dffc7f3a91c2418a6eda6a7c2b1"
+    },
+    "vendor\\reprism\\languages\\languages\\latex.js": {
+        "hash": "deecb5a53c263b0661556cf98329ed20"
+    },
+    "vendor\\reprism\\languages\\languages\\less.js": {
+        "hash": "fe294c5e6a2b017613eeac8ba50c0c1e"
+    },
+    "vendor\\reprism\\languages\\languages\\lisp.js": {
+        "hash": "dfb89c3ee8081493d9a8b75fd9920b3e"
+    },
+    "vendor\\reprism\\languages\\languages\\liquid.js": {
+        "hash": "1cd84adb0ff209cf536c8e007c0ed7ca"
+    },
+    "vendor\\reprism\\languages\\languages\\livescript.js": {
+        "hash": "6f6af4345338793128f468050d620d44"
+    },
+    "vendor\\reprism\\languages\\languages\\lolcode.js": {
+        "hash": "285a0887c3b9d0f6ee4851b7ce0d580b"
+    },
+    "vendor\\reprism\\languages\\languages\\makefile.js": {
+        "hash": "e65855820a478a33dc6097201d581570"
+    },
+    "vendor\\reprism\\languages\\languages\\markdown.js": {
+        "hash": "52e4d581864b5a392155e52753b8f007"
+    },
+    "vendor\\reprism\\languages\\languages\\markup-templating.js": {
+        "hash": "4c01801adc7d5abf91c70012c555e267"
+    },
+    "vendor\\reprism\\languages\\languages\\lua.js": {
+        "hash": "0579e8baf41f6aeca557fecea63228de"
+    },
+    "vendor\\reprism\\languages\\languages\\markup.js": {
+        "hash": "954cce4356836bdab7e6029a625fd87c"
+    },
+    "vendor\\reprism\\languages\\languages\\matlab.js": {
+        "hash": "41b6f7545ecab32e15de90c489b2ed0a"
+    },
+    "vendor\\reprism\\languages\\languages\\gherkin.js": {
+        "hash": "02d34b9caa3e7680ff4f9bbd0a706144"
+    },
+    "vendor\\reprism\\languages\\languages\\mizar.js": {
+        "hash": "dad86c91fb008c2321a09e1ff015f712"
+    },
+    "vendor\\reprism\\languages\\languages\\n4js.js": {
+        "hash": "8948262798183fd39fd9514c8fc90642"
+    },
+    "vendor\\reprism\\languages\\languages\\nim.js": {
+        "hash": "55b8b5747d17666ea44767d27410d148"
+    },
+    "vendor\\reprism\\languages\\languages\\monkey.js": {
+        "hash": "14d4d877312cd3aa3d8c2c5158a988a5"
+    },
+    "vendor\\reprism\\languages\\languages\\objectivec.js": {
+        "hash": "cbf14e126bff8e3f4ee682cf7b5945f8"
+    },
+    "vendor\\reprism\\languages\\languages\\nasm.js": {
+        "hash": "22376da459042d6a85dad61f105e9f46"
+    },
+    "vendor\\reprism\\languages\\languages\\nix.js": {
+        "hash": "84629a4edb10ba0b1e8661fab9bcee52"
+    },
+    "vendor\\reprism\\languages\\languages\\ocaml.js": {
+        "hash": "d41662d6a2218e4632f6e3a839d60f69"
+    },
+    "vendor\\reprism\\languages\\languages\\nginx.js": {
+        "hash": "1f1e012d7a813d517189184bdeac89b6"
+    },
+    "vendor\\reprism\\languages\\languages\\nsis.js": {
+        "hash": "671ae1513b4b03776690beca8515aaef"
+    },
+    "vendor\\reprism\\languages\\languages\\oz.js": {
+        "hash": "fefc03835b496bbc6d868e7f39bbe885"
+    },
+    "vendor\\reprism\\languages\\languages\\parser.js": {
+        "hash": "1ba41a93920fe2f8193fea9e3a1376ab"
+    },
+    "vendor\\reprism\\languages\\languages\\pascal.js": {
+        "hash": "4ee52fc97462df5105af4913852d1008"
+    },
+    "vendor\\reprism\\languages\\languages\\perl.js": {
+        "hash": "6653a06711f9968802cd7a77a687b019"
+    },
+    "vendor\\reprism\\languages\\languages\\php-extras.js": {
+        "hash": "fa68be013dd60921a20f1556d93e7edb"
+    },
+    "vendor\\reprism\\languages\\languages\\parigp.js": {
+        "hash": "e28840046845a2371cb1ac9d0b15726b"
+    },
+    "vendor\\reprism\\languages\\languages\\plsql.js": {
+        "hash": "b4ead18fe70d9c4af46f90aca4e9d74a"
+    },
+    "vendor\\reprism\\languages\\languages\\php.js": {
+        "hash": "0caf97b678fbdf2cc0b4a68f33bd3100"
+    },
+    "vendor\\reprism\\languages\\languages\\prolog.js": {
+        "hash": "83a4a3a42c631ed3566708665c6534e6"
+    },
+    "vendor\\reprism\\languages\\languages\\processing.js": {
+        "hash": "381ad5a2b166a43d16f93aaa05fb3ade"
+    },
+    "vendor\\reprism\\languages\\languages\\powershell.js": {
+        "hash": "e78ce13a621bb78de851b1d8b04d1740"
+    },
+    "vendor\\reprism\\languages\\languages\\protobuf.js": {
+        "hash": "443111e1e7079df4254e9399c234cddc"
+    },
+    "vendor\\reprism\\languages\\languages\\properties.js": {
+        "hash": "b5b3231018d55a67f786e628b4bd3808"
+    },
+    "vendor\\reprism\\languages\\languages\\puppet.js": {
+        "hash": "57f1a08431633a4fe247f6101340e161"
+    },
+    "vendor\\reprism\\languages\\languages\\pure.js": {
+        "hash": "4173f09b6b04d97cbc5d87ae200f9437"
+    },
+    "vendor\\reprism\\languages\\languages\\pug.js": {
+        "hash": "596e0154d61b621ad399d3a7301baaad"
+    },
+    "vendor\\reprism\\languages\\languages\\python.js": {
+        "hash": "ae96b0ac92967b9459fca8e40a18b2be"
+    },
+    "vendor\\reprism\\languages\\languages\\r.js": {
+        "hash": "5833783f8e55534e66e375a79e34f60d"
+    },
+    "vendor\\reprism\\languages\\languages\\q.js": {
+        "hash": "decaed3606529b66abf0974b2401b501"
+    },
+    "vendor\\reprism\\languages\\languages\\reason.js": {
+        "hash": "44b48af92efad02a33fd280238c160e8"
+    },
+    "vendor\\reprism\\languages\\languages\\rest.js": {
+        "hash": "19961e3b5e2433eab3a052413f9f9fcb"
+    },
+    "vendor\\reprism\\languages\\languages\\renpy.js": {
+        "hash": "f2c3c8d35d2e0b0ef59c69a2dd65b1ae"
+    },
+    "vendor\\reprism\\languages\\languages\\rip.js": {
+        "hash": "7849f2c932e1fbdab5f2e5cb9cdff1a3"
+    },
+    "vendor\\reprism\\languages\\languages\\qore.js": {
+        "hash": "323f765c4e47a7717780fd97c68d21c3"
+    },
+    "vendor\\reprism\\languages\\languages\\roboconf.js": {
+        "hash": "6287473211c7a118446012a1d08efe58"
+    },
+    "vendor\\reprism\\languages\\languages\\ruby.js": {
+        "hash": "0d8af87b5ef9fa39978a90c267b22b7c"
+    },
+    "vendor\\reprism\\languages\\languages\\rust.js": {
+        "hash": "d0de998698162224029f8704a973bff8"
+    },
+    "vendor\\reprism\\languages\\languages\\sas.js": {
+        "hash": "6b78cb1f4fc1be15748bef2bf472b808"
+    },
+    "vendor\\reprism\\languages\\languages\\sass.js": {
+        "hash": "8c286aaaae4fb49d0e845f3097869809"
+    },
+    "vendor\\reprism\\languages\\languages\\scala.js": {
+        "hash": "383b6700495f12f89a10e50729322f8a"
+    },
+    "vendor\\reprism\\languages\\languages\\scss.js": {
+        "hash": "05a8dc7fb6af3236baf15db1ca5cffbb"
+    },
+    "vendor\\reprism\\languages\\languages\\smalltalk.js": {
+        "hash": "59682679575fd63d74ccf7d3754e2cf4"
+    },
+    "vendor\\reprism\\languages\\languages\\scheme.js": {
+        "hash": "c879cd29d8a7869c9168da57232b525e"
+    },
+    "vendor\\reprism\\languages\\languages\\soy.js": {
+        "hash": "0d0f217bfea2631ba0b527852dd310b5"
+    },
+    "vendor\\reprism\\languages\\languages\\smarty.js": {
+        "hash": "ff338b94102aa197bba5ef6ad974c8ec"
+    },
+    "vendor\\reprism\\languages\\languages\\stylus.js": {
+        "hash": "774d5108615ffbfef0e8eb0f61aff075"
+    },
+    "vendor\\reprism\\languages\\languages\\swift.js": {
+        "hash": "c80e3aca74466e1c417ae2ad7fc1a599"
+    },
+    "vendor\\reprism\\languages\\languages\\tsx.js": {
+        "hash": "a7a3a52e640cd3f0df16f9d65b0a449f"
+    },
+    "vendor\\reprism\\languages\\languages\\tcl.js": {
+        "hash": "1b1d915cab2170e88bfad36eb891d232"
+    },
+    "vendor\\reprism\\languages\\languages\\typescript.js": {
+        "hash": "31a31a8cea89388e627b00a367d66bd0"
+    },
+    "vendor\\reprism\\languages\\languages\\twig.js": {
+        "hash": "6b233feffe61db318c4bff9b09c1a88c"
+    },
+    "vendor\\reprism\\languages\\languages\\velocity.js": {
+        "hash": "5f5e2e672e33551eec6adfed92f97c71"
+    },
+    "vendor\\reprism\\languages\\languages\\vhdl.js": {
+        "hash": "2a1397b78da9d199b8ecf90ca5bcc6ab"
+    },
+    "vendor\\reprism\\languages\\languages\\verilog.js": {
+        "hash": "54e940f21a7163df8b7acb5ce9227634"
+    },
+    "vendor\\reprism\\languages\\languages\\wasm.js": {
+        "hash": "f451bea8a34ff2a21b108b2754b8d398"
+    },
+    "vendor\\reprism\\languages\\languages\\wiki.js": {
+        "hash": "3308a095a0619e39569feee035d53cd5"
+    },
+    "vendor\\reprism\\languages\\languages\\visual-basic.js": {
+        "hash": "54e08eec3374c621264c35a486e64c78"
+    },
+    "vendor\\reprism\\languages\\languages\\xojo.js": {
+        "hash": "2de961e23198f2b11ce04d0d2ec22a32"
+    },
+    "vendor\\reprism\\languages\\languages\\xeora.js": {
+        "hash": "98f0e4792e93877958d516bc7b0ccc41"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\setup.py": {
+        "hash": "06ae007876fec7d42abcbab6bafec56e"
+    },
+    "vendor\\reprism\\languages\\languages\\yaml.js": {
+        "hash": "173a534739058f11b68ccb4f5e5b1524"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tests\\test_binding.py": {
+        "hash": "661bb211377f88906ddeacd077756870"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\python\\tree_sitter_javascript\\__init__.py": {
+        "hash": "1a8590ab5b5b165c05ee8430ecba36f7"
+    },
+    "vendor\\reprism\\languages\\languages\\opencl.js": {
+        "hash": "606a1f85a294db60b3168b5bff1b9d7b"
+    },
+    "vendor\\reprism\\languages\\languages\\mel.js": {
+        "hash": "7cfe2a21a8f05fba03bc0d9e67891fbe"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\index.d.ts": {
         "hash": "4e9d45333836de075092e97363b8bea4"
     },
-    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tests\\__init__.py": {
+    "vendor\\reprism\\languages\\languages\\vbnet.js": {
+        "hash": "9d3e61d54412afa3fb6ceb8cd84eae25"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\binding_test.js": {
+        "hash": "3058616d1d281ab61fa4a50fe0e3dca4"
+    },
+    "vendor\\reprism\\languages\\languages\\textile.js": {
+        "hash": "683e529f662b6ca1be6a632cbd336100"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\rust\\build.rs": {
+        "hash": "555ae5f5aadf13a4e69ff750eb5177b2"
+    },
+    "vendor\\reprism\\languages\\languages\\vim.js": {
+        "hash": "0d65736ae4ce59e6478583ab1759717e"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\node\\index.js": {
+        "hash": "886e5a59402476e224a7fe2dc2823591"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\imports.js": {
+        "hash": "4d520bca495f998b6721f59fc05c6c43"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\injection.js": {
+        "hash": "7f1f66ebbd1e934e925e98b34d60d0a7"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\setup.py": {
+        "hash": "345fdde798caa5676d4e84cebad5f5ec"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\tags\\classes.js": {
+        "hash": "2e4bbe328499e0732bf252be16910218"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\bindings\\rust\\lib.rs": {
+        "hash": "b39d8d7d0f1230c41e2bca9ebe041a4d"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\__init__.py": {
+        "hash": "3daef35d8423b7ecbf341998692ce0d9"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tests\\test_binding.py": {
+        "hash": "0701565ea245d018760bc7c5d4a37b13"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tests\\__init__.py": {
         "hash": "140cff8665220cf53fefc69aca62555b"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\python\\tree_sitter_python\\__init__.py": {
+        "hash": "6ae8ca1b41c5c2b76bf5687db956b02f"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\functions.js": {
+        "hash": "94c509c33dfb694f124948d8bee4366b"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\grammar.js": {
+        "hash": "09e80f9a7f34e4da29a537e2a85cffa9"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\keywords.js": {
+        "hash": "39e4385bd0c7568ea98fff2137dec323"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\tags\\functions.js": {
+        "hash": "7fc70b3011493a42f36567a456338dd3"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\test\\highlight\\variables.js": {
+        "hash": "9eab3f5d208701bbaed045f45f33542d"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\python3-grammar.py": {
+        "hash": "92bb11ba95d77614ebe8bb33ccb31b65"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\python3-grammar-crlf.py": {
+        "hash": "d322aadc8791134ec6c2552a39fe296c"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\rust\\lib.rs": {
+        "hash": "c0e5d6c0132f21cd92e5fdab8f8e0e90"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\node\\index.js": {
+        "hash": "78c8f0df38ac9ba57d78d1674a0ab246"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\bindings\\rust\\build.rs": {
+        "hash": "9cab27e59d3b5d0cc6cdfd83ee4d5235"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\grammar.js": {
+        "hash": "da089402534b292a76fe2078d23942fe"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\examples\\text-editor-component.js": {
+        "hash": "403e5e6020475626ee86934bcd0c9971"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\examples\\tabs.py": {
+        "hash": "be2faba3f4c62119ee8932896b5ea5ef"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-javascript\\examples\\jquery.js": {
+        "hash": "7403060950f4a13be3b3dfde0490ee05"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\keywords.py": {
+        "hash": "1b9324a15c4ce3f1f54e6d322dffcd62"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\parameters.py": {
+        "hash": "15d9791d94e497e1bd67f08d3b867a0e"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\highlight\\__init__.py": {
+        "hash": "d3fde01545d5e51d2989a96a6d2e3d46"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-python\\test\\tags\\__init__.py": {
+        "hash": "afa1fcf0e3905752f39cb2826962a872"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\setup.py": {
+        "hash": "c1fd9cb3c4c1d500c5fbde59b9894131"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tests\\test_binding.py": {
+        "hash": "63bc5274ca3545f78c45d47515a78547"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\python\\tree_sitter_rust\\__init__.py": {
+        "hash": "808af18ee977a05a329820baf32a83da"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\rust\\build.rs": {
+        "hash": "0b2cbd48303c3b143e77897d7e83da39"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\node\\index.js": {
+        "hash": "85fa7fa5414e0a966435dfd8ad76fdea"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\examples\\ast.rs": {
+        "hash": "1ba404b0bd6695e11d68cd29442316b8"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\bindings\\rust\\lib.rs": {
+        "hash": "ba2e53c5d6e6bcb74dc47c2fd41016b7"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\examples\\weird-exprs.rs": {
+        "hash": "3e5092b34a69c25d2f91512c462e792f"
+    },
+    "vendor\\tree-sitter-grammars\\tree-sitter-rust\\grammar.js": {
+        "hash": "4ed1ad6f1dde8591870f26f7dacd01eb"
     }
 }

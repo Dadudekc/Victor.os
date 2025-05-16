@@ -96,9 +96,8 @@ def run_vulture(
                     ):
                         try:
                             conf_str = finding["message"][
-                                finding["message"].rfind("(") + 1 : finding[
-                                    "message"
-                                ].rfind("% confidence)")
+                                finding["message"].rfind("(")
+                                + 1 : finding["message"].rfind("% confidence)")
                             ]
                             finding["confidence"] = int(conf_str)
                         except ValueError:

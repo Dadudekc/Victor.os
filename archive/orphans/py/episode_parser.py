@@ -1,244 +1,143 @@
+#!/usr/bin/env python3
 """
-Episode Parser (Agent-7)
-
-Reads episode YAML and extracts agent-specific task segments.
+Episode Parser for Dream.OS
+Validates and parses episode YAML files into structured task data.
 """
 
-import argparse
 import json
 import logging
-from dataclasses import asdict, dataclass
-from datetime import datetime
+import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import yaml
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class Task:
-    """Represents a single task in the episode."""
+class EpisodeParser:
+    def __init__(self, yaml_path: str):
+        self.yaml_path = Path(yaml_path)
+        self.episode_data = None
+        self.parsed_tasks = None
 
-    id: str
-    title: str
-    assigned_to: str
-    priority: str
-    status: str
-    details: Dict[str, Any]
-    dependencies: List[str] = None
+    def validate_structure(self) -> bool:
+        """Validate the episode YAML structure."""
+        required_sections = [
+            "episode",
+            "objectives",
+            "milestones",
+            "task_board",
+            "guardian_directives",
+            "self_regulation_hooks",
+            "agent_awareness",
+            "digital_empathy",
+            "definition_of_done",
+        ]
 
+        try:
+            with open(self.yaml_path, "r", encoding="utf-8") as f:
+                self.episode_data = yaml.safe_load(f)
 
-@dataclass
-class Milestone:
-    """Represents a milestone in the episode."""
+            # Check required sections
+            for section in required_sections:
+                if section not in self.episode_data:
+                    logger.error(f"Missing required section: {section}")
+                    return False
 
-    id: str
-    title: str
-    description: str
-    tasks: List[Task]
+            # Validate task board structure
+            for task_id, task_data in self.episode_data["task_board"].items():
+                required_fields = [
+                    "description",
+                    "file",
+                    "intent",
+                    "owner",
+                    "points",
+                    "status",
+                ]
+                for field in required_fields:
+                    if field not in task_data:
+                        logger.error(f"Task {task_id} missing required field: {field}")
+                        return False
 
+            return True
 
-@dataclass
-class EpisodeMetadata:
-    """Represents the metadata of an episode."""
-
-    episode_id: str
-    title: str
-    status: str
-    timestamp: str
-    objectives: List[str]
-
-
-def parse_episode_yaml(yaml_file_path: str) -> Dict[str, Any]:
-    """
-    Parses the episode YAML file and returns a dictionary containing episode metadata
-    and tasks per agent.
-
-    Args:
-        yaml_file_path: Path to the episode YAML file.
-
-    Returns:
-        A dictionary containing:
-        - metadata: EpisodeMetadata object with episode details
-        - milestones: List of Milestone objects
-        - tasks: Dictionary where keys are agent IDs and values are lists of Task objects
-    """
-    logger.info(f"Parsing episode YAML: {yaml_file_path}")
-    try:
-        with open(yaml_file_path, "r", encoding="utf-8") as f:
-            episode_data = yaml.safe_load(f)
-    except FileNotFoundError:
-        logger.error(f"Error: Episode YAML file not found at {yaml_file_path}")
-        return {}
-    except yaml.YAMLError as e:
-        logger.error(f"Error parsing YAML file {yaml_file_path}: {e}")
-        return {}
-
-    # Extract metadata
-    try:
-        metadata = EpisodeMetadata(
-            episode_id=episode_data["episode_id"],
-            title=episode_data["title"],
-            status=episode_data["status"],
-            timestamp=episode_data["timestamp"],
-            objectives=episode_data["objectives"],
-        )
-    except KeyError as e:
-        logger.error(f"Missing required metadata field: {e}")
-        return {}
-
-    # Extract milestones and their tasks
-    milestones = []
-    agent_tasks = {}
-
-    for milestone_data in episode_data.get("milestones", []):
-        milestone_tasks = []
-
-        for task_data in milestone_data.get("tasks", []):
-            task = Task(
-                id=task_data["id"],
-                title=task_data["title"],
-                assigned_to=task_data["assigned_to"],
-                priority=task_data["priority"],
-                status="PENDING",
-                details=task_data["details"],
-                dependencies=task_data.get("dependencies", []),
-            )
-
-            # Add to milestone tasks
-            milestone_tasks.append(task)
-
-            # Add to agent tasks
-            if task.assigned_to not in agent_tasks:
-                agent_tasks[task.assigned_to] = []
-            agent_tasks[task.assigned_to].append(asdict(task))
-
-        milestone = Milestone(
-            id=milestone_data["id"],
-            title=milestone_data["title"],
-            description=milestone_data["description"],
-            tasks=milestone_tasks,
-        )
-        milestones.append(asdict(milestone))
-
-    result = {
-        "metadata": asdict(metadata),
-        "milestones": milestones,
-        "tasks": agent_tasks,
-        "dependencies": episode_data.get("dependencies", []),
-        "success_criteria": episode_data.get("success_criteria", []),
-        "rollout_plan": episode_data.get("rollout_plan", {}),
-        "monitoring": episode_data.get("monitoring", {}),
-        "parsed_at": datetime.utcnow().isoformat(),
-    }
-
-    logger.info(f"Successfully parsed tasks for agents: {list(agent_tasks.keys())}")
-    return result
-
-
-def validate_episode_structure(episode_data: Dict[str, Any]) -> bool:
-    """
-    Validates the structure of the parsed episode data.
-
-    Args:
-        episode_data: The parsed episode data dictionary.
-
-    Returns:
-        bool: True if the structure is valid, False otherwise.
-    """
-    required_fields = ["metadata", "milestones", "tasks"]
-    if not all(field in episode_data for field in required_fields):
-        logger.error("Missing required fields in episode data")
-        return False
-
-    # Validate metadata
-    metadata = episode_data["metadata"]
-    required_metadata = ["episode_id", "title", "status", "timestamp", "objectives"]
-    if not all(field in metadata for field in required_metadata):
-        logger.error("Missing required metadata fields")
-        return False
-
-    # Validate milestones
-    for milestone in episode_data["milestones"]:
-        required_milestone = ["id", "title", "description", "tasks"]
-        if not all(field in milestone for field in required_milestone):
-            logger.error(
-                f"Missing required fields in milestone {milestone.get('id', 'Unknown')}"
-            )
+        except Exception as e:
+            logger.error(f"Error validating episode structure: {str(e)}")
             return False
 
-    # Validate tasks
-    for agent, tasks in episode_data["tasks"].items():
-        for task in tasks:
-            required_task = [
-                "id",
-                "title",
-                "assigned_to",
-                "priority",
-                "status",
-                "details",
-            ]
-            if not all(field in task for field in required_task):
-                logger.error(
-                    f"Missing required fields in task {task.get('id', 'Unknown')}"
-                )
-                return False
+    def parse_tasks(self) -> Dict[str, Any]:
+        """Parse tasks into structured format."""
+        if not self.episode_data:
+            logger.error("No episode data loaded")
+            return None
 
-    return True
+        parsed_tasks = {
+            "episode_info": {
+                "number": self.episode_data["episode"]["number"],
+                "codename": self.episode_data["episode"]["codename"],
+                "theme": self.episode_data["episode"]["theme"],
+            },
+            "tasks": [],
+        }
+
+        for task_id, task_data in self.episode_data["task_board"].items():
+            parsed_task = {
+                "id": task_id,
+                "description": task_data["description"],
+                "file": task_data["file"],
+                "intent": task_data["intent"],
+                "owner": task_data["owner"],
+                "points": task_data["points"],
+                "status": task_data["status"],
+            }
+            parsed_tasks["tasks"].append(parsed_task)
+
+        self.parsed_tasks = parsed_tasks
+        return parsed_tasks
+
+    def save_parsed_tasks(self, output_path: str = None) -> bool:
+        """Save parsed tasks to JSON file."""
+        if not self.parsed_tasks:
+            logger.error("No parsed tasks to save")
+            return False
+
+        if not output_path:
+            output_path = (
+                self.yaml_path.parent
+                / f"parsed_episode_{self.episode_data['episode']['number']}_tasks.json"
+            )
+
+        try:
+            with open(output_path, "w") as f:
+                json.dump(self.parsed_tasks, f, indent=2)
+            logger.info(f"Saved parsed tasks to {output_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Error saving parsed tasks: {str(e)}")
+            return False
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python episode_parser.py <episode_yaml_path>")
+        sys.exit(1)
+
+    yaml_path = sys.argv[1]
+    parser = EpisodeParser(yaml_path)
+
+    if parser.validate_structure():
+        logger.info("Episode structure validation successful")
+        if parser.parse_tasks():
+            parser.save_parsed_tasks()
+            logger.info("Episode parsing completed successfully")
+        else:
+            logger.error("Failed to parse tasks")
+    else:
+        logger.error("Episode structure validation failed")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    )
-
-    parser = argparse.ArgumentParser(
-        description="Parse episode YAML to extract agent tasks."
-    )
-    parser.add_argument("yaml_file", help="Path to the episode YAML file.")
-    parser.add_argument(
-        "--output_file",
-        help="Path to save the parsed tasks JSON file.",
-        default="episodes/parsed_episode_tasks.json",
-    )
-    parser.add_argument(
-        "--validate", action="store_true", help="Validate episode structure"
-    )
-    args = parser.parse_args()
-
-    parsed_data = parse_episode_yaml(args.yaml_file)
-
-    if parsed_data:
-        if args.validate and not validate_episode_structure(parsed_data):
-            logger.error("Episode structure validation failed")
-            exit(1)
-
-        print("\nSuccessfully parsed episode:")
-        print(
-            f"Episode: {parsed_data['metadata']['episode_id']} - {parsed_data['metadata']['title']}"
-        )
-        print("\nMilestones:")
-        for milestone in parsed_data["milestones"]:
-            print(f"\n  {milestone['title']}:")
-            print(f"    {milestone['description']}")
-            for task in milestone["tasks"]:
-                print(f"      - {task['title']} (Assigned to: {task['assigned_to']})")
-
-        print("\nTasks by agent:")
-        for agent, tasks in parsed_data["tasks"].items():
-            print(f"\n  {agent}:")
-            for task in tasks:
-                print(f"    - {task['title']} ({task['status']})")
-
-        try:
-            output_path = Path(args.output_file)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "w", encoding="utf-8") as f:
-                json.dump(parsed_data, f, indent=2)
-            logger.info(f"Successfully saved parsed data to {args.output_file}")
-        except Exception as e:
-            logger.error(f"Error saving parsed data to {args.output_file}: {e}")
-    else:
-        print("\nNo data parsed or an error occurred.")
+    main()

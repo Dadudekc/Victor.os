@@ -9,22 +9,22 @@ Description:
     Utilizes a factory-style ModelManager to route to the appropriate specialized manager.
 """
 
-import os
-import sys
-import json
-import joblib
-import logging
 import datetime
-from pathlib import Path
-from typing import Optional, Dict, Any
+import json
+import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Dict, Optional
 
-# Keras imports
-from tensorflow.keras.models import save_model, load_model, Sequential
+import joblib
 
 # Use our new configuration and logging modules.
 from config import config
 from logger import setup_logging
+
+# Keras imports
+from tensorflow.keras.models import Sequential, load_model, save_model
+
 
 # -----------------------------------------------------------------------------
 # Base I/O Class
@@ -34,6 +34,7 @@ class BaseModelIO(ABC):
     Abstract interface for saving/loading models, metadata, and scalers.
     Subclasses must implement the `save_model` and `load_model` methods.
     """
+
     def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.model_directory = self._get_model_save_dir()
@@ -54,16 +55,13 @@ class BaseModelIO(ABC):
         model_type: str,
         hyperparameters: Dict[str, Any],
         metrics: Dict[str, Any],
-        scaler: Optional[Any] = None
+        scaler: Optional[Any] = None,
     ) -> Dict[str, Path]:
         raise NotImplementedError("Subclasses must implement 'save_model'")
 
     @abstractmethod
     def load_model(
-        self,
-        symbol: str,
-        model_type: str,
-        version: Optional[str] = None
+        self, symbol: str, model_type: str, version: Optional[str] = None
     ) -> Optional[Any]:
         raise NotImplementedError("Subclasses must implement 'load_model'")
 
@@ -93,7 +91,7 @@ class BaseModelIO(ABC):
         versions = sorted(
             [d for d in model_dir.iterdir() if d.is_dir()],
             key=lambda x: x.stat().st_mtime,
-            reverse=True
+            reverse=True,
         )
         return versions[0] if versions else None
 
@@ -105,7 +103,7 @@ class BaseModelIO(ABC):
         model_file: Path,
         hyperparameters: Dict[str, Any],
         metrics: Dict[str, Any],
-        timestamp: str
+        timestamp: str,
     ) -> Path:
         """
         Save metadata to a JSON file in the version directory.
@@ -119,18 +117,22 @@ class BaseModelIO(ABC):
             "version": version,
             "timestamp": timestamp,
             "hyperparameters": hyperparameters,
-            "metrics": metrics
+            "metrics": metrics,
         }
         try:
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, "w") as f:
                 json.dump(metadata_content, f, indent=4)
             self.logger.debug(f"Metadata saved at: {metadata_file}")
         except Exception as e:
-            self.logger.error(f"Failed to save metadata at {metadata_file}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to save metadata at {metadata_file}: {e}", exc_info=True
+            )
             raise
         return metadata_file
 
-    def _load_latest_file(self, symbol: str, model_type: str, extension: str, version: Optional[str]) -> Optional[Path]:
+    def _load_latest_file(
+        self, symbol: str, model_type: str, extension: str, version: Optional[str]
+    ) -> Optional[Path]:
         """
         Return the file path for the model or scaler file, either for a specific version or the latest.
         """
@@ -150,6 +152,7 @@ class BaseModelIO(ABC):
             file_path = list(latest_version_dir.glob(f"*{extension}"))
             return file_path[0] if file_path else None
 
+
 # -----------------------------------------------------------------------------
 # Keras Model I/O Implementation
 # -----------------------------------------------------------------------------
@@ -157,6 +160,7 @@ class KerasModelIO(BaseModelIO):
     """
     Specialized logic for saving and loading Keras (e.g., LSTM, Neural Network) models.
     """
+
     def save_model(
         self,
         model: Sequential,
@@ -164,7 +168,7 @@ class KerasModelIO(BaseModelIO):
         model_type: str,
         hyperparameters: Dict[str, Any],
         metrics: Dict[str, Any],
-        scaler: Optional[Any] = None
+        scaler: Optional[Any] = None,
     ) -> Dict[str, Path]:
         self.logger.info(f"Saving Keras model: Symbol={symbol}, Type={model_type}")
         version_dir = self._create_version_directory(symbol, model_type)
@@ -174,7 +178,9 @@ class KerasModelIO(BaseModelIO):
             save_model(model, model_file)
             self.logger.debug(f"Keras model saved at: {model_file}")
         except Exception as e:
-            self.logger.error(f"Failed to save Keras model at {model_file}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to save Keras model at {model_file}: {e}", exc_info=True
+            )
             raise
 
         scaler_file = None
@@ -184,7 +190,9 @@ class KerasModelIO(BaseModelIO):
                 joblib.dump(scaler, scaler_file)
                 self.logger.debug(f"Scaler saved at: {scaler_file}")
             except Exception as e:
-                self.logger.error(f"Failed to save scaler at {scaler_file}: {e}", exc_info=True)
+                self.logger.error(
+                    f"Failed to save scaler at {scaler_file}: {e}", exc_info=True
+                )
                 raise
 
         metadata_file = self._save_metadata(
@@ -194,29 +202,37 @@ class KerasModelIO(BaseModelIO):
             model_file=model_file,
             hyperparameters=hyperparameters,
             metrics=metrics,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-        self.logger.info(f"Saved Keras model for {symbol} at version directory: {version_dir}")
+        self.logger.info(
+            f"Saved Keras model for {symbol} at version directory: {version_dir}"
+        )
         return {"model": model_file, "scaler": scaler_file, "metadata": metadata_file}
 
     def load_model(
-        self,
-        symbol: str,
-        model_type: str,
-        version: Optional[str] = None
+        self, symbol: str, model_type: str, version: Optional[str] = None
     ) -> Optional[Sequential]:
-        self.logger.info(f"Loading Keras model: Symbol={symbol}, Type={model_type}, Version={version or 'latest'}")
-        model_path = self._load_latest_file(symbol, model_type, extension="_model.h5", version=version)
+        self.logger.info(
+            f"Loading Keras model: Symbol={symbol}, Type={model_type}, Version={version or 'latest'}"
+        )
+        model_path = self._load_latest_file(
+            symbol, model_type, extension="_model.h5", version=version
+        )
         if model_path is None or not model_path.exists():
-            self.logger.error(f"No Keras model file found for symbol {symbol}, type {model_type}, version {version}")
+            self.logger.error(
+                f"No Keras model file found for symbol {symbol}, type {model_type}, version {version}"
+            )
             return None
         try:
             model = load_model(model_path)
             self.logger.debug(f"Keras model loaded from {model_path}")
             return model
         except Exception as e:
-            self.logger.error(f"Failed to load Keras model from {model_path}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to load Keras model from {model_path}: {e}", exc_info=True
+            )
             return None
+
 
 # -----------------------------------------------------------------------------
 # Joblib Model I/O Implementation (for scikit-learn, etc.)
@@ -226,6 +242,7 @@ class JoblibModelIO(BaseModelIO):
     Specialized logic for saving and loading models that can be serialized via joblib.
     (e.g., scikit-learn, XGBoost, LightGBM).
     """
+
     def save_model(
         self,
         model: Any,
@@ -233,7 +250,7 @@ class JoblibModelIO(BaseModelIO):
         model_type: str,
         hyperparameters: Dict[str, Any],
         metrics: Dict[str, Any],
-        scaler: Optional[Any] = None
+        scaler: Optional[Any] = None,
     ) -> Dict[str, Path]:
         self.logger.info(f"Saving Joblib model: Symbol={symbol}, Type={model_type}")
         version_dir = self._create_version_directory(symbol, model_type)
@@ -243,7 +260,9 @@ class JoblibModelIO(BaseModelIO):
             joblib.dump(model, model_file)
             self.logger.debug(f"Joblib model saved at: {model_file}")
         except Exception as e:
-            self.logger.error(f"Failed to save Joblib model at {model_file}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to save Joblib model at {model_file}: {e}", exc_info=True
+            )
             raise
 
         scaler_file = None
@@ -253,7 +272,9 @@ class JoblibModelIO(BaseModelIO):
                 joblib.dump(scaler, scaler_file)
                 self.logger.debug(f"Scaler saved at: {scaler_file}")
             except Exception as e:
-                self.logger.error(f"Failed to save scaler at {scaler_file}: {e}", exc_info=True)
+                self.logger.error(
+                    f"Failed to save scaler at {scaler_file}: {e}", exc_info=True
+                )
                 raise
 
         metadata_file = self._save_metadata(
@@ -263,29 +284,37 @@ class JoblibModelIO(BaseModelIO):
             model_file=model_file,
             hyperparameters=hyperparameters,
             metrics=metrics,
-            timestamp=timestamp
+            timestamp=timestamp,
         )
-        self.logger.info(f"Saved Joblib model for {symbol} at version directory: {version_dir}")
+        self.logger.info(
+            f"Saved Joblib model for {symbol} at version directory: {version_dir}"
+        )
         return {"model": model_file, "scaler": scaler_file, "metadata": metadata_file}
 
     def load_model(
-        self,
-        symbol: str,
-        model_type: str,
-        version: Optional[str] = None
+        self, symbol: str, model_type: str, version: Optional[str] = None
     ) -> Optional[Any]:
-        self.logger.info(f"Loading Joblib model: Symbol={symbol}, Type={model_type}, Version={version or 'latest'}")
-        model_path = self._load_latest_file(symbol, model_type, extension="_model.pkl", version=version)
+        self.logger.info(
+            f"Loading Joblib model: Symbol={symbol}, Type={model_type}, Version={version or 'latest'}"
+        )
+        model_path = self._load_latest_file(
+            symbol, model_type, extension="_model.pkl", version=version
+        )
         if model_path is None or not model_path.exists():
-            self.logger.error(f"No Joblib model file found for symbol {symbol}, type {model_type}, version {version}")
+            self.logger.error(
+                f"No Joblib model file found for symbol {symbol}, type {model_type}, version {version}"
+            )
             return None
         try:
             model = joblib.load(model_path)
             self.logger.debug(f"Joblib model loaded from {model_path}")
             return model
         except Exception as e:
-            self.logger.error(f"Failed to load Joblib model from {model_path}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to load Joblib model from {model_path}: {e}", exc_info=True
+            )
             return None
+
 
 # -----------------------------------------------------------------------------
 # Unified ModelManager (Factory)
@@ -298,7 +327,14 @@ class ModelManager:
 
     # Define supported types for each framework.
     KERAS_TYPES = {"lstm", "neural_network"}
-    JOBLIB_TYPES = {"random_forest", "xgboost", "lightgbm", "linear_regression", "svm", "decision_tree"}
+    JOBLIB_TYPES = {
+        "random_forest",
+        "xgboost",
+        "lightgbm",
+        "linear_regression",
+        "svm",
+        "decision_tree",
+    }
 
     def __init__(self, logger: logging.Logger):
         self.logger = logger
@@ -313,25 +349,26 @@ class ModelManager:
         model_type: str,
         hyperparameters: Dict[str, Any],
         metrics: Dict[str, Any],
-        scaler: Optional[Any] = None
+        scaler: Optional[Any] = None,
     ) -> Dict[str, Path]:
         """
         Save the model using the appropriate I/O manager based on model_type.
         """
         model_type_lower = model_type.lower()
         if model_type_lower in self.KERAS_TYPES:
-            return self.keras_io.save_model(model, symbol, model_type, hyperparameters, metrics, scaler)
+            return self.keras_io.save_model(
+                model, symbol, model_type, hyperparameters, metrics, scaler
+            )
         elif model_type_lower in self.JOBLIB_TYPES:
-            return self.joblib_io.save_model(model, symbol, model_type, hyperparameters, metrics, scaler)
+            return self.joblib_io.save_model(
+                model, symbol, model_type, hyperparameters, metrics, scaler
+            )
         else:
             self.logger.error(f"Model type '{model_type}' is not supported.")
             raise ValueError(f"Model type '{model_type}' is not supported.")
 
     def load_model(
-        self,
-        symbol: str,
-        model_type: str,
-        version: Optional[str] = None
+        self, symbol: str, model_type: str, version: Optional[str] = None
     ) -> Optional[Any]:
         """
         Load the model by delegating to the appropriate manager.
@@ -345,33 +382,44 @@ class ModelManager:
             self.logger.error(f"Model type '{model_type}' is not supported.")
             raise ValueError(f"Model type '{model_type}' is not supported.")
 
-    def validate_model(self, symbol: str, model_type: str, version: Optional[str] = None) -> bool:
+    def validate_model(
+        self, symbol: str, model_type: str, version: Optional[str] = None
+    ) -> bool:
         """
         Attempt to load the model; return True if loading was successful, else False.
         """
-        self.logger.info(f"Validating model: symbol={symbol}, type={model_type}, version={version or 'latest'}")
+        self.logger.info(
+            f"Validating model: symbol={symbol}, type={model_type}, version={version or 'latest'}"
+        )
         model = self.load_model(symbol, model_type, version)
         if model:
-            self.logger.info(f"Model validation successful for {symbol} ({model_type}).")
+            self.logger.info(
+                f"Model validation successful for {symbol} ({model_type})."
+            )
             return True
         self.logger.error(f"Model validation failed for {symbol} ({model_type}).")
         return False
 
     def load_metadata(
-        self,
-        symbol: str,
-        model_type: str,
-        version: Optional[str] = None
+        self, symbol: str, model_type: str, version: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Load metadata from the latest or a specific version directory.
         """
         # Choose the appropriate I/O manager
-        io_manager = self.keras_io if model_type.lower() in self.KERAS_TYPES else self.joblib_io
-        self.logger.info(f"Loading metadata for symbol={symbol}, type={model_type}, version={version or 'latest'}")
-        metadata_path = io_manager._load_latest_file(symbol, model_type, extension="metadata.json", version=version)
+        io_manager = (
+            self.keras_io if model_type.lower() in self.KERAS_TYPES else self.joblib_io
+        )
+        self.logger.info(
+            f"Loading metadata for symbol={symbol}, type={model_type}, version={version or 'latest'}"
+        )
+        metadata_path = io_manager._load_latest_file(
+            symbol, model_type, extension="metadata.json", version=version
+        )
         if not metadata_path or not metadata_path.exists():
-            self.logger.error(f"Metadata not found for {symbol}, type {model_type}, version={version}")
+            self.logger.error(
+                f"Metadata not found for {symbol}, type {model_type}, version={version}"
+            )
             return None
         try:
             with open(metadata_path, "r") as f:
@@ -379,7 +427,9 @@ class ModelManager:
             self.logger.debug(f"Metadata loaded from {metadata_path}")
             return metadata
         except Exception as e:
-            self.logger.error(f"Failed to load metadata from {metadata_path}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to load metadata from {metadata_path}: {e}", exc_info=True
+            )
             return None
 
 
@@ -387,8 +437,8 @@ class ModelManager:
 # Example Usage (for testing/integration)
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    from pathlib import Path
     import json
+    from pathlib import Path
 
     # Initialize logging using our custom setup_logging.
     log_dir = Path("logs")
@@ -403,15 +453,15 @@ if __name__ == "__main__":
     model_manager = ModelManager(logger)
 
     # Example: Create a dummy Keras LSTM model.
-    from tensorflow.keras.models import Sequential
     from tensorflow.keras.layers import LSTM, Dense, Dropout
+    from tensorflow.keras.models import Sequential
 
     def create_lstm_model(input_shape: tuple) -> Sequential:
         model = Sequential()
         model.add(LSTM(50, input_shape=input_shape))
         model.add(Dropout(0.2))
         model.add(Dense(1))
-        model.compile(optimizer='adam', loss='mean_squared_error')
+        model.compile(optimizer="adam", loss="mean_squared_error")
         return model
 
     symbol = "TSLA"
@@ -426,7 +476,7 @@ if __name__ == "__main__":
         model_type=model_type,
         hyperparameters=hyperparameters,
         metrics=metrics,
-        scaler=None
+        scaler=None,
     )
     print("Saved Keras LSTM files:", saved_files)
 

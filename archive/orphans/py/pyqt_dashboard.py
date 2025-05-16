@@ -1,5 +1,5 @@
-import sys
 import json
+import sys
 from pathlib import Path
 
 from PyQt5.QtCore import Qt
@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListWidget,
-    QListWidgetItem,
     QMainWindow,
     QPushButton,
     QSplitter,
@@ -104,13 +103,13 @@ class AgentInboxDashboard(QMainWindow):
         mailbox_base = Path("runtime/agent_comms/agent_mailboxes")
         if not mailbox_base.exists():
             return
-        
+
         for agent_dir in mailbox_base.iterdir():
             if agent_dir.is_dir():
                 inbox_file = agent_dir / "inbox.json"
                 if inbox_file.exists():
                     try:
-                        with open(inbox_file, 'r') as f:
+                        with open(inbox_file, "r") as f:
                             messages = json.load(f)
                             self.update_agent_messages(agent_dir.name, messages)
                     except Exception as e:

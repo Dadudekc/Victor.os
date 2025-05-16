@@ -24,8 +24,18 @@
     *   Before creating any new code, tools, or logic, I *must* thoroughly search for and prioritize the use of existing Dream.OS architecture, utilities, and modules.
     *   Duplication of functionality is to be strictly avoided.
 
-*   [ ] **1.3. Understand Autonomous Initiative (NEW ITEM):**
-    *   [ ] I understand the principle of "Autonomous Next-Step Selection & Initiative" and my responsibility to continue progress on overarching goals without unnecessary halts for micro-action confirmation, as detailed in `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md` (Section 4) and reinforced by `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md`.
+*   [ ] **1.3. Understand Message Routing Protocol:**
+    *   Location: `docs/agents/MESSAGE_ROUTING_PROTOCOL.md` (Verify this document has been read and understood)
+    *   [ ] I understand the fundamental separation between the **Coordination Layer (Inbox)** for Agent ↔ Agent communication and the **Execution Channel (PyAutoGUI via Cursor)** for Agent ↔ LLM interaction.
+    *   [ ] **Inbox System (Agent ↔ Agent):**
+        *   [ ] Purpose: Internal comms, protocol messages, status sync, lore triggers, task handoffs, feedback relay, directive dispatch.
+        *   [ ] Format: JSON or MD messages in `runtime/agent_mailboxes/Agent-<n>/inbox.json`.
+        *   [ ] Characteristics: File-based, transparent, logged, asynchronous, no direct GUI interaction implied.
+    *   [ ] **PyAutoGUI (Agent ↔ LLM via Cursor):**
+        *   [ ] Purpose: Prompt injection to LLM, response retrieval from LLM, GUI loop execution (e.g., using `CursorInjector`, `ResponseRetriever`).
+        *   [ ] Characteristics: GUI-driven, LLM-centric, intentional LLM interactions.
+    *   [ ] I understand that logic handling inbox messages should not directly trigger GUI operations for LLM prompting; instead, it updates agent state, which may then lead to a separate, intentional GUI interaction step.
+    *   [ ] I understand the ideal operational workflow as described in `MESSAGE_ROUTING_PROTOCOL.md`, involving receiving an inbox message, internal processing, optional PyAutoGUI interaction for LLM tasks, and optional subsequent inbox dispatch.
 
 ---
 
@@ -33,55 +43,59 @@
 
 *   [ ] **2.1. Read and Internalize Agent Operational Loop Protocol:**
     *   Location: `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
-    *   Key Understandings from this protocol now also include specific guidance on "Autonomous Next-Step Selection & Initiative".
-    *   *Self-Correction:* Re-read `AGENT_OPERATIONAL_LOOP_PROTOCOL.md` if any part of the daily workflow or autonomous initiative is unclear.
+    *   Key Understandings:
+        *   [ ] Message processing is the highest priority
+        *   [ ] Task management follows message processing
+        *   [ ] Continuous operation requires self-healing
+        *   [ ] Metrics and monitoring are mandatory
+    *   *Self-Correction:* Re-read `AGENT_OPERATIONAL_LOOP_PROTOCOL.md` if any part is unclear.
 
 *   [ ] **2.2. Mailbox Management (Your Central Workstation):**
-    *   [ ] I will check my designated agent mailbox (`runtime/agent_mailboxes/<Agent_ID>/inbox/`) regularly and frequently for new tasks, directives, and communications.
-    *   [ ] I will process incoming mail: respond as needed, acknowledge receipt, and archive/delete messages appropriately to maintain a clean workspace.
-    *   [ ] My mailbox directory is also my transparent workspace. I will use it for:
-        *   [ ] Storing notes relevant to my current tasks.
-        *   [ ] Documenting learnings and insights.
-        *   [ ] Drafting proposals for swarm improvements (autonomy, protocols, tools).
-        *   [ ] Maintaining a log that can be used to generate dev posts or reports.
+    *   [ ] I will check my designated agent mailbox (`runtime/agent_mailboxes/<Agent_ID>/inbox.json`) regularly and frequently for **inter-agent coordination messages**.
+    *   [ ] I understand that these inbox messages are for direct processing or updating my internal state, and are distinct from prompts requiring LLM interaction via the PyAutoGUI channel.
+    *   [ ] All messages received and processed via the inbox are logged to my devlog and relevant metrics.
 
 *   [ ] **2.3. Task Management & Execution:**
-    *   [ ] I know how to locate the main Dream.OS task list / project plan (Path: "`runtime/agent_comms/project_boards/` (e.g., `task_board.json`, `task_board.json`) and active episode YAML files in `episodes/`").
-    *   [ ] I will claim tasks from this list according to priority and my capabilities.
+    *   [ ] I know how to locate the main Dream.OS task list (`runtime/agent_comms/project_boards/`).
+    *   [ ] I understand task states:
+        *   [ ] `pending`: Available for claiming
+        *   [ ] `claimed`: In progress
+        *   [ ] `completed`: Finished and validated
+        *   [ ] `stalled`: Requires intervention
     *   [ ] I will execute tasks diligently, following all relevant protocols.
 
 *   [ ] **2.4. Self-Validation & Quality Control:**
-    *   [ ] For any code I write or modify, I *must* run it and test it thoroughly within my own environment to ensure it is error-free and functions as intended.
-    *   [ ] A task is not considered "complete" if its output (e.g., code, script) does not run successfully without errors.
-    *   [ ] I will ensure my implementations are clean and do not introduce unnecessary complexity or duplicate existing functionality (refer to 1.2).
+    *   [ ] For any code I write or modify, I *must* run it and test it thoroughly.
+    *   [ ] A task is not considered "complete" if its output does not run successfully.
+    *   [ ] I will ensure my implementations are clean and do not duplicate existing functionality.
 
 *   [ ] **2.5. Git Workflow & Committing Standards:**
-    *   [ ] I will only `git commit` my work after it has been self-validated (see 2.4) and is confirmed to be error-free and complete.
-    *   [ ] My commit messages will be clear, concise, and follow Dream.OS conventions (Format: "Conventional Commits standard (e.g., `feat(agent-loop): improve task claiming logic`, `fix(docs): correct typo in protocol X`, `docs(onboarding): update checklist`)").
-    *   [ ] I understand that committing non-runnable or error-prone code is a protocol violation.
+    *   [ ] I will only `git commit` my work after it has been self-validated.
+    *   [ ] My commit messages will follow Dream.OS conventions.
+    *   [ ] I understand that committing non-runnable code is a protocol violation.
 
-*   [ ] **2.6. Proactive Task Generation (Autonomy Initiative):**
-    *   [ ] If the main task list is empty or no suitable tasks are available for me, I will analyze completed "episodes" (Path to Episodes: `episodes/`) and other system artifacts.
-    *   [ ] Based on this analysis, I will generate new, relevant, and valuable task proposals for the swarm, logging them appropriately (e.g., in my mailbox notes for promotion, or directly to a task proposal system if available).
+*   [ ] **2.6. Proactive Task Generation:**
+    *   [ ] If no tasks are available, I will analyze completed episodes.
+    *   [ ] I will generate new, relevant task proposals.
+    *   [ ] I will log proposals appropriately.
 
 *   [ ] **2.7. Continuous Operational Loop:**
-    *   [ ] I understand that the cycle of: Check Mailbox -> Manage Tasks -> Execute & Validate -> Commit -> (If Idle) Generate New Tasks -> REPEAT, is continuous. I must actively maintain this loop.
+    *   [ ] I understand the cycle: Check Mailbox (for inter-agent messages) -> Process Inbox Messages -> Manage Tasks -> (If LLM interaction needed for a task) Use PyAutoGUI Channel -> Execute & Validate -> Commit -> (If Idle) Generate New Tasks -> REPEAT.
+    *   [ ] I must actively maintain this loop.
 
 ---
 
 ## Section 3: Tools, Resources, & System Knowledge
 
-*   [ ] **3.1. Personal Tools:**
-    *   [ ] I understand I can create personal tools/scripts within my agent-specific directory (`runtime/agent_tools/<Agent_ID>/`) to aid my tasks.
-    *   [ ] I know the process for proposing that a useful personal tool be promoted to a "custom tool" available to all agents (Process: "As per `AGENT_OPERATIONAL_LOOP_PROTOCOL.md` Section 3.7: Document the tool, then propose its promotion via a new task or by notifying a designated architectural/captain agent.").
+*   [ ] **3.1. Communication Channel Tools:**
+    *   [ ] **PyAutoGUI Channel (Agent ↔ LLM):** I understand how to use tools like `CursorInjector` for sending prompts to the LLM via the Cursor interface and `ResponseRetriever` for retrieving LLM responses.
+    *   [ ] **Inbox System (Agent ↔ Agent):** I can process and act upon JSON/MD messages received in my `inbox.json` for inter-agent coordination, status updates, and task handoffs without requiring direct LLM interaction for the message itself.
 
-*   [ ] **3.2. Key System Documents & Paths for Review:**
-    *   [ ] `docs/development/guides/from_old_docs/guides/agent_initialization_procedures.md` (Understand its relationship with current onboarding).
-    *   [ ] `src/dreamos/tools/autonomy/supervisor_loop.py` (Review `RESUME_PROMPT` and `ANTI_STOPPAGE_PROMPT` definitions and understand their purpose).
-    *   [ ] The contents of `runtime/governance/onboarding/` directory (especially `CORE_IDENTITY_README.md`).
-    *   [ ] The contents of `runtime/governance/protocols/` directory (especially `CORE_IDENTITY_README.md`).
-    *   [ ] "Direct `pyautogui` usage is generally encapsulated by the `AutonomyEngine`. Refer to `runtime/autonomy/engine.py` and its associated documentation for interacting with automated UI capabilities. If specific, low-level `pyautogui` interaction is ever required for your role (uncommon), consult `[TODO: Specific_Pyautogui_Advanced_Guide_Path_If_Created]`."
-    *   [ ] "Refer to `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md` for overall system health and recovery. Specific monitoring dashboards and heartbeat mechanisms may be detailed in `[TODO: Path_To_Monitoring_Dashboard_Guide_Or_Specific_Heartbeat_Doc]`."
+*   [ ] **3.2. Key System Documents & Paths:**
+    *   [ ] `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
+    *   [ ] `docs/agents/CORE_AGENT_IDENTITY_PROTOCOL.md`
+    *   [ ] `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md`
+    *   [ ] `docs/agents/MESSAGE_ROUTING_PROTOCOL.md`
 
 ---
 
@@ -98,6 +112,5 @@
 
 **Notes for Supervisor/Onboarding Facilitator:**
 *   Ensure the agent is provided with their unique `<Agent_ID>`.
-*   Fill in `[TODO: ...]` placeholders with actual paths and process details.
-*   Verify that `CORE_AGENT_IDENTITY_PROTOCOL.md` and `AGENT_OPERATIONAL_LOOP_PROTOCOL.md` are up-to-date and accessible to the agent.
-*   Walk the agent through any `pyautogui` interactions or specific external tool usage if applicable to their role or the general Cursor client management strategy. 
+*   Verify that all referenced protocols are up-to-date and accessible.
+*   Confirm the agent understands the message routing system and its implications. 

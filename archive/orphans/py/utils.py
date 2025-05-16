@@ -1,102 +1,129 @@
-"""Coordination Utilities"""
+"""
+Consolidated utility functions for file I/O, event handling, health checks, and other common operations.
+This module centralizes duplicated or similar utility functions from various scripts.
+"""
 
+import json
 import logging
-from functools import wraps
-from typing import Callable
+import threading
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional
 
-# Imports needed by decorators (verify paths)
-# from dreamos.core.memory.governance_memory_engine import log_event # COMMENTED OUT
-from ...monitoring.performance_logger import PerformanceLogger
+import psutil
 
-# Attempt to import error classes from agents.utils - might cause cycle?
-# If so, these errors might need to move to core.errors
-# REMOVED try/except block and fallback definitions
-# try:
-#    from dreamos.agents.utils.agent_utils import AgentError, TaskProcessingError, MessageHandlingError
-# except ImportError:
-#    # Fallback if agents.utils cannot be imported (e.g. during core init)
-#    # Define minimal versions here? Or raise config error?
-#    class AgentError(Exception): pass
-#    class TaskProcessingError(AgentError): pass
-#    class MessageHandlingError(AgentError): pass
-#    logging.getLogger(__name__).warning("Could not import error classes from dreamos.agents.utils. Fallback definitions used.")
-# ADDED import from core.errors
-from ..errors import AgentError
-
-util_logger = logging.getLogger("core.coordination.utils")
+logger = logging.getLogger(__name__)
 
 
-def with_error_handling(error_class: type = AgentError):
-    """Decorator for functions that need standardized error handling and logging."""
+class FileLock:
+    """Thread-safe file locking mechanism."""
 
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Identify self/agent_id if method is called on an agent instance
-            agent_id = "unknown_agent"
-            if args and hasattr(args[0], "agent_id"):
-                agent_id = args[0].agent_id
-            elif "self" in kwargs and hasattr(kwargs["self"], "agent_id"):
-                agent_id = kwargs["self"].agent_id
+    def __init__(self, lock_file: Path):
+        self.lock_file = lock_file
+        self.lock = threading.Lock()
 
-            try:
-                return await func(*args, **kwargs)
-            except Exception as e:
-                # Log the error using standard logger if available on self, otherwise use util_logger
-                logger_instance = getattr(
-                    args[0] if args else None, "logger", util_logger
-                )
+    def __enter__(self):
+        self.lock.acquire()
+        return self
 
-                error_msg = "test"  # Simplified f-string for diagnosis
-                logger_instance.error(error_msg, exc_info=True)
-
-                # Log governance event - COMMENTED OUT
-                # error_details = {
-                #     "error": str(e),
-                #     "traceback": traceback.format_exc(),
-                #     "function": func.__name__,
-                #     "args": str(args[1:]) if args else "()",  # Don't log self
-                #     "kwargs": str(kwargs),
-                # }
-                # try:
-                #     # Assuming log_event is globally available or passed via context
-                #     log_event("AGENT_UTIL_ERROR", agent_id, error_details)
-                # except Exception as log_e:
-                #     logger_instance.error(
-                #         f"Failed to log governance event for agent error: {log_e}"
-                #     )
-
-                # Re-raise the specified error class
-                raise error_class(error_msg) from e
-
-        return wrapper
-
-    return decorator
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.lock.release()
 
 
-def with_performance_tracking(operation_name: str):
-    """Decorator for tracking operation performance. Assumes 'self' is the first arg and has 'perf_logger'."""
+class StateManager:
+    """Manages state persistence with file locking."""
 
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(self, *args, **kwargs):
-            # Ensure self has perf_logger attribute
-            if not hasattr(self, "perf_logger") or not isinstance(
-                self.perf_logger, PerformanceLogger
-            ):
-                util_logger.warning(
-                    f"Performance tracking skipped for {operation_name}: 'perf_logger' not found or invalid on {self}."
-                )
-                return await func(self, *args, **kwargs)
+    def __init__(self, state_file: Path):
+        self.state_file = state_file
 
-            # Use the performance logger from the instance
-            with self.perf_logger.track_operation(operation_name):
-                return await func(self, *args, **kwargs)
+    def load_state(self) -> Dict[str, Any]:
+        """Load state from file with locking."""
+        with FileLock(self.state_file):
+            if self.state_file.exists():
+                with open(self.state_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            return {}
 
-        return wrapper
-
-    return decorator
+    def save_state(self, state: Dict[str, Any]):
+        """Save state to file with locking."""
+        with FileLock(self.state_file):
+            with open(self.state_file, "w", encoding="utf-8") as f:
+                json.dump(state, f, indent=2)
 
 
-# Add __all__ if needed
-__all__ = ["with_error_handling", "with_performance_tracking"]
+class EventHandler:
+    """Base class for event handling."""
+
+    def __init__(self):
+        self.handlers = {}
+
+    def register_handler(self, event_type: str, handler: Callable):
+        """Register an event handler."""
+        if event_type not in self.handlers:
+            self.handlers[event_type] = []
+        self.handlers[event_type].append(handler)
+
+    def unregister_handler(self, event_type: str, handler: Callable):
+        """Unregister an event handler."""
+        if event_type in self.handlers:
+            self.handlers[event_type].remove(handler)
+
+    def handle_event(self, event_type: str, *args, **kwargs):
+        """Handle an event by calling all registered handlers."""
+        if event_type in self.handlers:
+            for handler in self.handlers[event_type]:
+                handler(*args, **kwargs)
+
+
+class HealthMonitor:
+    """System health monitoring utilities."""
+
+    @staticmethod
+    def get_memory_usage() -> Dict[str, float]:
+        """Get current memory usage in MB."""
+        mem = psutil.virtual_memory()
+        return {
+            "total": mem.total / (1024 * 1024),  # MB
+            "available": mem.available / (1024 * 1024),
+            "percent": mem.percent,
+        }
+
+    @staticmethod
+    def get_cpu_usage() -> float:
+        """Get current CPU usage percentage."""
+        return psutil.cpu_percent(interval=1)
+
+    @staticmethod
+    def get_disk_usage(path: Path) -> Dict[str, float]:
+        """Get disk usage for a path in MB."""
+        usage = psutil.disk_usage(str(path))
+        return {
+            "total": usage.total / (1024 * 1024),  # MB
+            "used": usage.used / (1024 * 1024),
+            "free": usage.free / (1024 * 1024),
+            "percent": usage.percent,
+        }
+
+
+class FileUtils:
+    """Common file operations."""
+
+    @staticmethod
+    def ensure_dir(path: Path):
+        """Ensure a directory exists."""
+        path.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def safe_write(path: Path, content: str, encoding: str = "utf-8"):
+        """Safely write content to a file."""
+        with FileLock(path):
+            with open(path, "w", encoding=encoding) as f:
+                f.write(content)
+
+    @staticmethod
+    def safe_read(path: Path, encoding: str = "utf-8") -> Optional[str]:
+        """Safely read content from a file."""
+        with FileLock(path):
+            if path.exists():
+                with open(path, "r", encoding=encoding) as f:
+                    return f.read()
+            return None

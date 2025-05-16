@@ -148,9 +148,9 @@ def audit_ledger():
         report_data["anomaly_summary_by_source"][log_file] = {
             "total_anomalies": total_source_anomalies,
             "anomaly_types": dict(type_counts),
-            "latest_anomaly_utc": latest_ts.isoformat().replace("+00:00", "Z")
-            if latest_ts
-            else None,
+            "latest_anomaly_utc": (
+                latest_ts.isoformat().replace("+00:00", "Z") if latest_ts else None
+            ),
             "threshold_exceeded": threshold_exceeded,
         }
 

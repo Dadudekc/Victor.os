@@ -121,15 +121,14 @@ def run_test(log_file_path):
                     {
                         "line": i + 1,
                         "original": original_ts_str,
-                        "normalized_utc": normalized_ts_str
-                        if normalized_ts_str
-                        else "Parse Failed",
-                        "expected_utc": expected_utc_dt.isoformat(
-                            timespec="milliseconds"
-                        )
-                        + "Z"
-                        if expected_utc_dt
-                        else "N/A",
+                        "normalized_utc": (
+                            normalized_ts_str if normalized_ts_str else "Parse Failed"
+                        ),
+                        "expected_utc": (
+                            expected_utc_dt.isoformat(timespec="milliseconds") + "Z"
+                            if expected_utc_dt
+                            else "N/A"
+                        ),
                         "drift_seconds": drift_seconds,
                         "drift_display": drift_str,
                         "message": message.split(". Expected UTC:")[0],  # Clean message

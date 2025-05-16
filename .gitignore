@@ -104,3 +104,4 @@ test_stderr.log
 /vendor/*
 !vendor/reprism/
 !vendor/reprism/languages/
+cleanup_log.json

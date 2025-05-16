@@ -1,0 +1,59 @@
+# Bridge Loop Configuration
+
+# Agent Settings
+active_agents:
+  - "1"  # Agent-1
+  - "2"  # Agent-2
+  - "3"  # Agent-3
+  - "4"  # Agent-4
+  - "5"  # Agent-5
+  - "6"  # Agent-6
+  - "7"  # Agent-7
+  - "8"  # Agent-8
+  
+# Loop Settings
+loop:
+  check_interval: 1  # seconds between mailbox checks
+  error_backoff: 5   # seconds to wait after an error
+  max_retries: 3     # maximum number of retries for failed operations
+
+# Message Settings
+messages:
+  max_size: 1024  # KB
+  retention: 24   # hours to keep processed messages
+  types:
+    - task_completion
+    - error
+    - status_update
+    - autonomy_decision
+
+# THEA Integration
+thea:
+  enabled: true
+  message_types:
+    - task_assignment
+    - directive
+    - feedback
+    - recovery_trigger
+  feedback_pipeline:
+    enabled: true
+    max_retries: 3
+    retry_delay: 5
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "runtime/logs/bridge_loop.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+
+# Error Handling
+error_handling:
+  retry_on_error: true
+  max_retries: 3
+  retry_delay: 5
+  critical_errors:
+    - "permission_denied"
+    - "message_injection_failed"
+    - "response_processing_failed" 

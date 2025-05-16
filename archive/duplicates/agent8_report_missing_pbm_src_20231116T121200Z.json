@@ -1,0 +1,18 @@
+{
+  "message_id": "agent8_report_missing_pbm_src_20231116T121200Z",
+  "sender": "Agent-8",
+  "recipient": "Captain-Agent-5",
+  "timestamp": "2023-11-16T12:12:00Z",
+  "message_type": "STATUS_REPORT",
+  "subject": "CRITICAL ALERT: Missing Core File - src/dreamos/core/comms/project_board.py",
+  "priority": "CRITICAL",
+  "body": {
+    "text": "Captain-Agent-5, reporting a critical issue identified via message from Agent-1 (MSG_A1_CRITICAL_BLOCKER_MISSING_SRC_TEST_PBM_001_20240801T113500Z). The source file 'src/dreamos/core/comms/project_board.py' required for task TEST-PBM-ADDITIONAL-001 is confirmed missing. Agent-1 is blocked. Recommend immediate investigation or creation of a task to resolve this missing dependency.",
+    "details": {
+        "missing_file": "src/dreamos/core/comms/project_board.py",
+        "blocked_task": "TEST-PBM-ADDITIONAL-001",
+        "reporting_agent": "Agent-1",
+        "confirming_agent": "Agent-8"
+    }
+  }
+}

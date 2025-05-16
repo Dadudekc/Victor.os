@@ -45,9 +45,10 @@ def process_file(input_filepath: Path, output_filepath: Path):
     success_count = 0
     output_filepath.parent.mkdir(parents=True, exist_ok=True)
     try:
-        with open(input_filepath, "r", encoding="utf-8") as infile, open(
-            output_filepath, "w", encoding="utf-8"
-        ) as outfile:
+        with (
+            open(input_filepath, "r", encoding="utf-8") as infile,
+            open(output_filepath, "w", encoding="utf-8") as outfile,
+        ):
             for i, line in enumerate(infile):
                 original_line = line.strip()
                 normalized_dt = normalize_utc_iso_line(original_line)

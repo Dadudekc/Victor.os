@@ -64,9 +64,9 @@ def format_feedback(input_payload):
         # Handle unexpected status values
         output_payload["result_type"] = "error"
         output_payload["status"] = "error"
-        output_payload["data"]["error_message"] = (
-            f"Invalid status '{status}' received in input."
-        )
+        output_payload["data"][
+            "error_message"
+        ] = f"Invalid status '{status}' received in input."
 
     return output_payload
 

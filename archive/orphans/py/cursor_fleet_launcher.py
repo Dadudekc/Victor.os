@@ -7,8 +7,9 @@ import time
 import pygetwindow as gw
 import win32con
 import win32gui
-from dreamos.core.config import load_config
 from screeninfo import get_monitors
+
+from dreamos.core.config import load_config
 
 CURSOR_PATH = None
 try:

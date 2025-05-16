@@ -19,8 +19,9 @@ import os
 import time
 from pathlib import Path
 
-from dreamos.core.config import load_config
 from utils.prompt_renderer import PromptRenderer
+
+from dreamos.core.config import load_config
 
 from .virtual_desktop_runner import VirtualDesktopController
 

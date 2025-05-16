@@ -17,12 +17,15 @@ Usage Example:
 """
 
 import logging
-from basicbot.config import config
-from setup_logging import setup_logging
+
+import mysql.connector
 
 # Import database connectors
 import psycopg2
-import mysql.connector
+from setup_logging import setup_logging
+
+from basicbot.config import config
+
 
 class DatabaseHandler:
     """
@@ -36,7 +39,9 @@ class DatabaseHandler:
         self.db_type = config.get_env("DB_TYPE", "postgresql").lower()
 
         if self.db_type not in {"postgresql", "mysql"}:
-            raise ValueError(f"Unsupported database type: {self.db_type}. Only 'postgresql' and 'mysql' are supported.")
+            raise ValueError(
+                f"Unsupported database type: {self.db_type}. Only 'postgresql' and 'mysql' are supported."
+            )
 
         self.logger.info("Initializing DatabaseHandler for %s", self.db_type)
 
@@ -46,7 +51,7 @@ class DatabaseHandler:
                 user=config.get_env("POSTGRES_USER"),
                 password=config.get_env("POSTGRES_PASSWORD"),
                 host=config.get_env("POSTGRES_HOST", "localhost"),
-                port=config.get_env("POSTGRES_PORT", 5432, int)
+                port=config.get_env("POSTGRES_PORT", 5432, int),
             )
         elif self.db_type == "mysql":
             self.conn = mysql.connector.connect(
@@ -54,7 +59,7 @@ class DatabaseHandler:
                 user=config.get_env("MYSQL_DB_USER"),
                 password=config.get_env("MYSQL_DB_PASSWORD"),
                 host=config.get_env("MYSQL_DB_HOST", "localhost"),
-                port=config.get_env("MYSQL_DB_PORT", 3306, int)
+                port=config.get_env("MYSQL_DB_PORT", 3306, int),
             )
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
@@ -94,9 +99,9 @@ class DatabaseHandler:
     def save_posts(self, posts):
         """
         Saves a list of post dictionaries into the database.
-        
+
         Each post should be a dictionary with keys: 'platform', 'text', and optionally 'link'.
-        
+
         :param posts: List of dictionaries containing post data.
         """
         if not posts:
@@ -116,7 +121,7 @@ class DatabaseHandler:
     def fetch_posts(self, limit=10):
         """
         Fetches the most recent posts from the database.
-        
+
         :param limit: Maximum number of posts to fetch.
         :return: List of posts as dictionaries.
         """
@@ -126,13 +131,15 @@ class DatabaseHandler:
             rows = self.cursor.fetchall()
             posts = []
             for row in rows:
-                posts.append({
-                    "id": row[0],
-                    "platform": row[1],
-                    "text": row[2],
-                    "link": row[3],
-                    "timestamp": row[4]
-                })
+                posts.append(
+                    {
+                        "id": row[0],
+                        "platform": row[1],
+                        "text": row[2],
+                        "link": row[3],
+                        "timestamp": row[4],
+                    }
+                )
             return posts
         except Exception as e:
             self.logger.error("Error fetching posts: %s", e)
@@ -146,6 +153,7 @@ class DatabaseHandler:
         self.conn.close()
         self.logger.info("Database connection closed.")
 
+
 # Example usage when running the module directly
 if __name__ == "__main__":
     # Initialize logger using the centralized logging configuration
@@ -154,8 +162,12 @@ if __name__ == "__main__":
         db = DatabaseHandler(logger)
         # Example: Save dummy posts
         sample_posts = [
-            {"platform": "Twitter", "text": "Test tweet content", "link": "https://twitter.com/example"},
-            {"platform": "LinkedIn", "text": "Test LinkedIn post", "link": None}
+            {
+                "platform": "Twitter",
+                "text": "Test tweet content",
+                "link": "https://twitter.com/example",
+            },
+            {"platform": "LinkedIn", "text": "Test LinkedIn post", "link": None},
         ]
         db.save_posts(sample_posts)
         fetched = db.fetch_posts(limit=5)

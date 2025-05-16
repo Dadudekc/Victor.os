@@ -13,10 +13,7 @@ import traceback
 import uuid
 from typing import Any, Dict, Optional, Tuple
 
-from dreamos.core.comms.mailbox_utils import (
-    # delete_message, # No longer called directly by Agent2, BaseAgent handles it
-    # list_mailbox_messages, # No longer called directly by Agent2
-    # read_message, # No longer called directly by Agent2
+from dreamos.core.comms.mailbox_utils import (  # delete_message, # No longer called directly by Agent2, BaseAgent handles it; list_mailbox_messages, # No longer called directly by Agent2; read_message, # No longer called directly by Agent2
     get_agent_mailbox_path,
 )
 
@@ -577,7 +574,10 @@ class Agent2InfraSurgeon(BaseAgent):
             # Optionally publish agent error
             await self.publish_agent_error(
                 f"Unhandled exception processing task {task_id}",
-                details={"exception": str(e), "traceback": traceback.format_exc()},  # noqa: F821
+                details={
+                    "exception": str(e),
+                    "traceback": traceback.format_exc(),
+                },  # noqa: F821
                 task_id=task_id,
             )
         finally:

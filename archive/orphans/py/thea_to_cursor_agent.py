@@ -33,8 +33,7 @@ from src.dreamos.tools.cursor_bridge.cursor_bridge import (
     CursorInjectError,
     inject_prompt_into_cursor,
 )
-from src.dreamos.utils.gui_utils import (
-    # wait_for_element, # No longer used
+from src.dreamos.utils.gui_utils import (  # wait_for_element, # No longer used
     PYAUTOGUI_AVAILABLE,
     PYGETWINDOW_AVAILABLE,
     PYPERCLIP_AVAILABLE,

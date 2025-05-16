@@ -1,11 +1,11 @@
-import unittest
-from unittest.mock import AsyncMock, patch
-import pandas as pd
 import logging
-from pathlib import Path
-import sys
-from basicbot.data_fetcher import DataFetchUtils
+import unittest
+from unittest.mock import patch
+
+import pandas as pd
+
 from basicbot.config import DataFetchingConfig
+from basicbot.data_fetcher import DataFetchUtils
 
 
 class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
@@ -21,10 +21,7 @@ class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
         cls.logger = logging.getLogger("TestDataFetchUtils")
         logging.basicConfig(level=logging.INFO)
 
-        cls.config = DataFetchingConfig(
-            fetch_retries=2,
-            backoff_factor=1
-        )
+        cls.config = DataFetchingConfig(fetch_retries=2, backoff_factor=1)
 
     def setUp(self):
         """
@@ -38,14 +35,16 @@ class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
         Test successful data fetching.
         """
         # Mock yfinance data
-        mock_data = pd.DataFrame({
-            "Date": ["2023-11-15", "2023-11-16"],
-            "Open": [100, 105],
-            "High": [110, 115],
-            "Low": [95, 100],
-            "Close": [108, 110],
-            "Volume": [1000, 1200],
-        })
+        mock_data = pd.DataFrame(
+            {
+                "Date": ["2023-11-15", "2023-11-16"],
+                "Open": [100, 105],
+                "High": [110, 115],
+                "Low": [95, 100],
+                "Close": [108, 110],
+                "Volume": [1000, 1200],
+            }
+        )
         mock_download.return_value = mock_data
 
         result = await self.data_fetcher.fetch_stock_data_async(
@@ -65,7 +64,10 @@ class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
         mock_download.return_value = pd.DataFrame()
 
         result = await self.data_fetcher.fetch_stock_data_async(
-            ticker="INVALID", start_date="2023-11-01", end_date="2023-11-10", interval="1d"
+            ticker="INVALID",
+            start_date="2023-11-01",
+            end_date="2023-11-10",
+            interval="1d",
         )
 
         self.assertTrue(result.empty)
@@ -90,11 +92,9 @@ class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
         """
         Test column normalization.
         """
-        data = pd.DataFrame({
-            "Open Price": [100],
-            "Close Price": [105],
-            "Trading Volume": [1000]
-        })
+        data = pd.DataFrame(
+            {"Open Price": [100], "Close Price": [105], "Trading Volume": [1000]}
+        )
         normalized_data = self.data_fetcher._normalize_columns(data)
 
         expected_columns = ["open_price", "close_price", "trading_volume"]
@@ -107,7 +107,10 @@ class TestDataFetchUtils(unittest.IsolatedAsyncioTestCase):
         """
         with patch("yfinance.download", side_effect=ValueError("Invalid interval")):
             result = await self.data_fetcher.fetch_stock_data_async(
-                ticker="AAPL", start_date="2023-11-01", end_date="2023-11-10", interval="10m"
+                ticker="AAPL",
+                start_date="2023-11-01",
+                end_date="2023-11-10",
+                interval="10m",
             )
             self.assertTrue(result.empty)
             self.logger.info("Test fetch_stock_data_invalid_interval passed.")

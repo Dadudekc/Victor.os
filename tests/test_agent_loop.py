@@ -2,19 +2,21 @@
 Tests for the DreamOS Agent Loop implementation.
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, ANY
 from datetime import datetime
+from unittest.mock import ANY, AsyncMock, Mock
+
+import pytest
 
 from dreamos.agents.loop.agent_loop import AgentLoop
-from dreamos.automation.validation_utils import ValidationStatus, ValidationResult
-from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.config import AppConfig
+from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.project_board import ProjectBoardManager
+
 
 class MockAgent(BaseAgent):
     """Mock agent for testing."""
+
     def __init__(self, agent_id: str):
         self.agent_id = agent_id
         self._active_tasks = {}
@@ -23,12 +25,14 @@ class MockAgent(BaseAgent):
     async def execute_task(self, task):
         return task.get("result", {})
 
+
 @pytest.fixture
 def mock_config():
     """Create a mock config."""
     config = Mock(spec=AppConfig)
     config.agent_loop_interval = 0.1
     return config
+
 
 @pytest.fixture
 def mock_pbm():
@@ -37,6 +41,7 @@ def mock_pbm():
     pbm.update_task_status = AsyncMock()
     return pbm
 
+
 @pytest.fixture
 def mock_agent_bus():
     """Create a mock agent bus."""
@@ -44,16 +49,15 @@ def mock_agent_bus():
     bus.publish = AsyncMock()
     return bus
 
+
 @pytest.fixture
 def agent_loop(mock_config, mock_pbm, mock_agent_bus):
     """Create an agent loop instance for testing."""
     agent = MockAgent("test_agent")
     return AgentLoop(
-        agent=agent,
-        config=mock_config,
-        pbm=mock_pbm,
-        agent_bus=mock_agent_bus
+        agent=agent, config=mock_config, pbm=mock_pbm, agent_bus=mock_agent_bus
     )
+
 
 @pytest.mark.asyncio
 async def test_initialization(agent_loop):
@@ -61,6 +65,7 @@ async def test_initialization(agent_loop):
     assert agent_loop.agent.agent_id == "test_agent"
     assert agent_loop.cycle_count == 0
     assert not agent_loop._running
+
 
 @pytest.mark.asyncio
 async def test_run_cycle(agent_loop):
@@ -73,8 +78,8 @@ async def test_run_cycle(agent_loop):
             "tests": [{"name": "test1", "status": "passed"}],
             "documentation": {"description": "test doc"},
             "implementation": {"code": "test code"},
-            "demonstration": {"evidence": "test evidence"}
-        }
+            "demonstration": {"evidence": "test evidence"},
+        },
     }
 
     # Run cycle
@@ -82,6 +87,7 @@ async def test_run_cycle(agent_loop):
 
     # Verify cycle count increased
     assert agent_loop.cycle_count == 1
+
 
 @pytest.mark.asyncio
 async def test_validate_completed_task(agent_loop):
@@ -94,8 +100,8 @@ async def test_validate_completed_task(agent_loop):
             "tests": [{"name": "test1", "status": "passed"}],
             "documentation": {"description": "test doc"},
             "implementation": {"code": "test code"},
-            "demonstration": {"evidence": "test evidence"}
-        }
+            "demonstration": {"evidence": "test evidence"},
+        },
     }
 
     # Run validation
@@ -103,6 +109,7 @@ async def test_validate_completed_task(agent_loop):
 
     # Verify task was validated
     assert "validation" in agent_loop.agent._active_tasks[task_id]
+
 
 @pytest.mark.asyncio
 async def test_validation_failure(agent_loop):
@@ -115,8 +122,8 @@ async def test_validation_failure(agent_loop):
             "tests": [],  # Missing tests
             "documentation": {},  # Missing documentation
             "implementation": {},  # Missing implementation
-            "demonstration": {}  # Missing demonstration
-        }
+            "demonstration": {},  # Missing demonstration
+        },
     }
 
     # Run validation
@@ -133,9 +140,12 @@ async def test_validation_failure(agent_loop):
             "agent_id": "test_agent",
             "task_id": task_id,
             "timestamp": ANY,
-            "validation_result": agent_loop.agent._active_tasks[task_id]["validation"]["details"]
-        }
+            "validation_result": agent_loop.agent._active_tasks[task_id]["validation"][
+                "details"
+            ],
+        },
     )
+
 
 @pytest.mark.asyncio
 async def test_escalation_to_thea(agent_loop):
@@ -146,14 +156,14 @@ async def test_escalation_to_thea(agent_loop):
         "status": "completed",
         "validation_history": [
             {"timestamp": datetime.utcnow().isoformat(), "status": "failed"},
-            {"timestamp": datetime.utcnow().isoformat(), "status": "failed"}
+            {"timestamp": datetime.utcnow().isoformat(), "status": "failed"},
         ],
         "result": {
             "tests": [],
             "documentation": {},
             "implementation": {},
-            "demonstration": {}
-        }
+            "demonstration": {},
+        },
     }
 
     # Run validation
@@ -166,20 +176,22 @@ async def test_escalation_to_thea(agent_loop):
             "agent_id": "test_agent",
             "task_id": task_id,
             "timestamp": ANY,
-            "validation_result": agent_loop.agent._active_tasks[task_id]["validation"]["details"],
-            "validation_history": agent_loop.agent._active_tasks[task_id]["validation_history"]
-        }
+            "validation_result": agent_loop.agent._active_tasks[task_id]["validation"][
+                "details"
+            ],
+            "validation_history": agent_loop.agent._active_tasks[task_id][
+                "validation_history"
+            ],
+        },
     )
+
 
 @pytest.mark.asyncio
 async def test_error_handling(agent_loop):
     """Test error handling in the agent loop."""
     # Add a task that will raise an error
     task_id = "test_task_005"
-    agent_loop.agent._active_tasks[task_id] = {
-        "status": "in_progress",
-        "result": None
-    }
+    agent_loop.agent._active_tasks[task_id] = {"status": "in_progress", "result": None}
 
     # Mock execute_task to raise an error
     agent_loop.agent.execute_task = AsyncMock(side_effect=Exception("Test error"))
@@ -198,24 +210,25 @@ async def test_error_handling(agent_loop):
             "agent_id": "test_agent",
             "error_type": "Exception",
             "error_message": "Test error",
-            "timestamp": ANY
-        }
+            "timestamp": ANY,
+        },
     )
+
 
 @pytest.mark.asyncio
 async def test_start_stop(agent_loop):
     """Test starting and stopping the agent loop."""
     # Start the loop
     start_task = asyncio.create_task(agent_loop.start())
-    
+
     # Let it run for a short time
     await asyncio.sleep(0.2)
-    
+
     # Stop the loop
     await agent_loop.stop()
-    
+
     # Wait for the loop to stop
     await start_task
-    
+
     # Verify the loop stopped
     assert not agent_loop._running 

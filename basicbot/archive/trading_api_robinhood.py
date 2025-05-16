@@ -1,7 +1,7 @@
-import os
 import logging
+import os
 import uuid
-import time
+
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -9,11 +9,13 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+
 class CustomRobinhoodAPI:
     """
     Custom implementation for Robinhood login with SMS-based MFA handling.
     This version dynamically updates its endpoint URLs by scraping a specified page.
     """
+
     # Default endpoints
     LOGIN_URL = "https://api.robinhood.com/oauth2/token/"
     MFA_URL = "https://api.robinhood.com/oauth2/mfa/"  # Assumed endpoint for SMS MFA
@@ -49,7 +51,9 @@ class CustomRobinhoodAPI:
         """
         endpoints_url = os.getenv("ROBINHOOD_ENDPOINTS_URL")
         if not endpoints_url:
-            self.logger.info("No Robinhood endpoints URL provided; using default endpoints.")
+            self.logger.info(
+                "No Robinhood endpoints URL provided; using default endpoints."
+            )
             return
 
         self.logger.info(f"Attempting to scrape endpoints from {endpoints_url}...")
@@ -70,9 +74,13 @@ class CustomRobinhoodAPI:
                     self.CHALLENGE_URL_TEMPLATE = challenge_elem.text.strip()
                     self.logger.info("Endpoints updated successfully via scraping.")
                 else:
-                    self.logger.error("Failed to find all required endpoint elements on the page.")
+                    self.logger.error(
+                        "Failed to find all required endpoint elements on the page."
+                    )
             else:
-                self.logger.error(f"Scraping endpoints failed with status code: {response.status_code}")
+                self.logger.error(
+                    f"Scraping endpoints failed with status code: {response.status_code}"
+                )
         except Exception as e:
             self.logger.error(f"Exception while scraping endpoints: {e}")
 
@@ -107,7 +115,7 @@ class CustomRobinhoodAPI:
                 return self._handle_sms_verification(self.challenge_id, payload)
 
             self.logger.error("Unexpected verification response from Robinhood.")
-        
+
         self.logger.error(f"Unexpected error during login: {response.status_code}")
         return False
 
@@ -178,7 +186,9 @@ class CustomRobinhoodAPI:
 
 if __name__ == "__main__":
     # Configure logging
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     logger = logging.getLogger("CustomRobinhoodAPI")
 
     api = CustomRobinhoodAPI(logger)

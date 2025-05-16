@@ -78,7 +78,7 @@ def write_jsonl(file_path, record):
 def create_flag_file(file_path):
     """Create an empty flag file."""
     try:
-        with open(file_path, "w") as f:
+        with open(file_path, "w"):
             pass  # Just create the file
         logger.info(f"Created alert flag file: {file_path}")
     except Exception as e:
@@ -218,9 +218,9 @@ def verify_traces():
                 "request_id", "Unknown Summary ID"
             ),  # Or other ID field
             "summary_timestamp": found_summary.get("timestamp"),
-            "scraper_to_summary_latency_seconds": latency.total_seconds()
-            if latency
-            else None,
+            "scraper_to_summary_latency_seconds": (
+                latency.total_seconds() if latency else None
+            ),
         }
         write_jsonl(SUCCESS_LOG, success_record)
         verified_count += 1

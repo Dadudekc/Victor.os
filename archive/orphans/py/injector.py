@@ -46,9 +46,9 @@ def generate_report(result):
             "commands_relayed": result["commands_relayed"],
             "errors": 1 if result["status"] == "FAILED" else 0,
         },
-        "notes": result["error"]
-        if result["error"]
-        else "Injector simulation completed.",
+        "notes": (
+            result["error"] if result["error"] else "Injector simulation completed."
+        ),
     }
     return report
 

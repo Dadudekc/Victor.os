@@ -46,8 +46,8 @@ except ImportError:
 
 # DreamOS helpers (with sys.path fallback)
 try:
+    from dreamos.utils.gui_utils import get_specific_coordinate  # noqa: F401
     from dreamos.utils.gui_utils import (
-        get_specific_coordinate,  # noqa: F401
         is_window_focused,
         load_coordinates,
     )

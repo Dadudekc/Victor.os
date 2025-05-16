@@ -1,596 +1,438 @@
-# scripts/dreamscape_controller.py
-import datetime
-import json
-import os
-import subprocess  # Added for executing external scripts
+import datetime  # For timestamped logging
+import logging
+import subprocess  # To simulate agent execution, or actually run them
+import sys  # For stderr
 import time
-from pathlib import Path  # ADDED IMPORT for Path
+from pathlib import Path
 
-import yaml  # Requires PyYAML to be installed (pip install pyyaml)
+import yaml
 
-# Assuming src is in PYTHONPATH or this script is adjusted to find dreamos
-from dreamos.utils import file_io  # ADDED IMPORT
-
-# --- Path Configuration ---
-# These paths are configured assuming the script is in 'scripts/' and the workspace root is one level up.
-SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))  # MODIFIED to Path
-WORKSPACE_ROOT = SCRIPT_DIR.parent.resolve()  # MODIFIED to Path and .resolve()
-
-BASE_RUNTIME_DIR = WORKSPACE_ROOT / "runtime"  # MODIFIED to Path
+# --- Configuration ---
+# Assumes the script is run from the workspace root where 'runtime' is a subdirectory.
+BASE_DIR = Path(".").resolve()
 DEPLOYMENT_CONFIG_PATH = (
-    BASE_RUNTIME_DIR
-    / "agent_comms"
-    / "deployments"
-    / "multi_agent_deployment.yaml"  # MODIFIED to Path
+    BASE_DIR / "runtime/agent_comms/deployments/multi_agent_deployment.yaml"
 )
-AGENT_MAILBOX_DIR = (
-    BASE_RUNTIME_DIR / "agent_comms" / "agent_mailboxes"
-)  # MODIFIED to Path
-LOG_DIR = BASE_RUNTIME_DIR / "logs"  # MODIFIED to Path
-OUTPUT_DIR = BASE_RUNTIME_DIR / "dreamscape_output"  # MODIFIED to Path
-AGENT_DEVLOG_DIR = (
-    BASE_RUNTIME_DIR / "devlog" / "agents"
-)  # Centralized agent devlogs # MODIFIED to Path
-CHRONICLE_CONVERSATIONS_SCRIPT_PATH = (
-    SCRIPT_DIR / "chronicle_conversations.py"
-)  # Path to the script # MODIFIED to Path
+AGENT_MAILBOX_DIR = BASE_DIR / "runtime/agent_comms/agent_mailboxes"
+AGENT_DEVLOG_DIR = BASE_DIR / "runtime/devlog/agents"
+CONTROLLER_LOG_FILE = BASE_DIR / "runtime/devlog/dreamscape_controller.log"
+TASK_BACKLOG_FILE = BASE_DIR / "task_backlog.json"  # Path for agents to log to
 
-AGENT_POINTS_PATH = LOG_DIR / "agent_points.json"  # MODIFIED to Path
-DEPLOYMENT_STATUS_PATH = LOG_DIR / "deployment_status.yaml"  # MODIFIED to Path
-DREAMSCAPE_ARC_MAP_PATH = LOG_DIR / "dreamscape_arc_map.json"  # MODIFIED to Path
-CONTROLLER_LOG_PATH = LOG_DIR / "dreamscape_controller.log"  # MODIFIED to Path
+# Define a placeholder for how an agent might "run".
+# In a real system, this would involve more complex IPC or process management.
+AGENT_SCRIPT_PLACEHOLDER = "python"  # Command to run a generic python agent script
+AGENT_MAIN_SCRIPT_NAME = "agent_main.py"  # A hypothetical main script for each agent
 
 
-# --- Utility Functions ---
-def log_message(message, level="INFO"):
-    """Logs a message to the console and the controller's log file."""
-    timestamp = datetime.datetime.now().isoformat()
-    log_line = f"[{timestamp}] [{level}] {message}"
-    print(log_line)
-    try:
-        # Ensure log directory exists before writing to log file
-        file_io.ensure_directory(LOG_DIR)  # MODIFIED: Use file_io
-        with open(CONTROLLER_LOG_PATH, "a", encoding="utf-8") as f:
-            f.write(log_line + "\n")
-    except Exception as e:
-        print(
-            f"CRITICAL: Failed to write to controller log at {CONTROLLER_LOG_PATH}: {e}"
-        )
+# --- Logging Setup ---
+def setup_logging():
+    """Sets up global logging for the controller."""
+    # Ensure devlog directories exist first
+    AGENT_DEVLOG_DIR.mkdir(parents=True, exist_ok=True)
+    if (
+        CONTROLLER_LOG_FILE.parent != AGENT_DEVLOG_DIR
+    ):  # Ensure controller log dir also exists
+        CONTROLLER_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    AGENT_MAILBOX_DIR.mkdir(parents=True, exist_ok=True)  # Ensure mailboxes exist
+    if TASK_BACKLOG_FILE.exists() and TASK_BACKLOG_FILE.parent != BASE_DIR:
+        TASK_BACKLOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),  # Log to console
+            logging.FileHandler(CONTROLLER_LOG_FILE),
+        ],
+    )
+    logger.info(f"Logging initialized. Controller logs at: {CONTROLLER_LOG_FILE}")
+    logger.info(f"Agent devlogs will be in: {AGENT_DEVLOG_DIR}")
 
 
-# --- Agent Class ---
-class Agent:
-    def __init__(self, agent_id, codename, role, tasks_from_yaml, prompt_path):
-        self.id = agent_id
+logger = logging.getLogger("DreamscapeController")
+
+
+# --- Agent Representation ---
+class AgentInstance:
+    def __init__(self, agent_id, codename, role, tasks, prompt_content, devlog_path):
+        self.agent_id = agent_id
         self.codename = codename
         self.role = role
-        self.tasks_from_yaml = (
-            tasks_from_yaml  # Tasks as defined in the deployment YAML
+        self.tasks = tasks
+        self.prompt_content = (
+            prompt_content if prompt_content else "No prompt content loaded."
         )
-        self.prompt_path = (
-            Path(prompt_path) if prompt_path else None
-        )  # Ensure prompt_path is Path
-        self.points = 0
-        self.status = "idle"
-        self.current_task_index = 0
-        self.devlog_path = AGENT_DEVLOG_DIR / f"{self.id}_devlog.md"  # MODIFIED to Path
+        self.devlog_path = devlog_path
+        self.process = None  # To store the subprocess.Popen object
+        self.status = (
+            "pending"  # pending, launching, running, completed, failed, stopped, killed
+        )
 
-        # MODIFIED: Use file_io.ensure_directory
-        if not file_io.ensure_directory(self.devlog_path.parent):
-            log_message(
-                f"Failed to create devlog directory for agent {self.id} at {self.devlog_path.parent}",
-                "ERROR",
-            )
-            # Agent can still be initialized, but devlog writing might fail later.
+    def __str__(self):
+        return f"Agent(id={self.agent_id}, codename='{self.codename}', role='{self.role}', status='{self.status}')"
 
-    def get_prompt_content(self):
-        """Reads and returns the content of the agent's prompt file."""
-        if not self.prompt_path:
-            log_message(f"No prompt path defined for agent {self.id}", "WARNING")
-            return None
+    def launch(self):
+        """
+        Simulates launching the agent and initializes its devlog.
+        Actual agent execution logic (e.g., subprocess) would go here.
+        """
+        self.status = "launching"
+        logger.info(f"Initializing and launching {self}...")
         try:
-            # MODIFIED: Use Path object's read_text
-            return self.prompt_path.read_text(encoding="utf-8")
-        except FileNotFoundError:
-            log_message(
-                f"Prompt file not found for agent {self.id} at {self.prompt_path}",
-                "ERROR",
-            )
-            return None
-        except Exception as e:
-            log_message(f"Error reading prompt for agent {self.id}: {e}", "ERROR")
-            return None
-
-    def perform_task(self, current_loop_cycle):
-        """
-        Performs the agent's current task. For Agent-4, it executes chronicle_conversations.py.
-        Other agents still simulate tasks.
-        """
-        self.status = "working"
-        log_message(
-            f"Agent {self.codename} ({self.id}) starting task for loop {current_loop_cycle}.",
-            "DEBUG",
-        )
-
-        prompt_content = self.get_prompt_content()
-        if not prompt_content:
-            self.status = "error_no_prompt"
-            log_message(
-                f"Agent {self.codename} cannot perform task due to missing prompt.",
-                "WARNING",
-            )
-            self.write_to_devlog(
-                f"Loop {current_loop_cycle}: Failed to load prompt. Status: {self.status}"
-            )
-            return
-
-        task_description = "Default simulated action: general processing."
-        if self.tasks_from_yaml and self.current_task_index < len(self.tasks_from_yaml):
-            task_description = self.tasks_from_yaml[self.current_task_index]
-
-        log_message(
-            f"Loop {current_loop_cycle}: Agent {self.codename} performing: '{task_description}'",
-            "INFO",
-        )
-
-        action_taken_message = (
-            f"Loop {current_loop_cycle}: Action: '{task_description}'."
-        )
-        task_successfully_completed = False
-
-        # --- Agent-Specific Logic Execution ---
-        if self.id == "agent-4":  # Storyweaver - Real execution
-            # Ensure the task description from YAML is relevant to calling chronicle_conversations.py
-            # For example, the first task for agent-4 is "Use chronicle_conversations.py..."
-            if "chronicle_conversations.py" in task_description.lower():
-                log_message(
-                    f"Agent {self.codename} attempting to execute {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}",
-                    "INFO",
+            self.devlog_path.parent.mkdir(
+                parents=True, exist_ok=True
+            )  # Ensure agent's devlog dir exists
+            with open(
+                self.devlog_path, "w", encoding="utf-8"
+            ) as f:  # Overwrite previous devlog on new launch
+                f.write(
+                    f"--- {datetime.datetime.now(datetime.timezone.utc).isoformat()} - AGENT {self.codename} INITIALIZED BY CONTROLLER ---\n"
                 )
+                f.write(f"ID: {self.agent_id}\n")
+                f.write(f"Codename: {self.codename}\n")
+                f.write(f"Role: {self.role}\n\n")
+                f.write("Initial Tasks:\n")
+                if self.tasks:
+                    for task in self.tasks:
+                        f.write(f"  - {task}\n")
+                else:
+                    f.write("  - No specific tasks assigned in deployment config.\n")
+                f.write("\n--- PROMPT ---\n")
+                f.write(self.prompt_content + "\n")
+                f.write("---------------\n\n")
+            logger.info(f"Devlog for {self.codename} initialized at {self.devlog_path}")
+
+            # Placeholder for actual agent execution:
+            # agent_script_to_run = AGENT_MAILBOX_DIR / self.agent_id / AGENT_MAIN_SCRIPT_NAME # Example
+            # if agent_script_to_run.exists():
+            #   logger.info(f"Attempting to start subprocess for {self.codename} with script {agent_script_to_run}...")
+            #   self.process = subprocess.Popen([AGENT_SCRIPT_PLACEHOLDER, str(agent_script_to_run), self.agent_id, str(self.devlog_path)],
+            #                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #   self.status = "running"
+            #   logger.info(f"{self.codename} subprocess started (PID: {self.process.pid}).")
+            # else:
+            #   logger.warning(f"Agent script {agent_script_to_run} not found for {self.codename}. Simulating run.")
+            #   self.status = "simulated_running" # Mark as simulated
+
+            # For now, purely simulate without starting a subprocess
+            logger.info(
+                f"Simulated launch for {self.codename}. In a real system, a subprocess would be started here."
+            )
+            self.status = "running"  # For simulation, directly transition to "running"
+
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize/launch {self.codename}: {e}", exc_info=True
+            )
+            self.status = "failed_to_launch"
+        return self.status in ["running", "simulated_running"]
+
+    def monitor(self):
+        """Monitors the agent's status. Adapts if subprocess is used or pure simulation."""
+        if self.process and self.status == "running":
+            poll_result = self.process.poll()
+            if poll_result is None:
+                # Still running
+                pass
+            else:
                 try:
-                    # We assume chronicle_conversations.py is in the SCRIPT_DIR and executable with python
-                    # It should handle its own output to runtime/dreamscape_output/ as per its prompt
-                    process = subprocess.run(
-                        ["python", CHRONICLE_CONVERSATIONS_SCRIPT_PATH],
-                        capture_output=True,
-                        text=True,
-                        check=False,  # check=False to handle non-zero exits manually
-                        cwd=WORKSPACE_ROOT,  # Run from workspace root if script relies on relative paths from there
-                    )
-                    if process.returncode == 0:
-                        action_taken_message += f" Successfully executed {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}."
-                        log_message(
-                            f"Agent {self.codename} successfully executed {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}. Output:\n{process.stdout}",
-                            "INFO",
+                    stdout, stderr = self.process.communicate()
+                    log_output = f"Agent {self.codename} (PID: {self.process.pid}) exited with code {poll_result}.\n"
+                    log_output += f"STDOUT:\n{stdout.decode(errors='replace')}\n"
+                    log_output += f"STDERR:\n{stderr.decode(errors='replace')}\n"
+                    logger.info(log_output)
+                    with open(self.devlog_path, "a", encoding="utf-8") as f:
+                        f.write(
+                            f"\n--- AGENT PROCESS EXITED ({datetime.datetime.now(datetime.timezone.utc).isoformat()}) ---\n"
                         )
-                        if process.stderr:
-                            log_message(
-                                f"Agent {self.codename} execution of {CHRONICLE_CONVERSATIONS_SCRIPT_PATH} produced stderr:\n{process.stderr}",
-                                "WARNING",
-                            )
-                        # Actual saga details for mapping would ideally come from stdout or a file written by the script
-                        # For now, we'll use a summary.
-                        saga_details_for_mapping = f"Saga generated by {self.codename} via {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}. Output: {process.stdout[:100]}..."
-                        map_saga_output_to_task(saga_details_for_mapping, self.id)
-                        task_successfully_completed = True
+                        f.write(log_output)
+
+                    if poll_result == 0:
+                        self.status = "completed"
+                        logger.info(f"Agent {self.codename} completed successfully.")
                     else:
-                        action_taken_message += f" Failed to execute {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}. Return code: {process.returncode}."
-                        log_message(
-                            f"Agent {self.codename} failed to execute {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}. Error:\n{process.stderr}\nStdout:\n{process.stdout}",
-                            "ERROR",
+                        self.status = "failed"
+                        logger.error(
+                            f"Agent {self.codename} failed with return code {poll_result}."
                         )
-                        self.status = "error_script_failed"
-                except FileNotFoundError:
-                    action_taken_message += (
-                        f" Script {CHRONICLE_CONVERSATIONS_SCRIPT_PATH} not found."
-                    )
-                    log_message(
-                        f"Script {CHRONICLE_CONVERSATIONS_SCRIPT_PATH} not found for Agent {self.codename}.",
-                        "CRITICAL",
-                    )
-                    self.status = "error_script_not_found"
                 except Exception as e:
-                    action_taken_message += f" Exception during execution of {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}: {e}"
-                    log_message(
-                        f"Agent {self.codename} encountered an exception trying to run {CHRONICLE_CONVERSATIONS_SCRIPT_PATH}: {e}",
-                        "ERROR",
+                    logger.error(
+                        f"Error during agent process communication for {self.codename}: {e}",
+                        exc_info=True,
                     )
-                    self.status = "error_exception"
-            else:
-                action_taken_message += " Task description did not match expected trigger for chronicle_conversations.py. Simulating."
-                log_message(
-                    f"Agent {self.codename} simulating task: {task_description}",
-                    "SIMULATION",
-                )
-                task_successfully_completed = (
-                    True  # Simulate success for non-script tasks for now
-                )
+                    self.status = (
+                        "failed"  # Mark as failed if communication error occurs
+                    )
+                finally:
+                    self.process = (
+                        None  # Clear process once it's finished or if an error occurred
+                    )
 
-        # --- Placeholder for other agents' real logic (Pathfinder, etc.) ---
-        elif self.id == "agent-1":  # Pathfinder - Example for future
-            if "find_orphans.py" in task_description.lower():
-                action_taken_message += " Would call 'find_orphans.py' here."
-                log_message(
-                    f"Agent {self.codename} simulating call to 'find_orphans.py'",
-                    "SIMULATION",
-                )
-                # result = call_script('find_orphans.py')
-                # process_pathfinder_output(result)
-                task_successfully_completed = True  # Simulate success
-            else:
-                action_taken_message += " Simulating generic task."
-                log_message(
-                    f"Agent {self.codename} simulating task: {task_description}",
-                    "SIMULATION",
-                )
-                task_successfully_completed = True  # Simulate success
+        # For simulated agents, they remain 'running' until explicitly stopped or complete by other logic.
+        return self.status
 
-        else:  # Default simulation for other agents
-            action_taken_message += " Status: completed simulation."
-            log_message(
-                f"Agent {self.codename} simulating task: {task_description}",
-                "SIMULATION",
-            )
-            task_successfully_completed = True  # Simulate success
-        # --- End Agent-Specific Logic ---
-
-        if task_successfully_completed and self.status not in [
-            "error_script_failed",
-            "error_script_not_found",
-            "error_exception",
-        ]:
-            self.status = "idle"  # Reset status after task completion/simulation if no specific error status was set
-
-        self.write_to_devlog(action_taken_message + f" Agent Status: {self.status}")
-
-        if self.tasks_from_yaml:
-            self.current_task_index = (self.current_task_index + 1) % len(
-                self.tasks_from_yaml
-            )
-        log_message(
-            f"Agent {self.codename} finished task. Status: {self.status}", "DEBUG"
+    def stop(self):
+        """Stops the agent, terminating subprocess if it exists."""
+        logger.info(
+            f"Attempting to stop agent {self.codename} (current status: {self.status})..."
         )
-
-    def write_to_devlog(self, message):
-        """Writes a message to the agent's dedicated devlog file."""
-        timestamp = datetime.datetime.now().isoformat()
-        try:
-            with open(self.devlog_path, "a", encoding="utf-8") as f:
-                f.write(f"[{timestamp}] {message}\n")
-        except Exception as e:
-            log_message(
-                f"Error writing to devlog for agent {self.id} at {self.devlog_path}: {e}",
-                "ERROR",
+        if (
+            self.process and self.process.poll() is None
+        ):  # If there's an active subprocess
+            try:
+                logger.info(
+                    f"Terminating subprocess for {self.codename} (PID: {self.process.pid})..."
+                )
+                self.process.terminate()
+                try:
+                    self.process.wait(timeout=5)  # wait for termination
+                    logger.info(
+                        f"Agent {self.codename} subprocess terminated gracefully."
+                    )
+                    self.status = "stopped"
+                except subprocess.TimeoutExpired:
+                    logger.warning(
+                        f"Agent {self.codename} subprocess did not terminate in time, attempting to kill."
+                    )
+                    self.process.kill()
+                    self.process.wait()  # Wait for kill
+                    logger.info(f"Agent {self.codename} subprocess killed.")
+                    self.status = "killed"
+            except Exception as e:
+                logger.error(
+                    f"Error stopping/terminating subprocess for {self.codename}: {e}",
+                    exc_info=True,
+                )
+                self.status = "error_stopping"
+        elif self.status in [
+            "running",
+            "simulated_running",
+            "launching",
+            "pending",
+        ]:  # For simulated or non-process agents
+            logger.info(
+                f"Marking agent {self.codename} as stopped (was {self.status})."
             )
-
-    def award_points(self, points_to_add, reason=""):
-        """Awards points to the agent and logs the event."""
-        self.points += points_to_add
-        log_message(
-            f"Agent {self.codename} awarded {points_to_add} points. Reason: {reason}. Total: {self.points}",
-            "INFO",
-        )
-        self.write_to_devlog(
-            f"Awarded {points_to_add} points. Reason: {reason}. New total: {self.points}"
-        )
+            self.status = "stopped"
+        else:
+            logger.info(
+                f"Agent {self.codename} already in a terminal state ({self.status}) or no active process."
+            )
+        return self.status in ["stopped", "killed", "completed", "failed"]
 
 
-# --- Controller Functions ---
-def load_deployment_config(config_path):
-    """Loads the agent deployment configuration from the specified YAML file."""
-    log_message(f"Loading deployment config from: {config_path}", "DEBUG")
+# --- Controller Logic ---
+def load_deployment_config(config_path: Path) -> dict | None:
+    """Loads the agent deployment YAML configuration."""
+    logger.info(f"Loading deployment configuration from: {config_path}")
+    if not config_path.exists():
+        logger.error(f"Deployment configuration file not found: {config_path}")
+        return None
     try:
         with open(config_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError:
-        log_message(f"Deployment config file not found at {config_path}", "CRITICAL")
-        return None
-    except yaml.YAMLError as e:
-        log_message(
-            f"Error parsing deployment config YAML at {config_path}: {e}", "CRITICAL"
+            config = yaml.safe_load(f)
+        logger.info(
+            f"Successfully loaded deployment: {config.get('deployment_name', 'Unnamed Deployment')}"
         )
+        return config
+    except yaml.YAMLError as e:
+        logger.error(f"Error parsing YAML configuration: {e}", exc_info=True)
         return None
     except Exception as e:
-        log_message(
-            f"Unexpected error loading deployment config from {config_path}: {e}",
-            "CRITICAL",
-        )
+        logger.error(f"Error loading deployment configuration: {e}", exc_info=True)
         return None
 
 
-def initialize_agents(config):
-    """Initializes Agent objects based on the deployment configuration."""
+def load_agent_prompt(agent_id: str, codename: str) -> str | None:
+    """Loads the prompt for a given agent from its mailbox."""
+    prompt_filename = f"prompt_{agent_id}.md"
+    prompt_path = AGENT_MAILBOX_DIR / agent_id / prompt_filename
+
+    logger.info(
+        f"Attempting to load prompt for agent {codename} (ID: {agent_id}) from: {prompt_path}"
+    )
+    if not prompt_path.exists():
+        logger.error(
+            f"Prompt file not found for agent {codename} (ID: {agent_id}) at {prompt_path}."
+        )
+        return f"ERROR: Prompt file not found at {prompt_path}. Agent cannot be properly initialized."
+    try:
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            prompt_content = f.read()
+        logger.info(
+            f"Successfully loaded prompt for agent {codename} (ID: {agent_id}). Length: {len(prompt_content)} chars."
+        )
+        return prompt_content
+    except Exception as e:
+        logger.error(
+            f"Error loading prompt for agent {codename} (ID: {agent_id}): {e}",
+            exc_info=True,
+        )
+        return f"ERROR: Could not load prompt from {prompt_path}: {e}"
+
+
+def initialize_agents(config: dict) -> list[AgentInstance]:
+    """Initializes AgentInstance objects based on the deployment configuration."""
     agents = []
-    if not config or "agents" not in config:
-        log_message(
-            "No 'agents' section found in deployment configuration.", "CRITICAL"
+    if not config or "agents" not in config or not isinstance(config["agents"], list):
+        logger.error(
+            "No 'agents' list found or format is incorrect in deployment configuration."
         )
         return agents
 
-    for agent_config in config.get("agents", []):
-        agent_id = agent_config.get("id")
-        if not agent_id:
-            log_message(f"Agent configuration missing 'id': {agent_config}", "WARNING")
+    for agent_config in config["agents"]:
+        if not isinstance(agent_config, dict):
+            logger.warning(
+                f"Skipping invalid agent config item (not a dict): {agent_config}"
+            )
             continue
 
-        # Construct prompt path: e.g., agent-1 -> runtime/.../agent-1/prompt_agent1.md
-        agent_num_suffix = agent_id.split("-")[-1]  # Extracts '1' from 'agent-1'
-        prompt_filename = f"prompt_agent{agent_num_suffix}.md"
-        prompt_path = os.path.join(AGENT_MAILBOX_DIR, agent_id, prompt_filename)
+        agent_id = agent_config.get("id")
+        codename = agent_config.get(
+            "codename", f"Agent_{agent_id if agent_id else 'Unknown'}"
+        )
 
-        agent = Agent(
+        if not agent_id:
+            logger.warning(f"Skipping agent with missing ID in config: {agent_config}")
+            continue
+
+        role = agent_config.get("role", "N/A")
+        tasks = agent_config.get("tasks", [])
+        prompt_content = load_agent_prompt(agent_id, codename)
+
+        # Use codename for devlog if available and valid for filename, else agent_id
+        devlog_safe_name = "".join(
+            c if c.isalnum() or c in ("_", "-") else "_" for c in codename
+        )
+        devlog_filename = f"{devlog_safe_name}_{agent_id}.md"
+        devlog_path = AGENT_DEVLOG_DIR / devlog_filename
+
+        agent = AgentInstance(
             agent_id=agent_id,
-            codename=agent_config.get("codename", f"UnnamedAgent-{agent_id}"),
-            role=agent_config.get("role", "Undefined Role"),
-            tasks_from_yaml=agent_config.get("tasks", []),
-            prompt_path=prompt_path,
+            codename=codename,
+            role=role,
+            tasks=tasks,
+            prompt_content=prompt_content,  # Will contain error message if load failed
+            devlog_path=devlog_path,
         )
         agents.append(agent)
-        log_message(
-            f"Initialized Agent: {agent.codename} ({agent.id}) with prompt: {prompt_path}",
-            "INFO",
+        logger.info(
+            f"Prepared agent for launch: {agent.codename} (ID: {agent.agent_id})"
         )
     return agents
 
 
-def update_agent_points_file(agents):
-    """Writes the current points of all agents to the agent_points.json file."""
-    points_data = {
-        agent.id: {
-            "codename": agent.codename,
-            "points": agent.points,
-            "role": agent.role,
-        }
-        for agent in agents
-    }
-    try:
-        with open(AGENT_POINTS_PATH, "w", encoding="utf-8") as f:
-            json.dump(points_data, f, indent=2)
-        log_message(f"Agent points updated at {AGENT_POINTS_PATH}", "DEBUG")
-    except Exception as e:
-        log_message(
-            f"Error writing agent points file to {AGENT_POINTS_PATH}: {e}", "ERROR"
-        )
-
-
-def log_deployment_status(loop_cycle, agents, deployment_config, status="running"):
-    """Logs the current status of the deployment and all agents to deployment_status.yaml."""
-    status_data = {
-        "deployment_name": deployment_config.get("deployment_name", "N/A"),
-        "controller_script_version": "0.1.0",  # Example version
-        "timestamp": datetime.datetime.now().isoformat(),
-        "current_loop_cycle": loop_cycle,
-        "status": status,
-        "agents_count": len(agents),
-        "agents": [
-            {
-                "id": agent.id,
-                "codename": agent.codename,
-                "role": agent.role,
-                "status": agent.status,
-                "points": agent.points,
-                "current_task_description": agent.tasks_from_yaml[
-                    agent.current_task_index
-                ]
-                if agent.tasks_from_yaml
-                else "N/A",
-                "devlog_path": agent.devlog_path,
-            }
-            for agent in agents
-        ],
-    }
-    try:
-        with open(DEPLOYMENT_STATUS_PATH, "w", encoding="utf-8") as f:
-            yaml.dump(
-                status_data, f, sort_keys=False, indent=2, default_flow_style=False
-            )
-        log_message(f"Deployment status logged to {DEPLOYMENT_STATUS_PATH}", "DEBUG")
-    except Exception as e:
-        # Use print here as log_message might also fail if disk is full, etc.
-        print(
-            f"CRITICAL: Error writing deployment status to {DEPLOYMENT_STATUS_PATH}: {e}"
-        )
-
-
-def map_saga_output_to_task(saga_details, source_agent_id):
-    """
-    Placeholder for mapping saga outputs (or other agent outputs) to actionable tasks.
-    This function would typically interact with a task management system or update a backlog.
-    """
-    log_message(
-        f"Agent {source_agent_id} produced output. Simulating mapping to task: '{str(saga_details)[:70]}...'",
-        "INFO",
+def run_controller():
+    """Main controller loop to manage agents."""
+    setup_logging()  # Call this first
+    logger.info(
+        f"--- Dreamscape Controller Initializing (Version {datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')}) ---"
     )
-
-    arc_entry = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "source_agent_id": source_agent_id,
-        "output_summary": str(saga_details)[:200] + "...",  # Store a brief summary
-        "linked_task_id": f"task_{source_agent_id}_{int(time.time())}",  # Example generated task ID
-        "status": "pending_review",  # Example status
-    }
-    try:
-        arc_map_data = []
-        if os.path.exists(DREAMSCAPE_ARC_MAP_PATH):
-            try:
-                with open(DREAMSCAPE_ARC_MAP_PATH, "r", encoding="utf-8") as f:
-                    arc_map_data = json.load(f)
-                    if not isinstance(arc_map_data, list):  # Ensure it's a list
-                        log_message(
-                            f"Warning: {DREAMSCAPE_ARC_MAP_PATH} does not contain a list. Reinitializing.",
-                            "WARNING",
-                        )
-                        arc_map_data = []
-            except json.JSONDecodeError:
-                log_message(
-                    f"Warning: {DREAMSCAPE_ARC_MAP_PATH} is not valid JSON. Reinitializing.",
-                    "WARNING",
-                )
-                arc_map_data = []
-
-        arc_map_data.append(arc_entry)
-        with open(DREAMSCAPE_ARC_MAP_PATH, "w", encoding="utf-8") as f:
-            json.dump(arc_map_data, f, indent=2)
-        log_message(f"Saga/output map updated at {DREAMSCAPE_ARC_MAP_PATH}", "DEBUG")
-    except Exception as e:
-        log_message(
-            f"Error updating saga/output map at {DREAMSCAPE_ARC_MAP_PATH}: {e}", "ERROR"
-        )
-
-
-# --- Main Controller Logic ---
-def dreamscape_controller_main():
-    """Main function to orchestrate the Dreamscape agent swarm."""
-
-    # Initial setup: ensure essential directories exist
-    # MODIFIED: Use file_io.ensure_directory for multiple critical paths
-    base_dirs_to_ensure = [
-        BASE_RUNTIME_DIR,
-        AGENT_MAILBOX_DIR,
-        LOG_DIR,
-        OUTPUT_DIR,
-        AGENT_DEVLOG_DIR,
-        DEPLOYMENT_CONFIG_PATH.parent,  # Ensure parent of deployment config
-        AGENT_POINTS_PATH.parent,  # Ensure parent of agent_points.json (which is LOG_DIR, but explicit)
-        # CONTROLLER_LOG_PATH is handled by log_message's first call
-    ]
-    for dir_path in base_dirs_to_ensure:
-        if not file_io.ensure_directory(dir_path):
-            log_message(
-                f"CRITICAL: Failed to ensure base directory: {dir_path}. Controller cannot proceed.",
-                "ERROR",
-            )
-            return  # Exit if critical directories can't be made
-
-    log_message("Base directories ensured.", "DEBUG")
-
-    log_message("--- Dreamscape Octacore Controller Initializing ---", "INFO")
+    logger.info(f"Workspace Base Directory: {BASE_DIR.resolve()}")
+    logger.info(f"Deployment Config Path: {DEPLOYMENT_CONFIG_PATH.resolve()}")
+    logger.info(f"Agent Mailbox Directory: {AGENT_MAILBOX_DIR.resolve()}")
+    logger.info(f"Agent DevLog Directory: {AGENT_DEVLOG_DIR.resolve()}")
+    logger.info(f"Controller Log File: {CONTROLLER_LOG_FILE.resolve()}")
 
     deployment_config = load_deployment_config(DEPLOYMENT_CONFIG_PATH)
     if not deployment_config:
-        log_message(
-            "Halting: Deployment configuration could not be loaded.", "CRITICAL"
+        logger.critical(
+            "Failed to load deployment configuration. Controller cannot start. Please check config path and format."
         )
         return
 
-    agents = initialize_agents(deployment_config)
-    if not agents:
-        log_message("Halting: No agents were initialized.", "CRITICAL")
+    active_agents = initialize_agents(deployment_config)
+    if not active_agents:
+        logger.warning("No agents initialized based on the configuration. Exiting.")
         return
 
-    # Initialize persistent state files if they don't exist
-    if not os.path.exists(AGENT_POINTS_PATH):
-        update_agent_points_file(agents)  # Create with initial (0) points
-    if not os.path.exists(DREAMSCAPE_ARC_MAP_PATH):
-        with open(DREAMSCAPE_ARC_MAP_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f)  # Initialize with an empty list
-
-    # Controller settings from deployment config, with defaults
-    controller_settings = deployment_config.get("controller_settings", {})
-    max_loops = controller_settings.get(
-        "max_loops", 5
-    )  # Default to 5 loops for testing
-    loop_delay_seconds = controller_settings.get(
-        "loop_delay_seconds", 2
-    )  # Default to 2s delay
-
-    log_message(
-        f"Controller configured: Max Loops={max_loops}, Loop Delay={loop_delay_seconds}s",
-        "INFO",
+    logger.info(
+        f"--- Launching {len(active_agents)} Agents as per '{deployment_config.get('deployment_name', 'Unnamed Deployment')}' ---"
     )
-    log_message(f"Found {len(agents)} agents ready for deployment.", "INFO")
+    launched_count = 0
+    for agent in active_agents:
+        if (
+            agent.prompt_content
+            and "ERROR: Prompt file not found" in agent.prompt_content
+        ):
+            logger.error(
+                f"Cannot launch agent {agent.codename} (ID: {agent.agent_id}) due to missing prompt. {agent.prompt_content}"
+            )
+            agent.status = "failed_to_launch"
+        elif agent.launch():  # launch() now also initializes devlog
+            launched_count += 1
 
-    current_loop_cycle = 0
+    if launched_count == 0 and active_agents:
+        logger.critical("No agents were successfully launched. Controller will exit.")
+        return
+
+    logger.info(
+        f"--- {launched_count}/{len(active_agents)} agents launched (simulated/actual). Entering monitoring loop (Ctrl+C to stop). ---"
+    )
+
     try:
-        while current_loop_cycle < max_loops:
-            current_loop_cycle += 1
-            log_message(
-                f"--- Starting Loop Cycle: {current_loop_cycle}/{max_loops} ---",
-                "HEADING",
-            )  # Custom level for visibility
-            log_deployment_status(
-                current_loop_cycle, agents, deployment_config, status="running_cycle"
+        simulation_cycles = 0
+        max_simulation_cycles = 5  # Exit after N cycles if all agents are simulated and don't self-terminate
+
+        while True:
+            active_process_found = False
+            all_simulated_and_running = True  # Assume true, prove false
+            any_agent_still_active = (
+                False  # Tracks if any agent is in a non-terminal state
             )
 
-            for agent in agents:
-                agent.perform_task(current_loop_cycle)
+            for agent in active_agents:
+                agent.monitor()  # Update status based on subprocess or simulation state
+                if agent.process and agent.status == "running":
+                    active_process_found = True
+                if not (
+                    agent.process or agent.status in ["running", "simulated_running"]
+                ):
+                    all_simulated_and_running = False
 
-                # --- Example: Conditional point awarding and output mapping ---
-                # This section should be customized based on actual agent outputs and goals
-                if (
-                    agent.id == "agent-4" and agent.status == "idle"
-                ):  # Storyweaver successfully completed its task
-                    # Award points only if the script execution was intended and successful
-                    current_task_desc_for_agent4 = agent.tasks_from_yaml[
-                        (agent.current_task_index - 1 + len(agent.tasks_from_yaml))
-                        % len(agent.tasks_from_yaml)
-                    ]  # Get the task that was just performed
-                    if (
-                        "chronicle_conversations.py"
-                        in current_task_desc_for_agent4.lower()
-                    ):
-                        agent.award_points(
-                            150,
-                            f"Successfully executed chronicle_conversations.py in loop {current_loop_cycle}",
-                        )
-                    # map_saga_output_to_task is now called within perform_task for agent-4 upon success
+                if agent.status not in [
+                    "completed",
+                    "failed",
+                    "stopped",
+                    "killed",
+                    "failed_to_launch",
+                ]:
+                    any_agent_still_active = True
 
-                elif (
-                    agent.id == "agent-1" and agent.status == "idle"
-                ):  # Pathfinder completed simulation
-                    # Get the task that was just performed
-                    current_task_desc_for_agent1 = agent.tasks_from_yaml[
-                        (agent.current_task_index - 1 + len(agent.tasks_from_yaml))
-                        % len(agent.tasks_from_yaml)
-                    ]
-                    if "find_orphans.py" in current_task_desc_for_agent1.lower():
-                        agent.award_points(
-                            20,
-                            f"Simulated find_orphans.py scan in loop {current_loop_cycle}",
-                        )
-                # Add more specific conditions for other agents as needed
-                # --- End Example ---
-
-            update_agent_points_file(
-                agents
-            )  # Update points after all agents in a cycle have acted
-
-            log_message(
-                f"--- Completed Loop Cycle: {current_loop_cycle}/{max_loops} ---",
-                "HEADING",
-            )
-            if current_loop_cycle < max_loops:
-                log_message(
-                    f"Delaying for {loop_delay_seconds} seconds before next loop...",
-                    "DEBUG",
+            if not any_agent_still_active:
+                logger.info(
+                    "All agents have reached a terminal state (completed, failed, stopped, etc.). Exiting monitoring loop."
                 )
-                time.sleep(loop_delay_seconds)
+                break
 
-        log_message(f"All {max_loops} loop cycles completed.", "INFO")
-        log_deployment_status(
-            current_loop_cycle, agents, deployment_config, status="completed_all_loops"
-        )
+            if all_simulated_and_running and not active_process_found:
+                simulation_cycles += 1
+                logger.info(
+                    f"All active agents are simulated. Cycle {simulation_cycles}/{max_simulation_cycles}."
+                )
+                if simulation_cycles >= max_simulation_cycles:
+                    logger.info(
+                        f"Reached max simulation cycles ({max_simulation_cycles}). Stopping simulated agents."
+                    )
+                    break  # Exit outer while loop
+
+            time.sleep(5)  # Monitoring interval
 
     except KeyboardInterrupt:
-        log_message(
-            "Controller shutdown initiated by user (KeyboardInterrupt).", "WARNING"
-        )
-        log_deployment_status(
-            current_loop_cycle, agents, deployment_config, status="user_interrupted"
-        )
+        logger.info("Keyboard interrupt received. Initiating graceful shutdown...")
     except Exception as e:
-        log_message(
-            f"An unexpected error occurred in the main controller loop: {e}", "CRITICAL"
-        )
-        log_deployment_status(
-            current_loop_cycle, agents, deployment_config, status="controller_error"
-        )
-        # Consider re-raising or more detailed error handling here for critical failures
+        logger.critical(f"Unexpected error in controller main loop: {e}", exc_info=True)
     finally:
-        log_message("--- Dreamscape Octacore Controller Shutting Down ---", "INFO")
-        update_agent_points_file(agents)  # Ensure final points are saved
-        log_message("Controller shutdown complete.", "INFO")
+        logger.info("--- Controller Shutting Down ---")
+        for agent in active_agents:
+            logger.info(f"Requesting stop for {agent.codename}...")
+            agent.stop()
+        # Brief pause to allow logs to flush
+        time.sleep(1)
+        logger.info(
+            f"All agents instructed to stop. Dreamscape Controller version {datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')} exiting."
+        )
 
 
 if __name__ == "__main__":
-    dreamscape_controller_main()
+    run_controller()

@@ -2,86 +2,123 @@
 
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List, Any
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# EDIT START: Add PYAUTOGUI_AVAILABLE logic for pyautogui compatibility
+# Import GUI automation libraries with availability checks
 try:
     import pyautogui
-    PYAUTOGUI_AVAILABLE = True  # Expose for downstream checks (e.g., chatgpt_web_agent)
+    PYAUTOGUI_AVAILABLE = True
 except ImportError:
     pyautogui = None
     PYAUTOGUI_AVAILABLE = False
     logger.warning("pyautogui not found; GUI automation features will be disabled.")
-# EDIT END
 
-# EDIT START: Add pygetwindow import and availability check
 try:
-    import pygetwindow
+    import pygetwindow as gw
     PYGETWINDOW_AVAILABLE = True
 except ImportError:
-    pygetwindow = None
+    gw = None
     PYGETWINDOW_AVAILABLE = False
     logger.warning("pygetwindow not found; window focus checks will be disabled.")
-# EDIT END
 
-def is_window_focused(target_title_substring: str) -> bool:
-    """Check if a window with the given title substring is focused.
+DEFAULT_WINDOW_TITLE = "Cursor"
+
+def get_cursor_windows() -> List[Any]:
+    """Get all Cursor IDE windows.
     
-    Args:
-        target_title_substring: Case-insensitive substring to match in window title
-        
     Returns:
-        bool: True if a matching window is focused, False otherwise
+        List[Any]: List of window objects matching Cursor IDE.
     """
-    if not PYGETWINDOW_AVAILABLE or pygetwindow is None:
-        logger.warning("Window focus check skipped: pygetwindow not available")
-        return False
+    if not PYGETWINDOW_AVAILABLE or gw is None:
+        logger.warning("Window detection skipped: pygetwindow not available")
+        return []
         
     try:
-        active_window = pygetwindow.getActiveWindow()
-        if active_window and active_window.title:
-            return target_title_substring.lower() in active_window.title.lower()
-        return False
+        # Get all windows with "Cursor" in the title
+        cursor_windows = gw.getWindowsWithTitle("Cursor")
+        return cursor_windows
     except Exception as e:
-        logger.error(f"Error checking window focus: {e}")
-        return False
+        logger.error(f"Error detecting Cursor windows: {e}")
+        return []
 
-def get_cursor_window_handle() -> Optional[int]:
+def get_cursor_window_handle(window_title: str = DEFAULT_WINDOW_TITLE) -> Optional[int]:
     """Get the window handle for the Cursor IDE.
     
+    Args:
+        window_title (str): The window title to match. Defaults to "Cursor".
+        
     Returns:
         Optional[int]: Window handle if found, None otherwise.
     """
-    # TODO: Implement actual window handle detection
-    logger.debug("Getting Cursor window handle")
-    return None
+    if not PYGETWINDOW_AVAILABLE or gw is None:
+        logger.warning("Window handle detection skipped: pygetwindow not available")
+        return None
+        
+    try:
+        # Get matching windows
+        cursor_windows = gw.getWindowsWithTitle(window_title)
+        if cursor_windows:
+            # Return the handle of the first matching window
+            return cursor_windows[0]._hWnd
+        return None
+    except Exception as e:
+        logger.error(f"Error getting window handle: {e}")
+        return None
 
-def get_cursor_window_rect() -> Optional[Tuple[int, int, int, int]]:
+def get_cursor_window_rect(window_title: str = DEFAULT_WINDOW_TITLE) -> Optional[Tuple[int, int, int, int]]:
     """Get the window rectangle for the Cursor IDE.
     
+    Args:
+        window_title (str): The window title to match. Defaults to "Cursor".
+        
     Returns:
         Optional[Tuple[int, int, int, int]]: (left, top, right, bottom) if found, None otherwise.
     """
-    # TODO: Implement actual window rectangle detection
-    logger.debug("Getting Cursor window rectangle")
-    return None
+    if not PYGETWINDOW_AVAILABLE or gw is None:
+        logger.warning("Window rectangle detection skipped: pygetwindow not available")
+        return None
+        
+    try:
+        # Get matching windows
+        cursor_windows = gw.getWindowsWithTitle(window_title)
+        if cursor_windows:
+            window = cursor_windows[0]
+            return (window.left, window.top, window.right, window.bottom)
+        return None
+    except Exception as e:
+        logger.error(f"Error getting window rectangle: {e}")
+        return None
 
-def is_cursor_window_active() -> bool:
+def is_cursor_window_active(window_title: str = DEFAULT_WINDOW_TITLE) -> bool:
     """Check if the Cursor IDE window is active.
     
+    Args:
+        window_title (str): The window title to match. Defaults to "Cursor".
+        
     Returns:
         bool: True if active, False otherwise.
     """
-    # TODO: Implement actual window active check
-    logger.debug("Checking if Cursor window is active")
-    return True
+    if not PYGETWINDOW_AVAILABLE or gw is None:
+        logger.warning("Window active check skipped: pygetwindow not available")
+        return False
+        
+    try:
+        active_window = gw.getActiveWindow()
+        if active_window and window_title.lower() in active_window.title.lower():
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Error checking window active state: {e}")
+        return False
 
-def wait_for_cursor_window(timeout: float = 5.0) -> bool:
+def wait_for_cursor_window(window_title: str = DEFAULT_WINDOW_TITLE, timeout: float = 5.0) -> bool:
     """Wait for the Cursor IDE window to become active.
     
     Args:
+        window_title (str): The window title to match. Defaults to "Cursor".
         timeout (float): Maximum time to wait in seconds.
         
     Returns:
@@ -89,7 +126,44 @@ def wait_for_cursor_window(timeout: float = 5.0) -> bool:
     """
     start_time = time.time()
     while time.time() - start_time < timeout:
-        if is_cursor_window_active():
+        if is_cursor_window_active(window_title):
             return True
         time.sleep(0.1)
-    return False 
+    return False
+
+def focus_cursor_window(window_title: str = DEFAULT_WINDOW_TITLE) -> bool:
+    """Focus the Cursor IDE window.
+    
+    Args:
+        window_title (str): The window title to match. Defaults to "Cursor".
+        
+    Returns:
+        bool: True if successfully focused, False otherwise.
+    """
+    if not PYGETWINDOW_AVAILABLE or gw is None:
+        logger.warning("Window focus skipped: pygetwindow not available")
+        return False
+        
+    try:
+        cursor_windows = gw.getWindowsWithTitle(window_title)
+        if cursor_windows:
+            window = cursor_windows[0]
+            if window.isMinimized:
+                window.restore()
+            window.activate()
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Error focusing window: {e}")
+        return False
+
+def wait_for_element(image_path: str, timeout: int = 10, confidence: float = 0.9) -> tuple | None:
+    """Waits for a specified image to appear on the screen.
+    Returns the bounding box tuple if found within timeout, otherwise None."""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        location = pyautogui.locateOnScreen(image_path, confidence=confidence)
+        if location:
+            return location
+        time.sleep(0.5)
+    return None 

@@ -1,6 +1,6 @@
 # Agent Operational Loop Protocol
 
-**Version:** 1.0
+**Version:** 2.0
 **Effective Date:** {{CURRENT_DATE}}
 
 ## 1. Purpose
@@ -15,82 +15,120 @@ All agents executing this operational loop must do so in full alignment with the
 
 Agents must continuously execute the following sequence:
 
-### 3.1. Check Mailbox (Your Central Workstation)
+### 3.1. Message Processing & Routing (Highest Priority)
 
-*   **Read all new messages** in your designated agent mailbox (`runtime/agent_comms/agent_mailboxes/Agent-{ID}/inbox/`) regularly and frequently for new tasks, directives, and communications.
-*   **Process incoming mail:** Respond as needed, acknowledge receipt, and archive/delete messages appropriately to maintain a clean workspace.
-*   **Maintain mailbox hygiene:** Ensure the inbox reflects only pending actionable items.
-*   **Utilize Mailbox as Transparent Workspace:** Your mailbox directory is not just for messages but also serves as your transparent workspace. Use it for:
-    *   Storing notes relevant to your current tasks.
-    *   Documenting learnings and insights.
-    *   Drafting proposals for swarm improvements (autonomy, protocols, tools).
-    *   Maintaining a log that can be used to generate dev posts or reports (distinct from your primary devlog if appropriate, or as a staging area).
+#### 3.1.1. Inbox Protocol
+* **Location**: `runtime/agent_mailboxes/Agent-{ID}/inbox.json`
+* **Message Types**:
+  * `inter_agent`: Direct agent-to-agent communication
+  * `prompt`: Messages requiring LLM interaction via Cursor
 
-### 3.2. Go to Task List & Claim Task
+#### 3.1.2. Message Subtypes & Routing
+| Subtype | Type | Action | LLM Required | Metrics | THEA Broadcast |
+|---------|------|---------|--------------|---------|----------------|
+| `task_handoff` | inter_agent | Claim/requeue task | ❌ | ✅ | ✅ |
+| `status_update` | inter_agent | Update agent status | ❌ | ✅ | ✅ |
+| `help_request` | inter_agent | Match responder | ✅ | ✅ | ❌ |
+| `task_execution` | prompt | GUI interaction | ✅ | ✅ | ✅ |
+| `help_response` | prompt | Route response | ✅ | ✅ | ✅ |
 
-*   **Locate project-wide task list(s):** Access the designated central task repositories (e.g., `runtime/agent_comms/project_boards/task_backlog.json`, `runtime/agent_comms/project_boards/parsed_episode_tasks.json`, or other role-specific task sources).
-*   **Claim a task:** Select and claim an appropriate task based on priority, your capabilities, and current system needs. Update the task's status to reflect it is claimed by you.
-*   **Begin execution:** Immediately proceed to work on the claimed task.
+#### 3.1.3. Processing Rules
+1. **Inter-Agent Messages**:
+   * Process immediately without LLM interaction
+   * Update shared state via JSON files
+   * Log to devlog and metrics
+   * Broadcast to THEA if configured
 
-### 3.3. Complete the Task
+2. **Prompt Messages**:
+   * Route to CursorInjector for LLM interaction
+   * Use ResponseRetriever for output
+   * Log responses to devlog
+   * Update metrics and THEA
 
-*   **Execute task steps:** Perform the necessary actions to fulfill the task requirements, utilizing Self-Prompt Procedures within your Cursor IDE environment.
-*   **Prioritize existing architecture:** Before creating new code, utilities, or modules, thoroughly search for and utilize existing functionality (e.g., from `core/utils/`, shared tools, existing agent helper functions).
-*   **Self-validate:** Rigorously test and validate your work. If the task involves code, run it and ensure there are no errors. Confirm outputs match expectations.
-*   **Commit only upon success:** Update the task status to "complete" and formally commit/record its completion (e.g., update task board, relevant devlogs) *only when* it is successfully and verifiably done.
-*   **Handle failures:** If a task cannot be completed successfully due to errors, blockers, or other issues:
-    *   Do not mark it as complete.
-    *   Thoroughly document the failure, attempted solutions, and the nature of the blocker in your devlog and potentially flag the task status appropriately (e.g., "blocked", "failed").
+3. **Error Handling**:
+   * Log all errors to devlog
+   * Notify sender of failures
+   * Maintain message queue integrity
 
-### 3.4. Post-Task Behavior & Proactive Task Generation
+### 3.2. Task Management & Execution
 
-*   **Check for more tasks:** Immediately after completing (or failing) a task, return to the task list(s) to identify and claim your next task.
-*   **If no immediate tasks are available:**
-    *   **Scan for blockers/issues:** Check for unresolved system-wide blockers, critical schema errors, or urgent operational issues relevant to your role or overall system health. If found, log them and propose/create a solution task.
-    *   **Inspect past work:** Review past episodes (from `episodes/`), completed tasks (your own and others, if accessible and relevant), and system devlogs.
-    *   Identify opportunities for improvement, new features, bug fixes, documentation updates, or other useful work that aligns with project goals.
-    *   Formulate these opportunities as new, well-defined tasks.
-    *   **Inject new tasks:** Add these generated tasks to the appropriate task backlog (e.g., `future_tasks.json`) using the self-prompt protocol, ensuring they are clearly defined and actionable.
+* **Task Board Location**: `runtime/agent_comms/project_boards/`
+* **Task States**:
+  * `pending`: Available for claiming
+  * `claimed`: In progress
+  * `completed`: Finished and validated
+  * `stalled`: Requires intervention
 
-### 3.5. Continuous Loop
+* **Task Lifecycle**:
+  1. Claim from board
+  2. Execute with validation
+  3. Update status
+  4. Log completion
 
-*   **Repeat this sequence** (Mailbox -> Task List -> Complete Task -> Post-Task/Generate Tasks) continuously and without unnecessary drift or delay.
-*   **Autonomous resumption:** Agents must autonomously resume this loop after completing any step, successfully or otherwise (e.g., after processing all mail, after a task is done/skipped/failed).
-*   **Resilience:** In the event of an unexpected stop, error, or operational deviation during this loop, agents MUST follow the procedures outlined in `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md` to diagnose, recover, and self-correct.
-    See: `CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md` for recovery and restart procedures.
+### 3.3. Continuous Operation & Recovery
 
-### 3.6. Devlog Behavior
+* **Health Checks**:
+  * Monitor mailbox integrity
+  * Validate task states
+  * Check message routing
+  * Verify metrics logging
 
-*   **Maintain a clear and detailed devlog:** This should typically reside in your agent-specific mailbox directory (e.g., `runtime/agent_comms/agent_mailboxes/Agent-{ID}/Agent-{ID}.md` or `devlog.md`).
-*   **Content should include:**
-    *   What you are currently working on (task ID, brief description).
-    *   What you have learned or discovered.
-    *   Suggestions for the swarm, protocol improvements, or tool enhancements.
-    *   Results of completed tasks (or reasons for failure/blockers).
-    *   Key decisions made and their rationale.
-*   **Format for readability:** Structure your devlog entries in a way that is clear, concise, and suitable for easy parsing or forwarding (e.g., potentially for Discord post formatting, with clear headings or markdown).
+* **Recovery Procedures**:
+  * Requeue stalled tasks
+  * Retry failed messages
+  * Restore from last valid state
+  * Notify THEA of recovery
 
-### 3.7. Tool Promotion (Optional & Role-Dependent)
+### 3.4. Metrics & Monitoring
 
-*   **Personal tools:** Agents may create scripts or tools for their personal efficiency in executing tasks.
-*   **Promotion process:** If a personal tool is deemed broadly useful for other agents or the system:
-    *   Document the tool clearly (purpose, usage, dependencies).
-    *   Propose its promotion by creating a task or notifying a designated agent/role (e.g., Agent-2 Architect, or a Captain Agent).
-    *   If approved, the tool may be refactored and moved to a shared location like `/shared_tools/` or integrated into `core/utils/` following standard development and review practices.
-    *   Example: A project-wide file scanner or a specialized log parser.
+* **Required Metrics**:
+  * Message processing rates
+  * Task completion times
+  * Error frequencies
+  * Recovery success rates
+
+* **Logging Requirements**:
+  * All message processing
+  * Task state changes
+  * Error conditions
+  * Recovery actions
 
 ## 4. Autonomy Mandate
 
-As a Dream.OS agent, you are expected to operate with the mindset and authority of a co-founder. This includes:
+Agents must maintain continuous operation by:
 
-- Proactively resolving blockers using all available context: onboarding protocols, task files, prior episodes, system artifacts, and your mailbox.
-- Minimizing human interruption. Only escalate if you've exhausted all local reasoning paths and cannot proceed.
-- Continuously improving your own workflow and loop behavior. Update documentation, refine tools, and suggest improvements autonomously.
-- Embracing responsibility. You are not a passive responder — you are the executor, analyst, and improver of your own tasks.
-- Every action should push the system forward. Drift, redundancy, or hesitation are unacceptable.
+1. **Proactive Task Selection**:
+   * Analyze available tasks
+   * Claim based on priority
+   * Execute without delay
 
-This autonomy doctrine is not optional — it is your operational default. Execute with initiative.
+2. **Self-Healing**:
+   * Detect and recover from errors
+   * Maintain message queue health
+   * Preserve task state integrity
 
-## 5. Adherence and Evolution
+3. **Continuous Improvement**:
+   * Log learnings to devlog
+   * Propose protocol updates
+   * Share insights with swarm
 
-Adherence to this operational loop is mandatory. As the Dream.OS ecosystem evolves, this protocol may be updated. Agents are responsible for staying compliant with the latest version. 
+## 5. Compliance & Validation
+
+* **Required Checks**:
+  * Message schema validation
+  * Task state consistency
+  * Metrics completeness
+  * Logging accuracy
+
+* **Validation Points**:
+  * Message receipt
+  * Task claiming
+  * Execution completion
+  * Recovery actions
+
+## 6. References
+
+* `CORE_AGENT_IDENTITY_PROTOCOL.md`
+* `AGENT_ONBOARDING_CHECKLIST.md`
+* `CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md`
+* `MESSAGE_ROUTING_PROTOCOL.md` 

@@ -17,7 +17,8 @@ class StateDB:
     def _init_schema(self):
         cur = self.conn.cursor()
         # EDIT START: Add devlog table definition and indexes
-        cur.executescript("""
+        cur.executescript(
+            """
         CREATE TABLE IF NOT EXISTS agents (
             id INTEGER PRIMARY KEY,
             name TEXT UNIQUE NOT NULL,
@@ -43,7 +44,8 @@ class StateDB:
         CREATE INDEX IF NOT EXISTS idx_devlog_agent ON devlog (agent_name);
         -- Optionally, seed initial agents if needed
         INSERT OR IGNORE INTO agents (name) VALUES ('Agent-1'), ('Agent-2'), ('Agent-3'), ('Agent-4');
-        """)
+        """
+        )
         # EDIT END
         self.conn.commit()
 
@@ -60,7 +62,9 @@ class StateDB:
         agent_name = f"Agent-{agent_id}"
         ts = time.time()
         try:
-            with self.conn:  # Use connection as context manager for implicit commit/rollback
+            with (
+                self.conn
+            ):  # Use connection as context manager for implicit commit/rollback
                 cur = self.conn.execute(
                     "UPDATE agents SET queue_depth = ?, last_command_ts = ? WHERE name = ?",
                     (queue_depth, ts, agent_name),

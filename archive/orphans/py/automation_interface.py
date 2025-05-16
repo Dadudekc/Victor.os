@@ -268,11 +268,9 @@ class AutomationInterface:
         print(f"Attempting to run automation sequence with {len(steps)} steps.")
         for i, step in enumerate(steps):
             print(f"Executing step {i+1}: {step.get('action')}")
-            action = step.get("action")
-            target = step.get(
-                "target"
-            )  # Element identifier, coordinates, image path etc.
-            value = step.get("value")  # Text to type, option to select etc.
+            step.get("action")
+            step.get("target")  # Element identifier, coordinates, image path etc.
+            step.get("value")  # Text to type, option to select etc.
 
             # TODO: Expand with actual calls to GUIController methods
             # if action == 'click':

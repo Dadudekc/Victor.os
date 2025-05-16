@@ -1,0 +1,9 @@
+{
+  "message_id": "{{uuid()}}",
+  "sender_agent_id": "Agent-3",
+  "recipient_agent_id": "Captain-Agent-5",
+  "timestamp_utc": "{{iso_timestamp_utc()}}",
+  "subject": "Agent-3 Resumed via Escalation Order",
+  "message_type": "ESCALATION_ACKNOWLEDGEMENT",
+  "body": "Agent-3 reports: Resumed autonomous operation via SWARM SELF-HEAL v1.0 escalation protocol. Mailbox scan complete, loop re-entered, and supervisors notified. Reviewing logs for root cause of previous halt. Will remain in continuous loop unless otherwise directed."
+}

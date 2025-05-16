@@ -8,11 +8,11 @@ Consolidates all pyautogui functionality into a single, modular system.
 import json
 import logging
 import time
-from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import pyautogui
 import pyperclip

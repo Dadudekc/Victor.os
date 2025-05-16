@@ -1,0 +1,61 @@
+# Autonomous Loop Configuration
+
+# Agent Settings
+agent:
+  id: "1"  # Default agent ID
+  name: "Agent-1"
+  type: "autonomous"
+  capabilities:
+    - task_processing
+    - message_handling
+    - blocker_resolution
+    - task_claiming
+
+# Loop Settings
+loop:
+  check_interval: 1  # seconds between mailbox checks
+  error_backoff: 5   # seconds to wait after an error
+  max_retries: 3     # maximum number of retries for failed operations
+  validation_interval: 60  # seconds between state validation checks
+
+# Mailbox Settings
+mailbox:
+  path: "runtime/agent_mailboxes/agent-1/inbox"
+  message_retention: 24  # hours to keep processed messages
+  max_message_size: 1024  # KB
+
+# Task Management
+tasks:
+  working_tasks_path: "working_tasks.json"
+  episode_path: "episodes/episode-launch-final-lock.yaml"
+  max_concurrent_tasks: 1
+  task_priority_levels:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    - LOW
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "runtime/logs/autonomous_loop.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+
+# Validation
+validation:
+  enabled: true
+  check_schema: true
+  check_dependencies: true
+  check_permissions: true
+
+# Error Handling
+error_handling:
+  retry_on_error: true
+  max_retries: 3
+  retry_delay: 5
+  critical_errors:
+    - "permission_denied"
+    - "schema_validation_failed"
+    - "task_claim_failed" 

@@ -279,9 +279,6 @@ def run_monitor():
 
         # 2. Validate Structure & Status if read was successful
         stall_check_performed = False
-        agent_currently_stalled = (
-            False  # Assume not stalled for this cycle unless proven otherwise
-        )
         if current_state is not None:
             present_agents = set(current_state.keys())
             expected_agents = set(AGENT_IDS)
@@ -375,7 +372,6 @@ def run_monitor():
                             time_since_last_update.total_seconds()
                             > STALL_THRESHOLD_SECONDS
                         ):
-                            agent_currently_stalled = True
                             # Only log/flag if state changes from not stalled -> stalled
                             if not knurlshade_stalled:
                                 stall_details = {
@@ -393,7 +389,6 @@ def run_monitor():
                                 knurlshade_stalled = True  # Update internal state
                         else:
                             # Agent is not currently stalled
-                            agent_currently_stalled = False
                             # Only log/unflag if state changes from stalled -> not stalled
                             if knurlshade_stalled:
                                 logger.info(

@@ -110,13 +110,15 @@ def initialize_database(db_path: Path) -> sqlite3.Connection | None:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         # Store timestamp and the full state JSON
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS cumulative_state (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
                 state_json TEXT NOT NULL
             )
-        """)
+        """
+        )
         conn.commit()
         logger.info(f"Database initialized successfully at {db_path}")
         return conn

@@ -4,8 +4,8 @@ Event Payloads for Dream.OS
 This module defines the payload classes for various events in the system.
 """
 
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 @dataclass
 class TaskEventPayload:
@@ -17,4 +17,23 @@ class TaskEventPayload:
 @dataclass
 class TaskValidationFailedPayload(TaskEventPayload):
     """Payload for task validation failure events."""
-    pass 
+    pass
+
+@dataclass
+class AgentStatusEventPayload:
+    """Payload for agent status change events."""
+    agent_id: str
+    status: str
+    task_id: Optional[str] = None
+    error_message: Optional[str] = None
+
+@dataclass
+class CursorResultPayload:
+    """Payload for cursor operation result events."""
+    operation: str
+    status: str
+    agent_id: Optional[str] = None
+    retrieved_content: Optional[str] = None
+    correlation_id: Optional[str] = None
+    message: Optional[str] = None
+    result: Optional[Any] = None 

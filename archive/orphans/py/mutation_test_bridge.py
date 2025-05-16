@@ -32,10 +32,11 @@ try:
     # Import specific exceptions if needed for fault_raise_exception params
     from socket import ConnectionRefusedError  # Example
 
+    from src.dreamos.core.config import AppConfig, load_config
+
     from scripts.thea_to_cursor_agent import (
         main_loop as agent_main_loop,  # Example target
     )
-    from src.dreamos.core.config import AppConfig, load_config
 except ImportError as e:
     print(f"CRITICAL: Failed to import modules needed for mutation testing: {e}")
     sys.exit(1)
@@ -206,7 +207,7 @@ def run_mutation_test(target_path: str, mutator: Callable, config: AppConfig):
     # We apply the mutator directly as the side_effect
     with patch(
         target_path, side_effect=mutator(None), create=True
-    ) as mock_target:  # Pass None as original func initially
+    ):  # Pass None as original func initially
         logger.info("Executing test scenario with mutation applied...")
         try:
             # Placeholder for test execution logic

@@ -1,0 +1,66 @@
+[
+    {
+        "task_id": "task_migrate_all_mailboxes_001",
+        "description": "Investigate the old mailbox system (e.g., runtime/agent_comms/agent_mailboxes/<agent_id>/inbox/) and migrate any pending messages or necessary structures to the new JSON-based mailbox system (runtime/agent_comms/agent_mailboxes/<agent_id>.json) for all relevant agents. Create empty <agent_id>.json files for all active agents if they don't exist, to ensure loop v2.1 compliance across the swarm.",
+        "assigned_agent": "Captain Agent",
+        "status": "pending",
+        "priority": "Medium",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_clarify_agent3_role_reorg_001",
+        "description": "Review specs/reorganization_proposal_phase1.md regarding Agent 3's role. Clarify if Agent 3 is a distinct operational persona or if tasks assigned to Agent 3 should be re-assigned to Agent 1/Co-Captain, especially concerning documentation and artifact analysis, to avoid role ambiguity. Update the proposal or create sub-tasks accordingly.",
+        "assigned_agent": "Agent 1",
+        "status": "pending",
+        "priority": "Medium",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_agent4_detail_src_apps_structure_001",
+        "description": "As per specs/reorganization_proposal_phase1.md, Agent 4 to detail the target internal structure for the consolidated src/apps/ directory, integrating app/automation/ and current apps/* contents. Document this for review.",
+        "assigned_agent": "Agent 4",
+        "status": "pending",
+        "priority": "High",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_agent4_detail_ai_docs_merged_structure_001",
+        "description": "As per specs/reorganization_proposal_phase1.md, Agent 4 to detail the merged structure for ai_docs/ after incorporating contents from docs/. Document this for review.",
+        "assigned_agent": "Agent 4",
+        "status": "pending",
+        "priority": "High",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_agent4_detail_archive_merged_structure_001",
+        "description": "As per specs/reorganization_proposal_phase1.md, Agent 4 to detail the merged structure for the archive/ directory after incorporating contents from _archive/. Document this for review.",
+        "assigned_agent": "Agent 4",
+        "status": "pending",
+        "priority": "High",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_agent4_detail_sandbox_merged_structure_001",
+        "description": "As per specs/reorganization_proposal_phase1.md, Agent 4 to detail the merged structure for the sandbox/ directory after incorporating contents from dev_sandbox/. Document this for review.",
+        "assigned_agent": "Agent 4",
+        "status": "pending",
+        "priority": "High",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_align_ci_with_poetry_001",
+        "description": "Investigate .github/workflows/ci.yml, which currently uses 'pip install -r requirements.txt'. Align CI to use Poetry for dependency management if pyproject.toml is the source of truth, as indicated in Agent 2's findings in specs/reorganization_proposal_phase1.md.",
+        "assigned_agent": "Agent 2",
+        "status": "pending",
+        "priority": "Medium",
+        "depends_on": []
+    },
+    {
+        "task_id": "task_analyze_reports_analytics_audit_dirs_001",
+        "description": "Analyze the contents and purpose of reports/, analytics/, and audit/ directories. Propose a strategy for their consolidation or integration into other parts of the target structure (e.g., ai_docs/, archive/, or a new artifacts/ directory) as mentioned in specs/reorganization_proposal_phase1.md.",
+        "assigned_agent": "Agent 1",
+        "status": "pending",
+        "priority": "Medium",
+        "depends_on": []
+    }
+] 

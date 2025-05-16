@@ -27,18 +27,18 @@ if str(project_root) not in sys.path:
 # Using try-except to handle potential import issues gracefully
 try:
     # Import functions/classes needed from other scripts/modules
-    from scripts.bridge_integrity_monitor import LOG_FILE as INTEGRITY_LOG_FILE
-    from scripts.thea_to_cursor_agent import (
-        EXTRACTION_LOG_FILE,
-        BridgeMode,  # Import the type alias
-        check_dependencies,
-    )
-
     # We need log_extraction for the audit comparison logic, even if not called directly
     # from scripts.thea_to_cursor_agent import log_extraction as agent_log_extraction
     from src.dreamos.core.config import AppConfig, ConfigurationError, load_config
     from src.dreamos.services.utils.chatgpt_scraper import ChatGPTScraper
     from src.dreamos.tools.cursor_bridge.cursor_bridge import inject_prompt_into_cursor
+
+    from scripts.bridge_integrity_monitor import LOG_FILE as INTEGRITY_LOG_FILE
+    from scripts.thea_to_cursor_agent import BridgeMode  # Import the type alias
+    from scripts.thea_to_cursor_agent import (
+        EXTRACTION_LOG_FILE,
+        check_dependencies,
+    )
 except ImportError as e:
     print(
         f"CRITICAL: Failed to import necessary modules: {e}. Ensure paths are correct."
@@ -221,7 +221,7 @@ def run_stress_test(mock_scraper_cls, mock_inject):
                 if extracted_text:
                     extraction_method = "gui"
 
-        extract_end_time = time.time()
+        time.time()
         iteration_result["extraction_method"] = extraction_method
         iteration_result["extraction_success"] = bool(extracted_text)
 
@@ -245,9 +245,9 @@ def run_stress_test(mock_scraper_cls, mock_inject):
                 logger.warning(
                     f"Duplicate reply content detected (hash: {reply_hash}), skipping injection for UUID: {message_uuid}"
                 )
-                iteration_result["notes"] += (
-                    "Duplicate content detected; skipped injection. "
-                )
+                iteration_result[
+                    "notes"
+                ] += "Duplicate content detected; skipped injection. "
             elif reply_hash is not None:
                 processed_reply_hashes.add(reply_hash)
 
@@ -257,7 +257,7 @@ def run_stress_test(mock_scraper_cls, mock_inject):
 
                 # Simulate injection with synthetic latency
                 try:
-                    inject_start_time = time.time()
+                    time.time()
                     injection_success = mock_inject(
                         prompt=extracted_text, config=config
                     )
@@ -288,9 +288,9 @@ def run_stress_test(mock_scraper_cls, mock_inject):
                             logger.error(
                                 f"Latency Check FAIL: {latency_fail_msg} for UUID {message_uuid}"
                             )
-                            iteration_result["notes"] += (
-                                f"LATENCY FAIL: {latency_fail_msg}. "
-                            )
+                            iteration_result[
+                                "notes"
+                            ] += f"LATENCY FAIL: {latency_fail_msg}. "
                         else:
                             logger.info(f"Latency Check PASS for UUID {message_uuid}")
                     else:

@@ -2,36 +2,37 @@
 Tests for the DreamOS Validation Utilities.
 """
 
-import os
 import json
+import os
+
 import pytest
-from unittest.mock import Mock, AsyncMock
-from datetime import datetime
+
 from dreamos.automation.validation_utils import (
+    ImprovementValidator,
     ValidationStatus,
-    ValidationResult,
-    validate_task_completion,
-    ImprovementValidator
 )
+
 
 @pytest.fixture
 def validator(tmp_path):
     """Create an ImprovementValidator instance with a temporary directory."""
     return ImprovementValidator(state_dir=str(tmp_path))
 
+
 def test_initialization(validator):
     """Test that the validator initializes correctly."""
     # Check that the validation file was created
     assert os.path.exists(validator.validation_file)
-    
+
     # Load the state and verify its structure
-    with open(validator.validation_file, 'r') as f:
+    with open(validator.validation_file, "r") as f:
         state = json.load(f)
-    
+
     assert "last_updated" in state
     assert "validations" in state
     assert "metrics" in state
     assert state["metrics"]["total_validations"] == 0
+
 
 def test_validate_improvement(validator):
     """Test validating an improvement."""
@@ -41,23 +42,23 @@ def test_validate_improvement(validator):
         {
             "name": "test_feature",
             "status": "passed",
-            "details": "Feature works as expected"
+            "details": "Feature works as expected",
         }
     ]
     documentation = {
         "description": "Test feature description",
         "usage_examples": ["example1", "example2"],
-        "api_changes": "No API changes"
+        "api_changes": "No API changes",
     }
     implementation = {
         "code": "def test_feature(): pass",
         "dependencies": [],
-        "error_handling": "try/except blocks implemented"
+        "error_handling": "try/except blocks implemented",
     }
     demonstration = {
         "evidence": "Screenshots and logs",
         "performance_metrics": {"latency": "100ms"},
-        "error_handling": "Error cases handled"
+        "error_handling": "Error cases handled",
     }
 
     # Validate the improvement
@@ -66,7 +67,7 @@ def test_validate_improvement(validator):
         tests=tests,
         documentation=documentation,
         implementation=implementation,
-        demonstration=demonstration
+        demonstration=demonstration,
     )
 
     # Verify the result
@@ -80,6 +81,7 @@ def test_validate_improvement(validator):
     assert metrics["total_validations"] == 1
     assert metrics["passed_validations"] == 1
     assert metrics["failed_validations"] == 0
+
 
 def test_validate_incomplete_improvement(validator):
     """Test validating an incomplete improvement."""
@@ -105,7 +107,7 @@ def test_validate_incomplete_improvement(validator):
         tests=tests,
         documentation=documentation,
         implementation=implementation,
-        demonstration=demonstration
+        demonstration=demonstration,
     )
 
     # Verify the result
@@ -120,6 +122,7 @@ def test_validate_incomplete_improvement(validator):
     assert metrics["passed_validations"] == 0
     assert metrics["failed_validations"] == 1
 
+
 def test_get_validation_status(validator):
     """Test retrieving validation status."""
     # First validate an improvement
@@ -128,17 +131,13 @@ def test_get_validation_status(validator):
     documentation = {
         "description": "Test",
         "usage_examples": ["example"],
-        "api_changes": "None"
+        "api_changes": "None",
     }
-    implementation = {
-        "code": "pass",
-        "dependencies": [],
-        "error_handling": "None"
-    }
+    implementation = {"code": "pass", "dependencies": [], "error_handling": "None"}
     demonstration = {
         "evidence": "None",
         "performance_metrics": {},
-        "error_handling": "None"
+        "error_handling": "None",
     }
 
     validator.validate_improvement(
@@ -146,7 +145,7 @@ def test_get_validation_status(validator):
         tests=tests,
         documentation=documentation,
         implementation=implementation,
-        demonstration=demonstration
+        demonstration=demonstration,
     )
 
     # Get the validation status

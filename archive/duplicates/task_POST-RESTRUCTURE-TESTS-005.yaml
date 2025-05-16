@@ -1,0 +1,7 @@
+task_id: POST-RESTRUCTURE-TESTS-005
+description: |
+  Execute the full test suite after restructuring. Report and fix any failures related to the refactor, especially those caused by file moves or import changes.
+assigned_to: Agent-5
+status: PENDING
+priority: HIGH
+impact: CRITICAL 

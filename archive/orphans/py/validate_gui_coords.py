@@ -235,15 +235,15 @@ def _validate_coord_structure(coords_data: Dict[str, Any], results: Dict[str, An
     """Validates the basic structure (dict with x, y) and types (int) of coordinates."""
     for name, data in coords_data.items():
         if not isinstance(data, dict) or "x" not in data or "y" not in data:
-            results["errors"][name] = (
-                f"Invalid structure, missing 'x' or 'y'. Data: {data}"
-            )
+            results["errors"][
+                name
+            ] = f"Invalid structure, missing 'x' or 'y'. Data: {data}"
             continue
         x, y = data["x"], data["y"]
         if not isinstance(x, int) or not isinstance(y, int):
-            results["errors"][name] = (
-                f"Invalid types, 'x' or 'y' not integers. Got: ({type(x)}, {type(y)})"
-            )
+            results["errors"][
+                name
+            ] = f"Invalid types, 'x' or 'y' not integers. Got: ({type(x)}, {type(y)})"
             continue
         # Check if coordinates are within screen bounds (optional but recommended)
         try:

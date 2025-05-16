@@ -39,9 +39,9 @@ def update_links_in_md_file(filepath, path_mapping, dry_run=True):
         offset = 0
 
         for match in MD_LINK_PATTERN.finditer(original_content):
-            link_text_full = match.group(1)  # e.g., "["
+            match.group(1)  # e.g., "["
             original_url = match.group(2)
-            link_suffix_full = match.group(3)  # e.g., ")"
+            match.group(3)  # e.g., ")"
 
             # Skip absolute URLs (http, https, mailto) and pure anchor links (#)
             if original_url.startswith(("http://", "https://", "mailto:", "#")):

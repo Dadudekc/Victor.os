@@ -1,18 +1,4 @@
 {
-    "Agent-0": {
-        "input_box": {
-            "x": 643,
-            "y": 176
-        },
-        "copy_button": {
-            "x": 904,
-            "y": 299
-        },
-        "input_box_initial": {
-            "x": 681,
-            "y": 176
-        }
-    },
     "Agent-1": {
         "input_box": {
             "x": -1280,

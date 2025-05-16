@@ -1,8 +1,10 @@
-import unittest
-from unittest.mock import patch, MagicMock
-from trading_api_alpaca import TradingAPI
 import logging
 import os
+import unittest
+from unittest.mock import MagicMock, patch
+
+from trading_api_alpaca import TradingAPI
+
 
 class TestTradingAPI(unittest.TestCase):
     """
@@ -30,10 +32,17 @@ class TestTradingAPI(unittest.TestCase):
         """
         instance = mock_rest.return_value
         # Simulate a valid get_account response (if needed later)
-        instance.get_account.return_value = MagicMock(buying_power="1000.00", equity="5000.00")
+        instance.get_account.return_value = MagicMock(
+            buying_power="1000.00", equity="5000.00"
+        )
         api = TradingAPI(logger=self.logger)
         self.assertTrue(api.logged_in)
-        mock_rest.assert_called_once_with("dummy_key", "dummy_secret", "https://paper-api.alpaca.markets", api_version='v2')
+        mock_rest.assert_called_once_with(
+            "dummy_key",
+            "dummy_secret",
+            "https://paper-api.alpaca.markets",
+            api_version="v2",
+        )
 
     def test_login_failure_missing_credentials(self):
         """
@@ -56,7 +65,7 @@ class TestTradingAPI(unittest.TestCase):
         response = api.place_order(symbol="AAPL", qty=1, side="buy")
         self.assertEqual(response["id"], "order123")
         instance.submit_order.assert_called_once_with(
-            symbol="AAPL", qty=1, side="buy", type='market', time_in_force='gtc'
+            symbol="AAPL", qty=1, side="buy", type="market", time_in_force="gtc"
         )
 
     @patch("trading_api_alpaca.tradeapi.REST")
@@ -71,7 +80,7 @@ class TestTradingAPI(unittest.TestCase):
         response = api.place_order(symbol="AAPL", qty=1, side="sell")
         self.assertEqual(response["id"], "order456")
         instance.submit_order.assert_called_once_with(
-            symbol="AAPL", qty=1, side="sell", type='market', time_in_force='gtc'
+            symbol="AAPL", qty=1, side="sell", type="market", time_in_force="gtc"
         )
 
     @patch("trading_api_alpaca.tradeapi.REST")
@@ -95,6 +104,7 @@ class TestTradingAPI(unittest.TestCase):
         api = TradingAPI(logger=self.logger)
         api.logout()
         self.assertFalse(api.logged_in)
+
 
 if __name__ == "__main__":
     unittest.main()

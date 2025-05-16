@@ -210,9 +210,10 @@ def check_output_file():
     """Checks if the output file matches the input file."""
     print("INFO: Checking output file content...")
     try:
-        with open(SAMPLE_INPUT_FILE, "r") as infile, open(
-            SAMPLE_OUTPUT_FILE, "r"
-        ) as outfile:
+        with (
+            open(SAMPLE_INPUT_FILE, "r") as infile,
+            open(SAMPLE_OUTPUT_FILE, "r") as outfile,
+        ):
             input_content = infile.read()
             output_content = outfile.read()
             if input_content == output_content:
@@ -351,9 +352,11 @@ def run_validation():
             "module2": check_api_endpoint("Module 2 (Feedback)", MODULE_2_HEALTH_API),
             "module3": check_file_path("Module 3 (Logging)", MODULE_3_LOG_FILE),
             "module5": check_api_endpoint("Module 5 (State Sync)", MODULE_5_HEALTH_API),
-            "module6": check_file_path("Module 6 (Harness)", MODULE_6_TRIGGER_SCRIPT)
-            if MODULE_6_ENABLED
-            else "DISABLED",
+            "module6": (
+                check_file_path("Module 6 (Harness)", MODULE_6_TRIGGER_SCRIPT)
+                if MODULE_6_ENABLED
+                else "DISABLED"
+            ),
             "module7": check_api_endpoint("Module 7 (Summarizer)", MODULE_7_HEALTH_API),
         }
 
@@ -455,7 +458,7 @@ def run_validation():
         "status": "SUCCESS" if trigger_success else "FAIL",
         "task_id": validation_run_id,
         "payload": task_payload,
-        "interface_used": f"Module {'6' if (MODULE_6_ENABLED and module_status['module6'] == True) else '1'}",  # Reflect actual used
+        "interface_used": f"Module {'6' if (MODULE_6_ENABLED and module_status['module6']) else '1'}",  # Reflect actual used
     }
     if not trigger_success:
         print("ERROR: Failed to trigger bridge task. Aborting validation.")
@@ -523,9 +526,11 @@ def run_validation():
         validation_run_id, task_result_data, module_status["module7"]
     )
     results["steps"]["summarization"] = {
-        "status": "SUCCESS"
-        if summary
-        else ("SKIPPED" if not module_status["module7"] else "FAIL"),
+        "status": (
+            "SUCCESS"
+            if summary
+            else ("SKIPPED" if not module_status["module7"] else "FAIL")
+        ),
         "summary_generated": summary,
         "checked": module_status["module7"],
     }

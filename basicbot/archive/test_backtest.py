@@ -1,7 +1,9 @@
-import unittest
-import pandas as pd
 import logging
+import unittest
 from unittest.mock import Mock
+
+import pandas as pd
+
 from basicbot.backtester import Backtester
 
 
@@ -31,7 +33,7 @@ class TestBacktester(unittest.TestCase):
             timeframe="1D",
             limit=100,
             portfolio=None,
-            log_callback=None
+            log_callback=None,
         )
 
     def test_run_backtest(self):
@@ -46,10 +48,15 @@ class TestBacktester(unittest.TestCase):
 
         # Mock strategy behavior
         self.mock_strategy.calculate_indicators.return_value = df.assign(
-            ema=[100, 101, 101, 102, 103],
-            rsi=[30, 35, 40, 50, 55]
+            ema=[100, 101, 101, 102, 103], rsi=[30, 35, 40, 50, 55]
         )
-        self.mock_strategy.evaluate.return_value = ['HOLD', 'BUY', 'HOLD', 'BUY', 'SELL']
+        self.mock_strategy.evaluate.return_value = [
+            "HOLD",
+            "BUY",
+            "HOLD",
+            "BUY",
+            "SELL",
+        ]
 
         # Run backtest
         result = self.backtester.run_backtest(df)
@@ -62,11 +69,17 @@ class TestBacktester(unittest.TestCase):
         self.assertIn("cumulative_returns", result.columns)
 
         # Check specific values
-        self.assertEqual(result['signal'].tolist(), ['HOLD', 'BUY', 'HOLD', 'BUY', 'SELL'])
-        self.assertEqual(result['position'].tolist(), [0, 1, 1, 1, -1])  # Forward-filled positions
-        
+        self.assertEqual(
+            result["signal"].tolist(), ["HOLD", "BUY", "HOLD", "BUY", "SELL"]
+        )
+        self.assertEqual(
+            result["position"].tolist(), [0, 1, 1, 1, -1]
+        )  # Forward-filled positions
+
         # Adjusted precision for cumulative_returns
-        self.assertAlmostEqual(result['cumulative_returns'].iloc[-1], 1.0392, places=4)  # Match calculated value
+        self.assertAlmostEqual(
+            result["cumulative_returns"].iloc[-1], 1.0392, places=4
+        )  # Match calculated value
 
     def test_empty_dataframe(self):
         """
@@ -75,7 +88,9 @@ class TestBacktester(unittest.TestCase):
         df = pd.DataFrame(columns=["close"])
 
         # Mock strategy behavior for empty DataFrame
-        self.mock_strategy.calculate_indicators.return_value = pd.DataFrame(columns=["close"])
+        self.mock_strategy.calculate_indicators.return_value = pd.DataFrame(
+            columns=["close"]
+        )
         self.mock_strategy.evaluate.return_value = []
 
         result = self.backtester.run_backtest(df)

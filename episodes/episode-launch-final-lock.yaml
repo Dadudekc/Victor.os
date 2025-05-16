@@ -1,0 +1,99 @@
+episode_id: EPISODE-LAUNCH-FINAL-LOCK
+title: "Dream.OS: Swarm Lock Sequence"
+priority: 100
+tasks:
+
+  # PHASE 1 — CORE LOOP RESTORATION
+  - id: RESTORE-AGENT-FLEET-001
+    description: Restore all viable orphan agents to `src/dreamos/agents/restored/` and fix import errors.
+    type: migration
+    priority: high
+
+  - id: ACTIVATE-CURSOR-ORCHESTRATOR-002
+    description: Launch `CursorOrchestrator` for multi-agent GUI injection via PyAutoGUI. Validate all agent window interactions.
+    type: automation
+    priority: high
+
+  - id: REWIRE-AGENT-BOOTSTRAP-003
+    description: Ensure agents read from `inbox.json` and write `devlog.md`, using `ResponseRetriever` and `AutonomyEngine`.
+    type: infrastructure
+    priority: high
+
+  - id: REBOOT-BRIDGE-LOOP-004
+    description: Reconnect `run_bridge_loop.py` to THEA, link to inbox injection and feedback pipeline.
+    type: integration
+    priority: high
+
+  - id: RECONNECT-FEEDBACK-ENGINE-005
+    description: Launch `FeedbackEngineV2` to capture and analyze failed agent loops and generate retry strategies.
+    type: resilience
+    priority: critical
+
+  # PHASE 2 — CONTEXT, RECOVERY, SHADOW NEXUS
+  - id: ENABLE-AUTONOMY-RECOVERY-006
+    description: Reinforce loop resumption using `autonomy_recovery_patch.py` and `agent_autonomy_manager`.
+    type: monitoring
+    priority: high
+
+  - id: ACTIVATE-SHADOW-NEXUS-007
+    description: Deploy `shadow_task_nexus.py` as fallback task manager for Agent-1 or critical agents.
+    type: task-system
+    priority: medium
+
+  - id: ENABLE-CONTEXT-ROUTER-008
+    description: Use `context_router_agent.py` to dynamically route prompts to agents based on metadata.
+    type: routing
+    priority: medium
+
+  # PHASE 3 — SWARM INTELLIGENCE AND TOOLS
+  - id: LAUNCH-SWARM-CONTROLLER-009
+    description: Launch `swarm_controller.py` to coordinate agent startup, feedback, injection, and stats.
+    type: orchestrator
+    priority: critical
+
+  - id: BOOT-UP-TOOL-CHAIN-010
+    description: Restore and enable `task_executor_agent`, `tool_executor_agent`, and `task_promoter_agent`.
+    type: execution
+    priority: high
+
+  - id: ACTIVATE-AGENT-DEVLOG-011
+    description: Enable `agent_devlog.py` to log all agent actions per cycle, syncing to `runtime/devlog/agents/`.
+    type: telemetry
+    priority: high
+
+  - id: ACTIVATE-AGENT-LOREWRITER-012
+    description: Enable `agent_lore_writer.py` to write episodes from agent activity and dispatch to Discord.
+    type: narrative
+    priority: medium
+
+  # PHASE 4 — USER INTERFACE + EXTERNAL PIPELINES
+  - id: COMPLETE-DASHBOARD-HOOKS-013
+    description: Finish hooks from agent heartbeat, drift, and progress into AgentDashboard tabs.
+    type: UX
+    priority: high
+
+  - id: ACTIVATE-DISCORD-BRIDGE-014
+    description: Use `discord_dispatcher.py` to forward lore, memory updates, and feedback events.
+    type: comms
+    priority: medium
+
+  - id: INTEGRATE-VOTING-MIXIN-015
+    description: Allow agents to vote on term cycles and proposal approvals using `AgentVoterMixin`.
+    type: governance
+    priority: medium
+
+  # PHASE 5 — VALIDATION & LAUNCH
+  - id: RUN-SWARM-CYCLE-TEST-016
+    description: Inject episode kickoff into all agent inboxes and observe 1 full cycle with bridge + THEA.
+    type: validation
+    priority: critical
+
+  - id: RECORD-DEMO-SCENE-017
+    description: Capture a video of Dream.OS running all agents in autonomous loop for launch campaign.
+    type: marketing
+    priority: medium
+
+  - id: DEPLOY-LANDING-PAGE-018
+    description: Create launch site with product video, lore sample, beta sign-up, and early access pitch.
+    type: growth
+    priority: medium 

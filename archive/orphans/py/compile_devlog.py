@@ -12,9 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout)  # Log to stdout for this script
-    ],
+    handlers=[logging.StreamHandler(sys.stdout)],  # Log to stdout for this script
 )
 
 

@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import yaml
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 # Import the standard config
 from dreamos.core.config import AppConfig
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
 
 # Load config ONCE at the start
 config = AppConfig.load()
@@ -105,7 +105,9 @@ def generate_reflection(
         violating_agent = alert_data.get("violating_agent", "Unknown Agent")
         halt = halt_reason if isinstance(halt_reason, str) else "Reason not specified."
 
-        reflection["proposal_content"] = f"""### [REFLECT] Proposal
+        reflection[
+            "proposal_content"
+        ] = f"""### [REFLECT] Proposal
 **Target Rule ID:** {target_rule}
 
 **Reasoning:** {reasoning}

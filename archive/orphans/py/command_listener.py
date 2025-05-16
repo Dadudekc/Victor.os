@@ -4,12 +4,12 @@ import time
 from pathlib import Path
 
 import jsonschema
-
-# Assuming src is in PYTHONPATH or this script is adjusted to find dreamos utils
-from dreamos.utils import file_io
 from payload_handler import process_gpt_command
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+# Assuming src is in PYTHONPATH or this script is adjusted to find dreamos utils
+from dreamos.utils import file_io
 
 # Configure logging (integrate with KNURLSHADE later)
 logging.basicConfig(

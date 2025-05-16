@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 # --- Non-standard library imports ---
 import pyautogui
 import pyperclip  # For reliable pasting
-from dreamos.core.config import AppConfig
-from dreamos.core.coordination.agent_bus import AgentBus  # Import only AgentBus
 from PIL import Image  # Requires Pillow
 from pydantic import BaseModel, Field  # Ensure Field is imported for BusMessage
+
+from dreamos.core.config import AppConfig
+from dreamos.core.coordination.agent_bus import AgentBus  # Import only AgentBus
 
 try:
     from dreamos.core.coordination.enums import MessageType
@@ -1168,7 +1169,7 @@ def relay_prompt_via_web_and_gui(
             "runtime/config/chatgpt_cookies.json",
             config,
         )
-        cookie_file_path = Path(cookie_file_path_str)  # Ensure it's a Path object
+        Path(cookie_file_path_str)  # Ensure it's a Path object
 
         # Instantiate the scraper
         # The original code had ChatGPTScraper(cookie_file=...),

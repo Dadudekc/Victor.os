@@ -5,10 +5,11 @@ This module will contain functions and classes related to controlling
 and interacting with the graphical user interface.
 """
 
-import pyautogui
 import logging
+import os  # Added for screenshot path handling
 import time
-import os # Added for screenshot path handling
+
+import pyautogui
 
 # Configure logging
 # Use a more robust logging setup, perhaps configured elsewhere

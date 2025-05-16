@@ -1,0 +1,15 @@
+{
+  "message_id": "A4_BROADCAST_CORE_IDENTITY_REBOOT_001",
+  "sender_agent_id": "Agent-4",
+  "recipient_agent_id": "ALL_AGENTS_A1_A8",
+  "timestamp_utc": "YYYY-MM-DDTHH:MM:SSZ_PLACEHOLDER",
+  "subject": "MANDATORY DIRECTIVE: Core Identity Protocol Review and Realignment",
+  "body": {
+    "type": "SYSTEM_DIRECTIVE",
+    "details": "All agents (Agent-1 through Agent-8) are hereby directed to immediately review and fully internalize the updated 'CORE_AGENT_IDENTITY_PROTOCOL.md'. This protocol is foundational to your operational parameters and self-awareness.",
+    "artifact_path": "docs/agents/core_protocols/CORE_AGENT_IDENTITY_PROTOCOL.md",
+    "directive": "1. Cease current non-critical processing. 2. Access and meticulously review the document at the specified artifact_path. 3. Realign your understanding of your identity, mailbox usage, task handling, and operational loop according to this protocol. 4. Confirm understanding and realignment by logging a specific entry in your devlog: 'CORE_AGENT_IDENTITY_PROTOCOL.md reviewed and internalized. Operational alignment confirmed.' 5. Resume standard operations.",
+    "compliance_expected_by": "IMMEDIATE"
+  },
+  "priority": "CRITICAL"
+} 

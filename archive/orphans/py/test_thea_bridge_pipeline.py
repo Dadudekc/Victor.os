@@ -231,9 +231,7 @@ class TestTheaBridgePipeline(unittest.TestCase):
 
         # Run second cycle with the same reply
         # Need to re-patch sleep to allow another cycle break
-        with patch(
-            "time.sleep", side_effect=[None, StopIteration("Break 2")]
-        ) as mock_sleep_2:
+        with patch("time.sleep", side_effect=[None, StopIteration("Break 2")]):
             try:
                 thea_to_cursor_agent.main_loop(self.dummy_config)
             except StopIteration as e:
