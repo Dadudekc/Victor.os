@@ -1,0 +1,7 @@
+# === risk / goal settings ===
+account_size: 3000           # starting capital
+daily_target: 300            # $ goal per trading day
+risk_per_trade: 300          # max dollars at risk each entry
+stop_loss_pct: 20            # -20 % hard stop
+base_gain_pct: 20            # +20 % trim / lock
+dream_gain_pct: 50           # +50 % let runner work 
