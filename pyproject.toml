@@ -90,6 +90,7 @@ flake8-bugbear = "*"
 
 [tool.poetry.scripts]
 dream-cli = "dreamos.cli.cli:app"
+dreamos-resume = "dreamos.tools.resume_controller:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

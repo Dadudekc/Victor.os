@@ -1,0 +1,28 @@
+# Safe-to-Delete Files — Dream.OS Pruning Manifest
+# Purpose: Consolidate confirmed obsolete or superseded files for deletion
+
+deprecated_templates:
+  - path: specs/plans/agent2_git_cleanup_plan_M{{uuid()}}.md
+    reason: "Unused plan template with placeholder UUID."
+  - path: specs/plans/agent2_git_missing_docs_arch_findings_M{{uuid()}}.md
+    reason: "Unused boilerplate findings report with placeholder UUID."
+
+# Future candidates to review:
+# - specs/reorg/*.md  (phases 1–4)
+# - specs/plans/*_tree.txt
+# - specs/plans/*baseline*.md
+# - specs/plans/old_agent2_*_proposals.md 
+
+outdated_phase_plans:
+  - path: specs/plans/pre_reorg_baseline_procedure.md
+    reason: "Procedure for a completed reorganization phase."
+
+archive_utils_directories:
+  - path: archive/orphans/src/core/utils/
+    reason: "Legacy utils directory, contents (if any) superseded or moved."
+  - path: archive/orphans/src/dreamos/utils/
+    reason: "Legacy utils directory, contents (if any) superseded or moved."
+  - path: archive/orphans/src/dreamos/core/utils/
+    reason: "Legacy utils directory, contents (if any) superseded or moved."
+  - path: src/core/utils/ # Added this as it only contains __pycache__
+    reason: "Utils directory only contains __pycache__, effectively empty and superseded by src/dreamos/utils/." 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dream.OS Scoreboard</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --text-color: #ecf0f1;
+            --background-color: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .agent-card {
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agent-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .reputation-score {
+            font-size: 1.5em;
+            color: var(--accent-color);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .metric {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .active-proposals {
+            margin-top: 15px;
+        }
+
+        .proposal {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .proposal-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .proposal-status {
+            font-size: 0.8em;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard" id="scoreboard">
+        <!-- Agent cards will be dynamically inserted here -->
+    </div>
+
+    <script>
+        function updateScoreboard() {
+            fetch('/api/agent-metrics')
+                .then(response => response.json())
+                .then(data => {
+                    const scoreboard = document.getElementById('scoreboard');
+                    scoreboard.innerHTML = '';
+
+                    data.forEach(agent => {
+                        const card = document.createElement('div');
+                        card.className = 'agent-card';
+                        card.innerHTML = `
+                            <div class="agent-header">
+                                <div class="agent-name">${agent.agent_id}</div>
+                                <div class="reputation-score">${agent.metrics.reputation_score}</div>
+                            </div>
+                            <div class="metrics">
+                                <div class="metric">
+                                    <div class="metric-label">Proposals</div>
+                                    <div class="metric-value">${agent.metrics.proposals_authored}</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Votes</div>
+                                    <div class="metric-value">${agent.metrics.votes_cast}</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Bugs Fixed</div>
+                                    <div class="metric-value">${agent.metrics.bugs_fixed}</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Points</div>
+                                    <div class="metric-value">${agent.metrics.points_earned}</div>
+                                </div>
+                            </div>
+                            <div class="active-proposals">
+                                ${agent.active_proposals.map(proposal => `
+                                    <div class="proposal">
+                                        <div class="proposal-title">${proposal.title}</div>
+                                        <div class="proposal-status">${proposal.status}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                        scoreboard.appendChild(card);
+                    });
+                });
+        }
+
+        // Update scoreboard every 30 seconds
+        setInterval(updateScoreboard, 30000);
+        updateScoreboard(); // Initial update
+    </script>
+</body>
+</html> 

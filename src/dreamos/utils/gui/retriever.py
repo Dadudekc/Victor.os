@@ -1,277 +1,233 @@
-import json
-import logging
-import random
-import time
-import asyncio
+"""
+dreamos.utils.gui.retriever
+----------------------------------
+High-reliability GUI clipboard retriever for Dream.OS agents.
+• Waits for completion image
+• Clicks copy button with retry & adaptive sleeps
+• Validates clipboard via placeholder
+• Saves debug screenshots on failure
+"""
+
+import asyncio, json, logging, os, random, time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
-import os
 
 import pyautogui
 
 try:
     import pyperclip
-
     PYPERCLIP_AVAILABLE = True
 except ImportError:
     pyperclip = None
     PYPERCLIP_AVAILABLE = False
 
+# ── Config ────────────────────────────────────────────────────────────────────
 DEFAULT_COORDS_FILE = Path("runtime/config/cursor_agent_coords.json")
-CLICK_DELAY_SECONDS = 0.2  # Standard delay after a click
-GENERATING_IMAGE_PATH = Path("runtime/config/assets/gui_images/generating.png")
-COMPLETE_IMAGE_PATH = Path("runtime/config/assets/gui_images/complete.png")
-IMAGE_DETECTION_TIMEOUT_SECONDS = 300 # EDIT: Increased from 120 to 300 seconds (5 minutes)
-IMAGE_DETECTION_CONFIDENCE = 0.8 # Confidence for pyautogui.locateOnScreen
+GENERATING_IMAGE    = Path("runtime/config/assets/gui_images/generating.png")
+COMPLETE_IMAGE      = Path("runtime/config/assets/gui_images/complete.png")
 
+CLICK_DELAY         = 0.25   # seconds between move+click
+POST_CLICK_WAIT     = 1.0    # seconds to allow clipboard to update
+IMAGE_TIMEOUT       = 300    # seconds to wait for COMPLETE_IMAGE
+IMAGE_CONF          = 0.80   # pyautogui confidence
+COPY_RETRIES        = 3      # attempts if clipboard unchanged
+SCREENSHOT_DIR      = Path("runtime/debug_screenshots")
 
+# ── Helper ────────────────────────────────────────────────────────────────────
+def _now_ts() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+
+# ── Main class ────────────────────────────────────────────────────────────────
 class ResponseRetriever:
-    """Handles retrieving agent responses by interacting with the GUI, typically by clicking a 'copy' button and reading the clipboard."""
+    """Handles retrieving responses, typically from the clipboard after an agent action."""
 
-    def __init__(
-        self,
-        agent_id: str,  # Added agent_id for consistency, though copy button might be generic
-        coords_file: Path = DEFAULT_COORDS_FILE,
-        # element_key_for_copy: str = "copy_button" # Could be made configurable
-    ):
+    def __init__(self, agent_id: str, coords_file: Path = DEFAULT_COORDS_FILE):
         self.agent_id = agent_id
-        self.coords_file = (
-            Path(coords_file) if isinstance(coords_file, str) else coords_file
-        )
-        # self.element_key_for_copy = element_key_for_copy # e.g., Agent-1.copy_button
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.all_coords: Optional[Dict[str, Any]] = self._load_agent_coordinates()
+        self.coords_file = Path(coords_file)
+        self.log = logging.getLogger(f"Retriever.{agent_id}")
+        self.post_click_wait = POST_CLICK_WAIT
 
-        if not self.all_coords:
-            self.log.error(
-                f"Failed to load coordinates from {self.coords_file} for {self.agent_id}"
-            )
-
-        # While the user requested retrieve() to not take agent_id, the underlying coords are agent-specific.
-        # So, we fetch the specific agent's copy button coords during init.
-        self.copy_button_coords = self._get_specific_agent_coords("copy_button")
+        self.all_coords = self._load_coords()
+        self.copy_button_coords = self._get_coords("copy_button")
         if not self.copy_button_coords:
-            self.log.warning(
-                f"Could not find/load coordinates for '{self.agent_id}.copy_button'. Retrieval might fail."
-            )
+            self.log.error("Copy button coords missing for %s", agent_id)
 
-    def _load_agent_coordinates(self) -> Optional[Dict[str, Any]]:
-        """Loads the full coordinate structure from the JSON file."""
+        if not PYPERCLIP_AVAILABLE:
+            self.log.warning("Pyperclip is not available. Clipboard operations will not work.")
+
+    # --------------------------------------------------------------------- IO
+    def _load_coords(self) -> Optional[Dict[str, Any]]:
+        if not self.coords_file.exists():
+            self.log.error("Coords file missing: %s", self.coords_file)
+            return None
         try:
-            if self.coords_file.exists():
-                with open(self.coords_file, "r") as f:
-                    data = json.load(f)
-                    self.log.info(
-                        f"Successfully loaded coordinates from {self.coords_file} for {self.agent_id}"
-                    )
-                    return data
-            else:
-                self.log.error(f"Coordinates file not found: {self.coords_file}")
-                return None
-        except json.JSONDecodeError:
-            self.log.exception(f"Error decoding JSON from {self.coords_file}")
-            return None
+            return json.loads(self.coords_file.read_text(encoding="utf-8"))
         except Exception as e:
-            self.log.exception(f"Unexpected error loading coordinates: {e}")
+            self.log.exception("Failed to parse coords JSON: %s", e)
             return None
 
-    def _get_specific_agent_coords(
-        self, element_key_suffix: str
-    ) -> Optional[Tuple[int, int]]:
-        """Extracts coordinates for a specific element for the agent (e.g., 'copy_button')."""
+    def _get_coords(self, key: str) -> Optional[Tuple[int, int]]:
         if not self.all_coords:
-            self.log.error(
-                f"Cannot get specific agent coords for '{element_key_suffix}': all_coords not loaded."
-            )
             return None
+        entry = self.all_coords.get(self.agent_id, {}).get(key)
+        if isinstance(entry, dict) and "x" in entry and "y" in entry:
+            return (entry["x"], entry["y"])
+        return None
 
-        # Get agent data
-        agent_data = self.all_coords.get(self.agent_id)
-        if not agent_data:
-            self.log.warning(f"No coordinates found for agent {self.agent_id}")
-            return None
-
-        # Get element coordinates
-        element_data = agent_data.get(element_key_suffix)
-        if not element_data:
-            self.log.warning(f"No {element_key_suffix} coordinates found for agent {self.agent_id}")
-            return None
-
-        # Extract x,y coordinates
-        if isinstance(element_data, dict) and "x" in element_data and "y" in element_data:
-            return (element_data["x"], element_data["y"])
-        else:
-            self.log.warning(
-                f"Coordinates for {self.agent_id}.{element_key_suffix} are not in the expected format {{x:val, y:val}}. Found: {element_data}"
-            )
-            return None
-
-    def _pause(self, duration: Optional[float] = None) -> None:
-        time.sleep(duration if duration is not None else random.uniform(0.1, 0.2))
-
-    def retrieve(self) -> Optional[str]:
-        """Clicks the agent's copy button (using pre-loaded coordinates) and returns clipboard content."""
-        if not pyautogui or not PYPERCLIP_AVAILABLE or not pyperclip:
-            self.log.error(
-                "pyautogui or pyperclip not available. Cannot retrieve response."
-            )
-            return None
-
-        if not self.copy_button_coords:
-            self.log.error(
-                f"Cannot retrieve response for {self.agent_id}: copy button coordinates not found."
-            )
-            return None
-
-        x, y = self.copy_button_coords
-        self.log.debug(
-            f"Attempting to retrieve response for {self.agent_id} by clicking copy button at ({x}, {y})."
-        )
-
-        original_pos = pyautogui.position()
-        original_clipboard_content = pyperclip.paste()
-        # Use a unique placeholder to ensure clipboard has changed
-        placeholder = f"__retrieval_placeholder_{self.agent_id}_{time.time()}__"
-
-        try:
-            pyperclip.copy(placeholder)  # Clear/set known state
-            self._pause(0.05)  # Ensure clipboard has time to update
-
-            pyautogui.moveTo(x, y, duration=0.1)
-            pyautogui.click()
-            # --- Take screenshot after clicking copy button ---
+    # ----------------------------------------------------------------- Screen
+    def _wait_for_image(self, img: Path) -> bool:
+        self.log.info("Waiting for %s …", img.name)
+        start = time.time()
+        while time.time() - start < IMAGE_TIMEOUT:
             try:
-                screenshot_dir = Path("runtime/debug_screenshots")
-                screenshot_dir.mkdir(parents=True, exist_ok=True)
-                screenshot_path = screenshot_dir / f"retriever_after_copy_{self.agent_id}_{int(time.time())}.png"
-                pyautogui.screenshot(str(screenshot_path))
-                self.log.info(f"Screenshot taken after copy click: {screenshot_path}")
-            except Exception as e:
-                self.log.warning(f"Failed to take screenshot after copy click: {e}")
-            # --- End screenshot block ---
-            time.sleep(
-                CLICK_DELAY_SECONDS
-            )  # Wait for the application to copy to clipboard
-
-            # Restore mouse position immediately
-            if original_pos:
-                pyautogui.moveTo(original_pos.x, original_pos.y, duration=0.1)
-
-            retrieved_content = pyperclip.paste()
-
-            if retrieved_content != placeholder and retrieved_content.strip():
-                self.log.info(
-                    f"Successfully retrieved response for {self.agent_id} (length: {len(retrieved_content)})."
-                )
-                # Restore original clipboard if it was different from placeholder and not empty
-                # This is a courtesy, but complex content might not restore perfectly.
-                if original_clipboard_content != placeholder and isinstance(
-                    original_clipboard_content, str
-                ):
-                    pyperclip.copy(original_clipboard_content)
-                return retrieved_content
-            else:
-                self.log.warning(
-                    f"Failed to retrieve valid response for {self.agent_id}. "
-                    f"Clipboard content was same as placeholder or empty. Placeholder: '{placeholder}', Retrieved: '{retrieved_content}'"
-                )
-                # Restore original clipboard content on failure
-                if isinstance(original_clipboard_content, str):
-                    pyperclip.copy(original_clipboard_content)
-                return None
-
-        except Exception as e:
-            self.log.error(
-                f"Error during response retrieval for {self.agent_id}: {e}",
-                exc_info=True,
-            )
-            # Restore original clipboard content on exception
-            if (
-                PYPERCLIP_AVAILABLE
-                and pyperclip
-                and isinstance(original_clipboard_content, str)
-            ):
-                pyperclip.copy(original_clipboard_content)
-            return None
-
-    def _wait_for_image(self, image_path: Path, timeout_seconds: int = IMAGE_DETECTION_TIMEOUT_SECONDS, confidence: float = IMAGE_DETECTION_CONFIDENCE) -> bool:
-        """Waits for a specific image to appear on screen."""
-        self.log.info(f"Waiting for image '{image_path}' to appear for up to {timeout_seconds} seconds...")
-        start_time = time.time()
-        while time.time() - start_time < timeout_seconds:
-            try:
-                if pyautogui.locateOnScreen(str(image_path), confidence=confidence):
-                    self.log.info(f"Image '{image_path}' detected.")
+                if pyautogui.locateOnScreen(str(img), confidence=IMAGE_CONF):
+                    self.log.info("%s detected.", img.name)
                     return True
             except pyautogui.PyAutoGUIException as e:
-                self.log.warning(f"PyAutoGUIException while searching for image '{image_path}': {e}. Assuming image not found.", exc_info=True)
-                # EDIT START: Add screenshot on PyAutoGUIException for debugging
-                try:
-                    timestamp = time.strftime("%Y%m%d_%H%M%S")
-                    screenshot_dir = Path("runtime/debug_screenshots")
-                    screenshot_dir.mkdir(parents=True, exist_ok=True)
-                    # Corrected filepath to avoid double .png if image_path.name already has it.
-                    base, ext = os.path.splitext(image_path.name)
-                    filepath = screenshot_dir / f"wait_for_image_fail_{timestamp}_{base}{ext}"
-                    pyautogui.screenshot(str(filepath))
-                    self.log.info(f"Debug screenshot saved to {filepath} on image search failure.")
-                except Exception as se:
-                    self.log.error(f"Failed to take debug screenshot: {se}")
-                # EDIT END
-            except Exception as e:
-                # Catch any other unexpected errors during image search.
-                self.log.error(f"Unexpected error while searching for image '{image_path}': {e}", exc_info=True)
-            
-            time.sleep(1) # Check once per second
-        self.log.warning(f"Timeout: Image '{image_path}' not detected after {timeout_seconds} seconds.")
+                self.log.warning("Image search error: %s", e)
+            time.sleep(1)
+        self.log.warning("Timeout waiting for %s", img.name)
         return False
 
-    async def get_response(
-        self,
-        retries: int = 3, # Retries for the copy action itself, after image is found
-        retry_delay: int = 2,
-        image_timeout_seconds: int = IMAGE_DETECTION_TIMEOUT_SECONDS # Allow override for specific calls
-    ) -> Optional[str]:
-        """Async wrapper for retrieve method with retries and delays, now waits for completion image."""
+    def _debug_screenshot(self, label: str):
         try:
-            # EDIT START: Wait for the "complete.png" image
-            self.log.info(f"Waiting for response completion image for agent {self.agent_id}...")
-            if not COMPLETE_IMAGE_PATH.exists():
-                self.log.error(f"Completion image not found at {COMPLETE_IMAGE_PATH}. Cannot use image detection. Aborting retrieval for {self.agent_id}.")
-                return None
-                
-            if not self._wait_for_image(COMPLETE_IMAGE_PATH, timeout_seconds=image_timeout_seconds):
-                self.log.warning(f"Response completion image not detected for agent {self.agent_id}. Cannot retrieve response.")
-                # Potentially take a screenshot here if debugging indicates it's useful
-                # self.take_screenshot_on_error(f"no_complete_image_{self.agent_id}")
-                return None
-            
-            self.log.info(f"Response completion image detected for {self.agent_id}. Proceeding to retrieve text.")
-            # EDIT END
-            
-            # Try to retrieve response (original logic for click and copy)
-            response = await asyncio.get_event_loop().run_in_executor(None, self.retrieve) # Run sync retrieve in executor
-            if response:
-                return response
-                
-            # If first attempt fails, retry with delays
-            for attempt in range(retries):
-                self.log.info(f"Copy-Retry attempt {attempt + 1}/{retries} for {self.agent_id} after completion image was found.")
-                await asyncio.sleep(retry_delay * (attempt + 1)) # Exponential backoff for copy retries
-                response = await asyncio.get_event_loop().run_in_executor(None, self.retrieve) # Run sync retrieve in executor
-                if response:
-                    return response
-                    
-            self.log.warning(f"Failed to retrieve response for {self.agent_id} after {retries} copy-retries (completion image was found).")
-            return None
-            
-        except asyncio.CancelledError:
-            self.log.info(f"Response retrieval cancelled for {self.agent_id}")
-            return None
+            SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+            path = SCREENSHOT_DIR / f"{label}_{self.agent_id}_{_now_ts()}.png"
+            pyautogui.screenshot(str(path))
+            self.log.info("Screenshot saved to: %s", path)
         except Exception as e:
-            self.log.error(f"Error retrieving response for {self.agent_id}: {e}", exc_info=True)
+            self.log.error("Failed screenshot: %s", e)
+
+    # ------------------------------------------------------------- Clipboard
+    def _prime_clipboard(self) -> str:
+        placeholder = f"DREAMOS_PLACEHOLDER_{random.randint(1000,9999)}"
+        if PYPERCLIP_AVAILABLE:
+            pyperclip.copy(placeholder)
+        return placeholder
+
+    def _clipboard_text(self) -> str:
+        return pyperclip.paste() if PYPERCLIP_AVAILABLE else ""
+
+    # --------------------------------------------------------------- Actions
+    def _click_copy(self):
+        x, y = self.copy_button_coords
+        pyautogui.moveTo(x, y, duration=0.15)
+        pyautogui.click()
+        time.sleep(CLICK_DELAY)
+
+    # ----------------------------------------------------------------- Core
+    def _do_copy_cycle(self) -> Optional[str]:
+        placeholder = f"PLACEHOLDER_{random.randint(1000,9999)}"
+        if PYPERCLIP_AVAILABLE:
+            pyperclip.copy(placeholder)
+        
+        self._click_copy()
+        time.sleep(self.post_click_wait)
+
+        text = self._clipboard_text()
+        if not text or text == placeholder:
+            self.log.warning("Clipboard unchanged/empty.")
+            return None
+        return text
+
+    # ---------------------------------------------------------------- Async
+    async def get_response(self) -> Optional[str]:
+        # // EDIT START: User directive to bypass actual GUI copy for now
+        self.log.info(f"get_response called for {self.agent_id}. GUI copy cycle will be bypassed as per user directive.")
+
+        # We can still wait for the completion image as a signal the agent might have processed the prompt.
+        if not self.copy_button_coords: # Though copy_button_coords are not used for copy, its absence might indicate setup issues.
+            self.log.warning(f"Bypassing response retrieval for {self.agent_id}: copy_button_coords not loaded. This might be okay if only injection is tested.")
+            # return "[INFO] GUI Response Retrieval Bypassed: Missing copy_button_coords (setup issue?)"
+            # No, let's proceed to image check if possible, as copy_button_coords is for the CLICK part.
+
+        # 1. Wait for completion image (optional, but can be a useful signal)
+        # If COMPLETE_IMAGE path is not valid or image not found, this will return None or log errors.
+        # For a full bypass, we could skip this too, but let's keep it for now.
+        found_completion_image = await asyncio.get_event_loop().run_in_executor(
+            None, self._wait_for_image, COMPLETE_IMAGE
+        )
+        if not found_completion_image:
+            self._debug_screenshot("no_complete_image_during_bypass") # Still useful to know if completion image wasn't seen
+            self.log.warning(f"Completion image not detected for {self.agent_id} during bypass. Prompt may not have been fully processed.")
+            # Return a specific message if completion image is vital even for bypass
+            # return "[INFO] GUI Response Retrieval Bypassed: Completion image not found."
+        else:
+            self.log.info(f"Completion image detected for {self.agent_id} during bypass.")
+
+        # Explicitly return the bypass message instead of attempting copy
+        bypass_message = "[INFO] GUI Response Retrieval Bypassed by User Directive"
+        self.log.info(f"Returning bypass message for {self.agent_id}: {bypass_message}")
+        return bypass_message
+        # // EDIT END: Original logic below is now bypassed
+
+        # if not self.copy_button_coords:
+        #     return None
+        #
+        # # 1. Wait for completion image
+        # found = await asyncio.get_event_loop().run_in_executor(
+        #     None, self._wait_for_image, COMPLETE_IMAGE
+        # )
+        # if not found:
+        #     self._debug_screenshot("no_complete_image")
+        #     return None
+        #
+        # await asyncio.sleep(self.post_click_wait)
+        #
+        # # 2. Attempt copy with retries
+        # for attempt in range(1, COPY_RETRIES + 1):
+        #     text = await asyncio.get_event_loop().run_in_executor(None, self._do_copy_cycle)
+        #     if text:
+        #         self.log.info("Response retrieved (%d chars).", len(text))
+        #         return text
+        #     self.log.info("Retrying copy (%d/%d)…", attempt, COPY_RETRIES)
+        #     await asyncio.sleep(1)
+        #
+        # self.log.error("Failed to retrieve clipboard after %d retries.", COPY_RETRIES)
+        # self._debug_screenshot("copy_fail")
+        # return None
+
+    def get_response_from_clipboard(self, timeout: int = 5, interval: float = 0.5) -> Optional[str]:
+        """
+        Attempts to get text from the clipboard.
+        Optionally retries for a certain timeout if the clipboard is initially empty or unchanged.
+        """
+        if not PYPERCLIP_AVAILABLE:
+            self.log.error("Cannot get response from clipboard: Pyperclip is not available.")
             return None
 
+        start_time = time.time()
+        previous_content = pyperclip.paste()
+        self.log.debug(f"Initial clipboard content: '{previous_content[:100]}...'")
+
+        while time.time() - start_time < timeout:
+            current_content = pyperclip.paste()
+            if current_content != previous_content and current_content:
+                self.log.info(f"Retrieved new content from clipboard: '{current_content[:100]}...'")
+                return current_content
+            time.sleep(interval)
+            self.log.debug(f"Checking clipboard again... (current: '{current_content[:100]}...')")
+        
+        self.log.warning(f"Timeout reached. No new content retrieved from clipboard after {timeout}s.")
+        # Return current content even if it's same as initial, in case it was the target but set before check started
+        # Or if it was empty and remained empty.
+        return current_content 
+
+    def simulate_copy_to_clipboard(self, text_to_copy: str) -> bool:
+        """
+        Simulates an agent copying text to the clipboard. For testing purposes.
+        """
+        if not PYPERCLIP_AVAILABLE:
+            self.log.error("Cannot simulate copy to clipboard: Pyperclip is not available.")
+            return False
+        try:
+            pyperclip.copy(text_to_copy)
+            self.log.info(f"Simulated: Copied to clipboard: '{text_to_copy[:100]}...'")
+            return True
+        except Exception as e:
+            self.log.error(f"Error simulating copy to clipboard: {e}", exc_info=True)
+            return False
 
 if __name__ == "__main__":
     import random  # Already imported but good for explicitness here
@@ -357,3 +313,39 @@ if __name__ == "__main__":
         )
 
     log.info("Retriever script finished.")
+
+    if PYPERCLIP_AVAILABLE:
+        log.info("--- Testing Clipboard Retrieval ---")
+        
+        original_clipboard = pyperclip.paste()
+        log.info(f"Current clipboard content: '{original_clipboard}'")
+        log.info("Please change your clipboard content manually within the next 7 seconds to test retrieval.")
+        
+        retrieved_response = retriever.get_response_from_clipboard(timeout=7, interval=1)
+        if retrieved_response and retrieved_response != original_clipboard:
+            log.info(f"SUCCESS: Retrieved response: '{retrieved_response}'")
+        elif retrieved_response == original_clipboard:
+            log.warning("Clipboard content did not change, or was already the target content.")
+        else:
+            log.error("FAILED: No response retrieved or clipboard was empty.")
+
+        log.info("--- Testing Simulated Clipboard Copy ---")
+        mock_agent_response = "This is a simulated response from an agent."
+        retriever.simulate_copy_to_clipboard(mock_agent_response)
+        
+        # Verify by reading it back
+        time.sleep(0.1) # Give clipboard a moment
+        pasted_content = pyperclip.paste()
+        if pasted_content == mock_agent_response:
+            log.info(f"SUCCESS: Verified simulated content in clipboard: '{pasted_content}'")
+        else:
+            log.error(f"FAILED: Simulated content not found in clipboard. Found: '{pasted_content}'")
+        
+        # Restore original clipboard content if possible
+        if isinstance(original_clipboard, str):
+            pyperclip.copy(original_clipboard)
+            log.info("Restored original clipboard content.")
+    else:
+        log.error("Pyperclip is not available, cannot run ResponseRetriever tests.")
+
+    log.info("ResponseRetriever test finished.")

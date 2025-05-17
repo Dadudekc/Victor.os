@@ -82,10 +82,11 @@ htmlcov/
 .coverage
 
 # Node.js dependencies
-node_modules/
+/frontend/node_modules/
 
-# Chrome profile data
-chrome_profile/
+# Frontend build artifacts
+/frontend/dist/
+/frontend/build/
 
 # Ignore stray root script
 r.py
@@ -105,3 +106,10 @@ test_stderr.log
 !vendor/reprism/
 !vendor/reprism/languages/
 cleanup_log.json
+
+# Add working_tasks_agent-*_claimed.json to .gitignore
+working_tasks_agent-*_claimed.json
+working_tasks_agent-5_claimed.json # Be specific for the one that caused an issue too
+
+# Add duplicate_report.json to .gitignore
+duplicate_report.json

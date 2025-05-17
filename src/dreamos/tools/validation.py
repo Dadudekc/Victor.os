@@ -47,10 +47,18 @@ def validate_all_files(log: logging.Logger, config: 'AgentConfig', is_onboarding
     # Add agent paths to required paths
     required_paths.extend(agent_paths)
     
-    # For onboarding, also check prompt file
+    # For onboarding, also check the actual prompt source that will be used
     if is_onboarding:
-        prompt_path = Path(config.prompt_dir) / f"{config.agent_id.lower()}.txt"
-        required_paths.append(prompt_path)
+        if config.prompt: # Direct prompt string provided
+            log.info(f"Using direct prompt string for {config.agent_id}. No prompt file to validate.")
+        elif config.prompt_file: # Specific prompt file provided
+            prompt_path_to_validate = Path(config.prompt_file)
+            log.info(f"Validating configured prompt_file for {config.agent_id}: {prompt_path_to_validate}")
+            required_paths.append(prompt_path_to_validate)
+        else: # Default agent-specific prompt file expected
+            prompt_path_to_validate = Path(config.prompt_dir) / f"{config.agent_id.lower()}.txt"
+            log.info(f"Validating default agent-specific prompt file for {config.agent_id}: {prompt_path_to_validate}")
+            required_paths.append(prompt_path_to_validate)
     
     missing_paths: List[Path] = []
     

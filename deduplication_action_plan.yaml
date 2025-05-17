@@ -1,0 +1,114 @@
+# Deduplication Action Plan - Phase 1 (Exact Duplicates)
+# Generated: [AUTO_TIMESTAMP_PLACEHOLDER]
+
+# --- Bug Notes / Script Improvements ---
+bug_notes:
+  - description: "Hash collision for very small files (e.g., empty JSON objects) can lead to false positives for duplicates. Observed with report files themselves (Cluster 9)."
+    recommendation: "In deduplication scripts, if file size < 2KB (or similar small threshold), optionally skip hash inclusion in duplicate checks or flag such matches as 'low confidence / needs verification'."
+
+# --- Duplicate File Clusters & Actions ---
+duplicate_clusters:
+  - cluster_id: "Cluster 1 (test_empathy_ui.tsx)"
+    hash: "0fd07edf395780a08e645ab7990334ee9a62440a790bde96d28ac017f07c951d"
+    files:
+      - path: "D:/Dream.os/frontend/tests/test_empathy_ui.tsx"
+        action: "keep"
+        reason: "Primary source file."
+      - path: "D:/Dream.os/runtime/cleanup_backups/backup_20250515_014945/src/tests/test_empathy_ui.tsx"
+        action: "delete"
+        reason: "Duplicate in backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 2 (runtime_jsons_tasks_inbox)"
+    hash: "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    files:
+      - path: "D:/Dream.os/runtime/task_list.json"
+        action: "ignore"
+        reason: "Runtime state file. Potential primary task list."
+      - path: "D:/Dream.os/runtime/agent_mailboxes/agent-1/inbox.json"
+        action: "ignore"
+        reason: "Runtime state file. Agent-specific inbox/task queue."
+    comment: "Sensitive runtime files. Logged for potential future merge or Agent-1 loop investigation. No immediate action."
+
+  - cluster_id: "Cluster 3 (completed_tasks.json)"
+    hash: "42eca507a05a398540d95e0135abcf711bbe5c5f47d3482df3c44079afeef1a1"
+    files:
+      - path: "D:/Dream.os/runtime/agent_comms/project_boards/completed_tasks.json"
+        action: "keep"
+        reason: "Primary project board file."
+      - path: "D:/Dream.os/runtime/task_migration_backups/backup_20250514_123146/completed_tasks.json"
+        action: "delete"
+        reason: "Duplicate in task migration backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 4 (task_backlog.json)"
+    hash: "bc9d32a7cc316bc6ed79a08796d732e3f46cff69723fd9c5eb3bee7bbac8cbd2"
+    files:
+      - path: "D:/Dream.os/runtime/agent_comms/project_boards/task_backlog.json"
+        action: "keep"
+        reason: "Primary project board file."
+      - path: "D:/Dream.os/runtime/task_migration_backups/backup_20250514_123146/task_backlog.json"
+        action: "delete"
+        reason: "Duplicate in task migration backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 5 (task_ready_queue.json)"
+    hash: "0de31f99a3677fbad42477a8231174179a6ef75f56b641d37ec09caad11d8e29"
+    files:
+      - path: "D:/Dream.os/runtime/agent_comms/project_boards/task_ready_queue.json"
+        action: "keep"
+        reason: "Primary project board file."
+      - path: "D:/Dream.os/runtime/task_migration_backups/backup_20250514_123146/task_ready_queue.json"
+        action: "delete"
+        reason: "Duplicate in task migration backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 6 (working_tasks.json)"
+    hash: "eb96f4e3ec1f819fa71bb953f2962528baacc79aad73c918f025a8eeb9573ac7"
+    files:
+      - path: "D:/Dream.os/runtime/agent_comms/project_boards/working_tasks.json"
+        action: "keep"
+        reason: "Primary project board file."
+      - path: "D:/Dream.os/runtime/task_migration_backups/backup_20250514_123146/working_tasks.json"
+        action: "delete"
+        reason: "Duplicate in task migration backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 7 (test_empathy_ui.test.tsx)"
+    hash: "30273c9d088bc3a673ab659b36dffd726304a40f36e116097cc5b1fefd3aa5ef"
+    files:
+      - path: "D:/Dream.os/tests/test_empathy_ui.test.tsx"
+        action: "keep"
+        reason: "Primary source file."
+      - path: "D:/Dream.os/runtime/cleanup_backups/backup_20250515_014945/src/tests/test_empathy_ui.test.tsx"
+        action: "delete"
+        reason: "Duplicate in backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 8 (jarvis_memory.json)"
+    hash: "2fae207b1e3093564453bb1223a58b32850338288315a1f20228f37ddc8ec7f6"
+    files:
+      - path: "D:/Dream.os/tests/runtime/jarvis/memory.json"
+        action: "keep"
+        reason: "Primary source file."
+      - path: "D:/Dream.os/runtime/cleanup_backups/backup_20250515_014945/src/tests/runtime/jarvis/memory.json"
+        action: "delete"
+        reason: "Duplicate in backup directory."
+    comment: "Safe to delete backup copy."
+
+  - cluster_id: "Cluster 9 (Report File Name Collision)"
+    hash: "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a" # Hash from initial scan
+    files:
+      - path: "D:/Dream.os/runtime/reports/duplicate_report.json"
+        action: "keep" # Assuming this is the intended name for the main report
+        reason: "Primary report file for duplicate clusters."
+      - path: "D:/Dream.os/runtime/reports/file_hash_log.json"
+        action: "rename"
+        new_path: "D:/Dream.os/runtime/reports/sha256_file_index.json"
+        reason: "Clarify purpose and resolve potential confusion from initial hash collision."
+    comment: "Initial hash collision due to small/empty file state. Files are distinct. Renaming one for clarity. No deletion needed based on content duplication."
+
+# --- Summary of Actions ---
+# Deletions: 7 files (Clusters 1, 3, 4, 5, 6, 7, 8 each have 1 deletion)
+# Renames: 1 file (Cluster 9)
+# Ignored (for now): 1 cluster (2 files - Cluster 2) 

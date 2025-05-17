@@ -7,6 +7,16 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+# --- Dream.OS Discord Integration Placeholder ---
+# The core Discord bot functionality (handling commands like !addtrade)
+# resides in: src/dreamos/discord_integration/discord_bot_core.py
+# Future enhancements to this UI could involve:
+# 1. Displaying status of the discord_bot_core.py process.
+# 2. Sending messages/commands TO the Discord bot FROM this UI.
+# 3. Receiving notifications or logs FROM the Discord bot TO this UI.
+# This would likely require inter-process communication (e.g., sockets, message queues)
+# or a shared API/database if the bot and UI need to interact deeply.
+
 class DiscordCommanderTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -170,3 +180,23 @@ class DiscordCommanderTab(QWidget):
 
         # Optionally refresh reply feed if relay is implemented
         self.load_reply_feed()
+
+    # --- Placeholder for Discord Bot Interaction ---
+    def _init_discord_bot_interaction_ui(self):
+        # This section could be expanded to show Discord bot status or offer controls.
+        self.discord_status_label = QLabel("Discord Bot Status: (Not directly managed by this UI)")
+        # self.layout().addWidget(self.discord_status_label) # Example: Add to main layout if needed
+        # Placeholder for a button to send a message via bot, etc.
+        # self.send_discord_message_button = QPushButton("Send Message via Discord Bot")
+        # self.send_discord_message_button.clicked.connect(self.on_send_discord_message)
+        # self.layout().addWidget(self.send_discord_message_button)
+        pass # Current implementation does not directly control the bot from UI
+
+    def on_send_discord_message(self):
+        # Example: This function would need to communicate with the running discord_bot_core.py
+        # (e.g., via an API, socket, or message queue established by the bot)
+        self.command_log.addItem("[INFO] Sending message via Discord Bot (Not Implemented)")
+        pass
+
+    # Call this in __init__ if you decide to add UI elements for bot interaction
+    # self._init_discord_bot_interaction_ui()

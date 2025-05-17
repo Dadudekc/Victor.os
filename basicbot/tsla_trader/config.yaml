@@ -4,4 +4,34 @@ daily_target: 300            # $ goal per trading day
 risk_per_trade: 300          # max dollars at risk each entry
 stop_loss_pct: 20            # -20 % hard stop
 base_gain_pct: 20            # +20 % trim / lock
-dream_gain_pct: 50           # +50 % let runner work 
+dream_gain_pct: 50           # +50 % let runner work
+
+trading_rules:
+  # Core Principle: Survive to play the next setup. Stack profits, not trades.
+  contracts_in_play:
+    max_contracts_per_play: 2
+    max_account_exposure_percent: 10
+    stacking_enabled: false
+
+  lotto_rules:
+    source: realized_profits_only
+    max_lotto_cost: 150
+    exclude_from_contract_limits: true
+    purpose: "for_the_dream"
+
+  scaling_and_dca:
+    scaling_enabled: false
+    entry_mode: "full_position_only"
+    future_condition: "unlock scaling once longer-dated contracts are affordable"
+
+  new_week_rule:
+    allow_new_contracts_on_monday: true
+    max_new_contracts: 2
+    monday_limit_conditions:
+      - "value of new contracts must be ≤ 10% of account"
+      - "no main trades from prior week still open"
+
+  cooldown_system:
+    trigger: "red_exit"
+    duration_minutes: 15
+    action: "journal reason for exit before next entry" 

@@ -11,6 +11,10 @@
         "input_box_initial": {
             "x": -1263,
             "y": 176
+        },
+        "input_box_followup": {
+            "x": 0,
+            "y": 0
         }
     },
     "Agent-2": {
@@ -114,5 +118,10 @@
     "agent_05": {
         "input_box": [500, 500],
         "submit_button": [600, 500]
-    }
+    },
+    "input_box_initial": [100, 200],
+    "copy_button": [300, 400],
+    "send_button": [150, 250],
+    "response_area": [350, 450],
+    "agent_name_field": [700, 100]
 }

@@ -12,40 +12,39 @@ class AutonomyEngine:
     def __init__(self, workspace_root):
         from pathlib import Path
         self.workspace_root = Path(workspace_root)
-        self.devlog_dir = self.workspace_root / "runtime/logs"
-        self.devlog_path = self.devlog_dir / "devlog.txt"
+        self.devlog_root_dir = self.workspace_root / "runtime/devlog/agents"
         
-        # Ensure devlog directory exists
-        self.devlog_dir.mkdir(parents=True, exist_ok=True)
+        self.devlog_root_dir.mkdir(parents=True, exist_ok=True)
 
     def get_devlog_path(self, agent_id: str) -> Path:
-        """Get the path to the agent's devlog file."""
-        return self.devlog_path
+        """Get the path to the specific agent's devlog file."""
+        self.devlog_root_dir.mkdir(parents=True, exist_ok=True)
+        return self.devlog_root_dir / f"{agent_id}_cycle_events.log"
 
     def write_devlog_entry(self, agent_id: str, entry: Dict[str, Any]) -> None:
-        """Write an entry to the devlog file."""
+        """Write an entry to the agent-specific devlog file."""
+        log_file_path = self.get_devlog_path(agent_id)
         try:
-            # Format timestamp
             timestamp = datetime.now().isoformat()
             
-            # Format message based on entry type
             if entry.get("type") == "task_progress":
-                message = f"Agent-{agent_id}: Task {entry['task_id']}: {entry['status']} - {entry['details']}"
+                message = f"Task {entry['task_id']}: {entry['status']} - {entry['details']}"
             elif entry.get("type") == "error":
-                message = f"Agent-{agent_id}: Error: {entry['message']}"
+                message = f"Error: {entry['message']}"
                 if entry.get("details"):
                     message += f" - {json.dumps(entry['details'])}"
             elif entry.get("type") == "autonomy":
-                message = f"Agent-{agent_id}: Autonomy Decision: {entry['decision']} - {entry['reasoning']}"
+                message = f"Autonomy Decision: {entry['decision']} - {entry['reasoning']}"
+            elif entry.get("type") == "generic_event":
+                message = f"Event: {entry.get('event_name', 'Unknown Event')} - Details: {json.dumps(entry.get('details', {}))}"
             else:
-                message = f"Agent-{agent_id}: {entry.get('message', 'Unknown entry type')}"
+                message = f"{entry.get('message', 'Unknown entry type')}"
             
-            # Write to devlog
-            with open(self.devlog_path, 'a') as f:
+            with open(log_file_path, 'a') as f:
                 f.write(f"[{timestamp}] {message}\n")
                 
         except Exception as e:
-            logger.error(f"Error writing to devlog: {e}")
+            logger.error(f"Error writing to devlog for {agent_id} at {log_file_path}: {e}")
 
     def log_task_progress(self, agent_id: str, task_id: str, status: str, details: str) -> None:
         """Log task progress to devlog."""
@@ -75,24 +74,34 @@ class AutonomyEngine:
         }
         self.write_devlog_entry(agent_id, entry)
 
+    def log_generic_event(self, agent_id: str, event_name: str, details: Optional[Dict[str, Any]] = None) -> None:
+        """Log a generic event to devlog."""
+        entry = {
+            "type": "generic_event",
+            "event_name": event_name,
+            "details": details or {}
+        }
+        self.write_devlog_entry(agent_id, entry)
+
     def get_recent_entries(self, agent_id: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get recent entries from the devlog."""
+        """Get recent entries from the agent-specific devlog."""
+        log_file_path = self.get_devlog_path(agent_id)
+        if not log_file_path.exists():
+            return []
         try:
             entries = []
-            with open(self.devlog_path, 'r') as f:
+            with open(log_file_path, 'r') as f:
                 lines = f.readlines()
                 for line in reversed(lines):
                     if len(entries) >= limit:
                         break
-                    if f"Agent-{agent_id}:" in line:
-                        # Parse timestamp and message
-                        timestamp_str = line[1:line.find("]")]
-                        message = line[line.find("]") + 2:].strip()
-                        entries.append({
-                            "timestamp": timestamp_str,
-                            "message": message
-                        })
+                    timestamp_str = line[1:line.find("]")]
+                    message_content = line[line.find("]") + 2:].strip()
+                    entries.append({
+                        "timestamp": timestamp_str,
+                        "message": message_content
+                    })
             return entries
         except Exception as e:
-            logger.error(f"Error reading devlog: {e}")
-            return [] 
+            logger.error(f"Error reading devlog for {agent_id} from {log_file_path}: {e}")
+            return []

@@ -143,6 +143,36 @@ class CursorInjector:
         
         return success
 
+    def inject_declare_candidacy(self, agent_id: str, platform: str) -> bool:
+        """Injects a DECLARE_CANDIDACY command structure via Cursor."""
+        # Ensure platform statement is formatted nicely within the prompt
+        # and escape any characters that might break the multi-line string structure if necessary.
+        # For simplicity, basic string joining is used here.
+        platform_lines = platform.split('\n')
+        formatted_platform = "\n".join([f"    {line}" for line in platform_lines])
+
+        prompt = f"""
+DECLARE_CANDIDACY
+agent_id: {agent_id}
+platform_statement: >
+{formatted_platform}
+"""
+        logger.info(f"Injecting DECLARE_CANDIDACY for {agent_id}")
+        # Assuming response_format isn't critical for this command injection
+        return self.inject_prompt(prompt_text=prompt.strip(), response_format="command_ack")
+
+    def inject_vote(self, agent_id: str, choice: str, confidence: float = 1.0) -> bool:
+        """Injects an AGENT_VOTE command structure via Cursor."""
+        prompt = f"""
+AGENT_VOTE
+agent_id: {agent_id}
+vote: {choice}
+confidence: {confidence}
+"""
+        logger.info(f"Injecting AGENT_VOTE for {agent_id} voting for {choice}")
+        # Assuming response_format isn't critical for this command injection
+        return self.inject_prompt(prompt_text=prompt.strip(), response_format="command_ack")
+
 def main():
     try:
         # Load configuration

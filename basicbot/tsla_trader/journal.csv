@@ -1,1 +1,2 @@
-date,ticker,direction,strike,expiry,contracts,entry_price,exit_price,p_l,setup,notes 
+date,ticker,direction,strike,expiry,contracts,entry_price,exit_price,p_l,setup,notes 2025-05-16,TSLA,CALL,350,2025-05-16,2,3.0,3.6,120,VWAP reclaim,Clean exit. Let the runner breathe.
+2025-05-16,TSLA,CALL,350,2025-05-16,2,3.0,3.6,120,VWAP reclaim,Clean exit. Let the runner breathe.

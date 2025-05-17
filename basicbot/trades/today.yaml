@@ -1,0 +1,12 @@
+trades:
+  - date: 2025-05-16
+    ticker: TSLA
+    direction: CALL
+    strike: 350
+    expiry: 2025-05-16
+    contracts: 2
+    entry_price: 3.00
+    exit_price: 3.60
+    p_l: 120
+    setup: VWAP reclaim
+    notes: Clean exit. Let the runner breathe. 

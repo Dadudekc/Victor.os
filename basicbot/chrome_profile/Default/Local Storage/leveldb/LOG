@@ -1,0 +1,6 @@
+2025/02/26-16:33:02.413 95c Reusing MANIFEST D:\TradingRobotPlug\basicbot\chrome_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/02/26-16:33:02.420 95c Recovering log #3
+2025/02/26-16:33:02.423 95c Reusing old log D:\TradingRobotPlug\basicbot\chrome_profile\Default\Local Storage\leveldb/000003.log 
+2025/02/26-16:33:47.741 26dc Level-0 table #5: started
+2025/02/26-16:33:47.791 26dc Level-0 table #5: 31340 bytes OK
+2025/02/26-16:33:47.834 26dc Delete type=0 #3

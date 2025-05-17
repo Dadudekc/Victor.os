@@ -346,3 +346,7 @@ Cursor-1 resumed via escalation order SWARM SELF-HEAL v1.0.
 
 {{get_utc_iso_timestamp()}} - Cursor-1: Completed diagnosis for task `DIAGNOSE-FILESYSTEM-TIMEOUTS-001`. Findings: Basic OS commands (`dir`) succeed via `run_terminal_cmd` where `list_dir` tool times out, indicating tool implementation issue. `read_file` likely similar. `run_terminal_cmd` itself shows instability with specific commands (`Get-Counter`). Recommendations: Debug/patch external `list_dir`/`read_file` tools; debug `run_terminal_cmd` shell interaction; consider temporary workaround using basic OS commands via `run_terminal_cmd`. Task status conceptually PENDING_REVIEW. Full task update blocked by unstable `edit_file` on `future_tasks.json`. #diagnosis #filesystem #tool_issue #recommendation
 [AUTO] Protocol for handling halts/idling updated in onboarding_guide.md after halt detected. Cycle count reset. Resuming operation.
+
+## EPISODE 03 // THE LOOP NEVER SLEEPS
+Triggered by: Agent-1 log match on onboarding confirmation.
+Training hooks active: explore_utilities, self_prompt_protocol

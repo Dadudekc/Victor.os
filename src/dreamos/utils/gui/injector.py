@@ -45,6 +45,7 @@ class CursorInjector:
         focus_verify: bool = True,
         use_paste: bool = True,
     ):
+        self.log = logging.getLogger(f"{self.__class__.__name__}.{agent_id}")
         self.agent_id = agent_id
         self.coords_file = (
             Path(coords_file) if isinstance(coords_file, str) else coords_file
@@ -64,7 +65,6 @@ class CursorInjector:
         self.paste_available = PYPERCLIP_AVAILABLE
         self.focus_check_available = PYGETWINDOW_AVAILABLE
 
-        self.log = logging.getLogger(self.__class__.__name__)
         self.all_coords: Optional[Dict[str, Any]] = self._load_agent_coordinates()
 
         if not self.all_coords:
@@ -73,12 +73,6 @@ class CursorInjector:
             )
             # Decide on error handling: raise error or operate in a degraded state?
             # For now, methods will check for self.input_coords availability
-
-        self.input_coords = self._get_specific_agent_coords("input_box_initial")
-        if not self.input_coords:
-            self.log.warning(
-                f"Could not find/load coordinates for '{self.agent_id}' input_box_initial."
-            )
 
     def _load_agent_coordinates(self) -> Optional[Dict[str, Any]]:
         """Loads the full coordinate structure from the JSON file."""
@@ -140,34 +134,81 @@ class CursorInjector:
 
     def focus_window(self) -> bool:
         """Focus the agent's window."""
+        if not self.focus_check_available:
+            self.log.warning("pygetwindow not available, cannot perform robust focus check.")
+            # Fallback: attempt to click or proceed without focus, or return True if non-critical
+            return True # Or False if focus is absolutely critical and cannot be verified
+
         try:
-            # Get window by title
-            win = pygetwindow.getWindowsWithTitle("Cursor")[0]
-            if not win:
-                self.log.error(f"Could not find window for {self.agent_id}")
+            # Get window by title (using the specific self.window_title)
+            target_title = self.window_title
+            self.log.debug(f"Attempting to find and focus window with title: '{target_title}'")
+            
+            windows = pygetwindow.getWindowsWithTitle(target_title)
+            if not windows:
+                self.log.error(f"Could not find window with title '{target_title}' for {self.agent_id}")
+                # Log all visible windows for debugging if target is not found
+                try:
+                    all_titles = [w.title for w in pygetwindow.getAllWindows() if w.title]
+                    self.log.debug(f"Available window titles: {all_titles}")
+                except Exception as e_titles:
+                    self.log.debug(f"Could not retrieve all window titles: {e_titles}")
                 return False
+            
+            win = windows[0] # Take the first match
+            if len(windows) > 1:
+                self.log.warning(f"Multiple windows found with title '{target_title}'. Focusing the first one: {win}")
 
             # Try to activate window
             try:
-                win.activate()
-            except Exception as e:
-                # Log but continue - some window managers may not support activate
-                self.log.warning(f"Window activation failed for {self.agent_id}: {e}")
-                # Try alternative method
-                try:
-                    win.minimize()
-                    time.sleep(0.1)
+                if win.isMinimized:
+                    self.log.debug(f"Window '{target_title}' is minimized, attempting to restore.")
                     win.restore()
-                except Exception as e2:
-                    self.log.warning(f"Alternative window focus failed for {self.agent_id}: {e2}")
+                    self._pause(0.1) # Pause for window to restore
+                if not win.isActive:
+                    self.log.debug(f"Window '{target_title}' is not active, attempting to activate.")
+                    win.activate()
+                    self._pause(0.1) # Pause for activation
+
+            except Exception as e_activate:
+                self.log.warning(f"Window activation/restore failed for '{target_title}' ({self.agent_id}): {e_activate}. Attempting alternative focus.")
+                try:
+                    if not win.isMinimized: win.minimize() # Minimize first if not already
+                    self._pause(0.1)
+                    win.restore()
+                    self._pause(0.1)
+                    if not win.isActive: win.activate() # Try activate again after restore
+                    self._pause(0.1)
+                except Exception as e_alt_focus:
+                    self.log.error(f"Alternative window focus method also failed for '{target_title}' ({self.agent_id}): {e_alt_focus}")
                     return False
 
-            # Wait for window to be active
-            time.sleep(0.2)
+            # Wait for window to be active and perform the requested validation
+            self._pause(0.2) # Settling time
+
+            # Add user's requested focus validation logic
+            if self.focus_check_available: # Redundant check as we are inside one, but good for clarity
+                active = pygetwindow.getActiveWindow()
+                if not active:
+                    self.log.warning(f"Focus check for '{target_title}' ({self.agent_id}): No active window found after focus attempt!")
+                    return False # If no window is active, focus definitely failed
+                
+                active_title_lower = active.title.lower()
+                target_title_lower = target_title.lower()
+                
+                if target_title_lower not in active_title_lower:
+                    self.log.warning(f"Focus validation for '{target_title}' ({self.agent_id}) FAILED. Active window is '{active.title}'. Expected '{target_title}'.")
+                    # Take a screenshot for debugging this scenario
+                    self.take_screenshot_on_error(f"focus_fail_{self.agent_id}")
+                    return False
+                else:
+                    self.log.info(f"Focus validation for '{target_title}' ({self.agent_id}) PASSED. Active window: '{active.title}'.")
+            # Original focus_window logic was simpler
+
             return True
 
         except Exception as e:
-            self.log.error(f"Error focusing window for {self.agent_id} ('Cursor'): {e}")
+            self.log.error(f"General error focusing window '{self.window_title}' for {self.agent_id}: {e}", exc_info=True)
             return False
 
     def _type_or_paste(self, text: str) -> None:
@@ -208,15 +249,15 @@ class CursorInjector:
         self._pause()
         self.log.debug(f"Cleared input field for {self.agent_id} at ({x},{y}).")
 
-    def inject(self, prompt: str) -> bool:
+    def inject(self, prompt: str, current_input_coords: Optional[Tuple[int, int]]) -> bool:
         """Focuses the agent's window and injects the prompt into its input field."""
         self.log.info(
             f"Attempting to inject prompt for {self.agent_id}: '{prompt[:50]}...'"
         )
 
-        if not self.input_coords:
+        if not current_input_coords:
             self.log.error(
-                f"Cannot inject prompt: Input coordinates not loaded/found for {self.agent_id}."
+                f"Cannot inject prompt: Input coordinates not provided or not loaded/found for {self.agent_id}."
             )
             return False
 
@@ -227,7 +268,7 @@ class CursorInjector:
             # Depending on strictness, might return False here
             # For now, we'll try to proceed
 
-        x, y = self.input_coords
+        x, y = current_input_coords
         # Add human-like jitter to click coordinates
         tx = x + random.randint(-self.random_offset, self.random_offset)
         ty = y + random.randint(-self.random_offset, self.random_offset)
@@ -244,8 +285,8 @@ class CursorInjector:
             self._pause()  # Pause after typing/pasting
 
             # Optionally, press Enter if the GUI requires it (this is common)
-            pyautogui.press('enter')
-            self.log.debug(f"Pressed Enter for {self.agent_id} after injection.")
+            # pyautogui.press('enter') # // EDIT: Removed automatic enter press
+            # self.log.debug(f"Pressed Enter for {self.agent_id} after injection.")
             # This should be configurable or part of the coordinate definition if 'enter_button' exists
 
             self.log.info(f"Successfully injected prompt for {self.agent_id}.")
@@ -258,18 +299,66 @@ class CursorInjector:
             # self.take_screenshot_on_error(f"inject_fail_{self.agent_id}")
             return False
 
-    async def inject_text(self, text: str) -> bool:
+    async def inject_text(self, text: str, is_initial_prompt: bool = False) -> bool:
         """Async wrapper for inject method.
         
         Args:
             text: The text to inject into the agent's input field.
+            is_initial_prompt: If True, uses 'input_box_initial' coordinates, otherwise uses 'input_box'.
             
         Returns:
             bool: True if injection was successful, False otherwise.
         """
-        # Run the synchronous inject method in a thread pool to avoid blocking
+        element_key_suffix = "input_box_initial" if is_initial_prompt else "input_box"
+        target_input_coords = self._get_specific_agent_coords(element_key_suffix)
+
+        if not target_input_coords:
+            self.log.error(
+                f"Cannot inject text: Input coordinates not loaded/found for {self.agent_id} using key '{element_key_suffix}'."
+            )
+            return False
+
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self.inject, text)
+        return await loop.run_in_executor(None, self.inject, text, target_input_coords)
+
+    # // EDIT START: Add new method for sending submission keys
+    async def send_submission_keys(self, keys: list[str]) -> bool:
+        """Sends a sequence of key presses (e.g., Enter, Ctrl+Enter).
+        
+        Args:
+            keys: A list of keys to press. For hotkeys, supply them in order (e.g., ['ctrl', 'enter']).
+                  For a single key, provide a list with one element (e.g., ['enter']).
+                  
+        Returns:
+            bool: True if key presses were attempted, False on error (though pyautogui often doesn't give direct error status).
+        """
+        if not keys:
+            self.log.warning(f"[{self.agent_id}] No keys provided to send_submission_keys.")
+            return False
+
+        def _press_keys():
+            try:
+                if len(keys) > 1:
+                    self.log.debug(f"[{self.agent_id}] Sending hotkey sequence: {keys}")
+                    pyautogui.hotkey(*keys)
+                else:
+                    self.log.debug(f"[{self.agent_id}] Pressing single key: {keys[0]}")
+                    pyautogui.press(keys[0])
+                self._pause(0.1) # Brief pause after key action
+                return True
+            except Exception as e:
+                self.log.error(f"[{self.agent_id}] Error during send_submission_keys ({keys}): {e}", exc_info=True)
+                # self.take_screenshot_on_error(f"submission_fail_{self.agent_id}") # Optional screenshot
+                return False
+
+        loop = asyncio.get_event_loop()
+        try:
+            success = await loop.run_in_executor(None, _press_keys)
+            return success
+        except Exception as e:
+            self.log.error(f"[{self.agent_id}] Exception in executor for send_submission_keys ({keys}): {e}", exc_info=True)
+            return False
+    # // EDIT END
 
     def take_screenshot_on_error(self, filename_prefix: str = "error_screenshot"):
         try:
