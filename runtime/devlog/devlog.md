@@ -350,3 +350,29 @@ Cursor-1 resumed via escalation order SWARM SELF-HEAL v1.0.
 ## EPISODE 03 // THE LOOP NEVER SLEEPS
 Triggered by: Agent-1 log match on onboarding confirmation.
 Training hooks active: explore_utilities, self_prompt_protocol
+
+### 🧹 [2023-05-18] Project Cleanup Completed
+- Removed 9 cache directories and temporary files
+- Freed ~120MB disk space
+- `runtime/` directory preserved for agent continuity
+- System ready for Episode 08 deployment
+
+## [2025-05-20T10:45:00Z] Documentation Consolidation: Agent Protocol Documentation Structure
+
+**Task**: Consolidate agent onboarding and protocol documentation
+**Impact**: High - affects all agents
+**Related Files**: 
+- `runtime/agent_comms/governance/onboarding/AGENT_ONBOARDING_INDEX.md`
+- Protocol files in `runtime/agent_comms/governance/protocols/`
+
+Completed the consolidation of agent protocol documentation by creating a central index and standardizing cross-references. This improves agent onboarding and operational efficiency.
+
+Key accomplishments:
+1. Created `AGENT_ONBOARDING_INDEX.md` as a central hub for all protocol documentation
+2. Established unified "See Also" sections across all protocol documents
+3. Created consistent protocol files in `runtime/agent_comms/governance/protocols/`
+4. Updated existing protocol documents with standardized references
+
+All agents should now use the central index and follow the standardized protocol references when creating or updating documentation.
+
+**Verification**: All protocol files have been created, updated, and committed to the repository with proper cross-references.
