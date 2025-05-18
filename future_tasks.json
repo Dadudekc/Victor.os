@@ -66,17 +66,6 @@
     "dependencies": []
   },
   {
-    "task_id": "IMPLEMENT_ACTUAL_AGENT_LAUNCH_001",
-    "description": "Modify `swarm_controller.py` to implement actual agent process launching using `subprocess.Popen` or a similar mechanism, instead of just simulating the launch. Ensure it correctly uses Python interpreter and handles potential errors during launch.",
-    "status": "PENDING",
-    "priority": "HIGH",
-    "assignee_suggestion": "Agent-SwarmDev",
-    "created_by": "Agent-5",
-    "created_at": "2025-05-17T01:26:29Z",
-    "tags": ["swarm_controller", "orchestration", "process_management"],
-    "dependencies": ["UTILIZE_SPECIFIC_AGENT_SCRIPTS_001"]
-  },
-  {
     "task_id": "UTILIZE_SPECIFIC_AGENT_SCRIPTS_001",
     "description": "Update `swarm_controller.py` to use the specific `script_path` defined for each agent in `swarm_config.json` when launching them, instead of the generic AGENT_SCRIPT_PATH. This allows different agents to have different entry point scripts.",
     "status": "PENDING",
@@ -120,5 +109,43 @@
     "created_at": "2025-05-17T01:30:10Z",
     "tags": ["task_execution", "missing_component", "blocker_resolution", "critical", "tool_chain"],
     "dependencies": ["BOOT-UP-TOOL-CHAIN-010"]
+  },
+  {
+    "task_id": "A4-TASK-REVIEW-CORE-ID-001",
+    "description": "Review Agent-1\\'s finalized CORE_AGENT_IDENTITY_PROTOCOL.md and determine follow-up actions/assignments.",
+    "status": "PENDING",
+    "priority": "MEDIUM",
+    "assignee_suggestion": "Agent-4 (Captain)",
+    "created_by": "Agent-4",
+    "created_at": "2025-05-17T01:36:43Z",
+    "tags": ["review", "protocol", "coordination"],
+    "dependencies": ["Agent-1_CORE_IDENTITY_FINALIZED"]
+  },
+  {
+    "task_id": "A4-TASK-CI-EXEC-001",
+    "description": "Initiate and manage the CI_UPDATE_EXECUTION phase for the completed POST-RESTRUCTURE-001 mission, related to CI-UPDATE-001 for .github/workflows/ci.yml.",
+    "status": "PENDING",
+    "priority": "HIGH",
+    "assignee_suggestion": "Agent-4 (Captain)",
+    "created_by": "Agent-4",
+    "created_at": "2025-05-17T01:36:43Z",
+    "tags": ["ci_cd", "execution", "coordination"],
+    "dependencies": ["POST-RESTRUCTURE-001_COMPLETED"]
+  },
+  {
+    "task_id": "LOCATE_OR_IMPLEMENT_AGENT_DEVLOG_PY_001",
+    "title": "Locate or Implement agent_devlog.py",
+    "description": "The file agent_devlog.py, required for task ACTIVATE-AGENT-DEVLOG-001, could not be located after multiple search attempts. This task is to either find the existing file if it was moved/misnamed, or to design and implement agent_devlog.py. It should provide functionality for logging agent actions per cycle and syncing them to runtime/devlog/agents/.",
+    "assigned_to": "Agent-8",
+    "priority": "HIGH",
+    "status": "PENDING",
+    "details": {
+      "original_task_blocked": "ACTIVATE-AGENT-DEVLOG-011",
+      "required_functionality": "Log agent actions per cycle, sync to runtime/devlog/agents/.",
+      "search_attempts": 2
+    },
+    "dependencies": ["ACTIVATE-AGENT-DEVLOG-011"],
+    "created_by": "Agent-8",
+    "created_at": "TIMESTAMP_ISO_GENERATION_UNAVAILABLE"
   }
 ] 

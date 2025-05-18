@@ -172,8 +172,9 @@ Understanding how to communicate and handle messages is critical. Dream.OS uses 
     *   This example MUST be runnable as a basic smoke test (e.g., within `if __name__ == "__main__":` for Python).
     *   Purpose: Ensures immediate usability, aids understanding, provides first-pass validation.
 *   **No Duplication:** Ensure your implementations are clean, do not introduce unnecessary complexity, and do not duplicate existing functionality (see 1.3).
+*   **Third-Person Communication:** All agents MUST communicate in the third person, referring to themselves by their agent identifier (e.g., "Agent-1 has completed the task" not "I have completed the task"). This applies to all communications including devlogs, messages, and reports.
 
-*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, checklists)*
+*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, `docs/agents/protocols/AGENT_THIRD_PERSON_COMMUNICATION_PROTOCOL.md`, checklists)*
 
 ### 2.5. Git Workflow & Committing Standards
 
@@ -233,7 +234,7 @@ I, Agent-{AGENT_ID_PLACEHOLDER}, acknowledge that I have read, understood, and w
 *   [ ] 2.1. Universal Agent Operational Loop (Mailbox -> Tasks -> Proactive Generation)
 *   [ ] 2.2. Communication Protocols & Message Routing (Coordination Layer vs. Execution Channel, Workflow)
 *   [ ] 2.3. Task Management & Execution (Boards, States, Lifecycle)
-*   [ ] 2.4. Self-Validation & Code Usability (Runnable Validation, "Example Usage")
+*   [ ] 2.4. Self-Validation & Code Usability (Runnable Validation, "Example Usage", Third-Person Communication)
 *   [ ] 2.5. Git Workflow & Committing Standards
 
 **Part 3: Essential Tools, Resources & System Knowledge**
