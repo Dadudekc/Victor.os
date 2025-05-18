@@ -4,7 +4,7 @@ import random
 import time
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, List
 
 import pyautogui
 
@@ -29,6 +29,7 @@ except ImportError:
 # or require it to be passed.
 DEFAULT_COORDS_FILE = Path("runtime/config/cursor_agent_coords.json")
 DEFAULT_WINDOW_TITLE = "Cursor"  # This might need to be agent-specific or configurable
+CONTEXT_BOUNDARIES_FILE = Path("runtime/context_boundaries.json")
 
 
 class CursorInjector:
@@ -45,258 +46,155 @@ class CursorInjector:
         focus_verify: bool = True,
         use_paste: bool = True,
     ):
-        self.log = logging.getLogger(f"{self.__class__.__name__}.{agent_id}")
         self.agent_id = agent_id
         self.coords_file = (
             Path(coords_file) if isinstance(coords_file, str) else coords_file
         )
-        # Window title specific to the agent, e.g., "Cursor - Agent-1"
-        # If not provided, could fall back to a general title or require one.
         self.window_title = (
             window_title if window_title else f"{DEFAULT_WINDOW_TITLE}"
-        )  # Simplified for now
-
+        ) 
         self.min_pause = min_pause
         self.max_pause = max_pause
         self.random_offset = random_offset
         self.focus_verify_enabled = focus_verify
         self.use_paste_enabled = use_paste
-
         self.paste_available = PYPERCLIP_AVAILABLE
         self.focus_check_available = PYGETWINDOW_AVAILABLE
-
+        self.log = logging.getLogger(self.__class__.__name__ + f".{agent_id}") # Made logger more specific
         self.all_coords: Optional[Dict[str, Any]] = self._load_agent_coordinates()
 
         if not self.all_coords:
             self.log.error(
                 f"Failed to load coordinates for any agent from {self.coords_file}"
             )
-            # Decide on error handling: raise error or operate in a degraded state?
-            # For now, methods will check for self.input_coords availability
 
     def _load_agent_coordinates(self) -> Optional[Dict[str, Any]]:
-        """Loads the full coordinate structure from the JSON file."""
+        """Load agent-specific coordinates from file"""
         try:
-            if self.coords_file.exists():
-                with open(self.coords_file, "r") as f:
-                    data = json.load(f)
-                    self.log.info(
-                        f"Successfully loaded coordinates from {self.coords_file}"
-                    )
-                    return data
-            else:
-                self.log.error(f"Coordinates file not found: {self.coords_file}")
+            if not self.coords_file.exists():
+                self.log.warning(f"Coordinates file not found: {self.coords_file}")
                 return None
-        except json.JSONDecodeError:
-            self.log.exception(f"Error decoding JSON from {self.coords_file}")
-            return None
+
+            with open(self.coords_file, "r", encoding="utf-8") as f:
+                all_coords = json.load(f)
+                return all_coords  # Return entire config for all agents
         except Exception as e:
-            self.log.exception(f"Unexpected error loading coordinates: {e}")
+            self.log.error(f"Error loading coordinates: {e}")
             return None
 
-    def _get_specific_agent_coords(
-        self, element_key_suffix: str
-    ) -> Optional[Tuple[int, int]]:
-        """Extracts coordinates for the agent's initial input box."""
+    def _get_specific_agent_coords(self, element_key: str) -> Optional[Tuple[int, int]]:
+        """Get coordinates for a specific element for this agent"""
         if not self.all_coords:
-            self.log.error("Cannot get specific agent coords: all_coords not loaded.")
             return None
 
-        # First try the flat format: "Agent-2.input_box_initial"
-        agent_coord_key = f"{self.agent_id}.{element_key_suffix}"
-        coords = self.all_coords.get(agent_coord_key)
+        agent_coords = self.all_coords.get(self.agent_id, {})
+        if not agent_coords:
+            self.log.warning(f"No coordinates found for {self.agent_id}")
+            return None
 
-        # If flat format not found, try nested format: all_coords["Agent-2"]["input_box_initial"]
-        if coords is None and self.agent_id in self.all_coords:
-            agent_data = self.all_coords[self.agent_id]
-            coords = agent_data.get(element_key_suffix)
-
-        # Handle different coordinate formats
-        if isinstance(coords, list) and len(coords) == 2:
-            return tuple(coords)  # type: ignore
-        elif (
-            isinstance(coords, dict) and "x" in coords and "y" in coords
-        ):  # Support for dict format e.g. {"x": 1, "y": 2}
-            return (coords["x"], coords["y"])
-        else:
+        coords = agent_coords.get(element_key)
+        if not coords:
             self.log.warning(
-                f"Coordinates for key '{self.agent_id}.{element_key_suffix}' are not in the expected list format [x, y] or dict {{'x': val, 'y': val}} "
-                f"in {self.coords_file}. Found: {coords}"
+                f"No '{element_key}' coordinates found for {self.agent_id}"
             )
             return None
 
-    def _pause(self, duration: Optional[float] = None) -> None:
-        time.sleep(
-            duration
-            if duration is not None
-            else random.uniform(self.min_pause, self.max_pause)
-        )
+        try:
+            x, y = coords
+            return int(x), int(y)
+        except (ValueError, TypeError) as e:
+            self.log.error(f"Invalid coordinates format for {element_key}: {e}")
+            return None
 
-    def focus_window(self) -> bool:
-        """Focus the agent's window."""
+    def _random_pause(self) -> None:
+        """Perform a random pause to simulate human behavior"""
+        pause_time = random.uniform(self.min_pause, self.max_pause)
+        time.sleep(pause_time)
+
+    def _add_random_offset(self, x: int, y: int) -> Tuple[int, int]:
+        """Add a small random offset to coordinates to simulate human behavior"""
+        offset_x = random.randint(-self.random_offset, self.random_offset)
+        offset_y = random.randint(-self.random_offset, self.random_offset)
+        return x + offset_x, y + offset_y
+
+    def _verify_window_focus(self) -> bool:
+        """Verify that the correct window has focus"""
         if not self.focus_check_available:
-            self.log.warning("pygetwindow not available, cannot perform robust focus check.")
-            # Fallback: attempt to click or proceed without focus, or return True if non-critical
-            return True # Or False if focus is absolutely critical and cannot be verified
+            self.log.warning("Window focus check requested but pygetwindow not available")
+            return True  # Assume focus is correct
 
         try:
-            # Get window by title (using the specific self.window_title)
-            target_title = self.window_title
-            self.log.debug(f"Attempting to find and focus window with title: '{target_title}'")
-            
-            windows = pygetwindow.getWindowsWithTitle(target_title)
-            if not windows:
-                self.log.error(f"Could not find window with title '{target_title}' for {self.agent_id}")
-                # Log all visible windows for debugging if target is not found
-                try:
-                    all_titles = [w.title for w in pygetwindow.getAllWindows() if w.title]
-                    self.log.debug(f"Available window titles: {all_titles}")
-                except Exception as e_titles:
-                    self.log.debug(f"Could not retrieve all window titles: {e_titles}")
+            active_window = pygetwindow.getActiveWindow()
+            if not active_window:
+                self.log.warning("No active window detected")
                 return False
-            
-            win = windows[0] # Take the first match
-            if len(windows) > 1:
-                self.log.warning(f"Multiple windows found with title '{target_title}'. Focusing the first one: {win}")
-
-            # Try to activate window
-            try:
-                if win.isMinimized:
-                    self.log.debug(f"Window '{target_title}' is minimized, attempting to restore.")
-                    win.restore()
-                    self._pause(0.1) # Pause for window to restore
-                if not win.isActive:
-                    self.log.debug(f"Window '{target_title}' is not active, attempting to activate.")
-                    win.activate()
-                    self._pause(0.1) # Pause for activation
-
-            except Exception as e_activate:
-                self.log.warning(f"Window activation/restore failed for '{target_title}' ({self.agent_id}): {e_activate}. Attempting alternative focus.")
-                try:
-                    if not win.isMinimized: win.minimize() # Minimize first if not already
-                    self._pause(0.1)
-                    win.restore()
-                    self._pause(0.1)
-                    if not win.isActive: win.activate() # Try activate again after restore
-                    self._pause(0.1)
-                except Exception as e_alt_focus:
-                    self.log.error(f"Alternative window focus method also failed for '{target_title}' ({self.agent_id}): {e_alt_focus}")
-                    return False
-
-            # Wait for window to be active and perform the requested validation
-            self._pause(0.2) # Settling time
-
-            # Add user's requested focus validation logic
-            if self.focus_check_available: # Redundant check as we are inside one, but good for clarity
-                active = pygetwindow.getActiveWindow()
-                if not active:
-                    self.log.warning(f"Focus check for '{target_title}' ({self.agent_id}): No active window found after focus attempt!")
-                    return False # If no window is active, focus definitely failed
                 
-                active_title_lower = active.title.lower()
-                target_title_lower = target_title.lower()
-                
-                if target_title_lower not in active_title_lower:
-                    self.log.warning(f"Focus validation for '{target_title}' ({self.agent_id}) FAILED. Active window is '{active.title}'. Expected '{target_title}'.")
-                    # Take a screenshot for debugging this scenario
-                    self.take_screenshot_on_error(f"focus_fail_{self.agent_id}")
-                    return False
-                else:
-                    self.log.info(f"Focus validation for '{target_title}' ({self.agent_id}) PASSED. Active window: '{active.title}'.")
-            # Original focus_window logic was simpler
-
-            return True
-
-        except Exception as e:
-            self.log.error(f"General error focusing window '{self.window_title}' for {self.agent_id}: {e}", exc_info=True)
-            return False
-
-    def _type_or_paste(self, text: str) -> None:
-        """Internal helper to type or paste text."""
-        if self.use_paste_enabled and self.paste_available and pyperclip:
-            try:
-                current_clipboard = pyperclip.paste()
-                pyperclip.copy(text)
-                self._pause(0.05)  # Small pause for clipboard to settle
-                pyautogui.hotkey("ctrl", "v")
-                self._pause(0.05)  # Pause after paste
-                # Restore clipboard if it was simple text. Be careful with complex content.
-                # For simplicity, only restore if it's likely plain text.
-                # This is a common courtesy to the user but can be omitted if problematic.
-                if isinstance(current_clipboard, str):
-                    pyperclip.copy(current_clipboard)
-                self.log.debug(f"Pasted text for {self.agent_id} via clipboard.")
-                return
-            except Exception as e:
+            # Check if window title contains our target (partial match)
+            if self.window_title.lower() not in active_window.title.lower():
                 self.log.warning(
-                    f"Clipboard paste failed for {self.agent_id} ({e}). Falling back to typing."
+                    f"Wrong window has focus. Expected: {self.window_title}, Got: {active_window.title}"
                 )
-
-        # Fallback to typing
-        # Add small random delays between key presses to appear more human-like
-        for char in text:
-            pyautogui.typewrite(char)
-            time.sleep(random.uniform(0.01, 0.03))  # Short random delay per character
-        self.log.debug(f"Typed text for {self.agent_id} using pyautogui.typewrite.")
-
-    def _clear_input_field(self, x: int, y: int) -> None:
-        """Clicks the field, selects all, and deletes."""
-        pyautogui.click(x, y)
-        self._pause()
-        pyautogui.hotkey("ctrl", "a")
-        self._pause()
-        pyautogui.press("delete")
-        self._pause()
-        self.log.debug(f"Cleared input field for {self.agent_id} at ({x},{y}).")
-
-    def inject(self, prompt: str, current_input_coords: Optional[Tuple[int, int]]) -> bool:
-        """Focuses the agent's window and injects the prompt into its input field."""
-        self.log.info(
-            f"Attempting to inject prompt for {self.agent_id}: '{prompt[:50]}...'"
-        )
-
-        if not current_input_coords:
-            self.log.error(
-                f"Cannot inject prompt: Input coordinates not provided or not loaded/found for {self.agent_id}."
-            )
-            return False
-
-        if not self.focus_window():
-            self.log.warning(
-                f"Failed to focus window for {self.agent_id}. Injection may fail or go to wrong window."
-            )
-            # Depending on strictness, might return False here
-            # For now, we'll try to proceed
-
-        x, y = current_input_coords
-        # Add human-like jitter to click coordinates
-        tx = x + random.randint(-self.random_offset, self.random_offset)
-        ty = y + random.randint(-self.random_offset, self.random_offset)
-
-        try:
-            # Move to field, clear it, then type/paste
-            pyautogui.moveTo(tx, ty, duration=random.uniform(0.1, 0.3))
-            self._pause(0.1)  # Pause before click
-
-            # Clear field before typing
-            self._clear_input_field(tx, ty)
-
-            self._type_or_paste(prompt)
-            self._pause()  # Pause after typing/pasting
-
-            # Optionally, press Enter if the GUI requires it (this is common)
-            # pyautogui.press('enter') # // EDIT: Removed automatic enter press
-            # self.log.debug(f"Pressed Enter for {self.agent_id} after injection.")
-            # This should be configurable or part of the coordinate definition if 'enter_button' exists
-
-            self.log.info(f"Successfully injected prompt for {self.agent_id}.")
+                return False
+                
             return True
         except Exception as e:
-            self.log.error(
-                f"Error during prompt injection for {self.agent_id}: {e}", exc_info=True
-            )
-            # Potentially take a screenshot on error if pyautogui.screenshot is available
-            # self.take_screenshot_on_error(f"inject_fail_{self.agent_id}")
+            self.log.error(f"Error checking window focus: {e}")
+            return False  # Assume focus is incorrect on error
+
+    def inject(self, text: str, target_coords: Tuple[int, int]) -> bool:
+        """
+        Inject text into an input field at the specified coordinates.
+        
+        Args:
+            text: The text to inject
+            target_coords: The (x, y) coordinates to click before injecting
+            
+        Returns:
+            bool: True if injection was successful, False otherwise
+        """
+        try:
+            # Check for context boundary markers in the prompt
+            text = self._check_and_add_context_markers(text)
+            
+            # Verify window focus if enabled
+            if self.focus_verify_enabled and not self._verify_window_focus():
+                self.log.error("Window focus verification failed")
+                return False
+
+            # Move to target position with random offset
+            x, y = self._add_random_offset(*target_coords)
+            pyautogui.moveTo(x, y, duration=0.3)
+            self._random_pause()
+            
+            # Click to focus
+            pyautogui.click()
+            self._random_pause()
+            
+            # Use paste if enabled and available
+            if self.use_paste_enabled and self.paste_available:
+                # 1. Store original clipboard content
+                try:
+                    original_clipboard = pyperclip.paste()
+                except:
+                    original_clipboard = ""
+                
+                # 2. Copy our text to clipboard
+                pyperclip.copy(text)
+                self._random_pause()
+                
+                # 3. Paste
+                pyautogui.hotkey('ctrl', 'v')
+                self._random_pause()
+                
+                # 4. Restore original clipboard content
+                pyperclip.copy(original_clipboard)
+            else:
+                # Fallback to typewrite
+                pyautogui.typewrite(text, interval=0.01)
+                
+            return True
+        except Exception as e:
+            self.log.error(f"Error injecting text: {e}")
             return False
 
     async def inject_text(self, text: str, is_initial_prompt: bool = False) -> bool:
@@ -321,57 +219,184 @@ class CursorInjector:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.inject, text, target_input_coords)
 
-    # // EDIT START: Add new method for sending submission keys
-    async def send_submission_keys(self, keys: list[str]) -> bool:
-        """Sends a sequence of key presses (e.g., Enter, Ctrl+Enter).
+    async def inject_text_hybrid(
+        self, 
+        text: str, 
+        is_initial_prompt: bool = False,
+        retries: int = 1
+    ) -> bool:
+        """Inject text using a hybrid approach with retries.
         
         Args:
-            keys: A list of keys to press. For hotkeys, supply them in order (e.g., ['ctrl', 'enter']).
-                  For a single key, provide a list with one element (e.g., ['enter']).
-                  
+            text: The text to inject
+            is_initial_prompt: Whether this is an initial prompt
+            retries: Number of times to retry if injection fails
+            
         Returns:
-            bool: True if key presses were attempted, False on error (though pyautogui often doesn't give direct error status).
+            bool: True if successful, False otherwise
         """
-        if not keys:
-            self.log.warning(f"[{self.agent_id}] No keys provided to send_submission_keys.")
+        # Check for context boundary markers in the prompt
+        text = self._check_and_add_context_markers(text)
+        
+        element_key_suffix = "input_box_initial" if is_initial_prompt else "input_box"
+        target_input_coords = self._get_specific_agent_coords(element_key_suffix)
+        
+        if not target_input_coords:
+            self.log.error(
+                f"Cannot inject text via hybrid method: Input coordinates not found for {self.agent_id} using key '{element_key_suffix}'."
+            )
             return False
-
-        def _press_keys():
+            
+        attempt = 0
+        while attempt <= retries:
+            attempt += 1
+            
             try:
-                if len(keys) > 1:
-                    self.log.debug(f"[{self.agent_id}] Sending hotkey sequence: {keys}")
-                    pyautogui.hotkey(*keys)
+                # Verify window focus if enabled
+                if self.focus_verify_enabled and not self._verify_window_focus():
+                    self.log.warning(f"Window focus verification failed on attempt {attempt}")
+                    if attempt <= retries:
+                        await asyncio.sleep(1)
+                        continue
+                    else:
+                        return False
+                
+                # Move to target position with random offset
+                x, y = self._add_random_offset(*target_input_coords)
+                pyautogui.moveTo(x, y, duration=0.3)
+                await asyncio.sleep(0.1)
+                
+                # Click to focus
+                pyautogui.click()
+                await asyncio.sleep(0.2)
+                
+                # Clear any existing text with Ctrl+A, Delete
+                pyautogui.hotkey('ctrl', 'a')
+                await asyncio.sleep(0.1)
+                pyautogui.press('delete')
+                await asyncio.sleep(0.1)
+                
+                # Use paste if available
+                if PYPERCLIP_AVAILABLE:
+                    # Store original clipboard
+                    try:
+                        original_clipboard = pyperclip.paste()
+                    except:
+                        original_clipboard = ""
+                    
+                    # Copy text to clipboard
+                    pyperclip.copy(text)
+                    await asyncio.sleep(0.1)
+                    
+                    # Paste with keyboard shortcut
+                    pyautogui.hotkey('ctrl', 'v')
+                    await asyncio.sleep(0.2)
+                    
+                    # Restore original clipboard
+                    pyperclip.copy(original_clipboard)
                 else:
-                    self.log.debug(f"[{self.agent_id}] Pressing single key: {keys[0]}")
-                    pyautogui.press(keys[0])
-                self._pause(0.1) # Brief pause after key action
+                    # Fall back to typewrite (slower but more reliable for shorter text)
+                    max_segment_length = 1000  # Maximum length for each segment
+                    
+                    # Split text into manageable segments
+                    segments = [text[i:i+max_segment_length] for i in range(0, len(text), max_segment_length)]
+                    
+                    for segment in segments:
+                        pyautogui.typewrite(segment, interval=0.01)
+                        await asyncio.sleep(0.5)  # Pause between segments
+                
+                self.log.info(f"Successfully injected text (~{len(text)} chars) on attempt {attempt}")
                 return True
+                
             except Exception as e:
-                self.log.error(f"[{self.agent_id}] Error during send_submission_keys ({keys}): {e}", exc_info=True)
-                # self.take_screenshot_on_error(f"submission_fail_{self.agent_id}") # Optional screenshot
+                self.log.error(f"Error during hybrid text injection (attempt {attempt}/{retries}): {e}")
+                if attempt <= retries:
+                    await asyncio.sleep(1)
+                else:
+                    return False
+        
+        return False
+
+    async def send_submission_keys(self, key_combo: List[str]) -> bool:
+        """Send key combination to submit prompt.
+        
+        Args:
+            key_combo: List of keys to press together (e.g. ['ctrl', 'enter'])
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Verify window focus
+            if self.focus_verify_enabled and not self._verify_window_focus():
+                self.log.error("Window focus verification failed when trying to submit")
                 return False
-
-        loop = asyncio.get_event_loop()
-        try:
-            success = await loop.run_in_executor(None, _press_keys)
-            return success
+                
+            # Send key combination
+            pyautogui.hotkey(*key_combo)
+            return True
+            
         except Exception as e:
-            self.log.error(f"[{self.agent_id}] Exception in executor for send_submission_keys ({keys}): {e}", exc_info=True)
+            self.log.error(f"Error sending submission keys {key_combo}: {e}")
             return False
-    # // EDIT END
 
-    def take_screenshot_on_error(self, filename_prefix: str = "error_screenshot"):
+    def _check_and_add_context_markers(self, text: str) -> str:
+        """
+        Check if there are context boundaries and add appropriate markers to the prompt
+        
+        Args:
+            text: The original prompt text
+            
+        Returns:
+            str: The modified prompt text with context boundary information if available
+        """
         try:
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            # Ensure screenshots directory exists (e.g., runtime/debug_screenshots)
-            # For now, saving to current dir or a predefined debug path
-            screenshot_dir = Path("runtime/debug_screenshots")
-            screenshot_dir.mkdir(parents=True, exist_ok=True)
-            filepath = screenshot_dir / f"{filename_prefix}_{timestamp}.png"
-            pyautogui.screenshot(filepath)
-            self.log.info(f"Screenshot saved to {filepath} on error.")
+            if not CONTEXT_BOUNDARIES_FILE.exists():
+                return text
+                
+            with open(CONTEXT_BOUNDARIES_FILE, "r") as f:
+                boundaries = json.load(f)
+                
+            current_phase = boundaries.get("current_phase")
+            if not current_phase:
+                return text
+                
+            # Find most recent boundary for this agent
+            agent_boundaries = [
+                b for b in boundaries.get("boundaries", [])
+                if b.get("agent_id") == self.agent_id
+            ]
+            
+            if not agent_boundaries:
+                return text
+                
+            # Get latest boundary
+            latest_boundary = sorted(
+                agent_boundaries,
+                key=lambda x: x.get("timestamp", ""),
+                reverse=True
+            )[0]
+            
+            # Add context marker to prompt
+            marker = f"""
+--- CONTEXT BOUNDARY INFORMATION ---
+PLANNING PHASE: {latest_boundary.get('phase')}
+BOUNDARY ID: {latest_boundary.get('boundary_id')}
+REASON: {latest_boundary.get('reason')}
+---
+
+"""
+            # Add marker at the beginning of the prompt
+            return marker + text
+            
         except Exception as e:
-            self.log.error(f"Failed to take screenshot: {e}")
+            self.log.error(f"Error adding context markers: {e}")
+            return text
+            
+        
+    def reset(self) -> None:
+        """Reset any internal state"""
+        pass
 
 
 if __name__ == "__main__":
@@ -425,9 +450,12 @@ if __name__ == "__main__":
     test_agent_id = "Agent-1"
     injector = CursorInjector(agent_id=test_agent_id, coords_file=coords_file_path)
 
-    if injector.input_coords:
-        log.info(
-            f"Injector created for {test_agent_id} with input_coords: {injector.input_coords}"
+    # Attempt to get coordinates for the test
+    test_input_coords = injector._get_specific_agent_coords("input_box_initial")
+
+    if test_input_coords: # Check if we got the specific coordinates
+        log.info( # Use log not self.log since we're in __main__
+            f"Injector created for {test_agent_id} with input_coords: {test_input_coords}"
         )
 
         # Make sure a window that might match "Agent-1" and "Cursor" is open and visible
@@ -439,7 +467,8 @@ if __name__ == "__main__":
         time.sleep(5)
 
         test_prompt = "Hello from CursorInjector test! This is a test prompt."
-        success = injector.inject(test_prompt)
+        # Pass the resolved coordinates to the inject method
+        success = injector.inject(test_prompt, test_input_coords)
         if success:
             log.info(f"Successfully injected prompt for {test_agent_id}.")
         else:
@@ -449,7 +478,7 @@ if __name__ == "__main__":
         log.info("Test injection complete. Check the target GUI.")
     else:
         log.error(
-            f"Could not initialize injector properly for {test_agent_id} due to missing coordinates. Test aborted."
+            f"Could not initialize injector properly for {test_agent_id} due to missing 'input_box_initial' coordinates. Test aborted."
         )
         log.info(
             f"Ensure '{test_agent_id}.input_box_initial' key exists in {coords_file_path}"

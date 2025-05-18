@@ -126,20 +126,21 @@ async def run_agent1_dry_cycle():
     abs_coords_file_path = WORKSPACE_ROOT / COORDS_CONFIG_FILE
     injector = CursorInjector(agent_id=AGENT_ID_TO_TEST, coords_file_path=abs_coords_file_path)
 
-    # 2. Inject a dummy prompt
+    # 2. Inject a dummy prompt using the hybrid method
     dummy_prompt = f"This is a dummy prompt for {AGENT_ID_TO_TEST} from the self-check script."
-    log.info(f"Injecting prompt: '{dummy_prompt[:60]}...'")
+    log.info(f"Injecting prompt using hybrid method: '{dummy_prompt[:60]}...'")
     try:
         # Using is_initial_prompt=True to target "input_box_initial" for the agent
-        injection_successful = await injector.inject_text(dummy_prompt, is_initial_prompt=True)
+        # Use the new hybrid injection method for more reliable text input
+        injection_successful = await injector.inject_text_hybrid(dummy_prompt, is_initial_prompt=True, retries=2)
         if injection_successful:
-            log.info(f"SUCCESS: Dummy prompt possibly injected for {AGENT_ID_TO_TEST}. Check target GUI.")
+            log.info(f"SUCCESS: Dummy prompt injected for {AGENT_ID_TO_TEST} using hybrid method. Check target GUI.")
         else:
-            log.error(f"FAILED: Dummy prompt injection for {AGENT_ID_TO_TEST}. See injector logs.")
+            log.error(f"FAILED: Hybrid prompt injection for {AGENT_ID_TO_TEST}. See injector logs.")
             if hasattr(injector, 'take_screenshot_on_error'):
                 injector.take_screenshot_on_error(f"self_check_inject_fail_{AGENT_ID_TO_TEST}")
     except Exception as e:
-        log.error(f"Exception during prompt injection for {AGENT_ID_TO_TEST}: {e}", exc_info=True)
+        log.error(f"Exception during hybrid prompt injection for {AGENT_ID_TO_TEST}: {e}", exc_info=True)
         if hasattr(injector, 'take_screenshot_on_error'):
             injector.take_screenshot_on_error(f"self_check_inject_exception_{AGENT_ID_TO_TEST}")
 
@@ -150,7 +151,7 @@ async def run_agent1_dry_cycle():
     retriever = ResponseRetriever(agent_id=AGENT_ID_TO_TEST, coords_file=abs_coords_file_path)
 
     # 4. Simulate a mock clipboard response
-    mock_response = f"This is a mock clipboard response for {AGENT_ID_TO_TEST}.".strip()
+    mock_response = f"This is a mock response for {AGENT_ID_TO_TEST}.".strip()
     log.info(f"Simulating mock response to clipboard: '{mock_response[:60]}...'")
     if PYPERCLIP_AVAILABLE:
         if retriever.simulate_copy_to_clipboard(mock_response):

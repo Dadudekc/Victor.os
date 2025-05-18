@@ -70,25 +70,6 @@ These documents define the Universal Agent Loop, non-idling requirements, drift 
 ├── reports/ (...)
 ├── runtime/ (...)
 ├── sandbox/ (...)
-├── scripts/
-│   ├── analyze_latency_trends.py
-│   ├── bridge_health_report.py
-│   ├── bridge_integrity_monitor.py
-│   ├── bridge_mutation_impact_report.py
-│   ├── gpt_cursor_relay.py
-│   ├── monitor_bridge.py
-│   ├── mutation_test_bridge.py
-│   ├── simulate_tool_timeout.py
-│   ├── stress_test_bridge.py
-│   ├── swarm_monitor.py
-│   ├── task_flow_migration.py
-│   ├── test_edit_file_failures.py
-│   ├── test_file_integrity_recovery.py
-│   ├── test_thea_bridge_pipeline.py
-│   ├── thea_to_cursor_agent.py
-│   └── agents/
-│       ├── autonomy_manifest_agent9.json
-│       └── new_agent.py
 ├── specs/
 │   ├── PROJECT_PLAN.md
 │   ├── README.md
@@ -746,8 +727,8 @@ This section lists specific, active project tasks as well as ongoing initiatives
 | TEST-001| Import Validation                             | agent-1        | Done        | Medium     |            | Checked imports via `py_compile` on `src/dreamos/`. Fixed `SyntaxError` in `augment_task_tags.py` related to `Agent-1` path. `py_compile` now passes. |
 | TEST-002| Test Coverage Increase                        | {{AI Assistant (Gemini)}} | Blocked     | Medium     |            | {{Blocker context updated. `py_compile` checks pass for `src/dreamos/core/config.py` and test files in `tests/core/coordination/*`, indicating syntax/name errors are likely resolved. However, the task remains blocked by the reported tooling limitation preventing *application* of critical fixes needed for coverage increase (possibly related to BLOCK-003's `edit_file` issues).}} |
 | TEST-003| Health Checks Review/Expansion                |                | To Do       | Low      |            | Review/expand health checks in `src/dreamos/core/health_checks/`.  |
-| DOC-001 | Update `README.md`                            |                | To Do       | Medium     |            | Refresh main README for current structure, setup, usage.              |
-| DOC-002 | Document `scripts/`                           |                | To Do       | Low      |            | Add READMEs/usage comments to scripts in `scripts/`.               |
+| DOC-001 | Update `README.md`                            |                | To Do       | Medium   |            | Refresh main README for current structure, setup, usage.              |
+| DOC-002 | Document `scripts/`                           |                | Obsolete    | Low      |            | Root `scripts/` directory removed during restructuring. Task is obsolete. |
 | DOC-003 | Review `DEVELOPER_NOTES.md`                   |                | To Do       | Low      |            | Integrate relevant info from `docs/DEVELOPER_NOTES.md`.             |
 | PIPE-001| Agent 2 (`prototype_context_router`)          | Agent 2        | Blocked     | Medium     |            | {{Proceed with design/prototyping once task board is unblocked. Note: The underlying `read_file` instability (BLOCK-002) affecting task board access may be resolved by the `safe_read_with_tool` utility. Agent 2 should re-evaluate if access is now possible. If other specific task board issues persist, please provide details.}} |
 | PIPE-002| Agent 3 (`ROUTE_INJECTION_REQUEST`)           | Agent 3        | To Do       | Medium     |            | Define schema and provide example.                                  |
@@ -775,5 +756,6 @@ This section lists specific, active project tasks as well as ongoing initiatives
 | LOG-LOOP-007        | Write lifecycle entries to `agent_<n>.md` and update `devlog.md`. (Points: 300)                            | Agent-6        | {{Done}}       |          |            | Milestone for AUTONOMY LOOP RISING episode.                                                                |
 | YAML-PARSER-008     | Parse episode YAML and extract task list per agent. (Points: 500)                                          | Agent-7        | {{Active}}     |          |            | Milestone for AUTONOMY LOOP RISING episode.                                                                |
 | PROMPT-DISPERSER-009| Write parsed tasks into correct inbox files using structured prompt format. (Points: 500)                  | Agent-8        | {{Active}}     |          |            | Deps: YAML-PARSER-008. Milestone for AUTONOMY LOOP RISING episode.                                         |
+| DEVOPS-001 | Setup CI/CD Pipeline                        |                | Blocked     | Critical |            | Initial setup (agent-1). BLOCKER NOTE: Original blocker referred to a 'scripts/analysis/' directory that is now obsolete due to restructuring. (THEA investigating permissions if still relevant to new structure) |
 
 ## 4. Future/Backlog Tasks

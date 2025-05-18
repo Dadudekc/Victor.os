@@ -127,18 +127,20 @@ async def main():
         initial_prompt_for_agent = INITIAL_ACTIVATION_PROMPT_TEMPLATE.format(agent_id=agent_id)
         window_title_for_agent = WINDOW_TITLES.get(agent_id, "Cursor")
 
-        logger.info(f"[{agent_id}] (Target window: '{window_title_for_agent}') injecting INITIAL ACTIVATION prompt: {initial_prompt_for_agent[:100]}...")
+        logger.info(f"[{agent_id}] (Target window: '{window_title_for_agent}') injecting INITIAL ACTIVATION prompt using hybrid method: {initial_prompt_for_agent[:100]}...")
         
         injector = CursorInjector(
             agent_id=agent_id,
-            window_title=window_title_for_agent 
+            window_title=window_title_for_agent,
+            use_paste=False
         )
         # ResponseRetriever is not strictly needed for initial prompt, but good to instantiate if later checks are added
         # retriever = ResponseRetriever(agent_id=agent_id)
 
-        ok_inject = await injector.inject_text(initial_prompt_for_agent, is_initial_prompt=True)
+        # Use the new hybrid injection method for more reliable text input
+        ok_inject = await injector.inject_text_hybrid(initial_prompt_for_agent, is_initial_prompt=True, retries=2)
         if ok_inject:
-            logger.info(f"[{agent_id}] Initial activation prompt injected. Sending Ctrl+Enter...")
+            logger.info(f"[{agent_id}] Initial activation prompt injected using hybrid method. Sending Ctrl+Enter...")
             ok_submit = await injector.send_submission_keys(['ctrl', 'enter'])
             if ok_submit:
                 logger.info(f"[{agent_id}] Ctrl+Enter sent for initial prompt.")
@@ -174,16 +176,19 @@ async def main():
 
             injector = CursorInjector(
                 agent_id=agent_id,
-                window_title=window_title_for_agent 
+                window_title=window_title_for_agent,
+                use_paste=False
             )
             retriever = ResponseRetriever(agent_id=agent_id)
 
-            logger.info(f"[{agent_id}] (Target window: '{window_title_for_agent}') injecting AUTONOMOUS LOOP prompt (Cycle: {cycle_num}): {prompt[:100]}...")
-            ok_inject = await injector.inject_text(prompt, is_initial_prompt=False)
+            logger.info(f"[{agent_id}] (Target window: '{window_title_for_agent}') injecting AUTONOMOUS LOOP prompt using hybrid method (Cycle: {cycle_num}): {prompt[:100]}...")
+            
+            # Use the new hybrid injection method for more reliable text input
+            ok_inject = await injector.inject_text_hybrid(prompt, is_initial_prompt=False, retries=2)
             
             # // EDIT START: Send Ctrl+Enter after main prompt injection
             if ok_inject:
-                logger.info(f"[{agent_id}] Autonomous loop prompt injected. Sending Ctrl+Enter...")
+                logger.info(f"[{agent_id}] Autonomous loop prompt injected using hybrid method. Sending Ctrl+Enter...")
                 ok_submit = await injector.send_submission_keys(['ctrl', 'enter'])
                 if ok_submit:
                     logger.info(f"[{agent_id}] Ctrl+Enter sent for autonomous loop prompt.")

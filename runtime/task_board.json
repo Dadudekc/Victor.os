@@ -3,9 +3,9 @@
     "cursor_1": {
       "assigned_task_description": "PAUSED: global_folder_audit_map. ACTIVE: BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001",
       "current_task_id": "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001",
-      "last_status_update_utc": "{{CURRENT_UTC_ISO_TIMESTAMP}}",
-      "status": "EXECUTING",
-      "status_details": "Actively analyzing bridge task BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001. Codebase search successful. Found relevant modules: CursorOrchestrator, gui_interaction.py (contains copy_cursor_response function).",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154",
+      "status": "IDLE",
+      "status_details": "Waiting for new tasks",
       "tasks": {
         "global_folder_audit_map": {
           "description": "Global Map and Audit: List every utils, helpers, common, lib, shared, scripts, functional, etc. under src/.",
@@ -17,7 +17,14 @@
           "description": "Review scope of 'Project Structure Audit & Consolidation' for inclusion of stability issues (PBM, environment) highlighted in past critiques. Propose follow-up if needed.",
           "status": "BLOCKED",
           "last_updated": "{{PREVIOUS_TIMESTAMP}}",
-          "dependencies": ["global_folder_audit_map", "audit_utils_helpers", "audit_shared_functional_misc", "standardize_scripts", "sweep_schemas_metadata", "generate_consolidation_report"],
+          "dependencies": [
+            "global_folder_audit_map",
+            "audit_utils_helpers",
+            "audit_shared_functional_misc",
+            "standardize_scripts",
+            "sweep_schemas_metadata",
+            "generate_consolidation_report"
+          ],
           "blocker_reason": "Dependency tasks incomplete."
         },
         "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001": {
@@ -147,6 +154,6 @@
       }
     }
   },
-  "last_updated_utc": "2025-04-28T23:36:37.604370+00:00",
+  "last_updated_utc": "2025-05-18T17:29:49.723157",
   "supervisor_notes": "Project Structure Audit & Consolidation ACTIVE"
 }

@@ -56,6 +56,51 @@ class EpisodeManager:
             return self.get_episode_details(active_id)
         return None
 
+    def _process_single_trigger(self, trigger: Dict[str, Any], log_content: str, agent_id_context: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """Processes a single trigger against the log content."""
+        pattern = trigger.get("log_pattern")
+        pattern_type = trigger.get("log_pattern_type", "literal") # Default to literal match
+
+        if not pattern:
+            logger.warning(f"Trigger {trigger.get('id')} has no log_pattern defined. Skipping.")
+            return None
+        
+        match_found = False
+        captured_groups = {}
+
+        try:
+            if pattern_type == "regex":
+                match = re.search(pattern, log_content)
+                if match:
+                    match_found = True
+                    captured_groups = match.groupdict()
+                    # Ensure agent_id from pattern overrides context if present
+                    trigger_agent_id = captured_groups.get('agent_id') or agent_id_context or 'UNKNOWN_AGENT'
+                    
+                    # Substitute {agent_id} in activation message if present
+                    if 'activation_message_to_log' in trigger and isinstance(trigger['activation_message_to_log'], str):
+                        trigger['activation_message_to_log'] = trigger['activation_message_to_log'].format(agent_id=trigger_agent_id)
+
+            elif pattern_type == "literal":
+                if pattern in log_content:
+                    match_found = True
+            else:
+                logger.warning(f"Unsupported log_pattern_type: {pattern_type} for trigger {trigger.get('id')}")
+                return None
+
+            if match_found:
+                logger.info(f"Log trigger '{trigger.get('id')}' matched for agent '{agent_id_context or 'any'}'. Pattern: '{pattern}'")
+                action_info = trigger.copy() # Copy to avoid modifying the original registry data
+                action_info['captured_data'] = captured_groups
+                return action_info
+                
+        except re.error as e:
+            logger.error(f"Regex error for trigger '{trigger.get('id')}' with pattern '{pattern}': {e}")
+        except Exception as e:
+            logger.error(f"Error processing trigger '{trigger.get('id')}': {e}", exc_info=True)
+        
+        return None
+
     def check_log_for_triggers(self, log_content: str, agent_id_context: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Checks the given log content against triggers defined in the active episode.
@@ -75,51 +120,13 @@ class EpisodeManager:
             logger.debug("No active episode or no triggers defined in the active episode.")
             return matched_triggers
 
-        for trigger in active_episode["triggers"]:
-            pattern = trigger.get("log_pattern")
-            pattern_type = trigger.get("log_pattern_type", "literal") # Default to literal match
-
-            if not pattern:
-                logger.warning(f"Trigger {trigger.get('id')} has no log_pattern defined. Skipping.")
-                continue
-            
-            match_found = False
-            captured_groups = {}
-
-            try:
-                if pattern_type == "regex":
-                    match = re.search(pattern, log_content)
-                    if match:
-                        match_found = True
-                        captured_groups = match.groupdict()
-                        # Ensure agent_id from pattern overrides context if present
-                        if 'agent_id' in captured_groups and captured_groups['agent_id']:
-                            trigger_agent_id = captured_groups['agent_id']
-                        elif agent_id_context:
-                            trigger_agent_id = agent_id_context
-                        else:
-                            trigger_agent_id = 'UNKNOWN_AGENT'
-                        
-                        # Substitute {agent_id} in activation message if present
-                        if 'activation_message_to_log' in trigger:
-                            trigger['activation_message_to_log'] = trigger['activation_message_to_log'].format(agent_id=trigger_agent_id)
-
-                elif pattern_type == "literal":
-                    if pattern in log_content:
-                        match_found = True
-                else:
-                    logger.warning(f"Unsupported log_pattern_type: {pattern_type} for trigger {trigger.get('id')}")
-                    continue
-
-                if match_found:
-                    logger.info(f"Log trigger '{trigger.get('id')}' matched for agent '{agent_id_context or 'any'}'. Pattern: '{pattern}'")
-                    action_info = trigger.copy() # Copy to avoid modifying the original registry data
-                    action_info['captured_data'] = captured_groups
-                    matched_triggers.append(action_info)
-            except re.error as e:
-                logger.error(f"Regex error for trigger '{trigger.get('id')}' with pattern '{pattern}': {e}")
-            except Exception as e:
-                logger.error(f"Error processing trigger '{trigger.get('id')}': {e}", exc_info=True)
+        for trigger_data in active_episode["triggers"]:
+            # Make a copy of the trigger data to avoid modification issues if the same trigger
+            # object is processed multiple times (e.g. if format is called on its string fields)
+            trigger_to_process = trigger_data.copy()
+            processed_trigger_action = self._process_single_trigger(trigger_to_process, log_content, agent_id_context)
+            if processed_trigger_action:
+                matched_triggers.append(processed_trigger_action)
         
         return matched_triggers
 

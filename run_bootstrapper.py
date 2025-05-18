@@ -24,8 +24,6 @@ def main():
                 sys.executable,
                 "-m",
                 "dreamos.tools.agent_bootstrap_runner",
-                "--agent",
-                "Agent-0",
                 "--no-delay"
             ],
             check=True

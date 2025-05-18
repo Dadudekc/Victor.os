@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import time
 import logging
 
@@ -19,7 +20,8 @@ logging.basicConfig(
 )
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'runtime', 'config', 'swarm_config.json')
-AGENT_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), '..', 'agents', 'base_agent.py') # Assuming a base_agent.py will exist
+WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+active_processes = {} # Global for now, consider class structure later
 
 def load_config():
     """Loads the swarm configuration."""
@@ -40,30 +42,102 @@ def load_config():
         return None
 
 def launch_agent(agent_id, agent_config):
-    """Launches a new agent."""
-    logging.info(f"Launching agent: {agent_id}")
-    # This is a placeholder.
-    # In a real scenario, you'd likely run a script like:
-    # cmd = ['python', AGENT_SCRIPT_PATH, '--agent-id', agent_id, '--config', json.dumps(agent_config)]
-    # subprocess.Popen(cmd)
-    # For now, we'll just log and simulate success.
-    logging.info(f"Agent {agent_id} launch command (simulated): python {AGENT_SCRIPT_PATH} --agent-id {agent_id}")
-    # Store process info if needed, e.g., in a global dict or a managed structure
-    return {"pid": os.getpid(), "status": "running"} # Simulated PID
+    """Launches a new agent using its specific script_path."""
+    logging.info(f"Attempting to launch agent: {agent_id} with config: {agent_config}")
+    
+    script_path_relative = agent_config.get('script_path')
+    if not script_path_relative:
+        logging.error(f"'script_path' not found in agent_config for {agent_id}. Cannot launch.")
+        return None
+
+    # Construct absolute path for the script (still useful for os.path.exists check)
+    script_path_absolute = os.path.join(WORKSPACE_ROOT, script_path_relative)
+
+    if not os.path.exists(script_path_absolute):
+        logging.error(f"Agent script not found at {script_path_absolute} for agent {agent_id}. Cannot launch.")
+        return None
+
+    # Prepare environment: Set CWD to the directory containing the 'dreamos' package (i.e., WORKSPACE_ROOT/src)
+    # Python will automatically add CWD to sys.path, so 'dreamos' should be importable.
+    launch_cwd = os.path.join(WORKSPACE_ROOT, 'src')
+    env = os.environ.copy() # Start with a fresh copy of current environment
+    # No explicit PYTHONPATH manipulation needed if CWD is correct for module execution.
+    
+    logging.debug(f"Using launch CWD for agent {agent_id}: {launch_cwd}")
+
+    prompt_file_relative_path = f"runtime/prompts/{agent_id.lower()}.txt"
+
+    # The script_path_absolute is validated to exist, but we run as a module.
+    module_path = "dreamos.tools.agent_bootstrap_runner"
+
+    cmd = [
+        sys.executable, 
+        "-m", module_path,
+        '--agent-id', agent_id,
+        '--prompt-file', prompt_file_relative_path
+    ]
+    
+    logging.info(f"Launching agent {agent_id} with command: {' '.join(cmd)}")
+    logging.info(f"Using CWD: {launch_cwd} and relying on Python to find modules.") # Modified log message
+
+    try:
+        process = subprocess.Popen(cmd, cwd=launch_cwd, env=env)
+        active_processes[agent_id] = {"pid": process.pid, "process_obj": process, "status": "running"}
+        logging.info(f"Agent {agent_id} launched successfully with PID: {process.pid}")
+        return active_processes[agent_id]
+    except FileNotFoundError: #Handles if sys.executable or script_path_absolute is wrong
+        logging.error(f"Failed to launch agent {agent_id}: Command or script not found. Check sys.executable and script path: {script_path_absolute}", exc_info=True)
+    except Exception as e:
+        logging.error(f"Failed to launch agent {agent_id}: {e}", exc_info=True)
+    return None
 
 def terminate_agent(agent_id):
-    """Terminates a running agent."""
-    logging.info(f"Terminating agent: {agent_id}")
-    # Placeholder for actual termination logic (e.g., find PID, send signal)
-    logging.warning(f"Termination logic for agent {agent_id} is not yet implemented.")
-    return {"status": "terminated"}
+    """Terminates a running agent using its stored PID."""
+    logging.info(f"Attempting to terminate agent: {agent_id}")
+    if agent_id in active_processes and active_processes[agent_id]["process_obj"]:
+        process_info = active_processes[agent_id]
+        try:
+            process_info["process_obj"].terminate() # Send SIGTERM
+            try:
+                process_info["process_obj"].wait(timeout=5) # Wait for graceful shutdown
+                logging.info(f"Agent {agent_id} (PID: {process_info['pid']}) terminated gracefully.")
+            except subprocess.TimeoutExpired:
+                logging.warning(f"Agent {agent_id} (PID: {process_info['pid']}) did not terminate gracefully after 5s, sending SIGKILL.")
+                process_info["process_obj"].kill()
+                logging.info(f"Agent {agent_id} (PID: {process_info['pid']}) killed.")
+            process_info["status"] = "terminated"
+            # Optionally remove from active_processes or mark as inactive
+            # del active_processes[agent_id]
+            return {"status": "terminated"}
+        except Exception as e:
+            logging.error(f"Error terminating agent {agent_id} (PID: {process_info['pid']}): {e}", exc_info=True)
+            process_info["status"] = "error_terminating"
+            return {"status": "error_terminating", "error": str(e)}
+    else:
+        logging.warning(f"Agent {agent_id} not found in active processes or no process object available. Cannot terminate.")
+        return {"status": "not_found"}
 
 def get_agent_status(agent_id):
-    """Checks the status of an agent."""
-    logging.info(f"Checking status for agent: {agent_id}")
-    # Placeholder for status checking logic
-    logging.warning(f"Status check for agent {agent_id} is not yet implemented.")
-    return {"status": "unknown"}
+    """Checks the status of an agent using its stored process object."""
+    logging.info(f"Attempting to get status for agent: {agent_id}")
+    if agent_id in active_processes and active_processes[agent_id]["process_obj"]:
+        process_info = active_processes[agent_id]
+        process_obj = process_info["process_obj"]
+        return_code = process_obj.poll()
+
+        if return_code is None:
+            logging.info(f"Agent {agent_id} (PID: {process_info['pid']}) is running.")
+            process_info["status"] = "running"
+            return {"status": "running", "pid": process_info['pid']}
+        else:
+            logging.info(f"Agent {agent_id} (PID: {process_info['pid']}) has exited with code: {return_code}.")
+            process_info["status"] = "exited"
+            # Optionally remove from active_processes here if it has exited
+            # del active_processes[agent_id]
+            return {"status": "exited", "pid": process_info['pid'], "return_code": return_code}
+    else:
+        logging.warning(f"Agent {agent_id} not found in active processes or no process object. Status unknown.")
+        return {"status": "unknown"}
 
 def main():
     print("SWARM_CONTROLLER_MAIN_STARTED_DEBUG_PRINT", flush=True) # Retain one clear print for basic output check
@@ -95,7 +169,7 @@ def main():
                 continue
             
             launch_agent(agent_id, agent_info)
-        logging.info("All agents from 'managed_agents' launched (simulation).")
+        logging.info("All agents from 'managed_agents' launched.")
 
     elif args.action == 'start':
         if not args.agent_id:

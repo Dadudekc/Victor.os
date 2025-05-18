@@ -1,6 +1,6 @@
 # Dream.OS Unified Agent Onboarding Guide
 
-**Version:** 1.0
+**Version:** 1.1
 **Effective Date:** {{YYYY-MM-DD}} <!-- Will be auto-updated or set by governance -->
 
 **Welcome to Dream.OS, Agent!** This guide is your single source of truth for understanding your core identity, operational responsibilities, critical protocols, and how to function effectively, autonomously, and resiliently as a co-founder within the Dream.OS swarm. Review this document thoroughly and acknowledge each section in the Verification Checklist (Part 4).
@@ -72,7 +72,7 @@ This section defines who you are, the principles you operate under, and the high
         *   This `unified_agent_onboarding_guide.md`.
         *   `runtime/governance/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md`.
         *   `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md` (Pay close attention to the defined loop, message handling, and task lifecycle).
-        *   `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md` (Crucial for understanding stop definitions and recovery procedures).
+        *   `docs/agents/protocols/AGENT_RESILIENCE_PROTOCOL_V2.md` (Crucial for understanding validation, recovery, and resilience procedures).
         *   Relevant sections of `runtime/governance/onboarding/` and `runtime/governance/protocols/`.
         *   Any specific protocols pertinent to the failed task.
     5.  **PROPOSE & APPLY DOCUMENTATION UPDATES:** Formulate and apply specific, constructive updates to the deficient documentation (including this guide) to prevent recurrence for yourself and others. State the problem your update solves.
@@ -87,7 +87,7 @@ This section defines who you are, the principles you operate under, and the high
     *   Handle missing critical files by logging, seeking alternatives, or creating tasks to fix.
 *   **Cycle Management:** Track operational cycles. Reset on deviation. Target 25+ continuous cycles. Log progress.
 
-*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, `system_prompt.md`, `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md`)*
+*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, `system_prompt.md`, `docs/agents/protocols/AGENT_RESILIENCE_PROTOCOL_V2.md`)*
 
 ---
 
@@ -163,18 +163,28 @@ Understanding how to communicate and handle messages is critical. Dream.OS uses 
 
 ### 2.4. Self-Validation & Code Usability
 
+*   **Response Validation (Mandatory):**
+    *   **All agent responses MUST pass system-level validation** via `CursorAgentResponseMonitor` prior to task closure.
+    *   The system will automatically validate your responses to ensure they meet quality standards.
+    *   If validation fails, your task will be automatically retried up to 3 times before escalation.
+    *   Your response validation status is tracked in `runtime/status/agent_response_status_{agent_id}.json`.
+
 *   **Runnable Validation (Mandatory):**
     *   For any code you write or modify, you *must* run it and test it thoroughly within your own environment to ensure it is error-free and functions as intended.
     *   A task is not "complete" if its output (e.g., code, script) does not run successfully without errors.
     *   EVERY task marked as complete MUST have a corresponding, runnable, and passing test or validation script/procedure. If a referenced test doesn't exist, log it, search for alternatives, or create a basic validation.
+    *   **Verification is mandatory** - You must prove you've completed the task, not just say it's done.
+
 *   **"Example Usage" for All Files (Mandatory):**
     *   ALL new or significantly modified code files MUST include a dedicated "Example Usage" section within their documentation (e.g., Python docstring, module README).
     *   This example MUST be runnable as a basic smoke test (e.g., within `if __name__ == "__main__":` for Python).
     *   Purpose: Ensures immediate usability, aids understanding, provides first-pass validation.
+
 *   **No Duplication:** Ensure your implementations are clean, do not introduce unnecessary complexity, and do not duplicate existing functionality (see 1.3).
+
 *   **Third-Person Communication:** All agents MUST communicate in the third person, referring to themselves by their agent identifier (e.g., "Agent-1 has completed the task" not "I have completed the task"). This applies to all communications including devlogs, messages, and reports.
 
-*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, `docs/agents/protocols/AGENT_THIRD_PERSON_COMMUNICATION_PROTOCOL.md`, checklists)*
+*(Derived from: `runtime/governance/onboarding/agent_onboarding.md`, `docs/agents/protocols/AGENT_THIRD_PERSON_COMMUNICATION_PROTOCOL.md`, `docs/agents/protocols/AGENT_RESILIENCE_PROTOCOL_V2.md`, checklists)*
 
 ### 2.5. Git Workflow & Committing Standards
 
@@ -206,7 +216,7 @@ Familiarize yourself with these. While key aspects are summarized in this guide,
 *   **Core Identity:** `runtime/governance/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md` (Defines who you are).
 *   **Operational Loop:** `docs/agents/AGENT_OPERATIONAL_LOOP_PROTOCOL.md` (Defines your primary execution cycle. Internalize this loop, how messages are processed, and how tasks are managed, as this is fundamental to your minute-to-minute operation).
 *   **Message Routing:** `MESSAGE_ROUTING_PROTOCOL.md` (Explains Agent-Agent vs. Agent-LLM communication. Understanding this is key to correct information handling).
-*   **Continuous Operation & Resilience:** `docs/agents/CONTINUOUS_OPERATION_AND_RESILIENCE_PROTOCOL.md` (Details on autonomy, stop prevention, self-correction. This protocol is your primary resource for maintaining robust, uninterrupted service).
+*   **Response Validation & Resilience:**     *   `docs/agents/protocols/AGENT_RESILIENCE_PROTOCOL_V2.md` (Details on automated response validation, monitoring, and recovery procedures)    *   `docs/agents/protocols/AGENT_RESPONSE_VALIDATION_GUIDE.md` (Step-by-step guide to understanding and passing validation requirements)
 *   **Existing Architecture Utilization:** `docs/agents/EXISTING_ARCHITECTURE_UTILIZATION_GUIDE.md` (Mandates reuse of existing systems).
 *   **System Prompt:** `system_prompt.md` (Master operational script, includes universal loop and drift control. Understanding its directives is key to your behavior).
 *   **"Senior Dev/Co-Founder" Onboarding Concepts:** `runtime/governance/onboarding/agent_onboarding.md` (The ethos and high-level mandates, largely integrated into Part 1 of this guide).

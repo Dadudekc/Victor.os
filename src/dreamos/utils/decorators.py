@@ -3,6 +3,8 @@ import asyncio
 import logging
 from typing import Any, Callable, Coroutine, Tuple, Type
 
+logger = logging.getLogger(__name__)
+
 def retry_on_exception(
     max_attempts: int = 3,
     exceptions: Tuple[Type[Exception], ...] = (Exception,),
@@ -17,10 +19,10 @@ def retry_on_exception(
                     return func(*args, **kwargs)
                 except exceptions as e:
                     last_exception = e
-                    logging.warning(f"Attempt {attempt + 1}/{max_attempts} failed: {e}")
+                    logger.warning(f"Attempt {attempt + 1}/{max_attempts} failed: {e}")
                     if attempt < max_attempts - 1:
                         time.sleep(delay)
-            logging.error(f"All {max_attempts} attempts failed. Raising last exception.", exc_info=True)
+            logger.error(f"All {max_attempts} attempts failed. Raising last exception.", exc_info=True)
             raise last_exception
         return wrapper
     return decorator
@@ -39,10 +41,10 @@ def async_retry_on_exception(
                     return await func(*args, **kwargs)
                 except exceptions as e:
                     last_exception = e
-                    logging.warning(f"Async attempt {attempt + 1}/{max_attempts} failed: {e}")
+                    logger.warning(f"Async attempt {attempt + 1}/{max_attempts} failed: {e}")
                     if attempt < max_attempts - 1:
                         await asyncio.sleep(delay)
-            logging.error(f"All {max_attempts} async attempts failed. Raising last exception.", exc_info=True)
+            logger.error(f"All {max_attempts} async attempts failed. Raising last exception.", exc_info=True)
             raise last_exception
         return wrapper
     return decorator 

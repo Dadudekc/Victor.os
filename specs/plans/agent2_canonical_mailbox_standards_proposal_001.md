@@ -20,7 +20,7 @@ This proposal directly addresses findings from the audit report `specs/reports/a
 - **Example:**
     -   For Agent ID "1": `runtime/agent_comms/agent_mailboxes/agent-1.json`
     -   For Agent ID "CoCaptainThea": `runtime/agent_comms/agent_mailboxes/agent-cocaptainthea.json`
-- **Action for existing mailboxes:** Existing mailboxes not conforming (e.g., `agent_1_mailbox.json`, `Agent-9.json` with uppercase) should be renamed. Agents relying on old names must be updated.
+- **Action for existing mailboxes:** Existing mailboxes not conforming (e.g., `agent_1_mailbox.json`) should be renamed. Agents relying on old names must be updated.
 
 ### 2.2. Mailbox File JSON Structure
 - **Standard:** The root of the JSON file MUST be a JSON Array `[]`.
@@ -29,7 +29,6 @@ This proposal directly addresses findings from the audit report `specs/reports/a
 - **Rationale:**
     -   Simple, widely understood, and easy to parse by all agents.
     -   Allows for an ordered list of messages.
-    -   The audit revealed most agents (implicitly or explicitly) expect this structure, with Agent 9 being an exception.
 - **Example (Mailbox with one message):**
   ```json
   [
@@ -47,7 +46,6 @@ This proposal directly addresses findings from the audit report `specs/reports/a
     }
   ]
   ```
-- **Action for non-conforming mailboxes (e.g., Agent 9):** Agent 9's current structure `{"inbox": [], "outbox": [], "loop_state": {}}` needs to be refactored. Its `inbox` array should become the root content of `agent-9.json`. `outbox` and `loop_state` are internal to Agent 9 and should be managed by Agent 9 in a separate internal state file if needed, not as part of its publicly readable mailbox structure.
 
 ### 2.3. Message Object Structure (Recommended Minimum Fields)
 While individual message schemas can vary by `type`, the following fields are recommended as a minimum common set for all messages to ensure basic interoperability and metadata:
@@ -66,10 +64,10 @@ While individual message schemas can vary by `type`, the following fields are re
 - **Scope:** This standard applies to all agent-to-agent communication occurring via the `runtime/agent_comms/agent_mailboxes/` JSON file system.
 - **Transition Plan (High-Level):**
     1.  **Announcement:** Communicate this proposed standard to all relevant development teams/agents.
-    2.  **Agent Updates:** Agents need to update their mailbox reading/writing logic to conform to the new naming and structure. Specific attention to Agent 9.
+    2.  **Agent Updates:** Agents need to update their mailbox reading/writing logic to conform to the new naming and structure.
     3.  **File Migration:** A coordinated effort or script will be needed to:
         a.  Rename non-conforming mailbox files.
-        b.  Restructure the content of non-conforming mailboxes (primarily Agent 9's).
+        b.  Restructure the content of non-conforming mailboxes.
     4.  **Deprecation of Directory-Based Mailboxes:** The role of directory-based mailboxes (e.g., `Agent-1/`) must be clarified. If they are for active messaging, they should either be migrated to this JSON standard or a clear justification for their separate system provided. If not for active messaging, they should be clearly marked as archival or for other non-communication purposes.
 
 ## 4. Benefits

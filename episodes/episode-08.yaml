@@ -1,0 +1,246 @@
+agent_assignments:
+  Agent-1:
+    assigned_agent_id: Agent-1
+    dependencies: []
+    description: Design and implement the core Cursor Agent Bridge system that enables
+      seamless interaction between the swarm and external systems. Focus on robust
+      error handling, connection management, and standardized communication protocols.
+    estimated_duration: 10 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-CURSOR-BRIDGE-001
+    title: Implement Cursor Agent Bridge Core
+    validation_criteria:
+    - Cursor Agent Bridge core is implemented and passes all unit tests.
+    - Bridge can handle connection interruptions and recovery with minimal disruption.
+    - Communication protocol is documented and standardized for all agent interactions.
+  Agent-2:
+    assigned_agent_id: Agent-2
+    dependencies: []
+    description: Design and implement an event-driven coordination system for the
+      swarm that enables real-time response to system events. Focus on event types,
+      subscription mechanisms, and efficient event propagation.
+    estimated_duration: 12 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-EVENT-SYSTEM-001
+    title: Implement Event-Driven Coordination System
+    validation_criteria:
+    - Event system successfully publishes and subscribes to system events.
+    - Multiple event types are supported and properly categorized.
+    - Events are efficiently propagated to subscribed agents with minimal latency.
+  Agent-3:
+    assigned_agent_id: Agent-3
+    dependencies: []
+    description: Create a deployment framework for BasicBot instances that handles
+      configuration, environment setup, and operational monitoring. Focus on containerization
+      and easy deployment to various environments.
+    estimated_duration: 8 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-BASICBOT-DEPLOY-001
+    title: BasicBot Deployment Framework
+    validation_criteria:
+    - Deployment framework successfully configures and launches BasicBot instances.
+    - Environment setup is automated and repeatable.
+    - Operational monitoring is in place for deployed bots.
+  Agent-4:
+    assigned_agent_id: Agent-4
+    dependencies: []
+    description: Design and implement a comprehensive metrics collection and monitoring
+      system for agent responses. Focus on timing, success rates, and resource utilization.
+    estimated_duration: 10 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-METRICS-MONITOR-001
+    title: Agent Response Metrics and Monitoring
+    validation_criteria:
+    - Metrics collection system captures response times for all agent actions.
+    - Success rates are tracked and reported for all agent operations.
+    - Resource utilization is monitored and analyzed for optimization opportunities.
+  Agent-5:
+    assigned_agent_id: Agent-5
+    dependencies: []
+    description: Build an agent-accessible backtesting framework that enables strategy
+      optimization. Focus on historical data management, simulation environment, and
+      results analysis.
+    estimated_duration: 14 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-BACKTESTING-001
+    title: Agent-Accessible Backtesting Framework
+    validation_criteria:
+    - Backtesting framework successfully simulates strategy execution on historical
+      data.
+    - Results analysis provides clear insights for strategy optimization.
+    - Framework is accessible and usable by other agents.
+  Agent-6:
+    assigned_agent_id: Agent-6
+    dependencies: []
+    description: Take on the Captain role for orchestrating the swarm's activities
+      during Episode 08. Coordinate cross-agent dependencies, monitor progress, and
+      ensure alignment with episode objectives.
+    estimated_duration: Ongoing for Episode 08
+    planning_step: 4
+    status: pending
+    task_id: EP08-SWARM-ORCHESTRATION-001
+    title: Swarm Orchestration and Coordination
+    validation_criteria:
+    - Cross-agent dependencies are effectively managed.
+    - Swarm progress is regularly monitored and reported.
+    - Episode objectives remain clearly aligned across all agents.
+  Agent-7:
+    assigned_agent_id: Agent-7
+    dependencies:
+    - EP08-CURSOR-BRIDGE-001
+    description: Implement the integration layer between the Cursor Agent Bridge and
+      external systems. Focus on authentication, data transformation, and secure communication.
+    estimated_duration: 8 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-BRIDGE-INTEGRATION-001
+    title: Cursor Bridge Integration with External Systems
+    validation_criteria:
+    - Integration layer successfully authenticates with external systems.
+    - Data is properly transformed between internal and external formats.
+    - Communication is secure and reliable.
+  Agent-8:
+    assigned_agent_id: Agent-8
+    dependencies:
+    - EP08-BACKTESTING-001
+    description: Develop and test strategies for BasicBot instances. Focus on algorithmic
+      design, risk management, and performance optimization.
+    estimated_duration: 12 hours
+    planning_step: 4
+    status: pending
+    task_id: EP08-BASICBOT-STRATEGIES-001
+    title: BasicBot Strategy Development and Testing
+    validation_criteria:
+    - Multiple strategies are developed and thoroughly tested.
+    - Risk management is incorporated into all strategies.
+    - Performance optimization is demonstrated through backtesting results.
+core_objectives:
+- Implement a fully event-driven swarm coordination system that responds to real-time
+  changes in the environment.
+- Complete the Cursor Agent Bridge to enable seamless interaction between the swarm
+  and external systems.
+- Deploy BasicBot instances as a practical demonstration of Dream.OS capabilities.
+- Establish comprehensive monitoring and timing metrics for agent responses.
+- Implement agent-accessible backtesting capabilities for strategy optimization.
+- Utilize the newly standardized task and episode file structure to maintain system
+  coherence.
+created_at: '2025-05-18T08:45:00Z'
+definition_of_done:
+- Event-driven coordination system is operational and responding to system events.
+- Cursor Agent Bridge successfully facilitates communication between the swarm and
+  external systems.
+- At least two BasicBot instances are deployed and operational in their respective
+  environments.
+- Response timing metrics are collected and analyzed for all agents.
+- Backtesting framework is operational and accessible to agents for strategy optimization.
+- All task and episode files conform to the standardized schema and organization structure.
+loop_enforcement_protocol: Agents must monitor event streams and respond to relevant
+  events in real-time. Each agent is responsible for maintaining its designated role
+  within the swarm while adapting to changing conditions. Adherence to the newly standardized
+  task schema is mandatory.
+lore_integration_flag: true
+metrics:
+- 'event_system_latency_ms: target < 100ms'
+- 'cursor_bridge_uptime_percentage: target > 99.9%'
+- 'basicbot_successful_deployments: target >= 2'
+- 'agent_response_time_average_ms: target < 500ms'
+- 'backtesting_framework_utilization: target > 50% of agent strategy development'
+- 'task_schema_compliance_percentage: target 100%'
+north_star: A self-organizing swarm that reacts in real-time to events, provides comprehensive
+  agent bridging capabilities, and demonstrates value through deployed BasicBot instances.
+planning_documentation:
+  design:
+    file_structure:
+    - src/dreamos/events/ - Event system implementation
+    - src/dreamos/bridge/ - Cursor Bridge implementation
+    - src/dreamos/metrics/ - Metrics system implementation
+    - src/dreamos/backtesting/ - Backtesting framework
+    - src/dreamos/deployment/ - BasicBot deployment toolkit
+    modular_architecture:
+    - 'Event System Module: Handles all event publishing and subscription'
+    - 'Bridge Module: Manages external system communication'
+    - 'Metrics Module: Collects and analyzes agent performance data'
+    - 'Backtesting Module: Provides strategy simulation capabilities'
+    - 'Deployment Module: Manages BasicBot deployment and operations'
+  feature_documentation:
+    api_endpoints:
+    - /api/v1/events/publish - POST event publication endpoint
+    - /api/v1/events/subscribe - WS event subscription endpoint
+    - /api/v1/agents/bridge - Bridge control and status endpoint
+    component_logic:
+    - Event system uses pub/sub pattern with topic filtering
+    - Cursor Bridge uses request-response with long-polling fallback
+    - Metrics system uses time-series data with statistical aggregation
+    database_schema:
+    - 'events: id, type, payload, timestamp, source_agent'
+    - 'metrics: id, agent_id, metric_name, value, timestamp'
+    - 'backtesting: id, strategy_id, start_time, end_time, parameters, results'
+    user_stories:
+    - As an agent, I want to publish events so that other agents can respond
+    - As a system admin, I want to monitor agent performance metrics
+    - As a BasicBot, I want to optimize my strategy through backtesting
+  strategic_planning:
+    integration_points:
+    - Cursor Agent Bridge interfaces with the AgentBus system
+    - Event system integrates with existing agent coordination framework
+    - Metrics system hooks into the existing monitoring infrastructure
+    known_unknowns:
+    - Performance characteristics of large-scale event propagation
+    - Security implications of external system integration
+    - Resource requirements for deployed BasicBot instances
+    success_criteria:
+    - Event system latency < 100ms for all event types
+    - Cursor Bridge uptime > 99.9%
+    - BasicBot instances maintain stable operation for 48+ hours
+    tech_stack:
+    - Python 3.10+ for core systems
+    - FastAPI for event system and API endpoints
+    - Redis for event message bus
+    - PostgreSQL for metrics storage
+    - Docker for BasicBot containerization
+planning_stage: 4
+preamble: 'Building on the foundations established in Episode 07, Dream.OS now advances
+  to Phase 2 of the Full Auto Arc. This episode focuses on three critical areas: Live
+  Swarm Autonomy with event-driven coordination, Cursor Agent Bridge for seamless
+  interaction, and BasicBot deployment to demonstrate real-world application capabilities.
+  The newly standardized project architecture and task schema will power a more resilient
+  and responsive system.'
+risks_and_mitigation:
+- mitigation: Implement comprehensive logging and monitoring. Start with simple event
+    types and gradually increase complexity as stability is confirmed.
+  risk: Event-driven system complexity leads to race conditions or deadlocks.
+- mitigation: Conduct thorough security review of all bridge components. Implement
+    proper authentication, encryption, and input validation.
+  risk: Cursor Agent Bridge security vulnerabilities expose the system to external
+    threats.
+- mitigation: Create detailed environment specification documents. Test deployment
+    in controlled environments before production release.
+  risk: BasicBot deployment encounters unforeseen environment-specific issues.
+status: active
+strategic_arc_reference: specs/FULL_AUTO_ARC.md
+swarm_coordination:
+  communication_channels:
+  - Episode 08 Kickoff Broadcast (via Agent Inboxes)
+  - Event-driven notification system (once operational)
+  - runtime/tasks/ for task management with standardized schema
+  - Cursor Agent Bridge (once operational) for external communications
+  context_boundary_points:
+  - After Strategic Planning completion - Create new chat
+  - After Feature Documentation completion - Create new chat
+  - After Design completion - Create new chat
+  - After task implementation milestone reached - Create new chat
+  shared_resources:
+  - specs/FULL_AUTO_ARC.md
+  - episodes/episode-08.yaml (this file)
+  - docs/TASK_FILE_ORGANIZATION.md
+  - tools/validate_json_schema.py
+  status: active
+theme: 'Dynamic Swarm Intelligence & Real-World Deployment: Bridging Cursor Agents
+  with Production Applications.'
+title: Autonomous Swarm Dynamics (Full Auto Arc - Phase 2)
+updated_at: '2025-05-18T08:45:00Z'

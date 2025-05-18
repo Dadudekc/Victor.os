@@ -38,6 +38,7 @@ class ResponseRetriever:
             return None
         
     def get_agent_inbox(self, agent_id: str) -> Path:
+    
         """Get the inbox path for a specific agent."""
         return self.inbox_path / f"Agent-{agent_id}" / "inbox.json"
         

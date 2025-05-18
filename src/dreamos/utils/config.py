@@ -4,11 +4,10 @@ Configuration Manager for Dream.OS
 This module provides configuration management functionality.
 """
 
-import logging
 from typing import Any, Dict
 
-logger = logging.getLogger(__name__)
-
+# Global instance
+_config_instance = None
 
 class ConfigManager:
     """Manages system configuration."""
@@ -27,6 +26,15 @@ class ConfigManager:
         Returns:
             Configuration value or default
         """
+        # Support dot notation (e.g., "social.twitter.username")
+        if "." in key:
+            parts = key.split(".")
+            current = self.config
+            for part in parts[:-1]:
+                if part not in current or not isinstance(current[part], dict):
+                    return default
+                current = current[part]
+            return current.get(parts[-1], default)
         return self.config.get(key, default)
 
     def set(self, key: str, value: Any) -> None:
@@ -36,4 +44,25 @@ class ConfigManager:
             key: Configuration key
             value: Configuration value
         """
-        self.config[key] = value
+        # Support dot notation (e.g., "social.twitter.username")
+        if "." in key:
+            parts = key.split(".")
+            current = self.config
+            for part in parts[:-1]:
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+            current[parts[-1]] = value
+        else:
+            self.config[key] = value
+
+def get_config() -> ConfigManager:
+    """Get the global configuration manager instance.
+    
+    Returns:
+        The global ConfigManager instance
+    """
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = ConfigManager()
+    return _config_instance

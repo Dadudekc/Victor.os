@@ -25,7 +25,7 @@ def validate_agent_id(agent_id: str) -> bool:
         if not agent_id.startswith("Agent-"):
             return False
         agent_num = int(agent_id.split("-")[1])
-        return 0 <= agent_num <= 8  # Allow Agent-0 through Agent-8
+        return 1 <= agent_num <= 8  # Allow Agent-1 through Agent-8
     except (ValueError, IndexError):
         return False
 
@@ -44,7 +44,6 @@ DEFAULT_PROMPT_DIR = "runtime/prompts"
 
 # Agent-specific traits and charters
 AGENT_TRAITS = {
-    "Agent-0": "Coordinator, Orchestrator, System Guardian",
     "Agent-1": "Strategic, Analytical, Decisive",
     "Agent-2": "Creative, Innovative, Adaptable",
     "Agent-3": "Methodical, Precise, Detail-oriented",
@@ -56,7 +55,6 @@ AGENT_TRAITS = {
 }
 
 AGENT_CHARTERS = {
-    "Agent-0": "System Coordination and Orchestration",
     "Agent-1": "Strategic Planning and Decision Making",
     "Agent-2": "Innovation and Creative Problem Solving",
     "Agent-3": "Quality Assurance and Verification",
@@ -129,9 +127,9 @@ class AgentConfig:
             target_search_ms: Target latency for search operations
             target_validation_ms: Target latency for validation operations
         """
-        if not re.match(r"^Agent-[0-8]$", agent_id):
+        if not re.match(r"^Agent-[1-8]$", agent_id):
             raise ValueError(
-                f"Invalid agent ID: {agent_id}. Must be in format 'Agent-N' where N is 0-8"
+                f"Invalid agent ID: {agent_id}. Must be in format 'Agent-N' where N is 1-8"
             )
 
         self.agent_id = agent_id

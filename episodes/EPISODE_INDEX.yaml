@@ -1,5 +1,5 @@
-last_updated: '2025-05-11T08:51:41.157159'
-total_episodes: 4
+last_updated: '2025-05-18T08:50:00Z'
+total_episodes: 5
 episodes:
 - episode_id: '01'
   codename: FOUNDATION LAYING
@@ -147,3 +147,34 @@ episodes:
   - Real-time monitoring is operational and validated.
   - A successful overnight test run is completed.
   - Comprehensive documentation and a summary report are produced.
+- episode_id: '08'
+  codename: AUTONOMOUS SWARM DYNAMICS
+  title: Implement Live Swarm Autonomy with event-driven coordination, Cursor Agent Bridge for seamless interaction, and BasicBot deployment for real-world application.
+  theme: Dynamic Swarm Intelligence & Real-World Deployment - Bridging Cursor Agents with Production Applications.
+  north_star: A self-organizing swarm that reacts in real-time to events, provides comprehensive agent bridging capabilities, and demonstrates value through deployed BasicBot instances.
+  status: Active
+  artifacts:
+  - 'EP08-CURSOR-BRIDGE-001: Implement core Cursor Agent Bridge system for seamless interaction between swarm and external systems.'
+  - 'EP08-EVENT-SYSTEM-001: Develop event-driven coordination system for real-time response to system events.'
+  - 'EP08-BASICBOT-DEPLOY-001: Create deployment framework for BasicBot instances with configuration, environment setup, and monitoring.'
+  - 'EP08-METRICS-MONITOR-001: Design and implement comprehensive metrics collection and monitoring for agent responses.'
+  - 'EP08-BACKTESTING-001: Build agent-accessible backtesting framework for strategy optimization.'
+  - 'EP08-SWARM-ORCHESTRATION-001: Captain role for orchestrating swarm activities during Episode 08.'
+  - 'EP08-BRIDGE-INTEGRATION-001: Implement integration layer between Cursor Agent Bridge and external systems.'
+  - 'EP08-BASICBOT-STRATEGIES-001: Develop and test strategies for BasicBot instances.'
+  created_at: '2025-05-18T08:45:00Z'
+  updated_at: '2025-05-18T08:50:00Z'
+  objectives:
+  - Implement a fully event-driven swarm coordination system.
+  - Complete the Cursor Agent Bridge for external system interaction.
+  - Deploy BasicBot instances as practical demonstration.
+  - Establish comprehensive monitoring and timing metrics.
+  - Implement agent-accessible backtesting capabilities.
+  - Utilize standardized task and episode file structure.
+  definition_of_done:
+  - Event-driven coordination system operational and responding to events.
+  - Cursor Agent Bridge successfully facilitates external communication.
+  - At least two BasicBot instances deployed and operational.
+  - Response timing metrics collected and analyzed for all agents.
+  - Backtesting framework operational and accessible for strategy optimization.
+  - All task and episode files conform to standardized schema and organization.

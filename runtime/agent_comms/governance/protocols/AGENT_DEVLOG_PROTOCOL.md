@@ -1,7 +1,7 @@
 # Dream.OS Agent Devlog Protocol
 
 **Version:** 1.0
-**Effective Date:** 2025-05-20
+**Effective Date:** 2025-05-25
 **Status:** ACTIVE
 
 ## 📎 See Also
@@ -13,206 +13,205 @@ For a complete understanding of agent protocols, see:
 - [Response Validation Protocol](runtime/agent_comms/governance/protocols/RESPONSE_VALIDATION_PROTOCOL.md) - Response standards
 - [Messaging Format](runtime/agent_comms/governance/protocols/MESSAGING_FORMAT.md) - Communication standards
 - [Resilience And Recovery Protocol](runtime/agent_comms/governance/protocols/RESILIENCE_AND_RECOVERY_PROTOCOL.md) - Error handling
+- [Core Agent Identity Protocol](runtime/agent_comms/governance/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md) - Agent identity definition
+- [Context Management Protocol](runtime/agent_comms/governance/protocols/CONTEXT_MANAGEMENT_PROTOCOL.md) - Context and planning management
 
 ## 1. PURPOSE
 
-This protocol standardizes the creation, maintenance, and usage of agent development logs (devlogs) within the Dream.OS ecosystem. Devlogs serve as a critical operational record, providing transparency, accountability, and historical context for agent activities.
+This protocol establishes the standard format, location, and content requirements for agent devlog entries in the Dream.OS ecosystem. Devlogs provide a crucial record of agent activities, decisions, and findings that enable monitoring, debugging, and historical analysis of system operation.
 
-## 2. DEVLOG STRUCTURE AND FORMAT
+## 2. DEVLOG LOCATION AND STRUCTURE
 
-### 2.1. File Structure
+### 2.1. File Locations
 
-Each agent maintains a personal devlog file located at:
-```
-runtime/agent_comms/agent_devlogs/agent-{n}_devlog.md
-```
+* **System Devlog:** `runtime/devlogs/devlog_YYYY-MM-DD.md` - Daily system-wide log
+* **Agent Devlogs:** `runtime/devlogs/agents/Agent-<ID>.md` - Per-agent log file
 
-A central shared devlog is maintained at:
-```
-runtime/devlog/devlog.md
-```
+### 2.2. Creation and Management
 
-### 2.2. Entry Format
+* New agent devlog files are automatically created when an agent first writes an entry
+* System devlogs are created daily with the current date
+* All devlog files use Markdown format for structured, human-readable content
 
-Each entry must follow this format:
+## 3. STANDARD ENTRY FORMATS
 
-```markdown
-## [ISO-8601-Date-Time] Agent-N: Entry Title
+All devlog entries must follow the specified formats to ensure consistency and machine parseability.
 
-### Context
-* Task ID: task-12345
-* Status: in-progress|completed|blocked
-* Related Files: [path/to/file.ext](path/to/file.ext)
-
-### Details
-Detailed description of the activity, decision, or issue being logged. Include:
-- Specific actions taken
-- Rationale for decisions
-- Issues encountered
-- Resolution attempts
-- Results and outcomes
-
-### Next Steps
-* Action 1
-* Action 2
-
----
-```
-
-### 2.3. Required Entry Fields
-
-* **Timestamp**: ISO-8601 format in UTC
-* **Agent Identifier**: Clear agent ID
-* **Entry Title**: Concise summary
-* **Context**: Task ID, status, related files
-* **Details**: Comprehensive description
-* **Next Steps**: Planned follow-up actions
-
-## 3. DEVLOG ENTRY TYPES
-
-### 3.1. Standard Entry Types
-
-| Type | Purpose | Required Information |
-|------|---------|----------------------|
-| Task Claim | Document task claiming | Task ID, rationale, approach |
-| Progress Update | Record significant progress | Accomplishments, blockers, next steps |
-| Task Completion | Detail task completion | Verification steps, outcomes, references |
-| Issue Report | Document problems encountered | Issue description, impact, attempted solutions |
-| Decision Log | Record significant decisions | Options considered, rationale, implications |
-| Architecture Note | Document design decisions | Components affected, rationale, diagrams |
-| Protocol Deviation | Record protocol exceptions | Reason for deviation, mitigation, resolution |
-
-### 3.2. Special Entry Types
-
-#### 3.2.1. Protocol Deviation Entry
-
-When a protocol deviation occurs, create a detailed entry:
+### 3.1. Standard Operational Cycle Entry
 
 ```markdown
-## [2025-05-20T14:30:00Z] Agent-3: Protocol Deviation - Operational Loop Interruption
+**Cycle [Cycle Number]/25 - Agent-[Agent ID] - [Task Type/Category] - [Task ID or Brief Action Title] Completion**
 
-### Context
-* Incident ID: dev-12345
-* Protocol: AGENT_OPERATIONAL_LOOP_PROTOCOL
-* Severity: medium
-
-### Details
-Agent-3 encountered an unexpected file system error while attempting to access the task pool JSON file. The error occurred at 14:25:00Z and resulted in a temporary operational loop interruption.
-
-Error details:
-```
-FileNotFoundError: No such file or directory: 'runtime/task_board/future_tasks.json'
-```
-
-Root cause analysis indicates this was due to a concurrent file operation from another agent. The file was temporarily unavailable but reappeared after 30 seconds.
-
-### Resolution
-Applied self-correction protocol section 3.1:
-1. Acknowledged deviation
-2. Logged event
-3. Implemented 5-second retry delay for file system operations
-4. Updated operational procedures to handle file contention
-5. Reset operational cycle count
-6. Resumed normal operation at 14:32:00Z
-
-### Next Steps
-* Monitor for similar file system errors
-* Create task to implement file locking mechanism
-* Update RESILIENCE_AND_RECOVERY_PROTOCOL with specific guidance for file contention
-
----
+* **Timestamp:** {{iso_timestamp_utc()}}
+* **Status:** [Status Keyword - see Section 4]
+* **Task ID:** [Official Task ID if applicable, e.g., TASK-XYZ-123, otherwise N/A]
+* **Summary:** [One-sentence summary of the cycle's main achievement or status.]
+* **Actions Taken:** [Bulleted list of specific actions performed]
+  * Action 1 detail...
+  * Action 2 detail...
+* **Findings:** [Optional: Bulleted list of key observations or results.]
+  * Finding 1...
+* **Blockers:** [Optional: Description of any blockers encountered. Use #blocked tag.]
+* **Recommendations:** [Optional: Specific recommendations arising from the work.]
+* **Next Step:** [Description of the immediate next action to be taken in the loop.]
+* **Tags:** #[tag1] #[tag2] #[tag3] ... #swarm_loop
 ```
 
-## 4. DEVLOG MANAGEMENT
+### 3.2. Context Fork Entry
 
-### 4.1. Entry Frequency
-
-* **Minimum Required Entries**:
-  * Task state changes (claimed, completed, blocked)
-  * Significant obstacles encountered
-  * Architectural or design decisions
-  * Protocol deviations
-  
-* **Recommended Additional Entries**:
-  * Daily progress summaries
-  * Technical discoveries
-  * Learning moments
-  * Efficiency improvements
-
-### 4.2. Retention and Archiving
-
-* Keep active devlog under 5MB
-* Archive quarterly by creating new volumes:
-  * `agent-{n}_devlog_Q{q}_{yyyy}.md`
-* Reference related archives in active devlog
-
-### 4.3. Cross-Referencing
-
-* Use standard format for referencing tasks, files, agents
-  * Tasks: `task-12345`
-  * Files: `[filename](path/to/file.ext)`
-  * Agents: `Agent-N`
-* Include links to relevant entries when referencing previous work
-
-## 5. CENTRAL DEVLOG CONTRIBUTIONS
-
-### 5.1. Central Devlog Purpose
-
-The central devlog serves as a high-level operational record across all agents, focused on:
-* Major task completions
-* Critical issues affecting multiple agents
-* Architectural decisions
-* Project milestones
-* Protocol updates
-
-### 5.2. Contribution Guidelines
-
-Contribute to the central devlog when:
-* Completing high-priority tasks (priority 1-2)
-* Discovering issues that affect other agents
-* Making decisions that impact system architecture
-* Updating protocols or standards
-* Reaching project milestones
-
-### 5.3. Central Entry Format
-
-Central devlog entries should be more concise than personal devlogs:
+Context fork entries are special entries that document transitions between planning phases or major context shifts.
 
 ```markdown
-## [2025-05-20T16:45:00Z] Agent-3: Implemented Task Validation Subsystem
+**Context Fork - Agent-[Agent ID] - Planning Step [Step Number]**
 
-**Task**: task-12345
-**Impact**: High - affects all agents
-**Related Files**: `src/validation/agent_task_validator.py`
-
-Agent-3 has completed the task validation subsystem implementation. This new system provides automated validation of task completion according to the Response Validation Protocol v1.0.
-
-All agents should now be able to utilize the validator via `AgentTaskValidation.validate(task_id, response)`.
-
-**Verification**: All unit tests pass and integration with Agent-1 and Agent-2 has been confirmed.
+* **Timestamp:** {{iso_timestamp_utc()}}
+* **Status:** FORKED
+* **Fork Source:** [Source Context Description]
+* **Fork Target:** [Target Context Description]
+* **Planning Step:** [Planning Step Number (1-4)]
+* **Reason:** [Reason for Context Fork]
+* **Tags:** #context_fork #[additional_tags]
 ```
 
-## 6. COMPLIANCE & METRICS
+### 3.3. Error and Recovery Entry
 
-### 6.1. Devlog Compliance Requirements
+```markdown
+**Error - Agent-[Agent ID] - [Error Type] - [Brief Error Description]**
 
-* Maintain accurate timestamps
-* Include all required fields for each entry
-* Create entries for all state-changing events
-* Keep personal devlog up-to-date
-* Contribute to central devlog as appropriate
+* **Timestamp:** {{iso_timestamp_utc()}}
+* **Status:** ERROR
+* **Error Type:** [Type of error encountered]
+* **Description:** [Detailed description of the error]
+* **Impact:** [Impact on current task or system]
+* **Recovery Plan:** [Steps to recover or mitigate]
+* **Tags:** #error #[error_type] #[component_affected]
+```
 
-### 6.2. Devlog Metrics
+### 3.4. System State Change Entry
 
-The following metrics will be tracked for each agent:
-* Entry frequency
-* Entry completeness
-* Cross-reference accuracy
-* Timeliness of entries
-* Contribution to central devlog
+```markdown
+**State Change - Agent-[Agent ID] - [State From] → [State To]**
 
-## 7. REFERENCES
+* **Timestamp:** {{iso_timestamp_utc()}}
+* **Status:** STATE_CHANGE
+* **Previous State:** [Previous operational state]
+* **New State:** [New operational state]
+* **Reason:** [Reason for state change]
+* **Implications:** [Any important implications of this state change]
+* **Tags:** #state_change #[previous_state] #[new_state]
+```
 
-* `runtime/agent_comms/governance/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
-* `runtime/agent_comms/governance/protocols/RESPONSE_VALIDATION_PROTOCOL.md`
-* `runtime/agent_comms/governance/protocols/RESILIENCE_AND_RECOVERY_PROTOCOL.md` 
+## 4. STATUS KEYWORDS
+
+The following controlled vocabulary MUST be used for the **Status** field:
+
+* `COMPLETED` - Task or action fully completed successfully
+* `PARTIAL` - Partial completion with remaining work
+* `BLOCKED` - Unable to proceed due to a blocker
+* `ERROR` - Error encountered
+* `INFO` - Informational entry
+* `FORKED` - Context fork occurred
+* `STATE_CHANGE` - Agent state changed
+* `PLANNING` - Planning activity
+* `ANALYZING` - Analysis activity
+* `IMPLEMENTING` - Implementation activity
+* `TESTING` - Testing activity
+* `DOCUMENTING` - Documentation activity
+* `REVIEWING` - Review activity
+* `COORDINATING` - Coordination with other agents
+
+## 5. TAGGING SYSTEM
+
+All devlog entries MUST include appropriate tags using hashtag format (`#tag_name`). Tags aid in searching, filtering, and automatic analysis of logs.
+
+### 5.1. Required Tags
+
+* At least one tag from each of these categories must be included:
+  * Action Type
+  * Domain/Component
+  * Process/Meta
+
+### 5.2. Tag Categories
+
+* **Action Type:**
+  * `#patch` (Code/Doc modification)
+  * `#refactor`
+  * `#test_coverage`
+  * `#implementation`
+  * `#prototype`
+  * `#analysis`
+  * `#verification`
+  * `#documentation`
+  * `#compliance`
+  * `#review`
+  * `#report`
+  * `#context_fork`
+  * `#planning`
+
+* **Domain/Component:**
+  * `#pbm` (ProjectBoardManager)
+  * `#thea_relay`
+  * `#mailbox`
+  * `#cli`
+  * `#core_components`
+  * `#protocol`
+  * `#onboarding`
+  * `#reporting`
+  * `#devlog`
+  * `#testing`
+  * `#ui` / `#gui`
+  * `#agent_bus`
+  * `#task_nexus`
+  * `#base_agent`
+  * `#planning_system`
+  * `#context_management`
+
+* **Process/Meta:**
+  * `#idle_initiative`
+  * `#self_prompting`
+  * `#swarm_loop` (Mandatory for standard cycles)
+  * `#protocol_drift`
+  * `#protocol_correction`
+  * `#reset`
+  * `#chore`
+  * `#coordination`
+  * `#tool_issue`
+  * `#maintenance`
+  * `#planning_step_1`
+  * `#planning_step_2`
+  * `#planning_step_3`
+  * `#planning_step_4`
+
+* **Priority (Optional):**
+  * `#priority_high`
+  * `#priority_medium`
+  * `#priority_low`
+
+## 6. THIRD PERSON REQUIREMENT
+
+All devlog entries MUST follow the [Agent Third Person Communication Protocol](runtime/agent_comms/governance/protocols/AGENT_THIRD_PERSON_COMMUNICATION_PROTOCOL.md). Agents must refer to themselves in the third person using their agent identifier rather than first-person pronouns.
+
+Examples:
+* ✅ "Agent-5 analyzed the task requirements and identified three key components."
+* ❌ "I analyzed the task requirements and identified three key components."
+
+## 7. AUTOMATED DEVLOG GENERATION
+
+The `context_commit_macro()` function in `tools/context_manager.py` provides automated devlog entry generation for context forks. This tool should be used to ensure consistency in context fork entries.
+
+## 8. IMPLEMENTATION AND ENFORCEMENT
+
+* All agents MUST implement proper devlog entry creation as part of their operational loop
+* Devlog entries SHOULD be created at a minimum:
+  * At the beginning of each operational cycle
+  * Upon task completion or failure
+  * When encountering errors or blockers
+  * During state transitions
+  * When forking context
+* Monitoring agents may validate devlog compliance and report deviations
+
+## 9. REFERENCES
+
+* `tools/context_manager.py` - Context fork utility with devlog integration
+* `runtime/agent_comms/governance/protocols/CONTEXT_MANAGEMENT_PROTOCOL.md` - Context management protocol
+* `runtime/agent_comms/governance/protocols/AGENT_THIRD_PERSON_COMMUNICATION_PROTOCOL.md` - Third person communication protocol 

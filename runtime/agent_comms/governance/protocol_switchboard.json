@@ -38,6 +38,18 @@
       "escalation": "captain_mandate"
     }
   },
-  "last_changed_by": "captain",
+  "active_meta_protocols": [
+    "context_management"
+  ],
+  "meta_protocols": {
+    "context_management": {
+      "description": "Agents follow the 4-phase planning model and use context forking to manage large operations.",
+      "file_path": "runtime/agent_comms/governance/protocols/CONTEXT_MANAGEMENT_PROTOCOL.md",
+      "planning_phases": 4,
+      "required_tags": ["planning_step", "planning_stage"],
+      "context_fork_tracking": true
+    }
+  },
+  "last_changed_by": "THEA",
   "last_changed_at": "{{iso_timestamp_utc()}}"
 }

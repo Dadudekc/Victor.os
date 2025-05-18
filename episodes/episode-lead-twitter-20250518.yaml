@@ -1,0 +1,245 @@
+captain: Agent-5
+context:
+  created_at: '2025-05-18T09:37:36.377629'
+  keywords:
+  - ai
+  - automation
+  - workflow
+  lead_count: 9
+  platform: twitter
+description: 'Respond to twitter leads related to: ai, automation, workflow'
+episode_id: episode-lead-twitter-20250518
+task_breakdown: distributed
+tasks:
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_count: 9
+    platform: twitter
+  dependencies: []
+  description: Analyze 9 leads from twitter to identify common themes, opportunities,
+    and action strategies.
+  name: Research context for twitter leads
+  priority: HIGH
+  task_id: RESEARCH-TWITTER-1ae7cec6
+  type: RESEARCH
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 661e9bbc-3ed5-4ab3-97a5-bc83bcc5f2cc
+      link: https://twitter.com/user_0/status/012345678
+      match: Looking for experts in ai for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: ai
+      timestamp: '2025-05-18T09:37:27.358843'
+      username: twitter_user_0
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_0: ''Looking
+    for experts in ai for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: ai'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-661e9bbc
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 602c47b1-818c-475b-b721-8e2fbe717c05
+      link: https://twitter.com/user_1/status/112345678
+      match: Looking for experts in ai for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: ai
+      timestamp: '2025-05-18T09:37:27.358843'
+      username: twitter_user_1
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_1: ''Looking
+    for experts in ai for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: ai'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-602c47b1
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: fb067810-fde3-4710-88af-472631af4c49
+      link: https://twitter.com/user_2/status/212345678
+      match: Looking for experts in ai for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: ai
+      timestamp: '2025-05-18T09:37:27.358843'
+      username: twitter_user_2
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_2: ''Looking
+    for experts in ai for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: ai'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-fb067810
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 7a18a073-23fd-4ce2-a661-3bfdbca38075
+      link: https://twitter.com/user_0/status/012345678
+      match: Looking for experts in automation for our new project. Interested in
+        discussing opportunities.
+      platform: twitter
+      query: automation
+      timestamp: '2025-05-18T09:37:30.373606'
+      username: twitter_user_0
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_0: ''Looking
+    for experts in automation for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: automation'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-7a18a073
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 2d2451c2-04c2-40f1-9767-9537fd4f4f1a
+      link: https://twitter.com/user_1/status/112345678
+      match: Looking for experts in automation for our new project. Interested in
+        discussing opportunities.
+      platform: twitter
+      query: automation
+      timestamp: '2025-05-18T09:37:30.373606'
+      username: twitter_user_1
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_1: ''Looking
+    for experts in automation for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: automation'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-2d2451c2
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 99c573ee-9bac-4c3b-894b-0a13c206371e
+      link: https://twitter.com/user_2/status/212345678
+      match: Looking for experts in automation for our new project. Interested in
+        discussing opportunities.
+      platform: twitter
+      query: automation
+      timestamp: '2025-05-18T09:37:30.373606'
+      username: twitter_user_2
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_2: ''Looking
+    for experts in automation for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: automation'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-99c573ee
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 4b91e275-7332-4391-9675-5795756bf334
+      link: https://twitter.com/user_0/status/012345678
+      match: Looking for experts in workflow for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: workflow
+      timestamp: '2025-05-18T09:37:33.375356'
+      username: twitter_user_0
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_0: ''Looking
+    for experts in workflow for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: workflow'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-4b91e275
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: ac05500f-ad7d-492e-9f63-5cf5328ce06a
+      link: https://twitter.com/user_1/status/112345678
+      match: Looking for experts in workflow for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: workflow
+      timestamp: '2025-05-18T09:37:33.375356'
+      username: twitter_user_1
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_1: ''Looking
+    for experts in workflow for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: workflow'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-ac05500f
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_data:
+      action: captured
+      id: 3cd46048-c06c-4b72-8d12-34a7301a14e4
+      link: https://twitter.com/user_2/status/212345678
+      match: Looking for experts in workflow for our new project. Interested in discussing
+        opportunities.
+      platform: twitter
+      query: workflow
+      timestamp: '2025-05-18T09:37:33.375356'
+      username: twitter_user_2
+    platform: twitter
+  dependencies:
+  - RESEARCH-TWITTER-1ae7cec6
+  description: 'Analyze and craft response to lead from twitter_user_2: ''Looking
+    for experts in workflow for our new project. Interested in discussing opportunities....'''
+  name: 'Analyze twitter lead: workflow'
+  priority: MEDIUM
+  task_id: LEAD-TWITTER-3cd46048
+  type: LEAD_ANALYSIS
+- assigned_to: null
+  data:
+    episode_id: episode-lead-twitter-20250518
+    lead_count: 9
+    platform: twitter
+  dependencies:
+  - LEAD-TWITTER-661e9bbc
+  - LEAD-TWITTER-602c47b1
+  - LEAD-TWITTER-fb067810
+  - LEAD-TWITTER-7a18a073
+  - LEAD-TWITTER-2d2451c2
+  - LEAD-TWITTER-99c573ee
+  - LEAD-TWITTER-4b91e275
+  - LEAD-TWITTER-ac05500f
+  - LEAD-TWITTER-3cd46048
+  description: Create a comprehensive summary of all lead analyses and propose concrete
+    next steps.
+  name: Summarize twitter lead findings
+  priority: HIGH
+  task_id: SUMMARY-TWITTER-2cdb4f04
+  type: SUMMARY
+title: AI Automation Opportunities

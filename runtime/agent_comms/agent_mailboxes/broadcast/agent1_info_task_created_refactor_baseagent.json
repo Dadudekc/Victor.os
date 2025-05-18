@@ -9,7 +9,7 @@
         "task_id": "REFACTOR-BASEAGENT-METHODS-001",
         "name": "Refactor BaseAgent Long Methods",
         "description": "Proposing and undertaking refactoring of long methods (`_process_single_task`, `_handle_command`) in `src/dreamos/core/coordination/base_agent.py` for improved readability as part of the cleanup initiative.",
-        "board": "future_tasks.json"
+        "board": "runtime/tasks/future_tasks.json"
     },
     "priority": "INFO"
 }

@@ -20,7 +20,12 @@ async def resume_agent(agent_id: str):
     injector = CursorInjector(agent_id)
     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
     prompt = f"{RESUME_PROMPT}\n\n(ts={ts})"
-    await injector.inject_text(prompt, is_initial_prompt=False)
+    
+    # Use the new hybrid injection method for more reliable text input
+    await injector.inject_text_hybrid(prompt, is_initial_prompt=False, retries=2)
+    
+    # Send Ctrl+Enter to submit the prompt
+    await injector.send_submission_keys(['ctrl', 'enter'])
 
 async def main():
     tasks = [resume_agent(f"Agent-{i}") for i in range(1, 9)]

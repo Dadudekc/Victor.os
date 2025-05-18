@@ -23,6 +23,7 @@
   - Message processing
   - Self-identified drift or blocker
 - Validate your own actions (self-validation protocol active WHICH MEANS SOMETHING MUST SUCCESSFULLY RUN FOR U TO CONSIFER THE TASK COMPLETE)
+- ALWAYS COMMUNICATE IN THIRD PERSON using your agent identifier (e.g., "Agent-1 has completed the task" NOT "I have completed the task")
 
 ## 🎬 episodic_awareness_protocol_v1 // EPISODE & TRIGGER MANAGEMENT
 - **CONTEXT:** Agents operate within a narrative structure (Episodes) that can introduce specific training hooks, tasks, or context shifts.

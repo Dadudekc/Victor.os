@@ -5,10 +5,7 @@ Dream.OS project.
 
 ## Infrastructure & Tooling
 
-- [ ] **Task Board Permissions:** Investigate and resolve the
-      `PermissionError: [Errno 13] Permission denied` when
-      `task_board_updater.py` accesses `runtime/task_board.json`. This currently
-      blocks status updates. (High Priority)
+- [x] **Task Board Permissions:** Investigate and resolve the      `PermissionError: [Errno 13] Permission denied` when      `task_board_updater.py` accesses `runtime/task_board.json`. This currently      blocks status updates. (High Priority) (Resolved by implementing a new task_board_updater.py with filelock)
 - [ ] **Project Scanner - `categorize_agents`:** Fully implement the agent
       categorization logic in `ProjectScanner.categorize_agents` beyond the
       current placeholder.

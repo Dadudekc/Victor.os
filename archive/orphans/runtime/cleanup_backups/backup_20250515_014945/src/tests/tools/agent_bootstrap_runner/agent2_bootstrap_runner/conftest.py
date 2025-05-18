@@ -47,7 +47,7 @@ def mock_project_root(tmp_path):
         state_dir.mkdir(parents=True, exist_ok=True)
     
     # Create directories for all agents
-    for i in range(9):
+    for i in range(1, 9):
         create_agent_dirs(f"Agent-{i}")
     
     # Create devlog directory
@@ -63,11 +63,11 @@ def mock_project_root(tmp_path):
     config_dir.mkdir(parents=True, exist_ok=True)
     
     # Create mock coordinate files with entries for all agents
-    coords_data = {f"Agent-{i}": {"x": 100 + i*50, "y": 200 + i*50} for i in range(9)}
+    coords_data = {f"Agent-{i}": {"x": 100 + i*50, "y": 200 + i*50} for i in range(1, 9)}
     coords_file = config_dir / "cursor_agent_coords.json"
     coords_file.write_text(json.dumps(coords_data))
     
-    copy_coords_data = {f"agent_{str(i).zfill(2)}": [300 + i*50, 400 + i*50] for i in range(9)}
+    copy_coords_data = {f"agent_{str(i).zfill(2)}": [300 + i*50, 400 + i*50] for i in range(1, 9)}
     copy_coords_file = config_dir / "cursor_agent_copy_coords.json"
     copy_coords_file.write_text(json.dumps(copy_coords_data))
     

@@ -157,13 +157,31 @@ def focus_cursor_window(window_title: str = DEFAULT_WINDOW_TITLE) -> bool:
         logger.error(f"Error focusing window: {e}")
         return False
 
-def wait_for_element(image_path: str, timeout: int = 10, confidence: float = 0.9) -> tuple | None:
+def wait_for_element(image_path: str, timeout: int = 10, confidence: float = 0.9) -> Optional[Tuple[int, int, int, int]]:
     """Waits for a specified image to appear on the screen.
-    Returns the bounding box tuple if found within timeout, otherwise None."""
+    
+    Args:
+        image_path (str): Path to the image file to locate.
+        timeout (int): Maximum time to wait in seconds.
+        confidence (float): Confidence level for image matching (0.0 to 1.0).
+        
+    Returns:
+        Optional[Tuple[int, int, int, int]]: Bounding box (left, top, width, height) if found, None otherwise.
+    """
+    if not PYAUTOGUI_AVAILABLE or pyautogui is None:
+        logger.warning("Image detection skipped: pyautogui not available")
+        return None
+
     start_time = time.time()
     while time.time() - start_time < timeout:
-        location = pyautogui.locateOnScreen(image_path, confidence=confidence)
-        if location:
-            return location
+        try:
+            location = pyautogui.locateOnScreen(image_path, confidence=confidence)
+            if location:
+                return location
+        except pyautogui.PyAutoGUIException as e:
+            # This can happen if the platform is not supported or screen access is denied
+            logger.error(f"PyAutoGUI error during locateOnScreen: {e}")
+            return None # Stop trying if pyautogui itself errors out
         time.sleep(0.5)
+    logger.debug(f"Element with image '{image_path}' not found within {timeout}s timeout.")
     return None 

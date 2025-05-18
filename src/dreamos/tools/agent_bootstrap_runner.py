@@ -34,6 +34,7 @@ RUNTIME_DIR          = Path("runtime")
 PROMPT_DIR_DEFAULT   = RUNTIME_DIR / "prompts"
 MAILBOX_ROOT         = RUNTIME_DIR / "agent_comms" / "agent_mailboxes"
 DEVLOG_DIR           = RUNTIME_DIR / "devlog" / "agents"
+CONTEXT_BOUNDARIES_FILE = RUNTIME_DIR / "context_boundaries.json"
 
 HEARTBEAT_SEC        = int(os.getenv("AGENT_HEARTBEAT_SEC", 30))
 LOOP_DELAY_SEC       = int(os.getenv("AGENT_LOOP_DELAY_SEC", 5))
@@ -41,6 +42,14 @@ RESPONSE_WAIT_SEC    = int(os.getenv("AGENT_RESPONSE_WAIT_SEC", 15))
 RETRIEVE_RETRIES     = int(os.getenv("AGENT_RETRIEVE_RETRIES", 3))
 RETRY_DELAY_SEC      = int(os.getenv("AGENT_RETRY_DELAY_SEC", 2))
 STARTUP_DELAY_SEC    = int(os.getenv("AGENT_STARTUP_DELAY_SEC", 30))
+
+# Planning steps mapping
+PLANNING_STEPS = {
+    1: "Strategic Planning",
+    2: "Feature Documentation",
+    3: "Design",
+    4: "Task Planning"
+}
 
 ################################################################################
 # LOGGING
@@ -97,213 +106,339 @@ def update_agent_activity(agent_id: str, logger_instance: logging.Logger):
         logger_instance.error(f"Failed to update agent activity for {agent_id}: {e}")
 
 
-@dataclass(slots=True)
+@dataclass
 class AgentConfig:
+    """Configuration for agent bootstrap runner"""
     agent_id: str
-    prompt: Optional[str] = None
-    prompt_file: Optional[str] = None
-    prompt_dir: Path = PROMPT_DIR_DEFAULT
+    prompt_dirs: List[Path] = None
     heartbeat_sec: int = HEARTBEAT_SEC
     loop_delay_sec: int = LOOP_DELAY_SEC
     response_wait_sec: int = RESPONSE_WAIT_SEC
     retrieve_retries: int = RETRIEVE_RETRIES
     retry_delay_sec: int = RETRY_DELAY_SEC
     startup_delay_sec: int = STARTUP_DELAY_SEC
+    mailbox_dir: Path = MAILBOX_ROOT
+    no_delay: bool = False
+    once: bool = False
+    
+    def __post_init__(self):
+        # Ensure agent_id is valid
+        if not self._validate_agent_id(self.agent_id):
+            raise ValueError(f"Invalid agent ID: {self.agent_id}")
+        
+        # Set default prompt dirs if not provided
+        if self.prompt_dirs is None:
+            self.prompt_dirs = [PROMPT_DIR_DEFAULT]
+            
+        # Ensure all prompt dirs exist
+        for prompt_dir in self.prompt_dirs:
+            prompt_dir.mkdir(parents=True, exist_ok=True)
+    
+    @staticmethod
+    def _validate_agent_id(agent_id: str) -> bool:
+        """Validate agent ID"""
+        try:
+            if not agent_id.startswith("Agent-"):
+                return False
+            agent_num = int(agent_id.split("-")[1])
+            return 1 <= agent_num <= 8
+        except (ValueError, IndexError):
+            return False
 
-    @property
-    def num(self) -> str:
-        return self.agent_id.split("-")[1]
 
-    @property
-    def traits(self) -> Dict[str, List[str]]:
-        traits_map = {
-            "1": ["Analytical", "Logical", "Methodical", "Precise"],
-            "2": ["Vigilant", "Proactive", "Methodical", "Protective"],
-            "3": ["Creative", "Innovative", "Intuitive", "Exploratory"],
-            "4": ["Communicative", "Empathetic", "Diplomatic", "Persuasive"],
-            "5": ["Knowledgeable", "Scholarly", "Thorough", "Informative"],
-            "6": ["Strategic", "Visionary", "Decisive", "Forward-thinking"],
-            "7": ["Adaptive", "Resilient", "Practical", "Resourceful"],
-            "8": ["Ethical", "Balanced", "Principled", "Thoughtful"],
+################################################################################
+# BOOTSTRAP RUNNER IMPLEMENTATION
+################################################################################
+
+class AgentStateManager:
+    """Manages agent state during bootstrap process"""
+    
+    def __init__(self, config: AgentConfig):
+        self.config = config
+        self.agent_id = config.agent_id
+        self.logger = logging.getLogger(f"bootstrap.{self.agent_id}")
+        self.agent_bus = AgentBus(self.agent_id)
+        self.state: Dict = self._load_initial_state()
+        
+    def _load_initial_state(self) -> Dict:
+        """Load initial agent state"""
+        return {
+            "agent_id": self.agent_id,
+            "last_prompt": None,
+            "last_response": None,
+            "last_heartbeat": None,
+            "startup_time": datetime.now(timezone.utc).isoformat(),
+            "cycle_count": 0,
+            "planning_phase": None,  # Track current planning phase
+            "context_boundary": None,  # Track last context boundary
         }
-        return {"traits": traits_map.get(self.num, [])}
+        
+    def update_state(self, **kwargs) -> None:
+        """Update agent state with provided values"""
+        self.state.update(**kwargs)
+        
+    def get_state(self) -> Dict:
+        """Get current agent state"""
+        return self.state.copy()
+    
+    def increment_cycle_count(self) -> int:
+        """Increment and return cycle count"""
+        self.state["cycle_count"] += 1
+        return self.state["cycle_count"]
+
+    def check_context_boundaries(self) -> Optional[Dict]:
+        """Check for context boundaries and update state if found"""
+        try:
+            if not CONTEXT_BOUNDARIES_FILE.exists():
+                return None
+                
+            with open(CONTEXT_BOUNDARIES_FILE, "r") as f:
+                boundaries = json.load(f)
+                
+            if not boundaries.get("boundaries"):
+                return None
+                
+            # Find the most recent boundary
+            boundaries_list = boundaries.get("boundaries", [])
+            if not boundaries_list:
+                return None
+                
+            # Sort by timestamp
+            sorted_boundaries = sorted(
+                boundaries_list, 
+                key=lambda x: x.get("timestamp", ""), 
+                reverse=True
+            )
+            
+            latest_boundary = sorted_boundaries[0]
+            current_boundary = self.state.get("context_boundary")
+            
+            # Check if this is a new boundary
+            if (current_boundary is None or 
+                latest_boundary.get("boundary_id") != current_boundary.get("boundary_id")):
+                self.update_state(
+                    context_boundary=latest_boundary,
+                    planning_phase=latest_boundary.get("phase")
+                )
+                return latest_boundary
+                
+            return None
+                
+        except Exception as e:
+            self.logger.error(f"Error checking context boundaries: {e}")
+            return None
 
 
-################################################################################
-# RUNNER
-################################################################################
+class TaskManager:
+    """Manages tasks for the agent"""
+    
+    def __init__(self, config: AgentConfig):
+        self.config = config
+        self.agent_id = config.agent_id
+        self.logger = logging.getLogger(f"bootstrap.{self.agent_id}.tasks")
+        
+    def get_current_tasks(self) -> List[Dict]:
+        """Get current tasks for the agent"""
+        # Implementation would retrieve tasks from task board
+        return []
+        
+    def get_tasks_by_planning_step(self, planning_step: int) -> List[Dict]:
+        """Get tasks filtered by planning step"""
+        tasks = self.get_current_tasks()
+        return [t for t in tasks if t.get("planning_step") == planning_step]
+
+
+class PromptManager:
+    """Manages prompts for the agent"""
+    
+    def __init__(self, config: AgentConfig):
+        self.config = config
+        self.agent_id = config.agent_id
+        self.prompt_dirs = config.prompt_dirs
+        self.logger = logging.getLogger(f"bootstrap.{self.agent_id}.prompts")
+        
+    def get_available_prompts(self) -> List[str]:
+        """Get list of available prompt files"""
+        prompts = []
+        for prompt_dir in self.prompt_dirs:
+            prompts.extend([
+                p.stem for p in prompt_dir.glob("*.prompt.md") 
+                if p.is_file()
+            ])
+        return sorted(prompts)
+    
+    def load_prompt(self, prompt_name: str) -> Optional[str]:
+        """Load prompt content by name"""
+        # Check each prompt directory for the file
+        for prompt_dir in self.prompt_dirs:
+            prompt_path = prompt_dir / f"{prompt_name}.prompt.md"
+            if prompt_path.exists():
+                try:
+                    with open(prompt_path, "r", encoding="utf-8") as f:
+                        return f.read()
+                except Exception as e:
+                    self.logger.error(f"Error reading prompt {prompt_path}: {e}")
+                    return None
+        
+        self.logger.error(f"Prompt not found: {prompt_name}")
+        return None
+        
+    def get_prompt_by_planning_step(self, planning_step: int) -> Optional[str]:
+        """Get prompt appropriate for the current planning step"""
+        step_name = PLANNING_STEPS.get(planning_step)
+        if not step_name:
+            return None
+            
+        # Try to find a matching prompt
+        step_prompt_name = f"{self.agent_id.lower()}_{step_name.lower().replace(' ', '_')}"
+        prompt_content = self.load_prompt(step_prompt_name)
+        
+        # If not found, try a generic planning step prompt
+        if not prompt_content:
+            generic_prompt_name = f"planning_step_{planning_step}"
+            prompt_content = self.load_prompt(generic_prompt_name)
+            
+        return prompt_content
+
+
+class DevlogManager:
+    """Manages devlog entries for the agent"""
+    
+    def __init__(self, config: AgentConfig):
+        self.config = config
+        self.agent_id = config.agent_id
+        self.devlog_dir = DEVLOG_DIR / self.agent_id.lower()
+        self.devlog_dir.mkdir(parents=True, exist_ok=True)
+        self.logger = logging.getLogger(f"bootstrap.{self.agent_id}.devlog")
+        
+    def log_boundary_transition(self, boundary: Dict) -> None:
+        """Log a context boundary transition to the devlog"""
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        devlog_file = self.devlog_dir / f"boundary_transition_{timestamp}.md"
+        
+        content = f"""# Context Boundary Transition
+
+## Metadata
+- **Timestamp:** {datetime.now().isoformat()}
+- **Agent:** {self.agent_id}
+- **Boundary ID:** {boundary.get('boundary_id')}
+- **Planning Phase:** {boundary.get('phase')}
+
+## Context Status
+- **Reason:** {boundary.get('reason')}
+- **Action Required:** Create new chat window after this transition
+
+This log marks a context boundary transition where a new chat window should be created
+to preserve token context and maintain clean state separation between planning phases.
+"""
+        
+        try:
+            with open(devlog_file, "w") as f:
+                f.write(content)
+                
+            self.logger.info(f"Logged boundary transition to {devlog_file}")
+        except Exception as e:
+            self.logger.error(f"Error logging boundary transition: {e}")
+
 
 class AgentBootstrapRunner:
-    def __init__(self, cfg: AgentConfig):
-        self.cfg       = cfg
-        self.logger    = init_agent_logger(cfg.agent_id)
-        self.bus       = AgentBus()
-        self.injector  = CursorInjector(cfg.agent_id)
-        self.retriever = ResponseRetriever(cfg.agent_id)
-
-        # paths
-        self.agent_dir     = MAILBOX_ROOT / cfg.agent_id
-        self.inbox_dir     = self.agent_dir / "inbox"
-        self.processed_dir = self.agent_dir / "processed"
-        self.state_dir     = self.agent_dir / "state"
-        self.archive_dir   = self.agent_dir / "archive"
-
-        for d in (self.inbox_dir, self.processed_dir, self.state_dir, self.archive_dir):
-            d.mkdir(parents=True, exist_ok=True)
-
-    # --------------------------------------------------------------------- utils
-    async def _validate(self):
-        res = validate_all_files(self.logger, self.cfg, is_onboarding=True)
-        if not res.passed:
-            raise RuntimeError(f"Validation failed: {res.error}")
-
-    async def _load_prompt(self) -> str:
-        if self.cfg.prompt:
-            return self.cfg.prompt
-
-        p_file = Path(self.cfg.prompt_file) if self.cfg.prompt_file else \
-                 self.cfg.prompt_dir / f"{self.cfg.agent_id.lower()}.txt"
-
-        if not p_file.exists():
-            raise FileNotFoundError(f"Prompt file not found: {p_file}")
-        return p_file.read_text(encoding="utf-8").strip()
-
-    # ------------------------------------------------------------------- cycle
-    async def _cycle(self):
+    """Main bootstrap runner class"""
+    
+    def __init__(self, config: AgentConfig):
+        self.config = config
+        self.agent_id = config.agent_id
+        self.logger = logging.getLogger(f"bootstrap.{self.agent_id}")
+        
+        # Initialize components
+        self.state_manager = AgentStateManager(config)
+        self.task_manager = TaskManager(config)
+        self.prompt_manager = PromptManager(config)
+        self.devlog_manager = DevlogManager(config)
+        
+        # Initialize GUI interaction components
+        self.cursor_injector = CursorInjector(agent_id=self.agent_id)
+        self.response_retriever = ResponseRetriever(agent_id=self.agent_id)
+        
+        # Track run state
+        self.running = False
+        self.shutdown_requested = False
+        
+    async def run(self) -> None:
+        """Run the agent bootstrap process"""
+        self.running = True
+        self.logger.info(f"Starting {self.agent_id} bootstrap runner")
+        
         try:
-            prompt = await self._load_prompt()
-            self.logger.info("Injecting prompt (%s chars)", len(prompt))
-            # The very first injection to an agent window uses the
-            # *initial* coordinates captured during calibration.
-            await self.injector.inject_text(prompt, is_initial_prompt=True)
-            self.logger.info("Prompt injected. Waiting for response...")
-
-
-            response = await self.retriever.get_response()
-            self.logger.info("Response %s", "received" if response else "not found")
-
-            if response:
-                ts   = int(datetime.now(timezone.utc).timestamp())
-                path = self.processed_dir / f"response.{ts}.txt"
-                path.write_text(response, encoding="utf-8")
-
-                await self.bus.publish("agent.response", {
-                    "agent_id": self.cfg.agent_id,
-                    "timestamp": ts,
-                    "response_file": str(path),
-                })
-
-            # Add the call to update_agent_activity here
-            update_agent_activity(self.cfg.agent_id, self.logger)
-
-        except Exception as e:
-            self.logger.error("Cycle error: %s", e, exc_info=True)
-            await self.bus.publish("agent.error", {
-                "agent_id": self.cfg.agent_id,
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).timestamp(),
-            })
-
-    # -------------------------------------------------------------------- main
-    async def run(self, once: bool = False):
-        await self._validate()
-
-        if not once and self.cfg.startup_delay_sec:
-            self.logger.info("Startup delay %ss", self.cfg.startup_delay_sec)
-            await asyncio.sleep(self.cfg.startup_delay_sec)
-
-        try:
-            while True:
-                await self._cycle()
-                if once:
-                    return
-                await asyncio.sleep(self.cfg.loop_delay_sec)
+            # Initial startup delay unless disabled
+            if not self.config.no_delay:
+                self.logger.info(f"Initial startup delay: {self.config.startup_delay_sec}s")
+                await asyncio.sleep(self.config.startup_delay_sec)
+            
+            # Main agent loop
+            while self.running and not self.shutdown_requested:
+                # Check for context boundaries
+                boundary = self.state_manager.check_context_boundaries()
+                if boundary:
+                    self.logger.info(f"Context boundary detected: {boundary.get('phase')}")
+                    self.devlog_manager.log_boundary_transition(boundary)
+                
+                # Increment cycle count
+                cycle = self.state_manager.increment_cycle_count()
+                self.logger.info(f"Starting cycle {cycle}")
+                
+                # TODO: Core agent logic here
+                
+                # Break after one cycle if configured for once mode
+                if self.config.once:
+                    self.logger.info("Once mode enabled, exiting after first cycle")
+                    break
+                
+                # Sleep before next cycle
+                await asyncio.sleep(self.config.loop_delay_sec)
+                
+            self.logger.info(f"Agent {self.agent_id} bootstrap runner completed")
+            
         except asyncio.CancelledError:
-            self.logger.info("Runner cancelled – shutting down.")
+            self.logger.info("Bootstrap runner cancelled")
+            self.shutdown_requested = True
+        except Exception as e:
+            self.logger.error(f"Error in bootstrap runner: {e}", exc_info=True)
+        finally:
+            self.running = False
+            
+    def shutdown(self) -> None:
+        """Request graceful shutdown of runner"""
+        self.logger.info("Shutdown requested")
+        self.shutdown_requested = True
 
 
 ################################################################################
-# CLI / ENTRY
+# ENTRY POINT
 ################################################################################
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser("Dream.OS Agent Runner")
-    g = p.add_mutually_exclusive_group(required=False)
-    g.add_argument("--agent", help="Run single agent e.g. Agent-3")
-    g.add_argument("--all-agents", action="store_true", help="Run Agents 1-8 once")
-    p.add_argument("--once", action="store_true", help="Single cycle then exit")
-    p.add_argument("--no-delay", action="store_true", help="Skip startup delay")
-    p.add_argument("--prompt", help="Override prompt text")
-    p.add_argument("--prompt-file")
-    p.add_argument("--prompt-dir", default=str(PROMPT_DIR_DEFAULT))
-    p.add_argument("--list-prompts", action="store_true")
-    return p.parse_args()
-
-
-async def orchestrate(agent_id: str, args: argparse.Namespace, once: bool):
-    # EDIT START: Determine the effective prompt file (copied from previous version)
-    effective_prompt_file = args.prompt_file
-    if not args.prompt and not args.prompt_file: # Neither direct prompt nor specific file provided
-        # Default to the standard onboarding prompt
-        # Ensure PROMPT_DIR_DEFAULT is used here as args.prompt_dir might be different
-        # if user explicitly changes it but doesn't provide a specific prompt file.
-        # However, the AgentConfig will use args.prompt_dir anyway.
-        # This logic is primarily to decide if we *force* default_onboarding.txt.
-        default_onboarding_path = PROMPT_DIR_DEFAULT / "default_onboarding.txt"
-        if default_onboarding_path.exists():
-            effective_prompt_file = str(default_onboarding_path)
-            # Use ROOT_LOG here as agent-specific logger isn't created yet
-            ROOT_LOG.info(f"No specific prompt or prompt file given for {agent_id}, using default onboarding: {effective_prompt_file}")
-        else:
-            ROOT_LOG.warning(f"Default onboarding prompt {default_onboarding_path} not found for {agent_id}. Agent may not follow standard EP03 activation.")
-    # EDIT END
-
-    cfg = AgentConfig(
-        agent_id      = agent_id,
-        prompt        = args.prompt,
-        prompt_file   = effective_prompt_file, # MODIFIED: Use effective_prompt_file
-        prompt_dir    = Path(args.prompt_dir), # Ensure this is Path
-        startup_delay_sec = 0 if args.no_delay else STARTUP_DELAY_SEC,
+async def main_async() -> int:
+    """Async entry point for bootstrap runner"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Agent Bootstrap Runner")
+    parser.add_argument("--agent", required=True, help="Agent ID (e.g. Agent-2)")
+    parser.add_argument("--no-delay", action="store_true", help="Skip startup delay")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--planning-step", type=int, choices=[1, 2, 3, 4],
+                       help="Specify planning step for this run (1=Strategic, 2=Feature, 3=Design, 4=Task)")
+    args = parser.parse_args()
+    
+    # Create agent configuration
+    config = AgentConfig(
+        agent_id=args.agent,
+        no_delay=args.no_delay,
+        once=args.once,
     )
-    runner = AgentBootstrapRunner(cfg)
-    # Log the prompt source decision (copied from previous version for clarity)
-    prompt_source_msg = "direct" if cfg.prompt else (f"file {cfg.prompt_file}" if cfg.prompt_file else f"default dir ({cfg.prompt_dir})")
-    runner.logger.info(f"Orchestrated run for {agent_id} with run_once={once}. Prompt source: {prompt_source_msg}")
-    await runner.run(once=once)
-
-
-async def main_async():
-    args = parse_args()
-
-    # Default to --all-agents --once if no specific agent mode is selected
-    if not args.agent and not args.all_agents and not args.list_prompts:
-        ROOT_LOG.info("No specific agent or mode selected, defaulting to --all-agents --once.")
-        args.all_agents = True
-        args.once = True # Defaulting to all_agents should also imply once for safety/clarity
-
-    if args.list_prompts:
-        p_dir = Path(args.prompt_dir)
-        ROOT_LOG.info("Prompt files in %s:", p_dir)
-        for f in p_dir.glob("*.txt"):
-            print(" •", f.name)
-        return
-
-    if args.all_agents:
-        ROOT_LOG.info("Bootstrapping Agents 1-8...")
-        for i in range(1, 9):
-            aid = f"Agent-{i}"
-            ROOT_LOG.info(">>> %s", aid)
-            # When --all-agents is specified (or defaulted to), always run once.
-            await orchestrate(aid, args, once=True) 
-            if i < 8:
-                await asyncio.sleep(5)
-    else: # This means args.agent must be set due to mutually_exclusive_group
-        # Add a check for args.agent, as it's no longer guaranteed by required=True
-        if args.agent:
-            await orchestrate(args.agent, args, once=args.once)
-        # If neither all_agents nor agent is specified, and not list_prompts, 
-        # it implies we already defaulted to all_agents, so this else branch might not be hit
-        # in that specific default scenario if list_prompts was also false. The top check handles it.
+    
+    # Create and run bootstrap runner
+    runner = AgentBootstrapRunner(config)
+    await runner.run()
+    
+    return 0
 
 
 if __name__ == "__main__":
