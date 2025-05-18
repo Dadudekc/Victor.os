@@ -68,7 +68,7 @@ class StateValidator:
         """Check file permissions for required paths."""
         required_paths = [
             self.workspace_root / "runtime/agent_mailboxes",
-            self.workspace_root / "working_tasks.json",
+            self.workspace_root / "runtime/tasks/working_tasks.json",
             self.workspace_root / "episodes/episode-launch-final-lock.yaml"
         ]
 
@@ -98,7 +98,7 @@ class StateValidator:
         """Validate schema of working tasks and episode files."""
         try:
             # Validate working tasks
-            working_tasks_path = self.workspace_root / "working_tasks.json"
+            working_tasks_path = self.workspace_root / "runtime/tasks/working_tasks.json"
             with open(working_tasks_path, 'r') as f:
                 tasks = json.load(f)
                 if not isinstance(tasks, list):

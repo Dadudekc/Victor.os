@@ -253,8 +253,8 @@ def send_to_agent(
 def get_agent_tasks(agent_id: str) -> List[Dict]:
     """Get tasks assigned to an agent."""
     try:
-        working_tasks = TASKS_PATH / "working_tasks.json"
-        future_tasks = TASKS_PATH / "future_tasks.json"
+        working_tasks = TASKS_PATH / "runtime/tasks/working_tasks.json"
+        future_tasks = TASKS_PATH / "runtime/tasks/future_tasks.json"
 
         tasks = []
 

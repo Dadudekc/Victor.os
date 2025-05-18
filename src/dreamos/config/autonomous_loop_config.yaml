@@ -26,7 +26,7 @@ mailbox:
 
 # Task Management
 tasks:
-  working_tasks_path: "working_tasks.json"
+  working_tasks_path: "runtime/tasks/working_tasks.json"
   episode_path: "episodes/episode-launch-final-lock.yaml"
   max_concurrent_tasks: 1
   task_priority_levels:
