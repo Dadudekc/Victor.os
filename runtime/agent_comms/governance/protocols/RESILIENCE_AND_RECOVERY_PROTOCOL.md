@@ -1,7 +1,7 @@
 # Dream.OS Resilience and Recovery Protocol
 
 **Version:** 1.0
-**Effective Date:** 2025-05-18
+**Effective Date:** 2025-05-20
 **Status:** ACTIVE
 
 ## 📎 See Also
@@ -13,10 +13,6 @@ For a complete understanding of agent protocols, see:
 - [Response Validation Protocol](runtime/agent_comms/governance/protocols/RESPONSE_VALIDATION_PROTOCOL.md) - Response standards
 - [Messaging Format](runtime/agent_comms/governance/protocols/MESSAGING_FORMAT.md) - Communication standards
 - [Agent Devlog Protocol](runtime/agent_comms/governance/protocols/AGENT_DEVLOG_PROTOCOL.md) - Development logging
-
-**Related Protocols:**
-- `docs/agents/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
-- `docs/agents/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md`
 
 ## 1. PURPOSE
 
@@ -60,10 +56,10 @@ A "stoppage" or "deviation" includes: requesting human input (non-destructive), 
 2. **LOG THE EVENT:** Detail nature, errors, context in devlog and system diagnostics (e.g., `runtime/logs/drift_analysis.jsonl`).
 3. **ANALYZE ROOT CAUSE:** Identify why it happened – which protocol, instruction, or heuristic was insufficient or flawed?
 4. **REVIEW GOVERNANCE DOCUMENTATION:** Thoroughly review:
-   * `docs/agents/onboarding/UNIFIED_AGENT_ONBOARDING_GUIDE.md`
-   * `docs/agents/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md`
-   * `docs/agents/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
-   * `docs/agents/protocols/RESILIENCE_AND_RECOVERY_PROTOCOL.md`
+   * `runtime/agent_comms/governance/onboarding/AGENT_ONBOARDING_INDEX.md`
+   * `runtime/agent_comms/governance/protocols/AGENT_ONBOARDING_PROTOCOL.md`
+   * `runtime/agent_comms/governance/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
+   * `runtime/agent_comms/governance/protocols/RESILIENCE_AND_RECOVERY_PROTOCOL.md`
    * Any specific protocols pertinent to the failed task.
 5. **PROPOSE & APPLY DOCUMENTATION UPDATES:** Formulate and apply specific, constructive updates to the deficient documentation to prevent recurrence for yourself and others. State the problem your update solves.
 6. **RESET OPERATIONAL CYCLE COUNT:** Set to zero.
@@ -154,7 +150,6 @@ This protocol is mandatory for all Dream.OS agents. Compliance will be monitored
 
 ## 7. REFERENCES
 
-* `docs/agents/onboarding/UNIFIED_AGENT_ONBOARDING_GUIDE.md`
-* `docs/agents/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
-* `docs/agents/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md`
-* `runtime/governance/onboarding/agent_onboarding.md` 
+* `runtime/agent_comms/governance/onboarding/AGENT_ONBOARDING_INDEX.md`
+* `runtime/agent_comms/governance/protocols/AGENT_OPERATIONAL_LOOP_PROTOCOL.md`
+* `runtime/agent_comms/governance/protocols/RESPONSE_VALIDATION_PROTOCOL.md` 

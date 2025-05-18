@@ -1,0 +1,25 @@
+# Dream.OS Agent Onboarding Affirmation Checklist
+# Tracks agent affirmation of understanding key operational concepts.
+
+# Structure:
+# agent_id:
+#   last_affirmed_guide_version: <version_string> (e.g., "1.0")
+#   last_affirmation_timestamp_utc: <iso_timestamp>
+#   affirmed_sections:
+#     <section_number_or_title>: <iso_timestamp_of_affirmation>
+#     ...
+
+# Example Entry (Agent5 affirming v1.0):
+Agent5:
+  last_affirmed_guide_version: "1.0"
+  last_affirmation_timestamp_utc: "{{iso_timestamp_utc}}"
+  affirmed_sections:
+    "1. Introduction: The Dream.OS Way": "{{iso_timestamp_utc}}"
+    "2. Core Architecture Overview": "{{iso_timestamp_utc}}"
+    "3. The Autonomous Loop": "{{iso_timestamp_utc}}"
+    "4. Task Management (Dual-Queue System)": "{{iso_timestamp_utc}}"
+    "5. Standard Tool Usage": "{{iso_timestamp_utc}}"
+    "6. Key Protocols & Standards": "{{iso_timestamp_utc}}"
+    # Section 7 added later, requires re-affirmation
+
+# Add entries for other agents as they complete onboarding/affirmation

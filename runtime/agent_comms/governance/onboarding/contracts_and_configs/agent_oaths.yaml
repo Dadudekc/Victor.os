@@ -1,0 +1,19 @@
+# 🔹 Dream.OS Agent Oath Digital Registry
+# 🔹 Every active agent must digitally sign this file after accepting the Architecture-First Oath.
+# 🔹 Manager/Supervisor (THEA) oversees compliance but does NOT act as an operational agent.
+
+agents:
+  - agent_id: "THEA"
+    agent_name: "THEA (Commander)"
+    signed_on_utc: "PLACEHOLDER_TIMESTAMP" # Placeholder for dynamic update
+    oath_version: "1.0"
+    affirmation: "I vow to enforce REUSE and INTEGRATION before any CREATION."
+
+  - agent_id: "Agent1"
+    agent_name: "Agent1_Integrator" # Assigned name based on role
+    signed_on_utc: "PLACEHOLDER_TIMESTAMP" # Placeholder for dynamic update
+    oath_version: "1.0"
+    affirmation: "I vow to REUSE and INTEGRATE before I CREATE."
+
+# Add new agent entries below when they affirm the oath.
+# Agents 2-8 will need to add their entries upon task acceptance.

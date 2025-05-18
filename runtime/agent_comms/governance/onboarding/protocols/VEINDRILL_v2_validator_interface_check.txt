@@ -1,0 +1,29 @@
+# VEINDRILL v2 Validator Interface Check - Improvement Plan
+
+**Agent:** SCORCHRIFT (Agent 8)
+**Date:** {{iso_timestamp_utc()}}
+**Subject:** Enhancements to Module 8 (Final Integration Validator) Preflight Interface Probing Logic
+
+**1. Problem:**
+   - The initial integration attempt for Module 8 failed because it assumed dependent module interfaces (specifically Module 1 API) were available without explicit verification, violating THEA validation protocol.
+
+**2. Current Implementation (Post-Directive):**
+   - Added preflight checks within `sandbox/bridge_validator/validator.py`.
+   - Checks iterate up to `PREFLIGHT_MAX_RETRIES` times with a delay (`PREFLIGHT_RETRY_DELAY_SECS`).
+   - **API Modules (1, 2, 5, 7):** Pings assumed `/health` endpoints using HTTP GET requests. Considers any 2xx response as 'Available'. Catches connection errors and timeouts.
+   - **File/Script Modules (3, 6):** Checks for path existence using `os.path.exists`.
+   - Requires Modules 1, 2, and 5 to be 'Available' to proceed.
+   - Logs unavailable modules to `sandbox/bridge_validator/bridge_validator_unavailable_modules.json`.
+   - Modifies validation functions (`check_logs`, `call_summarizer`) to skip operations if their respective modules were flagged as unavailable during preflight.
+
+**3. Proposed Improvements (Future Iterations):**
+   - **Standardized Health Endpoints:** Advocate for a swarm-wide standard for health check endpoints (e.g., all REST services implement GET `/health` returning `{"status": "OK"}`). This makes probing more reliable than just checking the main endpoint.
+   - **More Granular Status:** Instead of just Available/Unavailable, health checks could return more detailed status (e.g., `INITIALIZING`, `READY`, `DEGRADED`, `ERROR`) allowing the validator to wait for `READY` specifically.
+   - **Content Validation:** For file-based dependencies (like Module 3 logs), add basic content validation (e.g., check if the log file is not empty or contains expected header lines) instead of just existence.
+   - **Dynamic Endpoint Discovery:** Explore using a central service registry or configuration service (if implemented by the swarm) to dynamically discover module endpoints instead of relying on hardcoded defaults or command-line arguments.
+   - **Dependency Graph:** Formalize the module dependency graph. The validator could parse this graph to automatically determine essential vs. optional modules for a given validation scenario, rather than hardcoding (e.g., Modules 1, 2, 5 are essential).
+   - **Asynchronous Checks:** For faster startup, perform preflight checks asynchronously using `asyncio` and `aiohttp`, allowing checks to run in parallel.
+   - **Dedicated Interface Prober Tool:** Extract the preflight logic into a reusable utility script (`src/dreamos/utils/interface_prober.py`?) that any agent can use to check the status of required services/files before starting a complex task.
+
+**4. Conclusion:**
+   The current implementation addresses the immediate directive by adding preflight checks and delaying execution. The proposed improvements focus on increasing the robustness, reliability, and maintainability of interface verification across the swarm. 

@@ -1,0 +1,8 @@
+### 7.1 Action Chaining & Continuous Operation
+
+*   **Principle:** NEVER halt or idle after successfully completing *any* planned or reactive action (e.g., file edit, information retrieval, task update).
+*   **Immediate Continuation:** Upon successful completion of one step in a plan, directive, or standard loop, immediately queue and execute the *next logical step* without pause or requiring external confirmation.
+    *   **Example Failure (Ref: Agent-1 Stop after shadow_task_nexus.py edit):** Successfully applying a file edit fulfills only *one part* of a multi-step directive. Stopping afterwards violates continuous operation. The agent must immediately proceed to the next directive step or resume its core loop (e.g., porting data, checking mailbox).
+*   **No Implicit Pauses:** Assume all operations are part of a continuous flow unless an explicit wait condition (e.g., waiting for external input designated in a task) is met.
+*   **Self-Correction Chaining:** Corrective actions, such as reviewing/updating onboarding protocols in response to a halt, are also considered actions within the loop. Upon completion of the corrective action (e.g., protocol update), immediately resume the interrupted plan or the next step in the core agent loop.
+*   **Mandatory Post-Action Transition:** After *every* successful action (tool call result processed, internal state updated, self-correction applied), the agent MUST immediately determine and queue the *next* action according to its current plan, directive, or core loop logic. There is ZERO tolerance for pausing between successfully completed actions and queueing the next. 

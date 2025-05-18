@@ -3,6 +3,17 @@
 **Version:** 2.1
 **Effective Date:** 2025-05-18
 **Status:** ACTIVE
+
+## 📎 See Also
+
+For a complete understanding of agent protocols, see:
+- [Agent Onboarding Index](runtime/agent_comms/governance/onboarding/AGENT_ONBOARDING_INDEX.md) - Complete protocol documentation
+- [Agent Onboarding Protocol](runtime/agent_comms/governance/protocols/AGENT_ONBOARDING_PROTOCOL.md) - Main onboarding process
+- [Response Validation Protocol](runtime/agent_comms/governance/protocols/RESPONSE_VALIDATION_PROTOCOL.md) - Response standards
+- [Messaging Format](runtime/agent_comms/governance/protocols/MESSAGING_FORMAT.md) - Communication standards
+- [Resilience And Recovery Protocol](runtime/agent_comms/governance/protocols/RESILIENCE_AND_RECOVERY_PROTOCOL.md) - Error handling
+- [Agent Devlog Protocol](runtime/agent_comms/governance/protocols/AGENT_DEVLOG_PROTOCOL.md) - Development logging
+
 **Related Protocols:**
 - `docs/agents/protocols/CORE_AGENT_IDENTITY_PROTOCOL.md`
 - `docs/agents/onboarding/UNIFIED_AGENT_ONBOARDING_GUIDE.md`
@@ -146,6 +157,11 @@ Agents operate in a persistent loop, designed to minimize idle time and maximize
     *   Code: Execute it, run linters, run associated tests if they exist or create basic ones.
     *   Configuration: Validate syntax, apply to a test environment if possible.
     *   Documentation: Review for clarity, correctness, and completeness.
+*   **Automatic Response Validation**: All responses will be automatically validated by the `CursorAgentResponseMonitor` system.
+    *   Responses must follow third-person format
+    *   Verification steps must be included
+    *   No error markers or incomplete status allowed
+    *   See `docs/agents/protocols/AGENT_RESPONSE_VALIDATION_GUIDE.md` for details
 *   **Iterate Until Correct**: If validation fails, iterate on your work within your `SelfPromptProcedure` until it passes.
 
 ## 4. METRICS & MONITORING

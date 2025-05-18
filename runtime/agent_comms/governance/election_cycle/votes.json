@@ -1,0 +1,17 @@
+[
+  {
+    "voter_agent_id": "AgentVoter1",
+    "vote_for_agent_id": "AgentCandidate1",
+    "timestamp_utc": "2025-04-29T20:50:56+00:00Z"
+  },
+  {
+    "voter_agent_id": "AgentVoter2",
+    "vote_for_agent_id": "AgentCandidate1",
+    "timestamp_utc": "2025-04-29T20:50:56+00:00Z"
+  },
+  {
+    "voter_agent_id": "AgentVoter4",
+    "vote_for_agent_id": "AgentCandidate2",
+    "timestamp_utc": "2025-04-29T20:50:56+00:00Z"
+  }
+]
