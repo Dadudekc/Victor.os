@@ -99,7 +99,7 @@ class AgentResumeManager:
                             logger.info(f"Agent {agent_id} is now onboarded")
                 
                 # Send resume messages to all agents in registry
-                resume_message = """You stopped working on your tasks. Your job is to:
+                resume_message = """[STOP DETECTED] You stopped working on your tasks. Your job is to:
 1. Check your inbox at runtime/agent_comms/agent_mailboxes/{agent_id}/inbox/
 2. Process any pending tasks from episodes/episode-*.yaml
 3. Execute your assigned tasks without stopping
@@ -133,7 +133,7 @@ RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
     def onboard_agent(self, agent_id: str):
         """Send onboarding message to an agent after Ctrl+N."""
         try:
-            onboarding_prompt = f"""[WAKE] [WAKE] Dream.OS Agent Onboarding Protocol
+            onboarding_prompt = f"""[WAKE] [WAKE] [WAKE] Dream.OS Agent Onboarding Protocol
 
 CORE IDENTITY DIRECTIVE:
 You are Agent: {agent_id}. You are running inside a Cursor IDE chat window. Your job is to process messages in your inbox, execute tasks, and report via devlog. You are not building or orchestrating agents. You *are* the agent.
