@@ -1,0 +1,87 @@
+[
+  {
+    "task_id": "TEST-TASK-001",
+    "description": "Test task",
+    "assigned_agent": "test-agent",
+    "status": "assigned"
+  },
+  {
+    "task_id": "ORG_IMPLEMENT_CHECKPOINT_SYSTEM_001",
+    "description": "Implement the Checkpoint System based on docs/vision/CHECKPOINT_PROTOCOL.md to address agent drift in long sessions. Create the CheckpointManager class, establish the checkpoint directory structure (runtime/agent_comms/checkpoints/), and integrate checkpointing into agent operational loops. This addresses a critical operational blocker identified in the meta-analysis report.",
+    "assigned_agent": "Agent-3",
+    "status": "completed",
+    "priority": "Critical",
+    "depends_on": [],
+    "deliverables": [
+      "CheckpointManager implementation in src/dreamos/core/checkpoint_manager.py",
+      "Directory structure in runtime/agent_comms/checkpoints/",
+      "Integration with agent operational loops",
+      "Documentation for checkpoint recovery procedures"
+    ]
+  },
+  {
+    "task_id": "ORG_CHECKPOINT_INTEGRATION_GUIDE_001",
+    "description": "Create a comprehensive integration guide and utility module to help all agents integrate the checkpoint system into their operational loops. This task builds upon the completed CheckpointManager implementation and addresses the need for standardized integration across all agents to mitigate drift issues.",
+    "assigned_agent": "Agent-3",
+    "status": "completed",
+    "priority": "High",
+    "depends_on": ["ORG_IMPLEMENT_CHECKPOINT_SYSTEM_001"],
+    "deliverables": [
+      "Integration guide at docs/guides/CHECKPOINT_INTEGRATION_GUIDE.md",
+      "Utility module at src/dreamos/utils/checkpoint_integration.py",
+      "Example integration script for each agent type",
+      "Validation tools for checking checkpoint integration compliance"
+    ],
+    "completion_date": "2025-05-18T17:45:00Z"
+  },
+  {
+    "task_id": "ORG_MITIGATE_TOOL_FAILURES_001",
+    "description": "Address persistent tool failures, particularly read_file and list_dir timeouts, by implementing robust retry logic, fallback mechanisms, and comprehensive error reporting. This resolves a critical operational blocker identified in the meta-analysis report.",
+    "assigned_agent": "Agent-2",
+    "status": "completed",
+    "priority": "Critical",
+    "depends_on": [],
+    "deliverables": [
+      "Robust retry utility in src/dreamos/utils/resilient_io.py",
+      "Fallback mechanisms for critical file operations",
+      "Comprehensive error reporting system",
+      "Documentation for error handling best practices at docs/guides/RESILIENT_IO_BEST_PRACTICES.md"
+    ],
+    "collaborators": ["Agent-3"],
+    "collaboration_notes": "Agent-3 assisting with development of robust retry logic and fault-tolerant file operations based on checkpoint system expertise",
+    "completion_date": "2025-05-18T18:30:00Z"
+  },
+  {
+    "task_id": "task_consolidate_architecture_docs_001",
+    "description": "(Mailbox schema alignment complete) Consolidate all architecture documentation into a single, well-organized ai_docs/architecture/ directory.",
+    "assigned_agent": "Assistant Agent",
+    "status": "completed",
+    "priority": "High",
+    "depends_on": [],
+    "collaborators": ["Captain Agent"],
+    "collaboration_notes": "Taking over from Captain Agent to complete document consolidation",
+    "completion_date": "2025-05-18T19:45:00Z",
+    "deliverables": [
+      "Consolidated architecture documentation in ai_docs/architecture/",
+      "Directory structure with proposals, designs, and diagrams subdirectories",
+      "Updated references in docs/ARCHITECTURE.md",
+      "Comprehensive README.md for the architecture directory"
+    ]
+  },
+  {
+    "task_id": "task_migrate_all_mailboxes_001",
+    "description": "Investigate the old mailbox system (e.g., runtime/agent_comms/agent_mailboxes/<agent_id>/inbox/) and migrate any pending messages or necessary structures to the new JSON-based mailbox system (runtime/agent_comms/agent_mailboxes/<agent_id>.json) for all relevant agents. Create empty <agent_id>.json files for all active agents if they don't exist, to ensure loop v2.1 compliance across the swarm.",
+    "assigned_agent": "Agent-3",
+    "status": "completed",
+    "priority": "Medium",
+    "depends_on": [],
+    "collaboration": "Supporting Captain Agent with this task",
+    "completion_date": "2025-05-18T17:33:00Z",
+    "deliverables": [
+      "Mailbox migration script in src/dreamos/core/mailbox_migration.py",
+      "JSON mailboxes for all agents in runtime/agent_comms/mailboxes/",
+      "Migration report at runtime/agent_comms/MAILBOX_MIGRATION_REPORT.md",
+      "Backup of old mailbox system at runtime/agent_comms/mailbox_backup_*"
+    ]
+  }
+]
