@@ -158,8 +158,7 @@ RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
                         ok = self.cellphone.message_agent(
                             agent_id,
                             resume_message.format(agent_id=agent_id),
-                            MessageMode.STOP_DETECTED,
-                            log_response=True  # Enable response logging
+                            MessageMode.STOP_DETECTED
                         )
                         if ok:
                             self.retry_count[agent_id] = 0
@@ -236,8 +235,7 @@ Respond with "ACTIVATION CONFIRMED" followed by your understanding of your role 
             ok = self.cellphone.message_agent(
                 agent_id,
                 onboarding_prompt,
-                MessageMode.WAKE,
-                log_response=True  # Enable response logging
+                MessageMode.WAKE
             )
             
             if not ok:

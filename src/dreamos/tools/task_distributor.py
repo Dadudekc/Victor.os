@@ -33,8 +33,20 @@ class TaskDistributor:
     def _load_episode(self, episode_file: str) -> dict:
         """Load episode tasks from YAML."""
         try:
-            with open(self.episodes_dir / episode_file, 'r') as f:
-                return yaml.safe_load(f)
+            with open(self.episodes_dir / episode_file, 'r', encoding='utf-8') as f:
+                try:
+                    return yaml.safe_load(f)
+                except yaml.YAMLError as e:
+                    logger.error(f"YAML parsing error in {episode_file}: {e}")
+                    return {}
+        except UnicodeDecodeError:
+            # Try with different encoding if UTF-8 fails
+            try:
+                with open(self.episodes_dir / episode_file, 'r', encoding='latin-1') as f:
+                    return yaml.safe_load(f)
+            except Exception as e:
+                logger.error(f"Failed to load episode {episode_file} with latin-1 encoding: {e}")
+                return {}
         except Exception as e:
             logger.error(f"Failed to load episode {episode_file}: {e}")
             return {}
@@ -123,14 +135,13 @@ class TaskDistributor:
             all_tasks = []
             for episode_file in episode_files:
                 try:
-                    with open(episode_file, 'r') as f:
-                        episode_data = yaml.safe_load(f)
-                        if isinstance(episode_data, dict) and "tasks" in episode_data:
-                            tasks = episode_data["tasks"]
-                            if isinstance(tasks, list):
-                                all_tasks.extend(tasks)
-                            else:
-                                logger.warning(f"Invalid tasks format in {episode_file}")
+                    episode_data = self._load_episode(episode_file.name)
+                    if isinstance(episode_data, dict) and "tasks" in episode_data:
+                        tasks = episode_data["tasks"]
+                        if isinstance(tasks, list):
+                            all_tasks.extend(tasks)
+                        else:
+                            logger.warning(f"Invalid tasks format in {episode_file}")
                 except Exception as e:
                     logger.error(f"Failed to load tasks from {episode_file}: {e}")
                     continue
