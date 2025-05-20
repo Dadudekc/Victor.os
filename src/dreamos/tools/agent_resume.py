@@ -98,7 +98,7 @@ class AgentResumeManager:
                             self.onboarded_agents.add(agent_id)
                             logger.info(f"Agent {agent_id} is now onboarded")
                 
-                # Send resume messages to all agents in registry
+                # Send resume messages to all onboarded agents
                 resume_message = """[STOP DETECTED] You stopped working on your tasks. Your job is to:
 1. Check your inbox at runtime/agent_comms/agent_mailboxes/{agent_id}/inbox/
 2. Process any pending tasks from episodes/episode-*.yaml
@@ -114,14 +114,14 @@ DO NOT:
 
 RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
                 
-                for agent_id in self.cellphone.registry.keys():
+                for agent_id in self.onboarded_agents:
                     logger.info(f"Sending resume message to {agent_id}")
                     self.cellphone.message_agent(
                         agent_id,
                         resume_message.format(agent_id=agent_id),
                         MessageMode.STOP_DETECTED
                     )
-                logger.info("Sent resume messages to all agents")
+                logger.info("Sent resume messages to all onboarded agents")
                 
                 # Wait for next interval
                 time.sleep(self.resume_interval)
