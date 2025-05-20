@@ -1,10 +1,12 @@
 import time
 import logging
 import threading
+import os
+import json
 from pathlib import Path
+from collections import defaultdict
 from agent_cellphone import AgentCellphone, MessageMode
 from task_distributor import TaskDistributor
-import json
 
 # Configure logging
 logging.basicConfig(
@@ -16,6 +18,11 @@ logger = logging.getLogger('agent_resume')
 
 # Load system prompts
 SYSTEM_PROMPTS_FILE = Path("runtime/governance/onboarding/SYSTEM_PROMPTS.md")
+
+# Environment-configurable constants
+RESUME_INTERVAL = int(os.getenv("RESUME_INTERVAL", 180))  # seconds
+ONBOARD_INTERVAL = int(os.getenv("ONBOARD_INTERVAL", 120))
+MAX_RETRY = int(os.getenv("MAX_RETRY", 2))
 
 def load_system_prompts():
     """Load system prompts from the prompts file."""
@@ -52,10 +59,11 @@ class AgentResumeManager:
         self.cellphone = AgentCellphone()
         self.task_distributor = TaskDistributor()
         self.running = False
-        self.resume_interval = 3 * 60  # 3 minutes in seconds
-        self.onboarding_interval = 2 * 60  # 2 minutes wait for onboarding
+        self.resume_interval = RESUME_INTERVAL
+        self.onboarding_interval = ONBOARD_INTERVAL
         self.resume_prompt = load_system_prompts()
         self.onboarded_agents = set()  # Track which agents are onboarded
+        self.retry_count = defaultdict(int)  # Track retry attempts per agent
         
     def start_resume_loop(self):
         """Start the resume loop in a background thread."""
@@ -82,16 +90,28 @@ class AgentResumeManager:
             if not mailbox_dir.exists():
                 return False
                 
-            # Check for onboarding response
+            # Check for any response file
             for response_file in mailbox_dir.glob("response_*.json"):
                 with open(response_file, 'r') as f:
                     response_data = json.load(f)
-                    if response_data.get("mode") == MessageMode.WAKE.value:
+                    # Accept any response mode as valid onboarding
+                    if "mode" in response_data:
                         return True
             return False
         except Exception as e:
             logger.error(f"Failed to check onboarding status for {agent_id}: {e}")
             return False
+            
+    def _flag_unresponsive(self, agent_id: str):
+        """Flag an agent as unresponsive and trigger escalation."""
+        alert_file = Path(f"runtime/monitor/agent_unresponsive/{agent_id}.json")
+        alert_file.parent.mkdir(parents=True, exist_ok=True)
+        alert_file.write_text(json.dumps({
+            "agent": agent_id,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "action": "AUTO_ESCALATE"
+        }, indent=2))
+        logger.warning(f"{agent_id} flagged unresponsive — escalation issued")
         
     def _resume_loop(self):
         """Main resume loop that sends periodic resume messages."""
@@ -135,15 +155,25 @@ RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
                 for agent_id in self.onboarded_agents:
                     try:
                         logger.info(f"Sending resume message to {agent_id}")
-                        self.cellphone.message_agent(
+                        ok = self.cellphone.message_agent(
                             agent_id,
                             resume_message.format(agent_id=agent_id),
-                            MessageMode.STOP_DETECTED
+                            MessageMode.STOP_DETECTED,
+                            log_response=True  # Enable response logging
                         )
+                        if ok:
+                            self.retry_count[agent_id] = 0
+                        else:
+                            self.retry_count[agent_id] += 1
+                            if self.retry_count[agent_id] > MAX_RETRY:
+                                self._flag_unresponsive(agent_id)
                     except Exception as e:
                         logger.error(f"Failed to send resume message to {agent_id}: {e}")
+                        self.retry_count[agent_id] += 1
+                        if self.retry_count[agent_id] > MAX_RETRY:
+                            self._flag_unresponsive(agent_id)
                         continue
-                    
+                        
                 logger.info("Sent resume messages to all onboarded agents")
                 
                 # Wait for next interval
@@ -156,7 +186,7 @@ RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
     def onboard_agent(self, agent_id: str):
         """Send onboarding message to an agent after Ctrl+N."""
         try:
-            onboarding_prompt = f"""[WAKE] [WAKE] [WAKE] [WAKE] Dream.OS Agent Onboarding Protocol
+            onboarding_prompt = f"""[WAKE] Dream.OS Agent Onboarding Protocol
 
 CORE IDENTITY DIRECTIVE:
 You are Agent: {agent_id}. You are running inside a Cursor IDE chat window. Your job is to process messages in your inbox, execute tasks, and report via devlog. You are not building or orchestrating agents. You *are* the agent.
@@ -203,11 +233,18 @@ DIRECTORY STRUCTURE:
 Respond with "ACTIVATION CONFIRMED" followed by your understanding of your role and responsibilities."""
 
             # Send onboarding message
-            self.cellphone.message_agent(
+            ok = self.cellphone.message_agent(
                 agent_id,
                 onboarding_prompt,
-                MessageMode.WAKE
+                MessageMode.WAKE,
+                log_response=True  # Enable response logging
             )
+            
+            if not ok:
+                self.retry_count[agent_id] += 1
+                if self.retry_count[agent_id] > MAX_RETRY:
+                    self._flag_unresponsive(agent_id)
+                return
             
             # Update agent status in registry
             if agent_id in self.cellphone.registry:
@@ -222,6 +259,9 @@ Respond with "ACTIVATION CONFIRMED" followed by your understanding of your role 
             
         except Exception as e:
             logger.error(f"Failed to onboard {agent_id}: {e}")
+            self.retry_count[agent_id] += 1
+            if self.retry_count[agent_id] > MAX_RETRY:
+                self._flag_unresponsive(agent_id)
 
 def main():
     manager = AgentResumeManager()
