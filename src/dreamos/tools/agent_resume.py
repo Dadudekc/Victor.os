@@ -23,8 +23,26 @@ def load_system_prompts():
         with open(SYSTEM_PROMPTS_FILE, 'r', encoding='utf-8') as f:
             content = f.read()
             # Extract autonomous loop mode message between ``` markers
-            loop_section = content.split("## Autonomous Loop Mode")[1].split("```")[1].strip()
-            return loop_section
+            sections = content.split("## Autonomous Loop Mode")
+            if len(sections) > 1:
+                code_blocks = sections[1].split("```")
+                if len(code_blocks) > 1:
+                    return code_blocks[1].strip()
+            # If section not found, return default resume message
+            return """[STOP DETECTED] You stopped working on your tasks. Your job is to:
+1. Check your inbox at runtime/agent_comms/agent_mailboxes/{agent_id}/inbox/
+2. Process any pending tasks from episodes/episode-*.yaml
+3. Execute your assigned tasks without stopping
+4. Report progress in your devlog
+5. Continue until all tasks are complete
+
+DO NOT:
+- Ask for human input
+- Wait for confirmation
+- Stop for any reason
+- Idle between tasks
+
+RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
     except Exception as e:
         logger.error(f"Failed to load system prompts: {e}")
         return None
@@ -99,7 +117,7 @@ class AgentResumeManager:
                             logger.info(f"Agent {agent_id} is now onboarded")
                 
                 # Send resume messages to all onboarded agents
-                resume_message = """[STOP DETECTED] You stopped working on your tasks. Your job is to:
+                resume_message = self.resume_prompt or """[STOP DETECTED] You stopped working on your tasks. Your job is to:
 1. Check your inbox at runtime/agent_comms/agent_mailboxes/{agent_id}/inbox/
 2. Process any pending tasks from episodes/episode-*.yaml
 3. Execute your assigned tasks without stopping
@@ -115,12 +133,17 @@ DO NOT:
 RESET your cycle count and CONTINUE WORKING on your tasks immediately."""
                 
                 for agent_id in self.onboarded_agents:
-                    logger.info(f"Sending resume message to {agent_id}")
-                    self.cellphone.message_agent(
-                        agent_id,
-                        resume_message.format(agent_id=agent_id),
-                        MessageMode.STOP_DETECTED
-                    )
+                    try:
+                        logger.info(f"Sending resume message to {agent_id}")
+                        self.cellphone.message_agent(
+                            agent_id,
+                            resume_message.format(agent_id=agent_id),
+                            MessageMode.STOP_DETECTED
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send resume message to {agent_id}: {e}")
+                        continue
+                    
                 logger.info("Sent resume messages to all onboarded agents")
                 
                 # Wait for next interval
