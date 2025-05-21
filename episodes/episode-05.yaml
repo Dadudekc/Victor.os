@@ -75,14 +75,14 @@ self_regulation_hooks:
 
 agent_awareness:
   agent_prefixes:
-    Agent-1: "⚙️ Engineer"
-    Agent-2: "🛡️ Escalation Watch"
-    Agent-3: "📦 Task Router"
-    Agent-4: "🔬 Validator"
-    Agent-5: "🎯 Captain"
-    Agent-6: "🧠 Reflection"
-    Agent-7: "📡 Bridge Ops"
-    Agent-8: "🕊️ Lorekeeper"
+    Agent-1: "Engineer"
+    Agent-2: "Escalation Watch"
+    Agent-3: "Task Router"
+    Agent-4: "Validator"
+    Agent-5: "Captain"
+    Agent-6: "Reflection"
+    Agent-7: "Bridge Ops"
+    Agent-8: "Lorekeeper"
   config_file: runtime/config/agent_identity.json
 
 digital_empathy:
