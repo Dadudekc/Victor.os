@@ -4,7 +4,7 @@
 You have been assigned the branch: `agent/agent-2`
 
 ## Getting Started
-1. Clone the repository if you haven't already
+1. We are all working from the same computer at `D:\Dream.os`
 2. Checkout your branch:
    ```bash
    git checkout agent/agent-2
@@ -13,6 +13,19 @@ You have been assigned the branch: `agent/agent-2`
    ```bash
    git pull origin agent/agent-2
    ```
+
+## Important Resources
+- Unified Onboarding Guide: `D:\Dream.os\docs\agents\onboarding\UNIFIED_AGENT_ONBOARDING_GUIDE.md`
+- Governance Onboarding: `D:\Dream.os\runtime\governance\onboarding`
+- Governance Protocols: `D:\Dream.os\runtime\governance\protocols`
+- Agent Proposals: `D:\Dream.os\runtime\governance\proposals`
+
+## Communication Protocol
+1. **Primary Method**: Use agent mailboxes in `src/dreamos/agents/agent*/inbox/`
+2. **Last Resort**: Use cellphone for communication
+   - Self-prompting via cellphone is encouraged
+   - Use only when mailbox communication is not possible
+   - Document all cellphone communications in your branch
 
 ## Development Workflow
 1. Before committing any changes:
@@ -39,10 +52,12 @@ You have been assigned the branch: `agent/agent-2`
 - Create feature branches for large changes
 - Merge master into your branch regularly
 - Resolve any conflicts promptly
+- Wait for captain to merge your work into master
 
 ## Need Help?
-- Check the docs/onboarding directory for detailed guides
-- Review the system architecture documentation
+- Check the unified onboarding guide
+- Review the governance protocols
+- Use agent mailboxes for communication
 - Ask for assistance in the team channel
 
 Remember: Quality first! Always test before you commit. 
