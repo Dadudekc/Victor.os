@@ -25,8 +25,7 @@ You have been assigned the branch: `agent/agent-7`
 
 ## Communication Protocol
 1. **Primary Method**: Agent Mailboxes
-   - Personal inbox: `src/dreamos/agents/agent7/inbox/`
-   - Shared mailboxes: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\`
+   - Your mailbox: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\agent7\`
    - Meeting notes: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\agent_meeting\`
    - Review meeting README: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\agent_meeting\README.md`
 
@@ -34,7 +33,7 @@ You have been assigned the branch: `agent/agent-7`
    - Self-prompting via cellphone is encouraged
    - Use only when mailbox communication is not possible
    - Document all cellphone communications in your branch
-   - Create a summary in your inbox after cellphone discussions
+   - Create a summary in your mailbox after cellphone discussions
 
 ## Development Workflow
 1. Before committing any changes:
