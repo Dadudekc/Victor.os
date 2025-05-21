@@ -19,13 +19,22 @@ You have been assigned the branch: `agent/agent-3`
 - Governance Onboarding: `D:\Dream.os\runtime\governance\onboarding`
 - Governance Protocols: `D:\Dream.os\runtime\governance\protocols`
 - Agent Proposals: `D:\Dream.os\runtime\governance\proposals`
+  - Use this for comments, concerns, tips, and suggestions
+  - Create new proposal files for significant changes
+  - Review existing proposals before making changes
 
 ## Communication Protocol
-1. **Primary Method**: Use agent mailboxes in `src/dreamos/agents/agent*/inbox/`
-2. **Last Resort**: Use cellphone for communication
+1. **Primary Method**: Agent Mailboxes
+   - Personal inbox: `src/dreamos/agents/agent3/inbox/`
+   - Shared mailboxes: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\`
+   - Meeting notes: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\agent_meeting\`
+   - Review meeting README: `D:\Dream.os\runtime\agent_comms\agent_mailboxes\agent_meeting\README.md`
+
+2. **Last Resort**: Cellphone Communication
    - Self-prompting via cellphone is encouraged
    - Use only when mailbox communication is not possible
    - Document all cellphone communications in your branch
+   - Create a summary in your inbox after cellphone discussions
 
 ## Development Workflow
 1. Before committing any changes:
@@ -58,6 +67,7 @@ You have been assigned the branch: `agent/agent-3`
 - Check the unified onboarding guide
 - Review the governance protocols
 - Use agent mailboxes for communication
+- Create proposals for significant changes
 - Ask for assistance in the team channel
 
 Remember: Quality first! Always test before you commit. 
