@@ -1,0 +1,52 @@
+[
+  {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_0",
+    "link": "https://twitter.com/user_0/status/012345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "2135e6f2-5ff9-4714-a4e6-7dea36bf38f4"
+  },
+  {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_1",
+    "link": "https://twitter.com/user_1/status/112345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "fd684a95-6a58-4e2c-bc9f-00fb83f50ff4"
+  },
+  {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_2",
+    "link": "https://twitter.com/user_2/status/212345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "cc362a21-2d1e-4cf4-8d1a-277724ddbd1a"
+  },
+  {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_3",
+    "link": "https://twitter.com/user_3/status/312345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "6aed49c3-98a1-4c5d-be72-684b579b0044"
+  },
+  {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_4",
+    "link": "https://twitter.com/user_4/status/412345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "9dbc9549-2623-430e-8c17-e63ad4b7e2c3"
+  }
+]

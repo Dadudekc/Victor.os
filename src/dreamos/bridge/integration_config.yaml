@@ -1,0 +1,83 @@
+security:
+  key: "${INTEGRATION_SECURITY_KEY}"  # Load from environment variable
+  algorithm: "sha256"
+  token_expiry: 3600  # seconds
+
+systems:
+  cursor_ide:
+    type: "ide"
+    credentials:
+      api_key: "${CURSOR_API_KEY}"
+      secret: "${CURSOR_SECRET}"
+    transformers:
+      in:
+        fields:
+          message_id: "id"
+          content: "text"
+          timestamp: "created_at"
+          sender: "from"
+          metadata: "meta"
+      out:
+        fields:
+          id: "message_id"
+          text: "content"
+          created_at: "timestamp"
+          from: "sender"
+          meta: "metadata"
+    transport:
+      type: "websocket"
+      endpoint: "wss://api.cursor.sh/v1/agent"
+      reconnect_interval: 5
+      max_retries: 3
+
+  external_api:
+    type: "api"
+    credentials:
+      client_id: "${API_CLIENT_ID}"
+      client_secret: "${API_CLIENT_SECRET}"
+    transformers:
+      in:
+        fields:
+          request_id: "id"
+          payload: "data"
+          timestamp: "time"
+          source: "origin"
+          context: "ctx"
+      out:
+        fields:
+          id: "request_id"
+          data: "payload"
+          time: "timestamp"
+          origin: "source"
+          ctx: "context"
+    transport:
+      type: "http"
+      base_url: "https://api.external-system.com/v1"
+      timeout: 30
+      retry_count: 3
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "bridge_integration.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+
+monitoring:
+  enabled: true
+  metrics:
+    - name: "authentication_success"
+      type: "counter"
+      labels: ["system_id"]
+    - name: "authentication_failure"
+      type: "counter"
+      labels: ["system_id", "reason"]
+    - name: "message_sent"
+      type: "counter"
+      labels: ["system_id", "status"]
+    - name: "transformation_time"
+      type: "histogram"
+      labels: ["system_id", "direction"]
+    - name: "transport_latency"
+      type: "histogram"
+      labels: ["system_id", "operation"] 

@@ -1,0 +1,80 @@
+{
+    "name": "bridge_modules_integration",
+    "description": "Integration test for all Dream.OS bridge modules",
+    "modules": [
+        "bridge.module1_injector",
+        "bridge.module2_processor",
+        "bridge.module3_logging_error_handling"
+    ],
+    "steps": [
+        {
+            "type": "call",
+            "description": "Log an event through the logging module",
+            "module": "bridge.module3_logging_error_handling",
+            "method": "log",
+            "args": [
+                {
+                    "event": "test_event",
+                    "message": "Test message",
+                    "source": "test_integration"
+                }
+            ],
+            "kwargs": {
+                "log_level": "INFO"
+            },
+            "expected_contains": {}
+        },
+        {
+            "type": "call",
+            "description": "Process data through the processor module",
+            "module": "bridge.module2_processor",
+            "method": "process_data",
+            "args": [
+                {
+                    "data": {"test": "data"},
+                    "metadata": {"source": "test_integration"}
+                }
+            ],
+            "expected_contains": {
+                "processed": true
+            }
+        },
+        {
+            "type": "call",
+            "description": "Send command through the injector module",
+            "module": "bridge.module1_injector",
+            "method": "process_command",
+            "args": [
+                {
+                    "command_type": "test_command",
+                    "payload": {"test": "data"},
+                    "source": "test_integration",
+                    "metadata": {"test": "metadata"}
+                }
+            ],
+            "expected_contains": {
+                "status": "success"
+            }
+        },
+        {
+            "type": "call",
+            "description": "Check health of injector module",
+            "module": "bridge.module1_injector",
+            "method": "health_check",
+            "args": [],
+            "expected_contains": {
+                "status": "healthy"
+            }
+        },
+        {
+            "type": "call",
+            "description": "Check health of processor module",
+            "module": "bridge.module2_processor",
+            "method": "health_check",
+            "args": [],
+            "expected_contains": {
+                "status": "healthy"
+            }
+        }
+    ]
+} 

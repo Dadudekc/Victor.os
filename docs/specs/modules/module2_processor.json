@@ -1,0 +1,51 @@
+{
+    "name": "module2_processor",
+    "description": "Processor module that handles data transformation and processing",
+    "version": "0.1.0",
+    "methods": {
+        "transform_payload": {
+            "description": "Transform a payload based on the specified transformation type",
+            "parameters": [
+                {
+                    "name": "payload_data",
+                    "type": "dict",
+                    "required": true,
+                    "description": "Dictionary containing the payload to transform"
+                },
+                {
+                    "name": "transformation_type",
+                    "type": "str",
+                    "required": false,
+                    "description": "The type of transformation to apply (standard, minimal, verbose)"
+                }
+            ],
+            "return_type": "dict",
+            "required": true
+        },
+        "process_data": {
+            "description": "Process input data according to the provided configuration",
+            "parameters": [
+                {
+                    "name": "input_data",
+                    "type": "dict",
+                    "required": true,
+                    "description": "Dictionary containing input data with data and optional metadata"
+                },
+                {
+                    "name": "processor_config",
+                    "type": "dict",
+                    "required": false,
+                    "description": "Optional configuration for the processor"
+                }
+            ],
+            "return_type": "dict",
+            "required": true
+        },
+        "health_check": {
+            "description": "Return health status of the Processor module",
+            "parameters": [],
+            "return_type": "dict",
+            "required": true
+        }
+    }
+} 

@@ -1,0 +1,49 @@
+name: Dream.OS Verification
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install markdown
+    
+    - name: Run verification
+      run: |
+        python -m src.dreamos.testing.run_verification --markdown --html
+    
+    - name: Archive verification results
+      uses: actions/upload-artifact@v2
+      with:
+        name: verification-reports
+        path: logs/verification/
+    
+    - name: Check verification status
+      run: |
+        if [ ! -f logs/verification/latest_status.json ]; then
+          echo "Verification status file not found"
+          exit 1
+        fi
+        STATUS=$(python -c "import json; print(json.load(open('logs/verification/latest_status.json'))['success'])")
+        if [ "$STATUS" != "True" ]; then
+          echo "Verification failed"
+          exit 1
+        fi 

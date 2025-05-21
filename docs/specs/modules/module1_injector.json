@@ -1,0 +1,28 @@
+{
+  "name": "module1_injector",
+  "methods": [
+    {
+      "name": "process_command",
+      "parameters": [
+        {
+          "name": "command_data",
+          "type": "dict",
+          "required": true,
+          "description": "Dictionary containing command information with required fields: command_type, payload, source, metadata"
+        }
+      ],
+      "return_type": "dict",
+      "required": true,
+      "description": "Process an incoming command by validating, normalizing, and routing to the appropriate handler"
+    },
+    {
+      "name": "health_check",
+      "parameters": [],
+      "return_type": "dict",
+      "required": true,
+      "description": "Return health status of the Injector module"
+    }
+  ],
+  "events": [],
+  "properties": []
+} 

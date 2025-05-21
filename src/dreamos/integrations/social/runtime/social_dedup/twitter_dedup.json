@@ -1,0 +1,65 @@
+{
+  "seen_hashes": {
+    "188f6a79d6149a63021950da17bb8985": {
+      "first_seen": "2025-05-18T19:42:12.258711",
+      "last_seen": "2025-05-18T19:42:22.426857",
+      "count": 2,
+      "source": "twitter_user_0:https://twitter.com/user_0/status/012345678"
+    },
+    "10793e9f587ee75186c9ed1ce5803a91": {
+      "first_seen": "2025-05-18T19:42:12.258711",
+      "last_seen": "2025-05-18T19:42:22.426857",
+      "count": 2,
+      "source": "twitter_user_1:https://twitter.com/user_1/status/112345678"
+    },
+    "8d112fd8338fcb46655642e6847ea3dd": {
+      "first_seen": "2025-05-18T19:42:12.258711",
+      "last_seen": "2025-05-18T19:42:22.426857",
+      "count": 2,
+      "source": "twitter_user_2:https://twitter.com/user_2/status/212345678"
+    },
+    "b4720f5933321f17e70c05b07532acec": {
+      "first_seen": "2025-05-18T19:42:12.258711",
+      "last_seen": "2025-05-18T19:42:22.426857",
+      "count": 2,
+      "source": "twitter_user_3:https://twitter.com/user_3/status/312345678"
+    },
+    "166bd51aef5169706306808059835b4f": {
+      "first_seen": "2025-05-18T19:42:12.258711",
+      "last_seen": "2025-05-18T19:42:22.426857",
+      "count": 2,
+      "source": "twitter_user_4:https://twitter.com/user_4/status/412345678"
+    },
+    "7f1a9413c52c9ab2e813b37569e0d250": {
+      "first_seen": "2025-05-18T19:42:25.472718",
+      "last_seen": "2025-05-18T19:42:25.472718",
+      "count": 1,
+      "source": "twitter_user_0:https://twitter.com/user_0/status/012345678"
+    },
+    "6efa77e990b8fffb0d3b7a9ab7c2d21b": {
+      "first_seen": "2025-05-18T19:42:25.472718",
+      "last_seen": "2025-05-18T19:42:25.472718",
+      "count": 1,
+      "source": "twitter_user_1:https://twitter.com/user_1/status/112345678"
+    },
+    "5a9a86be5d305e0155be5cb61a296b28": {
+      "first_seen": "2025-05-18T19:42:25.472718",
+      "last_seen": "2025-05-18T19:42:25.472718",
+      "count": 1,
+      "source": "twitter_user_2:https://twitter.com/user_2/status/212345678"
+    },
+    "5a8d2b3ad815c47cbd009bbf276647ec": {
+      "first_seen": "2025-05-18T19:42:25.472718",
+      "last_seen": "2025-05-18T19:42:25.472718",
+      "count": 1,
+      "source": "twitter_user_3:https://twitter.com/user_3/status/312345678"
+    },
+    "fa071f0363d7de0880ff0df664607366": {
+      "first_seen": "2025-05-18T19:42:25.472718",
+      "last_seen": "2025-05-18T19:42:25.472718",
+      "count": 1,
+      "source": "twitter_user_4:https://twitter.com/user_4/status/412345678"
+    }
+  },
+  "last_cleanup": "2025-05-18T19:42:12.257709"
+}

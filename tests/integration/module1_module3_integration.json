@@ -1,0 +1,67 @@
+{
+  "name": "module1_module3_integration",
+  "modules": ["module1_injector", "module3_logging_error_handling"],
+  "steps": [
+    {
+      "type": "call",
+      "module": "module3_logging_error_handling",
+      "method": "log",
+      "args": [
+        {
+          "event": "test_event",
+          "message": "Test message",
+          "source": "test_integration"
+        }
+      ],
+      "kwargs": {
+        "log_level": "INFO"
+      }
+    },
+    {
+      "type": "call",
+      "module": "module1_injector",
+      "method": "process_command",
+      "args": [
+        {
+          "command_type": "test_command",
+          "payload": {
+            "test": "data"
+          },
+          "source": "test_integration",
+          "metadata": {
+            "test": "metadata"
+          }
+        }
+      ],
+      "expected": {
+        "status": "success"
+      }
+    },
+    {
+      "type": "call",
+      "module": "module1_injector",
+      "method": "health_check",
+      "args": [],
+      "expected": {
+        "status": "healthy"
+      }
+    },
+    {
+      "type": "call",
+      "module": "module3_logging_error_handling",
+      "method": "handle_error",
+      "args": [
+        {
+          "error": "ValueError('Test error')",
+          "context": {
+            "source": "test_integration"
+          }
+        }
+      ],
+      "expected": {
+        "error": "ValueError",
+        "source": "test_integration"
+      }
+    }
+  ]
+} 

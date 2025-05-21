@@ -1,0 +1,53 @@
+{
+  "name": "module3_logging_error_handling",
+  "methods": [
+    {
+      "name": "log",
+      "parameters": [
+        {
+          "name": "event_data",
+          "type": "dict",
+          "required": true,
+          "description": "Dictionary containing event information"
+        },
+        {
+          "name": "log_level",
+          "type": "str",
+          "required": false,
+          "description": "Severity level (INFO, WARNING, ERROR, FATAL)"
+        }
+      ],
+      "return_type": "str",
+      "required": true,
+      "description": "Log an event to the unified logging system"
+    },
+    {
+      "name": "handle_error",
+      "parameters": [
+        {
+          "name": "error",
+          "type": "Exception",
+          "required": true,
+          "description": "The exception that was caught"
+        },
+        {
+          "name": "context",
+          "type": "dict",
+          "required": false,
+          "description": "Additional context about where the error occurred"
+        },
+        {
+          "name": "error_code",
+          "type": "str",
+          "required": false,
+          "description": "Optional specific error code"
+        }
+      ],
+      "return_type": "dict",
+      "required": true,
+      "description": "Standardized error handling that logs and formats errors"
+    }
+  ],
+  "events": [],
+  "properties": []
+} 

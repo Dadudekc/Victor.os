@@ -1,0 +1,113 @@
+# BasicBot Strategy Configuration
+
+# Global settings
+global:
+  initial_capital: 100000.0
+  max_positions: 5
+  risk_per_trade: 0.02
+  data_dir: data/market
+  results_dir: data/results
+
+# Strategy configurations
+strategies:
+  trend_following:
+    enabled: true
+    parameters:
+      short_window: 20
+      medium_window: 50
+      long_window: 200
+      atr_period: 14
+      risk_per_trade: 0.02
+    symbols:
+      - AAPL
+      - MSFT
+      - GOOGL
+    timeframes:
+      - 1h
+      - 4h
+      - 1d
+
+  mean_reversion:
+    enabled: true
+    parameters:
+      window: 20
+      std_dev: 2.0
+      min_holding_period: 5
+      max_holding_period: 20
+    symbols:
+      - AAPL
+      - MSFT
+      - GOOGL
+    timeframes:
+      - 15m
+      - 1h
+      - 4h
+
+  momentum:
+    enabled: true
+    parameters:
+      lookback_period: 20
+      volume_threshold: 1.5
+      max_positions: 3
+    symbols:
+      - AAPL
+      - MSFT
+      - GOOGL
+    timeframes:
+      - 5m
+      - 15m
+      - 1h
+
+  risk_aware:
+    enabled: true
+    parameters:
+      volatility_window: 20
+      max_risk_per_trade: 0.01
+      stop_loss_atr: 2.0
+      trailing_stop: true
+    symbols:
+      - AAPL
+      - MSFT
+      - GOOGL
+    timeframes:
+      - 1m
+      - 5m
+      - 15m
+
+# Risk management settings
+risk_management:
+  max_drawdown: 0.15
+  max_leverage: 2.0
+  position_sizing:
+    method: kelly
+    max_fraction: 0.1
+  stop_loss:
+    type: atr
+    multiplier: 2.0
+  take_profit:
+    type: atr
+    multiplier: 3.0
+
+# Performance monitoring
+monitoring:
+  metrics:
+    - sharpe_ratio
+    - sortino_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+  alerts:
+    drawdown_threshold: 0.1
+    loss_threshold: 0.05
+    volatility_threshold: 0.2
+
+# Logging configuration
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - type: file
+      filename: logs/basicbot.log
+      max_bytes: 10485760
+      backup_count: 5
+    - type: console 

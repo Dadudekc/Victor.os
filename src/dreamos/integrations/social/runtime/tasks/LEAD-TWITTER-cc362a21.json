@@ -1,0 +1,36 @@
+{
+  "task_id": "LEAD-TWITTER-cc362a21",
+  "name": "Analyze lead from twitter: remote",
+  "description": "Analyze and respond to potential lead: 'Looking for experts in remote for our new project. Interested in discussing opportunities....' from twitter_user_2 on twitter.",
+  "priority": "MEDIUM",
+  "status": "PENDING",
+  "assigned_to": null,
+  "task_type": "LEAD_ANALYSIS",
+  "created_by": "LeadEpisodeGenerator",
+  "created_at": "2025-05-18T19:42:28.489208",
+  "tags": [
+    "lead",
+    "twitter",
+    "social_scout",
+    "remote"
+  ],
+  "dependencies": [],
+  "lead_data": {
+    "platform": "twitter",
+    "query": "remote",
+    "match": "Looking for experts in remote for our new project. Interested in discussing opportunities.",
+    "username": "twitter_user_2",
+    "link": "https://twitter.com/user_2/status/212345678",
+    "timestamp": "2025-05-18T19:42:25.471718",
+    "action": "captured",
+    "id": "cc362a21-2d1e-4cf4-8d1a-277724ddbd1a"
+  },
+  "history": [
+    {
+      "timestamp": "2025-05-18T19:42:28.489208",
+      "agent": "LeadEpisodeGenerator",
+      "action": "CREATED",
+      "details": "Lead task created from twitter lead."
+    }
+  ]
+}
