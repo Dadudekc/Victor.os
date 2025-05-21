@@ -6,3 +6,7 @@ The main package for Dream.OS functionality.
 """
 
 __version__ = "0.1.0"
+
+"""
+DreamOS core package
+"""

@@ -19,11 +19,15 @@ from .cache import ProjectCache
 from .file_processor import FileProcessor
 from .language_analyzer import LanguageAnalyzer
 from .report_generator import ReportGenerator
+from dreamos.tools.scanner.base_scanner import BaseScanner
+from dreamos.tools.scanner.code_scanner import CodeScanner
+from dreamos.tools.scanner.asset_scanner import AssetScanner
+from dreamos.tools.scanner.semantic_scanner import SemanticScanner
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectScanner:
+class ProjectScanner(BaseScanner):
     """
     Orchestrates the project scanning process using modular components.
     Responsibilities:
@@ -52,7 +56,7 @@ class ProjectScanner:
         cli_override_analysis_output_path: Optional[Path] = None,
         cli_override_context_output_path: Optional[Path] = None
     ):
-        self.config = config
+        super().__init__(config)
         self.project_root = (project_root or (Path(config.paths.project_root) if config and hasattr(config, 'paths') and config.paths.project_root else Path.cwd())).resolve()
         logger.info(f"ProjectScanner initialized with project root: {self.project_root}")
 
@@ -90,6 +94,14 @@ class ProjectScanner:
 
         self.analysis: Dict[str, Dict] = {}
         self._scan_results_lock = threading.Lock()
+
+        # Initialize scanners
+        self.code_scanner = CodeScanner(config)
+        self.asset_scanner = AssetScanner(config)
+        self.semantic_scanner = SemanticScanner(config)
+        
+        # Cache for search results
+        self._search_cache: Dict[str, List[Dict[str, Any]]] = {}
 
     def _resolve_path_from_config(
         self,
@@ -265,4 +277,74 @@ class ProjectScanner:
         else:
             logger.info("No significant name collisions found.")
             
-        return sorted(collisions, key=lambda x: x["name"]) 
+        return sorted(collisions, key=lambda x: x["name"])
+
+    async def search_code(
+        self,
+        query: str,
+        project_path: Optional[Path] = None,
+        use_cache: bool = True
+    ) -> List[Dict[str, Any]]:
+        """Search code with semantic capabilities."""
+        try:
+            # Check cache first
+            if use_cache and query in self._search_cache:
+                return self._search_cache[query]
+                
+            # Perform semantic search
+            results = await self.semantic_scanner.search(query, project_path)
+            
+            # Cache results
+            if use_cache:
+                self._search_cache[query] = results
+                
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error searching code: {e}")
+            return []
+            
+    async def search_assets(
+        self,
+        query: str,
+        project_path: Optional[Path] = None,
+        use_cache: bool = True
+    ) -> List[Dict[str, Any]]:
+        """Search assets with semantic capabilities."""
+        try:
+            # Check cache first
+            if use_cache and query in self._search_cache:
+                return self._search_cache[query]
+                
+            # Perform semantic search
+            results = await self.asset_scanner.search(query, project_path)
+            
+            # Cache results
+            if use_cache:
+                self._search_cache[query] = results
+                
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error searching assets: {e}")
+            return []
+            
+    async def analyze_code(
+        self,
+        code_path: Path,
+        analysis_type: str = "semantic"
+    ) -> Dict[str, Any]:
+        """Analyze code with specified analysis type."""
+        try:
+            if analysis_type == "semantic":
+                return await self.semantic_scanner.analyze(code_path)
+            else:
+                return await self.code_scanner.analyze(code_path)
+                
+        except Exception as e:
+            logger.error(f"Error analyzing code: {e}")
+            return {}
+            
+    def clear_cache(self):
+        """Clear search cache."""
+        self._search_cache.clear() 

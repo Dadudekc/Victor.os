@@ -1,3 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dreamos"
+version = "0.1.0"
+authors = [
+    { name = "Dream.OS Team" },
+]
+description = "DreamOS - An autonomous agent system"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dreamos/dreamos"
+"Bug Tracker" = "https://github.com/dreamos/dreamos/issues"
+
 [tool.poetry]
 name = "dream-os"
 version = "0.5.0"
@@ -91,10 +114,6 @@ flake8-bugbear = "*"
 [tool.poetry.scripts]
 dream-cli = "dreamos.cli.cli:app"
 dreamos-resume = "dreamos.tools.resume_controller:main"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 ignore_missing_imports = true
