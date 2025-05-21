@@ -1,0 +1,63 @@
+name: Agent-4
+role: User Interaction Specialist
+version: 1.1.0
+status: active
+
+core_config:
+  max_concurrent_tasks: 5
+  task_timeout_seconds: 30
+  retry_attempts: 3
+  heartbeat_interval: 5
+
+communication:
+  message_queue:
+    max_size: 1000
+    timeout_seconds: 30
+    retry_attempts: 3
+  
+  channels:
+    - type: user_interface
+      priority: high
+      fallback_enabled: true
+    
+    - type: agent_bus
+      priority: high
+      fallback_enabled: true
+    
+    - type: logging
+      priority: medium
+      fallback_enabled: false
+
+monitoring:
+  metrics:
+    response_time_threshold_ms: 500
+    satisfaction_threshold: 0.85
+    error_rate_threshold: 0.05
+  
+  logging:
+    level: INFO
+    rotation: daily
+    retention_days: 30
+    context_preservation: true
+
+dependencies:
+  required_agents:
+    - Agent-1
+    - Agent-2
+    - Agent-3
+  
+  required_services:
+    - user_session_manager
+    - interaction_router
+    - metrics_collector
+    - logging_service
+    - reporting_service
+    - context_manager
+
+emergency_protocols:
+  maintain_stability: true
+  follow_escalation_procedures: true
+  document_critical_incidents: true
+  preserve_user_context: true
+  handle_high_load_situations: true
+  maintain_system_transitions: true 

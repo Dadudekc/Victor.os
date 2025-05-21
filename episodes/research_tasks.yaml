@@ -1,0 +1,104 @@
+tasks:
+  - id: "RESEARCH-001"
+    title: "System Architecture Analysis"
+    description: |
+      Research and analyze the current system architecture, focusing on:
+      1. Component interactions and dependencies
+      2. Performance bottlenecks
+      3. Scalability considerations
+      4. Potential improvements
+      
+      Report findings via cell phone before idling.
+    priority: 1
+    assigned_to: "Agent-1"
+    
+  - id: "RESEARCH-002"
+    title: "Agent Communication Protocol Review"
+    description: |
+      Research and document the current agent communication protocols:
+      1. Message formats and standards
+      2. Error handling patterns
+      3. Recovery mechanisms
+      4. Performance metrics
+      
+      Report findings via cell phone before idling.
+    priority: 1
+    assigned_to: "Agent-2"
+    
+  - id: "RESEARCH-003"
+    title: "Task Management System Analysis"
+    description: |
+      Research and evaluate the task management system:
+      1. Task distribution algorithms
+      2. Priority handling
+      3. Resource allocation
+      4. Performance optimization
+      
+      Report findings via cell phone before idling.
+    priority: 1
+    assigned_to: "Agent-3"
+    
+  - id: "RESEARCH-004"
+    title: "Integration System Review"
+    description: |
+      Research and analyze external system integrations:
+      1. API patterns and standards
+      2. Error handling and recovery
+      3. Performance monitoring
+      4. Security considerations
+      
+      Report findings via cell phone before idling.
+    priority: 1
+    assigned_to: "Agent-4"
+    
+  - id: "ORG-001"
+    title: "Directory Structure Implementation"
+    description: |
+      Implement standardized directory structure:
+      1. Create missing top-level directories
+      2. Move source code files to appropriate locations
+      3. Update import references
+      4. Create README files
+      
+      Report progress via cell phone before idling.
+    priority: 2
+    assigned_to: "Agent-2"
+    
+  - id: "ORG-002"
+    title: "Documentation Centralization"
+    description: |
+      Consolidate project documentation:
+      1. Inventory existing documentation
+      2. Define target structure
+      3. Migrate documentation
+      4. Update cross-references
+      
+      Report progress via cell phone before idling.
+    priority: 2
+    assigned_to: "Agent-3"
+    
+  - id: "ORG-003"
+    title: "Agent Role Formalization"
+    description: |
+      Formalize agent roles and responsibilities:
+      1. Create responsibility documents
+      2. Define collaboration interfaces
+      3. Establish handoff procedures
+      4. Document escalation paths
+      
+      Report progress via cell phone before idling.
+    priority: 2
+    assigned_to: "Agent-4"
+    
+  - id: "ORG-004"
+    title: "Coordination Protocol Documentation"
+    description: |
+      Document inter-agent protocols:
+      1. Document existing protocols
+      2. Create standard message formats
+      3. Implement compliance checkers
+      4. Create templates and examples
+      
+      Report progress via cell phone before idling.
+    priority: 2
+    assigned_to: "Agent-5" 

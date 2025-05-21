@@ -1,0 +1,74 @@
+{
+    "name": "FileManager",
+    "description": "Interface specification for the file manager module",
+    "version": "1.0.0",
+    "schema_version": "1.0",
+    "methods": {
+        "read_file": {
+            "description": "Method read_file of FileManager",
+            "parameters": [
+                {
+                    "name": "file_path",
+                    "type": "str",
+                    "required": true
+                }
+            ],
+            "return_type": "str",
+            "required": true,
+            "deprecated": false
+        },
+        "write_file": {
+            "description": "Method write_file of FileManager",
+            "parameters": [
+                {
+                    "name": "file_path",
+                    "type": "str",
+                    "required": true
+                },
+                {
+                    "name": "content",
+                    "type": "str",
+                    "required": true
+                }
+            ],
+            "return_type": "bool",
+            "required": true,
+            "deprecated": false
+        },
+        "delete_file": {
+            "description": "Method delete_file of FileManager",
+            "parameters": [
+                {
+                    "name": "file_path",
+                    "type": "str",
+                    "required": true
+                }
+            ],
+            "return_type": "bool",
+            "required": true,
+            "deprecated": false
+        },
+        "list_files": {
+            "description": "Method list_files of FileManager",
+            "parameters": [
+                {
+                    "name": "directory",
+                    "type": "str",
+                    "required": false
+                }
+            ],
+            "return_type": "list[str]",
+            "required": false,
+            "deprecated": false
+        }
+    },
+    "properties": {
+        "storage_path": {
+            "description": "Property storage_path of FileManager",
+            "type": "str",
+            "required": true,
+            "deprecated": false
+        }
+    },
+    "dependencies": []
+}

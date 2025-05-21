@@ -1,0 +1,95 @@
+feature:
+  name: User Authentication
+  description: '{{ high_level_description }}'
+  owner_stack:
+  - '{{ primary_tech_stack }}'
+  - '{{ secondary_tech_stack }}'
+  success_criteria:
+  - '{{ measurable_criterion_1 }}'
+  - '{{ measurable_criterion_2 }}'
+  sub_features:
+  - name: '{{ sub_feature_1_name }}'
+    description: '{{ detailed_description_of_this_particular_capability }}'
+    requirements:
+      functional:
+      - '{{ functional_requirement_1 }}'
+      - '{{ functional_requirement_2 }}'
+      non_functional:
+      - '{{ performance_requirement_1 }}'
+      - '{{ security_requirement_1 }}'
+      - '{{ usability_requirement_1 }}'
+    evaluation_metrics:
+    - metric: '{{ metric_name_1 }}'
+      threshold: '{{ quantitative_threshold }}'
+      test_method: '{{ how_this_will_be_tested }}'
+    - metric: '{{ metric_name_2 }}'
+      threshold: '{{ quantitative_threshold }}'
+      test_method: '{{ how_this_will_be_tested }}'
+    system_layers:
+    - layer: Frontend
+      implementation_approach: '{{ ui_component_description }}'
+      technologies:
+      - '{{ framework_1 }}'
+      - '{{ library_1 }}'
+      latency_budget: '{{ max_response_time }}'
+      user_experience_considerations:
+      - '{{ ux_concern_1 }}'
+    - layer: API
+      implementation_approach: '{{ api_implementation_details }}'
+      technologies:
+      - '{{ api_tech_1 }}'
+      - '{{ api_tech_2 }}'
+      latency_budget: '{{ max_processing_time }}'
+      endpoints:
+      - path: '{{ endpoint_path }}'
+        method: '{{ http_method }}'
+        auth_required: '{{ true_or_false }}'
+        request_payload: '{{ request_structure }}'
+        response_payload: '{{ response_structure }}'
+    - layer: Data
+      implementation_approach: '{{ data_implementation_details }}'
+      technologies:
+      - '{{ data_tech_1 }}'
+      - '{{ data_tech_2 }}'
+      latency_budget: '{{ max_query_time }}'
+      data_models:
+      - name: '{{ model_name }}'
+        fields:
+        - '{{ field_name_1 }}: {{ field_type_1 }}'
+        - '{{ field_name_2 }}: {{ field_type_2 }}'
+        relationships:
+        - '{{ related_to_model_x_via_foreign_key }}'
+      persistence_strategy: '{{ storage_approach }}'
+    blind_spots:
+    - '{{ potential_issue_1 }}'
+    - '{{ unresolved_dependency_1 }}'
+    planning_questions:
+    - '{{ key_question_about_implementation_1 }}'
+    - '{{ key_question_about_architecture_1 }}'
+    - '{{ what_happens_in_failure_case_x }}'
+  - name: '{{ sub_feature_2_name }}'
+    description: '{{ detailed_description }}'
+  integration_dependencies:
+  - feature: '{{ related_feature_1 }}'
+    dependency_type: '{{ blocks_or_enhances }}'
+    touchpoints:
+    - '{{ specific_integration_point_1 }}'
+  - system: '{{ external_system_1 }}'
+    dependency_type: '{{ consumes_or_produces }}'
+    touchpoints:
+    - '{{ specific_integration_point_2 }}'
+  documentation_requirements:
+  - '{{ documentation_artifact_1 }}'
+  maintenance_considerations:
+  - '{{ operational_concern_1 }}'
+  rollout_strategy:
+    phases:
+    - name: '{{ rollout_phase_1 }}'
+      audience: '{{ target_users }}'
+      success_metrics:
+      - '{{ adoption_metric_1 }}'
+    feature_flags:
+    - name: '{{ feature_flag_name }}'
+      default: '{{ true_or_false }}'
+      description: '{{ purpose_of_flag }}'
+  created_by: Agent-1

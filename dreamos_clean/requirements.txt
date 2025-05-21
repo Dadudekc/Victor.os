@@ -1,0 +1,33 @@
+# Core dependencies
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+pyyaml>=6.0.1
+tenacity>=8.2.0
+filelock>=3.12.2
+aiofiles>=23.1.0
+python-dotenv>=1.0.0
+python-dateutil>=2.8.2
+typing-extensions>=4.0.0
+
+# Data processing and analysis
+numpy>=1.21.0
+pandas>=1.3.0
+scipy>=1.7.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Testing and development
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.10.0
+mypy>=1.5.0
+types-PyYAML>=6.0.12.12
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.1.0
+
+# Automation and UI
+pyautogui>=0.9.54
+pyperclip>=1.8.2
+pygetwindow>=0.0.9 
