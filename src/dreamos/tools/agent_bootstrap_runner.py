@@ -386,7 +386,8 @@ class AgentBootstrapRunner:
                 cycle = self.state_manager.increment_cycle_count()
                 self.logger.info(f"Starting cycle {cycle}")
                 
-                # TODO: Core agent logic here
+                # Execute core agent logic
+                success = self._execute_core_agent_logic()
                 
                 # Break after one cycle if configured for once mode
                 if self.config.once:
@@ -410,6 +411,36 @@ class AgentBootstrapRunner:
         """Request graceful shutdown of runner"""
         self.logger.info("Shutdown requested")
         self.shutdown_requested = True
+
+    def _execute_core_agent_logic(self):
+        """Execute core agent logic for continuous operation."""
+        try:
+            # Initialize agent state
+            self.state = {
+                "cycle_count": 0,
+                "last_action": None,
+                "next_action": None,
+                "recovery_attempts": 0,
+                "last_stop_time": None,
+                "autonomy_score": 0
+            }
+            
+            # Start agent loop
+            agent_loop = AgentLoop(self.agent_id, str(self.workspace_root))
+            
+            # Run for target cycles
+            success = agent_loop.run(target_cycles=25)
+            
+            if success:
+                logging.info(f"Agent {self.agent_id} completed {agent_loop.cycle_count} cycles successfully")
+                return True
+            else:
+                logging.error(f"Agent {self.agent_id} failed to complete target cycles")
+                return False
+                
+        except Exception as e:
+            logging.error(f"Error in core agent logic: {e}")
+            return False
 
 
 ################################################################################

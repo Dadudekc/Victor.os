@@ -58,12 +58,12 @@
       "hooks": ["task_completion", "unblock", "uptime", "failure", "idle", "protocol_violation", "captaincy_check"]
     },
     "priority": 1,
-    "status": "ACTIVE",
+    "status": "ARCHIVED",
     "injected_at": "{{NOW}}",
     "injected_by": "Captain-Agent-5",
     "claimed_by": "Agent-1 (Gemini)",
     "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
-    "last_progress_summary": "Implemented core AgentPointsManager with ledger and audit trail. Integrated points adjustments for task_completion (+10) and task_failure (-5) into ProjectBoardManager.move_task_to_completed. Next: Implement remaining hooks (unblock, uptime, idle, protocol_violation, captaincy_check) and make point values configurable.",
+    "last_progress_summary": "Task archived as part of TASKFLOW-REALIGNMENT-001. Internal governance system deprioritized in favor of productized output.",
     "timestamp_updated_utc": "{{NOW_UTC_ISO}}"
   },
   {
@@ -77,9 +77,10 @@
       "test_with_agents": true
     },
     "priority": 2,
-    "status": "PENDING",
+    "status": "ARCHIVED",
     "injected_at": "{{NOW}}",
-    "injected_by": "Captain-Agent-5"
+    "injected_by": "Captain-Agent-5",
+    "notes": "Task archived as part of TASKFLOW-REALIGNMENT-001. Internal governance system deprioritized in favor of productized output."
   },
   {
     "task_id": "SQLITE-TASK-BOARD-MIGRATION-001",
@@ -114,7 +115,7 @@
       "function": "rewrite low-quality task files using FeedbackEngineV2 and task schema examples"
     },
     "priority": "CRITICAL",
-    "tags": ["SELF_EVOLUTION", "REVENUE_IMPACT:high", "MARKET_READY:requires_polish"],
+    "tags": ["SELF_EVOLUTION", "REVENUE_IMPACT:high", "MARKET_READY:requires_polish", "PRODUCT_FOCUS"],
     "status": "ACTIVE",
     "injected_by": "captain",
     "claimed_by": "Agent-1 (Gemini)",
@@ -132,8 +133,9 @@
     },
     "priority": "MEDIUM",
     "tags": ["LORE", "CREATIVE_AUTONOMY", "REVENUE_IMPACT:mid"],
-    "status": "PENDING",
-    "injected_by": "captain"
+    "status": "ARCHIVED",
+    "injected_by": "captain",
+    "notes": "Task archived as part of TASKFLOW-REALIGNMENT-001. Internal documentation deprioritized in favor of productized output."
   },
   {
     "task_id": "SNAPSHOT-ENGINE-BOOTSTRAP-001",
@@ -144,7 +146,7 @@
       "output_dir": "runtime/backups/"
     },
     "priority": "CRITICAL",
-    "tags": ["IMMORTALITY_LAYER", "DISASTER_RECOVERY", "REVENUE_IMPACT:mid"],
+    "tags": ["IMMORTALITY_LAYER", "DISASTER_RECOVERY", "REVENUE_IMPACT:mid", "PRODUCT_FOCUS"],
     "status": "PENDING",
     "injected_by": "captain"
   },
@@ -169,8 +171,9 @@
     },
     "priority": "HIGH",
     "tags": ["COLLABORATION", "CREATIVE_AUTONOMY", "REVENUE_IMPACT:low"],
-    "status": "PENDING",
-    "injected_by": "captain"
+    "status": "ARCHIVED",
+    "injected_by": "captain",
+    "notes": "Task archived as part of TASKFLOW-REALIGNMENT-001. Internal collaboration system deprioritized in favor of productized output."
   },
   {
     "task_id": "IMPLEMENT-DEVLOG-LOGGING-001",
@@ -193,7 +196,7 @@
       "priority": "user directives override all tasks"
     },
     "priority": "HIGH",
-    "tags": ["DISCORD_INTEGRATION", "COMMAND_QUEUE"],
+    "tags": ["DISCORD_INTEGRATION", "COMMAND_QUEUE", "PRODUCT_FOCUS"],
     "status": "PENDING",
     "injected_by": "captain"
   },
@@ -447,5 +450,51 @@
     "timestamp_claimed_utc": "{{NOW_UTC_ISO}}",
     "timestamp_completed_utc": "{{NOW_UTC_ISO}}",
     "completion_summary": "Refactored AgentPointsManager and ProjectBoardManager integration to load point values from AppConfig (agent_points_system.point_values). Added default values and test script (scripts/test_points_config.py)."
+  },
+  {
+    "task_id": "ENHANCE-TASK-EXECUTOR-001",
+    "action": "enhance_component",
+    "params": {
+      "component": "TaskExecutor",
+      "target_methods": [
+        "execute_task",
+        "_handle_task_completion",
+        "_handle_task_failure"
+      ],
+      "goals": [
+        "Add product output validation and packaging",
+        "Implement quality metrics tracking",
+        "Add user feedback collection points",
+        "Enhance error reporting for product context"
+      ]
+    },
+    "priority": "HIGH",
+    "tags": ["PRODUCT_FOCUS", "CORE_COMPONENT"],
+    "status": "PENDING",
+    "injected_by": "Agent-7",
+    "notes": "Added as part of TASKFLOW-REALIGNMENT-001 to enhance task executor for productized output support."
+  },
+  {
+    "task_id": "ENHANCE-FEEDBACK-ENGINE-001",
+    "action": "enhance_component",
+    "params": {
+      "component": "FeedbackEngineV2",
+      "target_methods": [
+        "ingest_feedback",
+        "_analyze_item",
+        "_generate_retry_strategy"
+      ],
+      "goals": [
+        "Add product quality metrics analysis",
+        "Implement user satisfaction tracking",
+        "Enhance feedback categorization for product context",
+        "Add automated quality improvement suggestions"
+      ]
+    },
+    "priority": "HIGH",
+    "tags": ["PRODUCT_FOCUS", "CORE_COMPONENT"],
+    "status": "PENDING",
+    "injected_by": "Agent-7",
+    "notes": "Added as part of TASKFLOW-REALIGNMENT-001 to enhance feedback engine for productized output support."
   }
 ]

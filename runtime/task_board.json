@@ -3,20 +3,20 @@
     "cursor_1": {
       "assigned_task_description": "PAUSED: global_folder_audit_map. ACTIVE: BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001",
       "current_task_id": "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001",
-      "last_status_update_utc": "2025-05-18T17:29:49.721154",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "IDLE",
       "status_details": "Waiting for new tasks",
       "tasks": {
         "global_folder_audit_map": {
           "description": "Global Map and Audit: List every utils, helpers, common, lib, shared, scripts, functional, etc. under src/.",
           "status": "PAUSED_BY_DIRECTIVE",
-          "last_updated": "{{PREVIOUS_TIMESTAMP}}",
+          "last_updated": "2025-05-18T17:29:49.721154+00:00",
           "blocker_reason": null
         },
         "PROACTIVE-STABILITY-CHECK-001": {
           "description": "Review scope of 'Project Structure Audit & Consolidation' for inclusion of stability issues (PBM, environment) highlighted in past critiques. Propose follow-up if needed.",
           "status": "BLOCKED",
-          "last_updated": "{{PREVIOUS_TIMESTAMP}}",
+          "last_updated": "2025-05-18T17:29:49.721154+00:00",
           "dependencies": [
             "global_folder_audit_map",
             "audit_utils_helpers",
@@ -30,37 +30,37 @@
         "BRIDGE-TASK-AGENT-1-EXTRACT-THEA-OUTPUT-001": {
           "description": "Analyze the manual process of receiving THEA replies in Cursor. Identify potential hooks, APIs, or screen scraping methods... Propose a design for an extraction utility.",
           "status": "PAUSED_BY_OVERRIDE",
-          "last_updated": "{{CURRENT_UTC_ISO_TIMESTAMP}}"
+          "last_updated": "2025-05-18T17:29:49.721154+00:00"
         }
       }
     },
     "cursor_2": {
       "assigned_task_description": "Audit: utils and helpers: Investigate all found utils/ and helpers/. Confirm if they belong where they are or if they must be consolidated under src/dreamos/utils/.",
       "current_task_id": "audit_utils_helpers",
-      "last_status_update_utc": "PLACEHOLDER_TIMESTAMP",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "EXECUTING",
       "status_details": "Auditing found utils/ and helpers/ directories for consolidation needs."
     },
     "cursor_3": {
       "assigned_task_description": null,
       "current_task_id": "ROUTE_INJECTION_REQUEST",
-      "last_status_update_utc": "[NOW_UTC_ISO]",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "PHASE2_STATUS",
       "status_details": "Defined ROUTE_INJECTION_REQUEST concept (dreamos.cursor.inject.request). Location TBD (core event file?). Schema: {target_window_id: str, content: str, correlation_id: str}",
       "tasks": {
         "implement-dreamscape-agents-001": {
           "description": "Task implement-dreamscape-agents-001: Completed AgentBus integration for planner/writer agents.",
-          "last_updated": "2025-04-29T13:14:52.246+00:00Z",
+          "last_updated": "2025-04-29T13:14:52.246+00:00",
           "status": "EXECUTING"
         },
         "CLEANUP-MISC-TODOS-001": {
-          "status": "IN_PROGRESS",
-          "last_updated": "2025-04-29T15:36:48.768+00:00Z",
+          "status": "EXECUTING",
+          "last_updated": "2025-04-29T15:36:48.768+00:00",
           "description": "Task CLEANUP-MISC-TODOS-001: Reviewed/removed obsolete TODOs in performance_logger, base_agent, project_scanner."
         },
         "CONFIG-CENTRAL-001": {
-          "status": "IN_PROGRESS",
-          "last_updated": "2025-04-29T15:48:21.311+00:00Z",
+          "status": "EXECUTING",
+          "last_updated": "2025-04-29T15:48:21.311+00:00",
           "description": "Task CONFIG-CENTRAL-001: Refactored chatgpt_web_agent.py to use AppConfig. Analyzed supervisor_agent.py and dashboard_app.py (no config loading issues found). Many json.load calls remain - needs further analysis task."
         }
       }
@@ -68,21 +68,21 @@
     "cursor_4": {
       "assigned_task_description": "Audit: shared, functional, misc: Review these if found. Analyze if they are necessary or redundant. Recommend consolidation, deletion, or restructuring.",
       "current_task_id": "audit_shared_functional_misc",
-      "last_status_update_utc": "PLACEHOLDER_TIMESTAMP",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "EXECUTING",
       "status_details": "Auditing found shared/, functional/, and misc utility directories."
     },
     "cursor_5": {
       "assigned_task_description": "Scripts Standardization: Sweep all found scripts/ directories. Confirm they follow current CLI and agent utility standards. Propose deletions or moves.",
       "current_task_id": "standardize_scripts",
-      "last_status_update_utc": "PLACEHOLDER_TIMESTAMP",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "EXECUTING",
       "status_details": "Auditing scripts/ directories for standards compliance and consolidation."
     },
     "cursor_6": {
       "assigned_task_description": null,
       "current_task_id": null,
-      "last_status_update_utc": "[NOW_UTC_ISO]",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "IDLE",
       "status_details": "No suitable tasks found (assist/maintenance/propose). Entering low-power monitoring state as per IDLE protocol.",
       "tasks": {
@@ -107,7 +107,7 @@
     "cursor_7": {
       "assigned_task_description": "Schema and Metadata Sweep: Check for misplaced schemas/, configs/, or metadata files scattered outside of src/dreamos/schemas/ or runtime/config/. Consolidate findings.",
       "current_task_id": "sweep_schemas_metadata",
-      "last_status_update_utc": "PLACEHOLDER_TIMESTAMP",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "EXECUTING",
       "status_details": "Scanning for misplaced schema, config, or metadata files."
     },
@@ -121,7 +121,7 @@
         "task_id": "improve-taskboard-updater-001"
       },
       "current_task_id": "generate_consolidation_report",
-      "last_status_update_utc": "PLACEHOLDER_TIMESTAMP",
+      "last_status_update_utc": "2025-05-18T17:29:49.721154+00:00",
       "status": "EXECUTING",
       "status_details": "Preparing to receive audit findings and compile the Structural Consolidation Report.",
       "task_history": [
@@ -143,17 +143,17 @@
       "tasks": {
         "IMPL-MEMSVC-CORE-001": {
           "description": "Implemented agent filtering and per-agent policy loading in MemoryMaintenanceService. Updated config.py structure.",
-          "last_updated": "2025-04-29T13:17:23.491+00:00Z",
+          "last_updated": "2025-04-29T13:17:23.491+00:00",
           "status": "COMPLETE"
         },
         "IMPROVE-ERROR-HANDLING-001": {
           "description": "Reviewing AgentBus, FileLock, and core services for potential error handling improvements.",
-          "last_updated": "2025-04-29T13:17:31.458+00:00Z",
+          "last_updated": "2025-04-29T13:17:31.458+00:00",
           "status": "EXECUTING"
         }
       }
     }
   },
-  "last_updated_utc": "2025-05-18T17:29:49.723157",
+  "last_updated_utc": "2025-05-18T17:29:49.723157+00:00",
   "supervisor_notes": "Project Structure Audit & Consolidation ACTIVE"
 }

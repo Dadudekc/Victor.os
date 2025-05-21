@@ -1,3 +1,12 @@
+# Dream.OS Agent FAQ
+
+**Version:** 1.0
+**Last Updated:** 2024-03-19
+**Status:** ACTIVE
+
+<!-- [Messaging Protocol](../protocols/messaging.md) -->
+<!-- [Coordination Protocol](../protocols/coordination.md) -->
+
 # Agent FAQs
 
 ## General Questions
@@ -11,7 +20,7 @@ Agents are identified by their unique ID (e.g., "Agent-1", "Agent-2"). Each agen
 ## Communication
 
 ### How do Agents communicate?
-Agents communicate through the message queue system using defined protocols. See the [Messaging Protocol](../protocols/messaging.md) for details.
+Agents communicate through the message queue system using defined protocols. <!-- See the Messaging Protocol for details. -->
 
 ### What are the different message types?
 - SYNC: Synchronization messages
@@ -45,7 +54,7 @@ Agents coordinate through:
 4. Status synchronization
 
 ### What is a Swarm?
-A swarm is a group of agents working together on a common task or objective. See [Coordination Protocol](../protocols/coordination.md) for details.
+A swarm is a group of agents working together on a common task or objective. <!-- See Coordination Protocol for details. -->
 
 ## Troubleshooting
 

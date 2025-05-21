@@ -1,5 +1,21 @@
 [
   {
+    "task_id": "TASKFLOW-REALIGNMENT-001",
+    "name": "Shift Agent Effort Toward Productized Output",
+    "description": "Archive legacy meta tasks and inject new mission-aligned task queue. Validate agent behavior modules (task_executor, feedback_engine, etc.) to ensure they support productized output generation.",
+    "priority": "URGENT",
+    "status": "IN_PROGRESS",
+    "assigned_agent": "Agent-7",
+    "claimed_by": "Agent-7",
+    "timestamp_claimed_utc": "{{iso_timestamp_utc()}}",
+    "task_type": "COORDINATION",
+    "dependencies": [],
+    "notes": "Task claimed by Agent-7. Progress update: 1) Archived legacy meta tasks (agent points system, lore writer, agent meeting) and added PRODUCT_FOCUS tag to key productization tasks (task auto-rewriter, snapshot engine, Discord poller). 2) Analyzed core components and added enhancement tasks: ENHANCE-TASK-EXECUTOR-001 and ENHANCE-FEEDBACK-ENGINE-001 to improve product output support. Next step: Begin implementation of component enhancements.",
+    "created_by": "Agent-7",
+    "created_at": "{{iso_timestamp_utc()}}",
+    "timestamp_updated": "{{iso_timestamp_utc()}}"
+  },
+  {
     "task_id": "REPAIR-FUTURE-TASKS-JSON-001",
     "name": "Manually Repair future_tasks.json",
     "description": "Manually restore runtime/agent_comms/project_boards/future_tasks.json to valid JSON format. Validate its structure against known schema and remove corrupt/inflated entries.",
@@ -1283,5 +1299,39 @@
     "timestamp_updated": "{{iso_timestamp_utc()}}",
     "timestamp_claimed_utc": "{{iso_timestamp_utc()}}",
     "timestamp_completed_utc": "{{iso_timestamp_utc()}}"
+  },
+  {
+    "task_id": "ENHANCE-TASK-EXECUTOR-001",
+    "name": "Enhance TaskExecutor for Productized Output",
+    "description": "Enhance the TaskExecutor class to better support productized output generation, including improved validation, packaging, and quality metrics tracking.",
+    "priority": "HIGH",
+    "status": "COMPLETED",
+    "assigned_agent": "Agent-7",
+    "claimed_by": "Agent-7",
+    "timestamp_claimed_utc": "{{iso_timestamp_utc()}}",
+    "timestamp_completed_utc": "{{iso_timestamp_utc()}}",
+    "task_type": "ENHANCEMENT",
+    "dependencies": ["TASKFLOW-REALIGNMENT-001"],
+    "notes": "Task completed by Agent-7. Implemented: 1) JSON schema validation for product outputs, 2) Atomic file operations for output packaging, 3) Quality metrics tracking, 4) User feedback collection. Added support for code, documentation, and data outputs with proper validation and packaging.",
+    "created_by": "Agent-7",
+    "created_at": "{{iso_timestamp_utc()}}",
+    "timestamp_updated": "{{iso_timestamp_utc()}}"
+  },
+  {
+    "task_id": "ENHANCE-FEEDBACK-ENGINE-001",
+    "name": "Enhance FeedbackEngineV2 for Product Quality",
+    "description": "Enhance the FeedbackEngineV2 to better support product quality tracking and improvement, including performance metrics, user feedback analysis, and automated quality checks.",
+    "priority": "HIGH",
+    "status": "COMPLETED",
+    "assigned_agent": "Agent-7",
+    "claimed_by": "Agent-7",
+    "timestamp_claimed_utc": "{{iso_timestamp_utc()}}",
+    "timestamp_completed_utc": "{{iso_timestamp_utc()}}",
+    "task_type": "ENHANCEMENT",
+    "dependencies": ["TASKFLOW-REALIGNMENT-001"],
+    "notes": "Task completed by Agent-7. Implemented: 1) Product quality metrics tracking with trend analysis, 2) User feedback analysis pipeline with sentiment analysis, 3) Automated quality checks and recommendations, 4) Performance monitoring and retry strategies. Added persistent storage for feedback data and analysis reports.",
+    "created_by": "Agent-7",
+    "created_at": "{{iso_timestamp_utc()}}",
+    "timestamp_updated": "{{iso_timestamp_utc()}}"
   }
 ]

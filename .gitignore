@@ -113,3 +113,50 @@ working_tasks_agent-5_claimed.json # Be specific for the one that caused an issu
 
 # Add duplicate_report.json to .gitignore
 duplicate_report.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Runtime files
+runtime/agent_comms/coordination/message_queue.json
+runtime/agent_comms/coordination/message_archive.json
+runtime/agent_comms/coordination/swarm_status.json
+runtime/agent_comms/coordination/protocol_status.json
+
+# OS
+.DS_Store
+Thumbs.db

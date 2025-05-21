@@ -7,7 +7,7 @@ This module provides task validation and management functionality.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 from pydantic import BaseModel, Field
 import uuid
@@ -164,57 +164,183 @@ class TaskSchema:
     def __init__(self):
         """Initialize task schema."""
         self.logger = logging.getLogger(__name__)
-        self.required_fields = {
-            'task_id': str,
-            'description': str,
-            'type': str,
-            'priority': str,
-            'status': str
-        }
-        self.valid_types = ['migration', 'automation', 'integration', 'maintenance']
-        self.valid_priorities = ['low', 'medium', 'high', 'critical']
-        self.valid_statuses = ['pending', 'in_progress', 'completed', 'failed']
         
-    def validate_task(self, task: Dict) -> bool:
-        """Validate task against schema.
+    def validate_task(self, task_data: Dict[str, Any]) -> Tuple[bool, List[str]]:
+        """Validate task against schema using Pydantic models.
         
         Args:
-            task: Task dictionary to validate
+            task_data: Task dictionary to validate
             
         Returns:
-            bool: True if task is valid
+            Tuple[bool, List[str]]: (is_valid, list of validation errors)
         """
+        errors = []
         try:
-            # Check required fields
-            for field, field_type in self.required_fields.items():
-                if field not in task:
-                    self.logger.error(f"Missing required field: {field}")
-                    return False
-                if not isinstance(task[field], field_type):
-                    self.logger.error(f"Invalid type for field {field}: expected {field_type}")
-                    return False
-                    
-            # Validate type
-            if task['type'] not in self.valid_types:
-                self.logger.error(f"Invalid task type: {task['type']}")
-                return False
+            # Convert task data to Task model
+            task = Task(**task_data)
+            
+            # Validate task ID format
+            if not task.task_id or not isinstance(task.task_id, str):
+                errors.append("Invalid task_id format")
+                
+            # Validate name
+            if not task.name or not isinstance(task.name, str):
+                errors.append("Invalid name format")
+                
+            # Validate description
+            if not task.description or not isinstance(task.description, str):
+                errors.append("Invalid description format")
                 
             # Validate priority
-            if task['priority'] not in self.valid_priorities:
-                self.logger.error(f"Invalid priority: {task['priority']}")
-                return False
+            if task.priority not in TASK_PRIORITY.values():
+                errors.append(f"Invalid priority: {task.priority}")
                 
             # Validate status
-            if task['status'] not in self.valid_statuses:
-                self.logger.error(f"Invalid status: {task['status']}")
-                return False
+            if task.status not in TASK_STATUS.values():
+                errors.append(f"Invalid status: {task.status}")
                 
-            return True
+            # Validate task type
+            if task.task_type not in TASK_TYPES.values():
+                errors.append(f"Invalid task type: {task.task_type}")
+                
+            # Validate created_by
+            if not task.created_by or not isinstance(task.created_by, str):
+                errors.append("Invalid created_by format")
+                
+            # Validate created_at
+            if not isinstance(task.created_at, datetime):
+                errors.append("Invalid created_at format")
+                
+            # Validate tags
+            if not isinstance(task.tags, list) or not all(isinstance(tag, str) for tag in task.tags):
+                errors.append("Invalid tags format")
+                
+            # Validate dependencies
+            if not isinstance(task.dependencies, list) or not all(isinstance(dep, str) for dep in task.dependencies):
+                errors.append("Invalid dependencies format")
+                
+            # Validate estimated_duration
+            if task.estimated_duration is not None and not isinstance(task.estimated_duration, str):
+                errors.append("Invalid estimated_duration format")
+                
+            # Validate deadline
+            if task.deadline is not None and not isinstance(task.deadline, datetime):
+                errors.append("Invalid deadline format")
+                
+            # Validate history
+            if not isinstance(task.history, list):
+                errors.append("Invalid history format")
+            else:
+                for entry in task.history:
+                    if not isinstance(entry, TaskHistory):
+                        errors.append("Invalid history entry format")
+                        
+            # Validate critical flag
+            if not isinstance(task.critical, bool):
+                errors.append("Invalid critical flag format")
+                
+            # Validate parent_task_id
+            if task.parent_task_id is not None and not isinstance(task.parent_task_id, str):
+                errors.append("Invalid parent_task_id format")
+                
+            # Validate assigned_to
+            if task.assigned_to is not None and not isinstance(task.assigned_to, str):
+                errors.append("Invalid assigned_to format")
+                
+            return len(errors) == 0, errors
             
         except Exception as e:
             self.logger.error(f"Error validating task: {e}")
+            errors.append(f"Validation error: {str(e)}")
+            return False, errors
+            
+    def validate_task_transition(self, current_status: str, new_status: str) -> Tuple[bool, List[str]]:
+        """Validate task status transition.
+        
+        Args:
+            current_status: Current task status
+            new_status: New task status
+            
+        Returns:
+            Tuple[bool, List[str]]: (is_valid, list of validation errors)
+        """
+        errors = []
+        
+        # Validate current status
+        if current_status not in TASK_STATUS.values():
+            errors.append(f"Invalid current status: {current_status}")
+            
+        # Validate new status
+        if new_status not in TASK_STATUS.values():
+            errors.append(f"Invalid new status: {new_status}")
+            
+        # Validate transition rules
+        valid_transitions = {
+            TASK_STATUS["PENDING"]: [TASK_STATUS["IN_PROGRESS"], TASK_STATUS["BLOCKED"]],
+            TASK_STATUS["IN_PROGRESS"]: [TASK_STATUS["COMPLETED"], TASK_STATUS["FAILED"], TASK_STATUS["BLOCKED"]],
+            TASK_STATUS["BLOCKED"]: [TASK_STATUS["PENDING"], TASK_STATUS["IN_PROGRESS"]],
+            TASK_STATUS["COMPLETED"]: [],
+            TASK_STATUS["FAILED"]: [TASK_STATUS["PENDING"]]
+        }
+        
+        if current_status in valid_transitions:
+            if new_status not in valid_transitions[current_status]:
+                errors.append(f"Invalid status transition from {current_status} to {new_status}")
+        else:
+            errors.append(f"Invalid current status: {current_status}")
+            
+        return len(errors) == 0, errors
+        
+    def validate_task_dependencies(self, task: Task, all_tasks: List[Task]) -> Tuple[bool, List[str]]:
+        """Validate task dependencies.
+        
+        Args:
+            task: Task to validate
+            all_tasks: List of all tasks in the system
+            
+        Returns:
+            Tuple[bool, List[str]]: (is_valid, list of validation errors)
+        """
+        errors = []
+        
+        # Check for circular dependencies
+        visited = set()
+        path = []
+        
+        def check_circular_dep(task_id: str) -> bool:
+            if task_id in path:
+                return True
+            if task_id in visited:
+                return False
+                
+            visited.add(task_id)
+            path.append(task_id)
+            
+            # Find task
+            current_task = next((t for t in all_tasks if t.task_id == task_id), None)
+            if current_task:
+                for dep_id in current_task.dependencies:
+                    if check_circular_dep(dep_id):
+                        return True
+                        
+            path.pop()
             return False
             
+        if check_circular_dep(task.task_id):
+            errors.append("Circular dependency detected")
+            
+        # Check for missing dependencies
+        task_ids = {t.task_id for t in all_tasks}
+        missing_deps = [dep_id for dep_id in task.dependencies if dep_id not in task_ids]
+        if missing_deps:
+            errors.append(f"Missing dependencies: {', '.join(missing_deps)}")
+            
+        # Check for invalid parent task
+        if task.parent_task_id and task.parent_task_id not in task_ids:
+            errors.append(f"Invalid parent task: {task.parent_task_id}")
+            
+        return len(errors) == 0, errors
+
     def update_task_status(self, task_id: str, status: str, notes: str = "") -> bool:
         """Update task status in working tasks file.
         
