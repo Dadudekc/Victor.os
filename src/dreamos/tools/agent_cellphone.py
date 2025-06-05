@@ -2,8 +2,15 @@ import json
 import logging
 import time
 from pathlib import Path
-import pyautogui
-import pyperclip
+try:
+    import pyautogui  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    pyautogui = None
+
+try:
+    import pyperclip  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    pyperclip = None
 import argparse
 from enum import Enum
 from typing import Optional, Dict, List, Any
@@ -93,6 +100,9 @@ class AgentCellphone:
     def validate_coordinates(self, x: int, y: int) -> bool:
         """Validate if coordinates are within screen bounds, including negative values for multi-monitor setups"""
         try:
+            if pyautogui is None:  # pragma: no cover - headless testing fallback
+                return True
+
             # Get all monitor information
             monitors = pyautogui.getAllMonitors()
             

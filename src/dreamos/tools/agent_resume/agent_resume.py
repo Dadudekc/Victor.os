@@ -12,10 +12,25 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from queue import Queue
 import threading
-import pyautogui
-import pyperclip
-from PIL import ImageChops, Image
-import pygetwindow as gw
+try:
+    import pyautogui  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    pyautogui = None
+
+try:
+    import pyperclip  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    pyperclip = None
+
+try:
+    from PIL import ImageChops, Image  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    ImageChops, Image = None, None
+
+try:
+    import pygetwindow as gw  # type: ignore
+except Exception:  # pragma: no cover - optional dependency may not be available
+    gw = None
 import hashlib
 import os
 import re
