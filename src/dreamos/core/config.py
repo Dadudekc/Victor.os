@@ -42,6 +42,7 @@ print("DEBUG_CONFIG: Before importing .errors", flush=True)
 from . import errors as appconfig_errors
 
 # {{ EDIT END }}
+from .task_monitoring_config import TaskMonitoringConfig
 
 # EDIT: Add DreamscapeConfig import here
 # from dreamscape.config import DreamscapeConfig # Temporarily commented out for diagnosis
@@ -289,8 +290,12 @@ class ChatGPTScraperConfig(BaseModel):
 # EDIT START: Add GUI Automation Config Model
 class GuiAutomationConfig(BaseModel):
     cursor_window_title: str = "Cursor"
-    input_coords_file_path: str = "runtime/config/cursor_coords.json"  # Default path for input coordinates
-    copy_coords_file_path: str = "runtime/config/copy_coords.json"  # Default path for copy coordinates
+    input_coords_file_path: str = (
+        "runtime/config/cursor_coords.json"  # Default path for input coordinates
+    )
+    copy_coords_file_path: str = (
+        "runtime/config/copy_coords.json"  # Default path for copy coordinates
+    )
 
 
 # EDIT END
@@ -670,58 +675,35 @@ class OperatingMode(str, Enum):
 print("DEBUG_CONFIG: Before AppConfig class definition")
 
 
-# EDIT START: Add TaskMonitoringConfig Model before AppConfig
-class TaskMonitoringConfig(BaseModel):
-    check_interval_seconds: int = Field(
-        300, description="How often to check for stalled tasks"
-    )
-    pending_timeout_seconds: int = Field(
-        3600, description="Time in seconds before a PENDING task is considered stalled"
-    )
-    escalation_strategy: str = Field(
-        "log_only", description="Strategy for handling stalled tasks"
-    )
-
-
-# EDIT END
-
-
 class AlertingConfig(BaseModel):
     """Configuration for the alerting system."""
-    
+
     enabled: bool = Field(True, description="Whether alerting is enabled")
     discord: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "enabled": False,
-            "token": None,
-            "channel_id": None
-        },
-        description="Discord integration settings"
+        default_factory=lambda: {"enabled": False, "token": None, "channel_id": None},
+        description="Discord integration settings",
     )
     severity_levels: Dict[str, str] = Field(
         default_factory=lambda: {
             "info": "info",
             "warning": "warning",
             "error": "error",
-            "critical": "critical"
+            "critical": "critical",
         },
-        description="Mapping of alert types to severity levels"
+        description="Mapping of alert types to severity levels",
     )
     rate_limits: Dict[str, Any] = Field(
         default_factory=lambda: {
-            "global": {
-                "max_alerts_per_hour": 100,
-                "max_alerts_per_minute": 20
-            },
+            "global": {"max_alerts_per_hour": 100, "max_alerts_per_minute": 20},
             "per_agent": {
                 "cooldown_seconds": 300,  # 5 minutes
-                "max_alerts_per_hour": 30
+                "max_alerts_per_hour": 30,
             },
             "alert_type": {
                 "cooldown_seconds": 60  # 1 minute
-            }
+            },
         },
-        description="Rate limiting configuration"
+        description="Rate limiting configuration",
     )
     aggregation: Dict[str, Any] = Field(
         default_factory=lambda: {
@@ -730,16 +712,13 @@ class AlertingConfig(BaseModel):
             "min_alerts_for_aggregation": 2,
             "alert_types": ["DRIFT", "ERROR", "RECOVERY"],
             "include_details": True,
-            "cleanup_interval_seconds": 60
+            "cleanup_interval_seconds": 60,
         },
-        description="Alert aggregation settings"
+        description="Alert aggregation settings",
     )
     retention: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "max_alerts": 1000,
-            "max_age_days": 30
-        },
-        description="Alert retention settings"
+        default_factory=lambda: {"max_alerts": 1000, "max_age_days": 30},
+        description="Alert retention settings",
     )
 
 
@@ -804,7 +783,7 @@ class AppConfig(BaseSettings):
 
     alerting: AlertingConfig = Field(
         default_factory=AlertingConfig,
-        description="Configuration for the alerting system"
+        description="Configuration for the alerting system",
     )
 
     project_root_internal: Path = Field(exclude=True, default_factory=Path.cwd)
@@ -1055,19 +1034,3 @@ print("DEBUG_CONFIG: End of dreamos.core.config.py, AppConfig.model_rebuild() ca
 #         logging.basicConfig(level=logging.WARNING)
 #         logger.error(f"Fallback logging setup failed due to config error: {e}. Using basic console logging.")
 #         _logging_configured = True # Prevent further attempts
-
-
-# EDIT START: Add TaskMonitoringConfig Model
-class TaskMonitoringConfig(BaseModel):
-    check_interval_seconds: int = Field(
-        300, description="How often to check for stalled tasks"
-    )
-    pending_timeout_seconds: int = Field(
-        3600, description="Time in seconds before a PENDING task is considered stalled"
-    )
-    escalation_strategy: str = Field(
-        "log_only", description="Strategy for handling stalled tasks"
-    )
-
-
-# EDIT END
