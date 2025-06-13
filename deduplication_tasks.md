@@ -46,3 +46,11 @@ Below are the top directories ranked by the number of near-duplicate filename ma
    - Remove obsolete or temporary files that are no longer referenced.
    - Consolidate documentation or logs where possible.
 3. After manual cleanup, re-run `python deduplication_scanner.py` to verify that duplicates were removed.
+
+## Progress (2025-06-13)
+
+- Removed redundant lore logs under `runtime/operational_logs/lore` ([9f2607f](https://github.com/Dadudekc/Victor.os/commit/9f2607f)).
+- Regenerated deduplication reports with `deduplication_scanner.py` which produced `runtime/reports/duplicate_report.json` and `duplicate_summary.txt`.
+- Next focus areas:
+  - `docs/vision`
+  - `src/dreamos/tools`
