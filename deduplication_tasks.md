@@ -54,3 +54,9 @@ Below are the top directories ranked by the number of near-duplicate filename ma
 - Next focus areas:
   - `docs/vision`
   - `src/dreamos/tools`
+
+## Progress (2025-06-15)
+
+- Added `scripts/deduplicate_tasks.py` which scans task boards for duplicate tasks
+  based on identical name and description pairs. The script outputs
+  `runtime/reports/task_duplicates.json` with grouped duplicates.
