@@ -48,7 +48,7 @@ class BridgeInjector:
         # Initialize command routers
         self.routers = self._initialize_routers()
         
-        # Initialize telemetry (if Module 2 is available)
+        # Initialize telemetry (if BridgeTelemetry is available)
         self.telemetry = self._initialize_telemetry()
         
         # Statistics tracking
@@ -259,13 +259,13 @@ class BridgeInjector:
     
     def _initialize_telemetry(self) -> Optional[Any]:
         """
-        Initialize telemetry integration if Module 2 is available.
+        Initialize telemetry integration if BridgeTelemetry is available.
         
         Returns:
             Telemetry instance or None if not available
         """
         try:
-            # Check if Module 2 telemetry is available
+            # Check if BridgeTelemetry is available
             from bridge.module2 import BridgeTelemetry
             
             telemetry_config = self.config.get('telemetry_config', {})
@@ -283,7 +283,7 @@ class BridgeInjector:
             self.logger.log({
                 "source": "Bridge_Injector",
                 "status": "INFO",
-                "message": "Telemetry module (Module 2) not available, continuing without telemetry"
+                "message": "Telemetry module (BridgeTelemetry) not available, continuing without telemetry"
             })
             
             return None

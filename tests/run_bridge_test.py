@@ -35,7 +35,7 @@ def create_test_logger():
 
 def test_injector():
     """Test the Injector module."""
-    print("\n=== Testing Module 1: Injector ===\n")
+    print("\n=== Testing Injector ===\n")
     
     # Create logger and error handler
     logger, logger_config = create_test_logger()
@@ -80,7 +80,7 @@ def test_injector():
 
 def test_telemetry():
     """Test the Telemetry module."""
-    print("\n=== Testing Module 2: Telemetry ===\n")
+    print("\n=== Testing Telemetry ===\n")
     
     # Create logger and error handler
     logger, logger_config = create_test_logger()
@@ -143,7 +143,7 @@ def test_telemetry():
 
 def test_integration():
     """Test integration between Injector and Telemetry."""
-    print("\n=== Testing Module 1 + Module 2 Integration ===\n")
+    print("\n=== Testing Injector + Telemetry Integration ===\n")
     
     # Create logger and error handler
     logger, logger_config = create_test_logger()

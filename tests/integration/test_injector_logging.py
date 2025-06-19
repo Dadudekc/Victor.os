@@ -1,7 +1,7 @@
 """
 Integration Test: Injector + Logging
--------------------------------------
-Tests the integration between the Injector module and the Logging module.
+-----------------------------------
+Tests the integration between the Injector module and the Logging & Error Handling Layer.
 """
 
 import os
