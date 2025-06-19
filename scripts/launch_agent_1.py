@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from dreamos.agents.loop.agent_loop import AgentLoop
+from dreamos.agents.agent_loop import AgentLoop
 from dreamos.agents.base_agent import BaseAgent
 from dreamos.core.config import AppConfig
 from dreamos.core.tasks.project_board_manager import ProjectBoardManager

@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from apps.dashboard.core.autonomy.agent_autonomy_manager import AgentAutonomyManager
+from dreamos.agent_autonomy_manager import AgentAutonomyManager
 
 from .notifier import Notifier
 from .voice_commands import VoiceCommandHandler

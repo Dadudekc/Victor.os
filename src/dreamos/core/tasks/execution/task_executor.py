@@ -21,7 +21,7 @@ import jsonschema
 from dreamos.utils.resilient_io import read_file, write_file
 from dreamos.feedback import FeedbackEngineV2
 from dreamos.core.tasks.task_nexus import TaskNexus
-from dreamos.core.tasks.schemas.product_output_schema import (
+from dreamos.core.tasks.product_output_schema import (
     ProductOutput, ProductOutputMetadata, CodeOutput, DocumentationOutput, DataOutput,
     PRODUCT_OUTPUT_SCHEMA
 )

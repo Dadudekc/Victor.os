@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import pyautogui
-from dreamos.core.metrics.metrics_logger import MetricsLogger
+from dreamos.core.metrics_logger import MetricsLogger
 
 # Add src to Python path if not already present
 workspace_root = Path(__file__).parent.parent.parent.parent

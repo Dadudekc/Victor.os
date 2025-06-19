@@ -15,7 +15,7 @@ from pathlib import Path
 
 from dreamos.testing.tools.reliability import ToolReliabilityTester
 from dreamos.testing.tools.validation import run_basic_validation, generate_validation_report
-from dreamos.core.metrics.metrics_logger import MetricsLogger
+from dreamos.core.metrics_logger import MetricsLogger
 
 def parse_args():
     """Parse command line arguments."""

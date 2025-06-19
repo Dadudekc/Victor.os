@@ -2,7 +2,7 @@ import asyncio
 import json
 from datetime import datetime, timedelta, date
 from pathlib import Path
-from dreamos.core.alerting.alert_manager import AlertManager
+from dreamos.core.alert_manager import AlertManager
 import os
 
 async def simulate_agent_activity(alert_manager, day):
