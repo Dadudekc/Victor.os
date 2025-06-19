@@ -55,3 +55,8 @@ Message content...
 ## Coordination
 - Agent-2: Infrastructure management
 - Agent-3: Project organization and coordination
+
+## Micro Spin-Offs
+
+- **Self-Healing Agent Swarm Starter Template** – see `spin_offs/self_healing_swarm_template/`. Provides a minimal setup for running Cursor-based agents on the `StableAutonomousLoop`.
+- **Auto-Prompt Script Generator** – see `spin_offs/auto_prompt_generator/`. Generates prompt files from a YAML spec to bootstrap multi-agent workflows.
