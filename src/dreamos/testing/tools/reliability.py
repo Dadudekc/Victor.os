@@ -8,7 +8,7 @@ blockers to autonomous operation.
 """
 
 from dreamos.core.errors import ToolOperationError
-from dreamos.core.metrics.metrics_logger import MetricsLogger
+from dreamos.core.metrics_logger import MetricsLogger
 import os
 import time
 import concurrent.futures

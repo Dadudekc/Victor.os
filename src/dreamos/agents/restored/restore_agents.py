@@ -16,7 +16,7 @@ def restore_agent_files():
         "py/offline_validation_agent.py",
         "src/dreamos/core/coordination/base_agent.py",
         "src/dreamos/core/coordination/agent_bus.py",
-        "src/dreamos/agents/loop/agent_loop.py",
+        "src/dreamos/agents/agent_loop.py",
         "src/dreamos/agents/utils/agent_identity.py"
     ]
     

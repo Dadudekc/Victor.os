@@ -17,7 +17,7 @@ This framework provides a standardized approach for testing and validating the r
 # Location: src/dreamos/testing/tools/reliability.py
 
 from dreamos.core.errors import ToolOperationError
-from dreamos.core.metrics.metrics_logger import MetricsLogger
+from dreamos.core.metrics_logger import MetricsLogger
 import os
 import time
 import concurrent.futures
@@ -342,7 +342,7 @@ This framework will be integrated into the Dream.OS codebase through:
    └── README.md
    ```
 
-2. Integration with existing metrics infrastructure (`src/dreamos/core/metrics/metrics_logger.py`)
+2. Integration with existing metrics infrastructure (`src/dreamos/core/metrics_logger.py`)
 
 3. Daily automated testing via CI/CD pipeline
 

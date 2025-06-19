@@ -8,7 +8,7 @@ from unittest.mock import ANY, AsyncMock, Mock
 
 import pytest
 
-from dreamos.agents.loop.agent_loop import AgentLoop
+from dreamos.agents.agent_loop import AgentLoop
 from dreamos.core.config import AppConfig
 from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.project_board import ProjectBoardManager

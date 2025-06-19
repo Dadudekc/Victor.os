@@ -22,8 +22,8 @@ from dreamos.core.coordination.base_agent import BaseAgent
 from dreamos.core.project_board import ProjectBoardManager
 from dreamos.automation.cursor_injector import CursorInjector
 from dreamos.automation.response_retriever import ResponseRetriever
-from dreamos.core.metrics.metrics_logger import MetricsLogger
-from dreamos.core.alerting.alert_manager import AlertManager
+from dreamos.core.metrics_logger import MetricsLogger
+from dreamos.core.alert_manager import AlertManager
 from dreamos.coordination.messaging import Message, MessageHandler, MessagePriority, MessageMode
 from dreamos.coordination.agent_coordinates import AgentRegistry, AgentCoordinates
 

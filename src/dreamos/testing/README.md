@@ -40,7 +40,7 @@ dir_results = tester.test_list_dir("path/to/directory")
 
 ## Integration
 
-The testing framework integrates with the metrics collection system to provide real-time data on system performance and reliability. Tests automatically log metrics using the `MetricsLogger` from `dreamos.core.metrics`.
+The testing framework integrates with the metrics collection system to provide real-time data on system performance and reliability. Tests automatically log metrics using the `MetricsLogger` from `dreamos.core.metrics_logger`.
 
 ## Extending
 
