@@ -263,7 +263,7 @@ class BridgeInjector:
 
 ```python
 # Example showing how to integrate with the Injector module
-from bridge.modules.module1 import BridgeInjector
+from bridge.injector import BridgeInjector
 
 # Initialize
 injector = BridgeInjector(config={

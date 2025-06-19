@@ -273,7 +273,7 @@ class BridgeLogger:
 
 ```python
 # Example showing how to integrate with Module 3
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+from bridge.logging import BridgeLogger, ErrorHandler
 
 # Initialize
 logger = BridgeLogger(config={

@@ -392,7 +392,7 @@ class BridgeTelemetry:
 
 ```python
 # Example showing how to integrate with the Telemetry module
-from bridge.modules.module2 import BridgeTelemetry
+from bridge.telemetry import BridgeTelemetry
 
 # Initialize
 telemetry = BridgeTelemetry(config={

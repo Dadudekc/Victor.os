@@ -1,8 +1,8 @@
 """
-Bridge Module 1: Injector
--------------------------
+Bridge Injector Module
+----------------------
 Handles validation, normalization, and routing of incoming requests.
-Implements Module 3 patterns for error handling and logging.
+Implements the logging and error handling patterns from the logging module.
 """
 
 import time
@@ -12,8 +12,8 @@ import datetime
 import jsonschema
 from typing import Dict, Any, Callable, Optional
 
-# Import Module 3 components
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+# Import logging components
+from bridge.logging import BridgeLogger, ErrorHandler
 
 class BridgeInjector:
     """
@@ -264,7 +264,7 @@ class BridgeInjector:
         """
         try:
             # Check if Module 2 telemetry is available
-            from bridge.modules.module2 import BridgeTelemetry
+            from bridge.telemetry import BridgeTelemetry
             
             telemetry_config = self.config.get('telemetry_config', {})
             telemetry = BridgeTelemetry(telemetry_config)

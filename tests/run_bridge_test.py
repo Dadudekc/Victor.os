@@ -2,7 +2,7 @@
 """
 Bridge Test Runner
 -----------------
-Demonstrates the functionality of Module 1 (Injector) and Module 2 (Telemetry).
+Demonstrates the functionality of the Injector and Telemetry modules.
 """
 
 import os
@@ -16,9 +16,9 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 # Import modules to test
-from bridge.modules.module1 import BridgeInjector
-from bridge.modules.module2 import BridgeTelemetry
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+from bridge.injector import BridgeInjector
+from bridge.telemetry import BridgeTelemetry
+from bridge.logging import BridgeLogger, ErrorHandler
 
 def create_test_logger():
     """Create a test logger."""

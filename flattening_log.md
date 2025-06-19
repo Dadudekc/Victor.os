@@ -12,3 +12,10 @@
 - Moved `dreamos/agents/io/agent_supervisor.py` to `dreamos/agents/agent_supervisor.py`
 - Moved `dreamos/examples/test_component.py` to `dreamos/test_component.py`
 - Updated imports in codebase to match new locations.
+- Moved `bridge/modules/module1.py` to `bridge/module1.py`
+- Moved `bridge/modules/module2.py` to `bridge/module2.py`
+- Moved `bridge/modules/module3.py` to `bridge/module3.py`
+- Updated imports and docs referencing `bridge.modules` to new locations.
+- Renamed `bridge/module1.py` to `bridge/injector.py`
+- Renamed `bridge/module2.py` to `bridge/telemetry.py`
+- Renamed `bridge/module3.py` to `bridge/logging.py`

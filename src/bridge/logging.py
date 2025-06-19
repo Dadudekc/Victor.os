@@ -1,6 +1,6 @@
 """
-Bridge Module 3: Logging & Error Handling Layer
-----------------------------------------------
+Bridge Logging Module
+-------------------
 Provides comprehensive logging and error handling capabilities for the Dream.OS Bridge system.
 Implements standardized logging formats, error classification, recursive call prevention, 
 and auto-recovery mechanisms.

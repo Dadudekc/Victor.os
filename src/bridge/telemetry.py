@@ -1,8 +1,8 @@
 """
-Bridge Module 2: Telemetry
--------------------------
+Bridge Telemetry Module
+----------------------
 Provides comprehensive metrics collection, event tracking, and performance monitoring capabilities.
-Implements Module 3 patterns for error handling and logging.
+Implements the logging and error handling patterns from the logging module.
 """
 
 import os
@@ -14,8 +14,8 @@ import statistics
 from typing import Dict, Any, List, Tuple, Union, Optional
 from collections import defaultdict
 
-# Import Module 3 components
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+# Import logging components
+from bridge.logging import BridgeLogger, ErrorHandler
 
 class BridgeTelemetry:
     """
