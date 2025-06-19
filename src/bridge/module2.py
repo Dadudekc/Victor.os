@@ -15,7 +15,7 @@ from typing import Dict, Any, List, Tuple, Union, Optional
 from collections import defaultdict
 
 # Import Module 3 components
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+from bridge.module3 import BridgeLogger, ErrorHandler
 
 class BridgeTelemetry:
     """
