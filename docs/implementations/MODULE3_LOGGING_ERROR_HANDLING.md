@@ -116,6 +116,8 @@ except ValidationError as e:
 ### 3.1 Core Logic
 
 ```python
+from bridge.logging import BridgeLogger, ErrorHandler
+
 class BridgeLogger:
     def __init__(self, config):
         self.log_path = config.get('log_path', 'runtime/logs/bridge_logs.jsonl')
@@ -273,7 +275,7 @@ class BridgeLogger:
 
 ```python
 # Example showing how to integrate with Module 3
-from bridge.module3 import BridgeLogger, ErrorHandler
+from bridge.logging import BridgeLogger, ErrorHandler
 
 # Initialize
 logger = BridgeLogger(config={

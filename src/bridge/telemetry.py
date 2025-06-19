@@ -1,8 +1,8 @@
 """
-Bridge Module 2: Telemetry
--------------------------
+Bridge Telemetry Module
+----------------------
 Provides comprehensive metrics collection, event tracking, and performance monitoring capabilities.
-Implements Module 3 patterns for error handling and logging.
+Implements the logging and error handling patterns from the logging module.
 """
 
 import os

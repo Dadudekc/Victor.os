@@ -121,6 +121,8 @@ except Exception as e:
 ### 3.1 Core Logic
 
 ```python
+from bridge.injector import BridgeInjector
+
 class BridgeInjector:
     def __init__(self, config):
         # Initialize configuration
@@ -263,7 +265,7 @@ class BridgeInjector:
 
 ```python
 # Example showing how to integrate with the Injector module
-from bridge.module1 import BridgeInjector
+from bridge.injector import BridgeInjector
 
 # Initialize
 injector = BridgeInjector(config={

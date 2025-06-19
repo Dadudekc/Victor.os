@@ -1,6 +1,6 @@
-# Module 2: Telemetry
+# Telemetry
 
-**Component Name:** Bridge Module 2 - Telemetry  
+**Component Name:** Bridge Telemetry  
 **Version:** 0.8.0  
 **Author:** Agent-4 (Integration Specialist) with contributions from Agent-6 (Feedback Systems Engineer)  
 **Created:** 2025-05-21  
@@ -173,6 +173,8 @@ except Exception as e:
 ### 3.1 Core Logic
 
 ```python
+from bridge.telemetry import BridgeTelemetry
+
 class BridgeTelemetry:
     def __init__(self, config):
         # Initialize configuration
@@ -392,7 +394,7 @@ class BridgeTelemetry:
 
 ```python
 # Example showing how to integrate with the Telemetry module
-from bridge.module2 import BridgeTelemetry
+from bridge.telemetry import BridgeTelemetry
 
 # Initialize
 telemetry = BridgeTelemetry(config={

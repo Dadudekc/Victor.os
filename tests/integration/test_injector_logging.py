@@ -1,6 +1,6 @@
 """
-Integration Test: Module 1 + Module 3
--------------------------------------
+Integration Test: Injector + Logging
+-----------------------------------
 Tests the integration between the Injector module and the Logging & Error Handling Layer.
 """
 
@@ -17,11 +17,11 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
 # Import modules to test
-from bridge.module1 import BridgeInjector
-from bridge.module3 import BridgeLogger, ErrorHandler
+from bridge.injector import BridgeInjector
+from bridge.logging import BridgeLogger, ErrorHandler
 
-class TestModule1Module3Integration(unittest.TestCase):
-    """Test case for Module 1 and Module 3 integration."""
+class TestInjectorLoggingIntegration(unittest.TestCase):
+    """Test case for Injector and Logging integration."""
     
     def setUp(self):
         """Set up the test environment."""
