@@ -1,0 +1,10 @@
+agents:
+  - id: CLICK-COPY-TO-THEA-MAILBOX
+    role: clipboard automation
+    task: Capture the latest Cursor response and append it as a bridge_request message in agent_tools/mailbox/thea/inbox.json.
+  - id: THEA-FORWARD-TO-CHATGPT
+    role: forwarder
+    task: Monitor THEA's inbox for bridge_request messages, relay them to ChatGPT, and store replies as bridge_reply messages for the requesting agent.
+  - id: CHATGPT-REPLY-TYPER
+    role: response typer
+    task: Read bridge_reply messages from agent inboxes and type them into the agent's Cursor chat input using PyAutoGUI.
