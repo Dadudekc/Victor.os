@@ -1,6 +1,6 @@
-# Module 2: Telemetry
+# Telemetry
 
-**Component Name:** Bridge Module 2 - Telemetry  
+**Component Name:** Bridge Telemetry  
 **Version:** 0.8.0  
 **Author:** Agent-4 (Integration Specialist) with contributions from Agent-6 (Feedback Systems Engineer)  
 **Created:** 2025-05-21  

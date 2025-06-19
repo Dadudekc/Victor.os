@@ -1,3 +1,5 @@
+# DEPRECATED: This file has been replaced by src/bridge/telemetry.py
+
 """
 Bridge Telemetry Module
 ----------------------
@@ -14,8 +16,8 @@ import statistics
 from typing import Dict, Any, List, Tuple, Union, Optional
 from collections import defaultdict
 
-# Import Module 3 components
-from bridge.module3 import BridgeLogger, ErrorHandler
+# Import logging components
+from bridge.logging import BridgeLogger, ErrorHandler
 
 class BridgeTelemetry:
     """
