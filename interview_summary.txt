@@ -1,0 +1,1 @@
+Victor.os showcases my ability to design automation around large language models. The system coordinates multiple ChatGPT workers through a file-based message bus, with self-healing loops and a PyQt dashboard for oversight. It demonstrates Python expertise, tooling around AI workflows, and a focus on verifiable, production-ready automation.
