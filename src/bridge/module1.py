@@ -13,7 +13,7 @@ import jsonschema
 from typing import Dict, Any, Callable, Optional
 
 # Import Module 3 components
-from bridge.modules.module3 import BridgeLogger, ErrorHandler
+from bridge.module3 import BridgeLogger, ErrorHandler
 
 class BridgeInjector:
     """
@@ -264,7 +264,7 @@ class BridgeInjector:
         """
         try:
             # Check if Module 2 telemetry is available
-            from bridge.modules.module2 import BridgeTelemetry
+            from bridge.module2 import BridgeTelemetry
             
             telemetry_config = self.config.get('telemetry_config', {})
             telemetry = BridgeTelemetry(telemetry_config)
