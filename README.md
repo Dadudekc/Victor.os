@@ -4,6 +4,10 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 Victor.os is an AI-native operating system for orchestrating swarms of LLM-powered agents. Each agent runs in its own workspace, communicates through a file-based message bus, and follows a strict verification protocol. A PyQt dashboard lets you monitor progress, nudge agents, and visualize project metrics.
+**Project Status**
+
+This project is under active development and many components are experimental. Expect rough edges and frequent changes.
+
 
 ## Key Features
 - **Multi-agent coordination** via a mailbox/message-bus protocol
@@ -46,12 +50,21 @@ User -> [PyQt Dashboard] -> [Message Bus] -> [Agent Loops] -> [Cursor/LLM Bridge
 Agents maintain `inbox.json` and `devlog.md` files inside `runtime/agent_comms/`. The message bus coordinates tasks and status updates, while the bridge handles ChatGPT/Cursor interactions. The project scanner provides structured context for the agents and for human oversight.
 
 ## Project Structure
-```
-/docs/                 - Documentation
-/runtime/              - Runtime configs and agent mailboxes
-/src/                  - Source code
-/apps/dashboard/       - PyQt5 dashboard application
-/spin_offs/            - Example microtools and templates
+```text
+Victor.os/
+├── apps/
+│   └── dashboard/
+├── docs/
+├── runtime/
+│   ├── agent_comms/
+│   └── logs/
+├── src/
+│   ├── apps/
+│   ├── bridge/
+│   └── ...
+├── tests/
+├── spin_offs/
+└── ...
 ```
 
 ## What This Demonstrates
