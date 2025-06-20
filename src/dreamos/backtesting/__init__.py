@@ -9,7 +9,7 @@ __version__ = "0.1.0"
 
 from .core import BacktestEngine
 from .data import DataManager
-from .strategies import StrategyBase
+from .strategies import StrategyBase, MovingAverageCrossover, MeanReversion
 from .analysis import PerformanceAnalyzer
 from .utils import ValidationError, BacktestError
 
@@ -17,6 +17,8 @@ __all__ = [
     'BacktestEngine',
     'DataManager',
     'StrategyBase',
+    'MovingAverageCrossover',
+    'MeanReversion',
     'PerformanceAnalyzer',
     'ValidationError',
     'BacktestError'

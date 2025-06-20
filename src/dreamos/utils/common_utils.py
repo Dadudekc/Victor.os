@@ -10,6 +10,11 @@ import os
 import logging
 
 
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger with the specified name."""
+    return logging.getLogger(name)
+
+
 def get_utc_iso_timestamp() -> str:
     """Get current UTC timestamp in ISO format."""
     return datetime.now(timezone.utc).isoformat()
