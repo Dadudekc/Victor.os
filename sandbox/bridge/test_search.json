@@ -1,8 +1,0 @@
-{
-  "command": "codebase_search",
-  "parameters": {
-    "query": "find relay logic",
-    "target_directories": ["sandbox/bridge"]
-  },
-  "correlation_id": "test-search-003"
-} 

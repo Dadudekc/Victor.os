@@ -1,7 +1,0 @@
-agents:
-  - id: agent1
-    role: documentation
-    task: Write API docs for the payment module
-  - id: agent2
-    role: testing
-    task: Create integration tests for the new endpoints

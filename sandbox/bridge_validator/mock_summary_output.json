@@ -1,8 +1,0 @@
-{
-  "timestamp": "{{iso_timestamp_utc()}}",
-  "module": 7,
-  "source_task_id": "SAMPLE-BRIDGE-TASK-001",
-  "status": "SUCCESS",
-  "summary": "Bridge validation task SAMPLE-BRIDGE-TASK-001 completed successfully. File contents were correctly transferred.",
-  "raw_result_reference": "sandbox/bridge_validator/mock_cursor_feedback.json"
-} 

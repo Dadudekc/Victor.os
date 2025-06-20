@@ -1,4 +1,0 @@
-{"patch_timestamp": "2025-05-05T21:12:01.627611+00:00", "processed_filename": "feedback_malformed_test_001.json", "anomaly_details": "Missing Timestamp", "status": "patched"}
-{"patch_timestamp": "2025-05-05T21:12:01.701679+00:00", "processed_filename": "feedback_malformed_test_002.json", "anomaly_details": "Invalid Status", "status": "patched"}
-{"patch_timestamp": "2025-05-05T21:12:01.758731+00:00", "processed_filename": "feedback_needs_patch_005.json", "anomaly_details": "Missing Result", "status": "patched"}
-{"patch_timestamp": "2025-05-05T21:12:01.868831+00:00", "processed_filename": "feedback_needs_patch_006.json", "anomaly_details": "Missing Request ID", "status": "patched"}

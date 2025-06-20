@@ -1,9 +1,0 @@
-{
-  "command": "edit_file",
-  "parameters": {
-    "target_file": "sandbox/test_file.txt",
-    "code_edit": "// ... existing code ...\nThis is a new line added by the bridge.\n// ... existing code ...",
-    "instructions": "Add a test line via Module 1 relay."
-  },
-  "correlation_id": "test-edit-001"
-} 

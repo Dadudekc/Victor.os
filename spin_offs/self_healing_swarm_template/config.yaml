@@ -1,7 +1,0 @@
-agents:
-  - id: 1
-    workspace: logs
-  - id: 2
-    workspace: logs
-  - id: 3
-    workspace: logs

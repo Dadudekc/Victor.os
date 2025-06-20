@@ -1,4 +1,0 @@
-{"event_type": "watcher_start", "event_timestamp": "2025-05-05T21:12:26.969856+00:00"}
-{"event_type": "watcher_end", "total_verified": 0, "total_mismatches": 0, "event_timestamp": "2025-05-05T21:12:52.249428+00:00"}
-{"event_type": "watcher_start_trust_scoring", "event_timestamp": "2025-05-05T21:14:41.450991+00:00"}
-{"event_type": "watcher_end", "total_verified": 0, "total_mismatches": 0, "final_trust_counts": {"1.0": 0, "0.5": 0, "0.0": 0}, "event_timestamp": "2025-05-05T21:15:06.589424+00:00"}

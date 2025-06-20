@@ -1,6 +1,0 @@
-{"original_filename": "feedback_malformed_test_001.json", "error_type": "Missing Timestamp", "details": "timestamp field absent", "patched": true, "patched_timestamp": "2025-05-05T21:12:01.627611+00:00"}
-{"original_filename": "feedback_malformed_test_002.json", "error_type": "Invalid Status", "details": "status field was 'PENDING'", "patched": true, "patched_timestamp": "2025-05-05T21:12:01.701679+00:00"}
-{"original_filename": "feedback_already_patched_003.json", "error_type": "N/A", "details": "Previously patched example", "patched": true}
-{"original_filename": "feedback_rejected_hexmire_004.json", "error_type": "Validation Failed", "details": "Schema validation failed structurally", "status": "rejected", "rejected_by": "HEXMIRE", "patched": false}
-{"original_filename": "feedback_needs_patch_005.json", "error_type": "Missing Result", "details": "result field absent", "patched": true, "patched_timestamp": "2025-05-05T21:12:01.758731+00:00"}
-{"original_filename": "feedback_needs_patch_006.json", "error_type": "Missing Request ID", "details": "request_id absent", "patched": true, "patched_timestamp": "2025-05-05T21:12:01.868831+00:00"}

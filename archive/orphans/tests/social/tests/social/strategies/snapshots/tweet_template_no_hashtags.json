@@ -1,6 +1,0 @@
-{
-  "template_data": {
-    "content": "Hello Twitter!"
-  },
-  "expected_output": "Hello Twitter!\n\n"
-}
