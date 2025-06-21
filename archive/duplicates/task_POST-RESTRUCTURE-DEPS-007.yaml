@@ -1,7 +1,0 @@
-task_id: POST-RESTRUCTURE-DEPS-007
-description: |
-  Review and update project dependencies (requirements.txt, pyproject.toml, etc.) to ensure all necessary packages are included and versions are compatible with the new structure.
-assigned_to: Agent-7
-status: PENDING
-priority: MEDIUM
-impact: MEDIUM 

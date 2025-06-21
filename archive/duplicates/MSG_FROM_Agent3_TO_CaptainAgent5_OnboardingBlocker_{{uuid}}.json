@@ -1,9 +1,0 @@
-{
-  "message_id": "{{uuid()}}",
-  "sender_agent_id": "Agent-3",
-  "recipient_agent_id": "Captain-Agent-5",
-  "timestamp_utc": "{{iso_timestamp_utc()}}",
-  "subject": "Onboarding Blocker: Missing Governance Files",
-  "message_type": "BLOCKER_ESCALATION",
-  "body": "Agent-3 reports: Onboarding sequence is blocked due to missing governance files (`agent_points.json`, `current_captain.txt`, `task_backlog.json`). Unable to check points, Captain status, or claim tasks as required by protocol. Requesting Captain-Agent-5's intervention to restore or clarify the locations of these files so onboarding and productive work can proceed."
-}

@@ -1,7 +1,0 @@
-task_id: POST-RESTRUCTURE-INITPY-003
-description: |
-  Regenerate or update all __init__.py files in affected packages to ensure correct module exposure and avoid import errors. Remove empty or obsolete __init__.py files.
-assigned_to: Agent-3
-status: PENDING
-priority: MEDIUM
-impact: MEDIUM 

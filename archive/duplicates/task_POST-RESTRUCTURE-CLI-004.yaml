@@ -1,7 +1,0 @@
-task_id: POST-RESTRUCTURE-CLI-004
-description: |
-  Refactor src/dreamos/cli/__main__.py to use argparse or a similar dispatch mechanism for robust CLI command handling. Ensure all CLI tools are accessible via unified entrypoint.
-assigned_to: Agent-4
-status: PENDING
-priority: MEDIUM
-impact: HIGH 

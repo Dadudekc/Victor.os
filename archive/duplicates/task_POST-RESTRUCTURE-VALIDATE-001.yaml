@@ -1,7 +1,0 @@
-task_id: POST-RESTRUCTURE-VALIDATE-001
-description: |
-  Validate that all legacy, archived, and redundant files/folders have been removed as per the restructure script. Confirm no orphaned or duplicate files remain.
-assigned_to: Agent-1
-status: PENDING
-priority: HIGH
-impact: CRITICAL 

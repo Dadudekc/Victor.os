@@ -1,7 +1,0 @@
-task_id: POST-RESTRUCTURE-DOCS-006
-description: |
-  Update project documentation (README, CONTRIBUTING, etc.) to reflect the new project structure and CLI usage. Ensure all paths, commands, and examples are accurate.
-assigned_to: Agent-6
-status: PENDING
-priority: MEDIUM
-impact: MEDIUM 
