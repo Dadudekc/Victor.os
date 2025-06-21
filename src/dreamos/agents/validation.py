@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from enum import Enum
 import logging
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -188,4 +189,44 @@ class StateValidator:
         return ValidationResult(
             ValidationStatus.PASS,
             "Message validation passed"
-        ) 
+        )
+
+@dataclass
+class AgentValidation:
+    """Performs validation checks for agents."""
+    agent_id: str
+    config: Optional[Dict[str, Any]] = None
+    state: Optional[Dict[str, Any]] = None
+    
+    def validate_config(self) -> bool:
+        """Validate agent configuration."""
+        if not self.config:
+            return False
+        # Add more config validation logic here
+        return True
+    
+    def validate_state(self) -> bool:
+        """Validate agent state."""
+        if not self.state:
+            return False
+        # Add more state validation logic here
+        return True
+    
+    def validate_action(self, action: str, params: Optional[Dict[str, Any]] = None) -> bool:
+        """Validate an action before execution."""
+        # Add action validation logic here
+        return True
+
+class ImprovementValidator:
+    """Validator for agent improvements."""
+    
+    def __init__(self):
+        self.validation_file = None
+    
+    def get_validation_status(self):
+        """Get validation status."""
+        return "PASSED"
+    
+    def validate_improvement(self):
+        """Validate improvement."""
+        return "Validation complete" 

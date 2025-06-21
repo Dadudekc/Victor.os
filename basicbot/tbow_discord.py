@@ -46,6 +46,52 @@ CONDITION_HANDLERS = {
     "VWAP_below":     vwap_below,
 }
 
+@dataclass
+class AlertRule:
+    """Alert rule configuration."""
+    symbol: str
+    conditions: List[str]  # List of conditions to evaluate
+    target: str  # Channel ID or user ID
+    user_id: str
+    created: datetime
+    alert_id: str = None  # UUID for alert management
+    cooldown_seconds: int = 300  # Default 5 minutes
+    last_triggered: Optional[datetime] = None
+    expires: Optional[datetime] = None
+    
+    def __post_init__(self):
+        """Initialize alert ID if not provided."""
+        if self.alert_id is None:
+            self.alert_id = str(uuid.uuid4())
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON storage."""
+        data = asdict(self)
+        data["created"] = data["created"].isoformat()
+        if data["last_triggered"]:
+            data["last_triggered"] = data["last_triggered"].isoformat()
+        if data["expires"]:
+            data["expires"] = data["expires"].isoformat()
+        return data
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AlertRule":
+        """Create from dictionary loaded from JSON."""
+        data = data.copy()
+        data["created"] = datetime.fromisoformat(data["created"])
+        if data.get("last_triggered"):
+            data["last_triggered"] = datetime.fromisoformat(data["last_triggered"])
+        if data.get("expires"):
+            data["expires"] = datetime.fromisoformat(data["expires"])
+        return cls(**data)
+    
+    def can_trigger(self) -> bool:
+        """Check if alert can trigger based on cooldown."""
+        if not self.last_triggered:
+            return True
+        elapsed = (datetime.now() - self.last_triggered).total_seconds()
+        return elapsed >= self.cooldown_seconds
+
 class PriceCache:
     """In-memory price cache for post-alert analysis."""
     
@@ -713,52 +759,6 @@ class DigestManager:
         except Exception as e:
             self.logger.error(f"Error replaying alert: {e}")
             return None
-
-@dataclass
-class AlertRule:
-    """Alert rule configuration."""
-    symbol: str
-    conditions: List[str]  # List of conditions to evaluate
-    target: str  # Channel ID or user ID
-    user_id: str
-    created: datetime
-    alert_id: str = None  # UUID for alert management
-    cooldown_seconds: int = 300  # Default 5 minutes
-    last_triggered: Optional[datetime] = None
-    expires: Optional[datetime] = None
-    
-    def __post_init__(self):
-        """Initialize alert ID if not provided."""
-        if self.alert_id is None:
-            self.alert_id = str(uuid.uuid4())
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON storage."""
-        data = asdict(self)
-        data["created"] = data["created"].isoformat()
-        if data["last_triggered"]:
-            data["last_triggered"] = data["last_triggered"].isoformat()
-        if data["expires"]:
-            data["expires"] = data["expires"].isoformat()
-        return data
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AlertRule":
-        """Create from dictionary loaded from JSON."""
-        data = data.copy()
-        data["created"] = datetime.fromisoformat(data["created"])
-        if data.get("last_triggered"):
-            data["last_triggered"] = datetime.fromisoformat(data["last_triggered"])
-        if data.get("expires"):
-            data["expires"] = datetime.fromisoformat(data["expires"])
-        return cls(**data)
-    
-    def can_trigger(self) -> bool:
-        """Check if alert can trigger based on cooldown."""
-        if not self.last_triggered:
-            return True
-        elapsed = (datetime.now() - self.last_triggered).total_seconds()
-        return elapsed >= self.cooldown_seconds
 
 class AlertManager:
     """Manages alert rules and triggers."""

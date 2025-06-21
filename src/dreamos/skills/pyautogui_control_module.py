@@ -5,6 +5,7 @@ PyAutoGUI Control Module for GUI automation and screen interaction.
 from typing import Dict, Any, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 import asyncio
 import logging
 import time
@@ -36,6 +37,11 @@ class ClipboardError(Exception):
 
 class PyAutoGUIError(Exception):
     """Exception raised for PyAutoGUI-related errors."""
+    pass
+
+
+class PyAutoGUIActionFailedError(Exception):
+    """Exception raised when a PyAutoGUI action fails."""
     pass
 
 

@@ -80,6 +80,14 @@ class InteractionExecutor:
         self.logger = get_logger("InteractionExecutor")
         self.executors: Dict[InteractionType, Callable] = {}
         self._register_default_executors()
+        self.interaction_types = {
+            "CLICK": "click",
+            "TYPE": "type", 
+            "SCROLL": "scroll",
+            "WAIT": "wait",
+            "SCREENSHOT": "screenshot"
+        }
+        self.current_workflow = None
     
     def _register_default_executors(self):
         """Register default interaction executors."""
@@ -284,7 +292,8 @@ class InteractionExecutor:
 class InteractionManager:
     """Manages interaction workflows and execution."""
     
-    def __init__(self):
+    def __init__(self, jarvis=None):
+        self.jarvis = jarvis
         self.executor = InteractionExecutor()
         self.workflows: Dict[str, InteractionWorkflow] = {}
         self.logger = get_logger("InteractionManager")

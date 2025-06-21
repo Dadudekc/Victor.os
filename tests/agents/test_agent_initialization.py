@@ -8,7 +8,7 @@ import json
 import os
 from pathlib import Path
 
-from dreamos.core.coordination.abstract_base_agent import BaseAgent
+from dreamos.agents.base_agent import BaseAgent
 from dreamos.core.config import AppConfig
 from dreamos.core.project_board import ProjectBoardManager
 
@@ -45,6 +45,10 @@ def temp_episode(tmp_path):
 
 def test_agent_initialization(mock_config, mock_pbm, temp_mailbox, temp_episode):
     """Test that an agent initializes correctly with all required components."""
+    # Update config with temporary paths
+    mock_config.mailbox_path = str(temp_mailbox)
+    mock_config.episode_path = str(temp_episode)
+    
     # Create agent instance
     agent = BaseAgent(mock_config, mock_pbm)
     
@@ -68,6 +72,9 @@ def test_agent_initialization(mock_config, mock_pbm, temp_mailbox, temp_episode)
 
 def test_agent_mailbox_creation(mock_config, mock_pbm, temp_mailbox):
     """Test that agent creates mailbox structure correctly."""
+    # Update config with temporary path
+    mock_config.mailbox_path = str(temp_mailbox)
+    
     # Create agent instance
     agent = BaseAgent(mock_config, mock_pbm)
     
@@ -101,6 +108,9 @@ def test_agent_config_validation(mock_config, mock_pbm):
 
 def test_agent_state_initialization(mock_config, mock_pbm, temp_mailbox):
     """Test that agent initializes state correctly."""
+    # Update config with temporary path
+    mock_config.mailbox_path = str(temp_mailbox)
+    
     # Create agent instance
     agent = BaseAgent(mock_config, mock_pbm)
     

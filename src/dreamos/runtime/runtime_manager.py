@@ -41,7 +41,7 @@ class RuntimeMetrics:
 class RuntimeManager:
     """Manages system runtime and performance monitoring."""
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, pbm=None):
         self.config = config or {
             "monitoring_interval": 5,  # seconds
             "max_agents": 100,
@@ -49,6 +49,7 @@ class RuntimeManager:
             "max_cpu_usage": 0.8,     # 80%
             "auto_scale": True
         }
+        self.pbm = pbm  # Project Board Manager
         
         self.start_time = datetime.utcnow()
         self.is_running = False

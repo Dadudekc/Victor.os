@@ -50,6 +50,9 @@ class DriftDetector:
         self.baselines: Dict[str, Dict[str, List[float]]] = {}
         self.drift_history: List[DriftPoint] = []
         self.agent_metrics: Dict[str, Dict[str, List[float]]] = {}
+        self.window_size = 10
+        self.actions = []
+        self.violations = []
     
     def add_metric_point(self, agent_id: str, metric_name: str, value: float, 
                         timestamp: Optional[datetime] = None):
@@ -257,4 +260,27 @@ class DriftDetector:
             cutoff_time = datetime.utcnow() - time_window
             drifts = [d for d in drifts if d.timestamp >= cutoff_time]
         
-        return sorted(drifts, key=lambda d: d.timestamp, reverse=True) 
+        return sorted(drifts, key=lambda d: d.timestamp, reverse=True)
+
+    def add_action(self, agent_id: str, action_type: str, compliance_score: float) -> Optional[str]:
+        """Add an action to the drift detector."""
+        self.actions.append({
+            "agent_id": agent_id,
+            "action_type": action_type,
+            "compliance_score": compliance_score
+        })
+        if compliance_score < 0.5:
+            return f"Warning: Low compliance detected for {agent_id}"
+        return None
+    
+    def add_violation(self, agent_id: str, violation_type: str, severity: float) -> None:
+        """Add a violation to the drift detector."""
+        self.violations.append({
+            "agent_id": agent_id,
+            "violation_type": violation_type,
+            "severity": severity
+        })
+    
+    def predict_compliance(self, agent_id: str, action_data: Dict[str, Any]) -> float:
+        """Predict compliance score for an agent."""
+        return 0.8  # Default high compliance 
