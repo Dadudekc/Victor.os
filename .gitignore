@@ -1,5 +1,8 @@
-# Environment variables
+# Environment variables and secrets
 .env
+.env.local
+.env.*.local
+*.env
 
 # Python cache files
 __pycache__/
@@ -7,9 +10,14 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyd
+*.so
 
-# Test cache
+# Test cache and coverage
 .pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
 
 # Runtime directory (contains instance-specific data, logs, etc.)
 # Ignore all runtime files by default
@@ -21,108 +29,27 @@ __pycache__/
 # Keep the README explaining the structure
 !/runtime/README.md
 
-# Optionally keep essential runtime configuration if needed
-# !/runtime/config/agent_coords.json
-# !/runtime/config/other_runtime_config.yaml
-
-# Remove old specific runtime ignores as they are covered by /runtime/*
-# runtime/**/inbox/*
-# runtime/**/outbox/*
-# runtime/**/*.log
-# runtime/**/*.json
-# !runtime/governance_memory.jsonl
-# !runtime/rulebook.md
-
-# Analysis outputs (optional, depends on workflow)
-# analysis/temp_*
-# analysis/latest_*
-# analysis/architect_reports/*
-# !analysis/rulebook_update_proposals.md # Keep proposals?
-
-# Generated reports (e.g., from find_todos)
+# Generated reports and analysis
 todo_report_categories/
+analysis/temp_*
+analysis/latest_*
+analysis/architect_reports/*
+reports/.dreamos_cache/
 
 # IDE specific folders
 .vscode/
 .idea/
 .cursor-prompts/
 .cursor/
+*.swp
+*.swo
+*~
 
-# Build artifacts (if any)
+# Build artifacts
 dist/
 build/
 *.egg-info/
-
-# Configuration files containing secrets
-social/social_config.json
-
-# Secrets storage (e.g., cookies)
-secrets/
-
-# Virtual environment directories
-**/.venv/
-
-# MyPy cache
-.mypy_cache/
-
-# Ruff cache
-.ruff_cache/
-
-# Cursor editor specific
-.cursor/
-
-# DreamOS root cache
-.dreamos_cache/
-
-# DreamOS specific cache in reports
-reports/.dreamos_cache/
-
-# Coverage reports
-htmlcov/
-.coverage
-
-# Node.js dependencies
-/frontend/node_modules/
-
-# Frontend build artifacts
-/frontend/dist/
-/frontend/build/
-
-# Ignore stray root script
-r.py
-
-# Temporary/artifact files
-*.isorted
-*.tmp
-*.bak
-
-# Test output logs
-test_stdout.log
-test_stderr.log
-
-# Vendor directory
-/vendor/
-/vendor/*
-!vendor/reprism/
-!vendor/reprism/languages/
-cleanup_log.json
-
-# Add working_tasks_agent-*_claimed.json to .gitignore
-working_tasks_agent-*_claimed.json
-working_tasks_agent-5_claimed.json # Be specific for the one that caused an issue too
-
-# Add duplicate_report.json to .gitignore
-duplicate_report.json
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -132,31 +59,136 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Configuration files containing secrets
+social/social_config.json
+config.json
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Virtual environment directories
+**/.venv/
 venv/
 env/
 ENV/
+.venv/
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+# Cache directories
+.mypy_cache/
+.ruff_cache/
+.dreamos_cache/
+.cache/
 
-# Logs
+# Node.js dependencies and build artifacts
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+package-lock.json
+yarn.lock
+
+# Temporary/artifact files
+*.isorted
+*.tmp
+*.bak
 *.log
 logs/
+test_stdout.log
+test_stderr.log
+cleanup_log.json
 
-# Runtime files
+# Vendor directory (except specific allowed items)
+/vendor/
+/vendor/*
+!vendor/reprism/
+!vendor/reprism/languages/
+
+# Agent-specific working files
+working_tasks_agent-*_claimed.json
+working_tasks_agent-5_claimed.json
+duplicate_report.json
+
+# Runtime communication files
 runtime/agent_comms/coordination/message_queue.json
 runtime/agent_comms/coordination/message_archive.json
 runtime/agent_comms/coordination/swarm_status.json
 runtime/agent_comms/coordination/protocol_status.json
 
-# OS
+# OS specific files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.backup
+*.old
+*.orig
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Temporary directories
+temp/
+tmp/
+.tmp/
+
+# Archive directories
+archive/
+archived_reports/
+
+# Chrome profile data (if any automation is involved)
+chrome_profile/
+
+# Cookies and session data
+cookies/
+*.pkl
+
+# ML model files (large binary files)
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.model
+*.weights
+
+# Large data files
+*.csv
+*.json
+!config.json
+!package.json
+!tsconfig.json
+!*.schema.json
+
+# Ignore stray root script
+r.py
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Local development
+local/
+dev/
