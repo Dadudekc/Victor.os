@@ -232,7 +232,8 @@ class MultiTenantManager:
         return f"tenant_{uuid.uuid4().hex[:8]}"
     
     def _create_tenant_config(self, tier: TenantTier, custom_config: Dict[str, Any] = None) -> TenantConfig:
-        """Create tenant configuration based on tier"""
+        """Create tenant configuration based on tier and custom config"""
+        custom_config = custom_config or {}
         tier_configs = {
             TenantTier.STARTER: {
                 "max_agents": 5,

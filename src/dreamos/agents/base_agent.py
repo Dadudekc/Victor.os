@@ -8,9 +8,9 @@ class BaseAgent(ABC):
     def __init__(self, config: Dict[str, Any] = None, pbm=None):
         self.config = config or {}
         self.pbm = pbm
-        self.agent_id = getattr(config, 'agent_id', None) if config else "default_agent"
-        self.mailbox_path = getattr(config, 'mailbox_path', None) if config else None
-        self.episode_path = getattr(config, 'episode_path', None) if config else None
+        self.agent_id = self.config.get('agent_id', "default_agent")
+        self.mailbox_path = self.config.get('mailbox_path', None)
+        self.episode_path = self.config.get('episode_path', None)
         
         # Validate configuration
         self._validate_config()
