@@ -58,7 +58,7 @@ for root, dirs, files in os.walk(SCAN_DIR):
 # Filter exact duplicates
 duplicate_report = {h: paths for h, paths in hashes.items() if len(paths) > 1}
 
-with open(os.path.join(output_reports_dir, "file_hash_log.json"), "w") as f:
+with open(os.path.join(output_reports_dir, "sha256_file_index.json"), "w") as f:
     json.dump(file_hash_log, f, indent=2)
 
 with open(os.path.join(output_reports_dir, "duplicate_report.json"), "w") as f:

@@ -54,3 +54,9 @@ Below are the top directories ranked by the number of near-duplicate filename ma
 - Next focus areas:
   - `docs/vision`
   - `src/dreamos/tools`
+
+## Progress (2025-06-14)
+
+- Updated `deduplication_scanner.py` to treat files smaller than 2KB as low-confidence duplicates.
+- Renamed the hash log output to `sha256_file_index.json` (Cluster 9).
+- Added tests to ensure deduplication scripts run after installing missing dependency `schedule`.

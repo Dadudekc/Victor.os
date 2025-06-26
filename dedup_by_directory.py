@@ -9,7 +9,7 @@ def scan_directory(dir_path: Path):
     ds.REPORTS_DIR = output_dir
     ds.DUPLICATE_REPORT_JSON_PATH = output_dir / "duplicate_report.json"
     ds.DUPLICATE_SUMMARY_TXT_PATH = output_dir / "duplicate_summary.txt"
-    ds.FILE_HASH_LOG_JSON_PATH = output_dir / "file_hash_log.json"
+    ds.FILE_HASH_LOG_JSON_PATH = output_dir / "sha256_file_index.json"
 
     config = ds.SCAN_CONFIG.copy()
     config["base_path"] = str(dir_path)

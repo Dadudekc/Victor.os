@@ -18,6 +18,7 @@ SCAN_CONFIG = {
     "file_types": [".py", ".md", ".yaml", ".json"],
     "use_certutil_for_large_files": True,
     "large_file_threshold_kb": 500,
+    "small_file_threshold_kb": 2,  # Skip hash-based duplicates below this size
     "similarity_threshold": 0.85  # For near-duplicate names
 }
 
@@ -25,7 +26,7 @@ SCAN_CONFIG = {
 REPORTS_DIR = Path("runtime/reports")
 DUPLICATE_REPORT_JSON_PATH = REPORTS_DIR / "duplicate_report.json"
 DUPLICATE_SUMMARY_TXT_PATH = REPORTS_DIR / "duplicate_summary.txt"
-FILE_HASH_LOG_JSON_PATH = REPORTS_DIR / "file_hash_log.json"
+FILE_HASH_LOG_JSON_PATH = REPORTS_DIR / "sha256_file_index.json"
 
 # --- Helper Functions ---
 
@@ -93,8 +94,9 @@ def scan_project(config: dict):
     print(f"Ignoring directories: {ignore_dirs_set}")
     print(f"Targeting file types: {file_types_set}")
 
-    all_files_data = {} # path_str -> {"hash": str, "size": int, "name": str}
-    hashes_to_files = defaultdict(list) # hash -> [path_str, path_str, ...]
+    all_files_data = {}  # path_str -> {"hash": str, "size": int, "name": str}
+    hashes_to_files = defaultdict(list)  # hash -> [path_str, path_str, ...]
+    small_file_hashes = defaultdict(list)  # for files under threshold
     all_dir_paths = set()
     all_filenames = [] # (filename, full_path_str)
 
@@ -128,15 +130,20 @@ def scan_project(config: dict):
                 config["use_certutil_for_large_files"],
                 config["large_file_threshold_kb"]
             )
-            
+
             if file_hash:
                 try:
                     size = filepath.stat().st_size
                     all_files_data[filepath_str] = {"hash": file_hash, "size": size, "name": filename}
-                    hashes_to_files[file_hash].append(filepath_str)
+
+                    if size < config["small_file_threshold_kb"] * 1024:
+                        small_file_hashes[file_hash].append(filepath_str)
+                    else:
+                        hashes_to_files[file_hash].append(filepath_str)
+
                     all_filenames.append((filename, filepath_str))
                 except FileNotFoundError:
-                     print(f"Warning: File {filepath_str} disappeared after listing and before stat.")
+                    print(f"Warning: File {filepath_str} disappeared after listing and before stat.")
                 except Exception as e:
                     print(f"Warning: Could not get stat for {filepath_str}: {e}")
 
@@ -145,6 +152,12 @@ def scan_project(config: dict):
     exact_duplicates = {
         hash_val: paths
         for hash_val, paths in hashes_to_files.items() if len(paths) > 1
+    }
+
+    # Low-confidence duplicates for very small files
+    small_file_duplicates = {
+        hash_val: paths
+        for hash_val, paths in small_file_hashes.items() if len(paths) > 1
     }
 
     # 2. Near-Duplicate Filenames
@@ -232,6 +245,7 @@ def scan_project(config: dict):
     report_data = {
         "scan_config": config,
         "exact_duplicates": exact_duplicates,
+        "low_confidence_duplicates": small_file_duplicates,
         "near_duplicate_filenames": dict(near_duplicate_filenames), # convert defaultdict
         "similar_directory_names": dict(similar_dir_names), # convert defaultdict
         "notes": [
@@ -267,6 +281,14 @@ def scan_project(config: dict):
         summary_lines.append(f"  Hash: {hash_val} ({len(paths)} files):")
         for p in paths:
             summary_lines.append(f"    - {p} (Size: {all_files_data.get(p, {}).get('size', 'N/A')} bytes)")
+
+    if small_file_duplicates:
+        summary_lines.append("---")
+        summary_lines.append(f"Found {len(small_file_duplicates)} groups of potential duplicates among very small files:")
+        for hash_val, paths in small_file_duplicates.items():
+            summary_lines.append(f"  Hash: {hash_val} ({len(paths)} files, size < {config['small_file_threshold_kb']} KB):")
+            for p in paths:
+                summary_lines.append(f"    - {p}")
     
     summary_lines.append("---")
     summary_lines.append(f"Found {len(near_duplicate_filenames)} groups of near-duplicate filenames:")
