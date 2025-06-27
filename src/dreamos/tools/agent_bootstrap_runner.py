@@ -375,6 +375,8 @@ class AgentBootstrapRunner:
                 await asyncio.sleep(self.config.startup_delay_sec)
             
             # Main agent loop
+            planning_only = os.getenv("PLANNING_ONLY_MODE", "false").lower() == "true"
+
             while self.running and not self.shutdown_requested:
                 # Check for context boundaries
                 boundary = self.state_manager.check_context_boundaries()
@@ -386,8 +388,12 @@ class AgentBootstrapRunner:
                 cycle = self.state_manager.increment_cycle_count()
                 self.logger.info(f"Starting cycle {cycle}")
                 
-                # Execute core agent logic
-                success = self._execute_core_agent_logic()
+                # Execute core agent logic unless planning_only_mode is active
+                if planning_only:
+                    self.logger.info("Planning Only Mode enabled - skipping core logic")
+                    success = True
+                else:
+                    success = self._execute_core_agent_logic()
                 
                 # Break after one cycle if configured for once mode
                 if self.config.once:
